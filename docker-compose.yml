@@ -25,7 +25,7 @@ uwsgi:
   command: uwsgi --ini /var/uwsgi/image_uwsgi.ini
 
   # set working dir for uwsgi
-  working_dir: /var/uwsgi/
+  working_dir: /var/uwsgi/image/
 
   # define volumes
   volumes:
