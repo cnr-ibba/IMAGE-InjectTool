@@ -122,3 +122,119 @@ class Samples(models.Model):
         verbose_name_plural = 'Samples'
 
 
+
+class Submission(models.Model):
+    # id = models.IntegerField(primary_key=True)  # AutoField?
+    title = models.CharField(max_length=255, help_text='Example: Roslin Sheep Atlas')
+    identifier = models.CharField(max_length=255, blank=True, null=True,
+                                  help_text='Must be blank if not assigned by BioSamples Database')
+    description = models.CharField(max_length=255,
+                                   help_text='Example: The Roslin Institute Sheep Gene Expression Atlas Project')
+    version = models.CharField(max_length=255, blank=True, null=True)
+    reference_layer = models.CharField(max_length=255, blank=True, null=True)
+    update_date = models.DateField(blank=True, null=True)
+    release_date = models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return str(str(self.id) + ", " + str(self.title))
+
+    class Meta:
+        # managed = False
+        db_table = 'submissions'
+        verbose_name = 'Submission'
+        verbose_name_plural = 'Submissions'
+
+
+
+class Person(models.Model):
+    # id = models.IntegerField(primary_key=True)  # AutoField?
+    last_name = models.CharField(max_length=255)
+    initials = models.CharField(max_length=255, blank=True, null=True)
+    first_name = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(max_length=70)
+    # role = models.CharField(max_length=255, blank=True, null=True)
+    role = models.ForeignKey('Dict_organization_roles', blank=True, null=True, related_name='%(class)s_role')
+
+    def __str__(self):
+        if str(self.first_name):
+            return str(str(self.id) + ", " + str(self.first_name) + " " + str(self.last_name))
+        else:
+            return str(str(self.id) + ", " + str(self.last_name))
+
+    class Meta:
+        # managed = False
+        db_table = 'persons'
+        verbose_name = 'Person'
+        verbose_name_plural = 'Persons'
+
+
+
+class Organization(models.Model):
+    # id = models.IntegerField(primary_key=True)  # AutoField?
+    name = models.CharField(max_length=255)
+    address = models.CharField(max_length=255, blank=True, null=True, help_text='One line, comma separated')
+    URI = models.URLField(max_length=500, blank=True, null=True, help_text='Web site')
+    # role = models.CharField(max_length=255, blank=True, null=True)
+    role = models.ForeignKey('Dict_organization_roles', blank=True, null=True, related_name='%(class)s_role')
+
+    def __str__(self):
+        return str(str(self.id) + ", " + str(self.name))
+
+    class Meta:
+        # managed = False
+        db_table = 'organizations'
+        verbose_name = 'Organization'
+        verbose_name_plural = 'Organizations'
+
+
+class Database(models.Model):
+    # id = models.IntegerField(primary_key=True)  # AutoField?
+    name = models.CharField(max_length=255)
+    DB_ID = models.CharField(max_length=255)
+    URI = models.URLField(max_length=500, blank=True, null=True,
+                          help_text='Database URI for this entry, typically a web page.')
+
+    def __str__(self):
+        return str(str(self.id) + ", " + str(self.name))
+
+    class Meta:
+        # managed = False
+        db_table = 'databases'
+        verbose_name = 'Database'
+        verbose_name_plural = 'Databases'
+
+
+class Publication(models.Model):
+    # id = models.IntegerField(primary_key=True)  # AutoField?
+    pubmed_id = models.CharField(max_length=255, help_text='Valid PubMed ID, numeric only')
+    doi = models.CharField(max_length=255, help_text='Valid Digital Object Identifier')
+
+    def __str__(self):
+        return str(str(self.id) + ", " + str(self.pubmed_id))
+
+    class Meta:
+        # managed = False
+        db_table = 'publications'
+        verbose_name = 'Publication'
+        verbose_name_plural = 'Publications'
+
+
+class Term_source(models.Model):
+    # id = models.IntegerField(primary_key=True)  # AutoField?
+    name = models.CharField(max_length=255, help_text='Each value must be unique')
+    URI = models.URLField(max_length=500, blank=True, null=True, help_text='Each value must be unique and an valid URL')
+    version = models.CharField(max_length=255, blank=True, null=True,
+                               help_text='If version is unknown, then last access date should be provided. If no date is provided, one will be assigned at submission.')
+
+    def __str__(self):
+        return str(str(self.id) + ", " + str(self.name))
+
+    class Meta:
+        # managed = False
+        db_table = 'term_sources'
+        verbose_name = 'Term Source'
+        verbose_name_plural = 'Term Sources'
+
+
+
+
