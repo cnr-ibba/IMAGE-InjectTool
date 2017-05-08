@@ -15,10 +15,19 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from image_app import views
+
 
 urlpatterns = [
-    url(r'^image_app/', include('image_app.urls', namespace="image_app")),
-    url(r'^admin/', admin.site.urls),
-    url(r'^$', include(admin.site.urls)),
+    # url(r'^$', views.listing, name='list'),
+    # e.g., .../image_app/sampletab1/1/ for details about the donor
+    # url(r'^sampletab1/(?P<pk>[0-9]+)/$', views.sampletab1, name='sampletab1'),
+    url(r'^sampletab1/$', views.sampletab1, name='sampletab1'),
+    url(r'^sampletab2/$', views.sampletab2, name='sampletab2'),
+    url(r'^check_metadata/$', views.check_metadata, name='check_metadata'),
 ]
+
+
+
+
 

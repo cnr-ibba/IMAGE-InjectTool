@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+{% block content %}
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% else %}
+
+<!--sampletab file content:<br>-->
+
+<!--{% for animal in animals %}-->
+    <!--{{ animal.name }} <br>-->
+    <!--{% for sample in animal.samples.all %}-->
+        <!--{{ sample }} <br>-->
+    <!--{% endfor %}-->
+<!--{% endfor %}-->
+
+
+    download result: <a href="{{ fileurl }}">Here...</a>
+
+{% endif %}
+
+{% endblock %}

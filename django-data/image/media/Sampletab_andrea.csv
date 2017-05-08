@@ -1,0 +1,6 @@
+[MSI]
+...
+[SCD]
+Sample Name	Sample Accession	Sample Description	Characteristic[project]	Material	Organism	Sex	Characteristic[breed]	Derived From	Characteristic[father]	Characteristic[mother]	Characteristic[organism part]	Characteristic[specimen collection date]	Unit	Characteristic[animal age at collection]	Unit	Characteristic[developmental stage]	Characteristic[animal farm latitude]	Characteristic[animal farm longitude]	Characteristic[biobank description]
+asd	IMAGE-a00001	asd	Image	organism	asd	unknown	asd										None	None			
+asd	IMAGE-s00001	sad	Image	specimen from organism				IMAGE-a00001				2017-05-05	YYYY-MM-DD	None	year	None			
