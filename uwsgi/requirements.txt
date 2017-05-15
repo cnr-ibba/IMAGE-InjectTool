@@ -3,3 +3,4 @@ mysqlclient
 psycopg2
 Django==1.11
 pandas
+SQLAlchemy

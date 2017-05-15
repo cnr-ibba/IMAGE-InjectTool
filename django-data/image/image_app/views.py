@@ -1,18 +1,21 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from image_app.models import Animals
-from image_app.models import Submission, Person, Organization, Publication, Database, Term_source
-from django.shortcuts import get_list_or_404
-from django.views import generic
+from django.shortcuts import get_list_or_404, render, redirect
 import os
+from image_app.forms import BackupForm
 from django.conf import settings
-import sys
 import codecs
-import pandas
+# from django.http import HttpResponse
+from image_app.models import Animals
+from image_app.models import Submission, Person, Organization, Publication, \
+    Database, Term_source, Backup
+import subprocess
+# from django.views import generic
+# import sys
+import pandas as pd
+from sqlalchemy import create_engine
 
 
 def check_metadata(request):
-    username = None
+    # username = None
     check_passed = True
     submissions = persons = organizations = 'static/admin/img/icon-no.svg'
     publications = databases = term_sources = 'static/admin/img/icon-yes.svg'
@@ -26,7 +29,8 @@ def check_metadata(request):
     if len(Submission.objects.all()) > 0:
         submissions = 'static/admin/img/icon-yes.svg'
         if len(Submission.objects.all()) > 1:
-            context['submissions_warning'] = 'Note: you have more than one submission record. Only the most recent will be used.'
+            context['submissions_warning'] = 'Note: you have more than one' + \
+                ' submission record. Only the most recent will be used.'
     else:
         check_passed = False
 
@@ -57,7 +61,7 @@ def check_metadata(request):
 
 
 def sampletab1(request):
-    username = None
+    # username = None
 
     if request.user.is_authenticated():
         username = request.user.username
@@ -68,7 +72,6 @@ def sampletab1(request):
     return render(request, 'image_app/sampletab1.html', context)
 
 
-
 def write_record(myfile, record):
     global codecs
 
@@ -77,55 +80,53 @@ def write_record(myfile, record):
         f.write("\n")
 
 
-
 def sampletab2(request):
-    filelink = ''
+    # filelink = ''
     username = None
 
     if request.user.is_authenticated():
         myusername = request.user.username
 
-        filename = "Sampletab_{}.csv".format(myusername) # il solo nome, senza path
-        fileroot = os.path.join(settings.MEDIA_ROOT, filename) # con path assoluto
-        fileurl = os.path.join(settings.MEDIA_URL, filename) # indirizzo del file sul webserver
+        filename = "Sampletab_{}.csv".format(myusername)  # il solo nome
+        fileroot = os.path.join(settings.MEDIA_ROOT, filename)  # con path
+        fileurl = os.path.join(settings.MEDIA_URL, filename)  # URL
 
         context = {'username': username, 'fileurl': fileurl}
-
 
         with codecs.open(fileroot, 'w', encoding="utf-8") as f:
             f.write('[MSI]\n')
             f.write('...\n')
             f.write('[SCD]\n')
-            f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-                'Sample Name',
-                'Sample Accession',
-                'Sample Description',
-                'Characteristic[project]',
-                'Material',
-                'Organism',
-                'Sex',
-                'Characteristic[breed]',
-                'Derived From',
-                'Characteristic[father]',
-                'Characteristic[mother]',
-                'Characteristic[organism part]',
-                'Characteristic[specimen collection date]',
-                'Unit',
-                'Characteristic[animal age at collection]',
-                'Unit',
-                'Characteristic[developmental stage]',
-                'Characteristic[animal farm latitude]',
-                'Characteristic[animal farm longitude]',
-                'Characteristic[biobank description]',
-                'Characteristic[biobank address]',
-                'Characteristic[biobank contacts]',
+            f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}" +
+                    "\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        'Sample Name',
+                        'Sample Accession',
+                        'Sample Description',
+                        'Characteristic[project]',
+                        'Material',
+                        'Organism',
+                        'Sex',
+                        'Characteristic[breed]',
+                        'Derived From',
+                        'Characteristic[father]',
+                        'Characteristic[mother]',
+                        'Characteristic[organism part]',
+                        'Characteristic[specimen collection date]',
+                        'Unit',
+                        'Characteristic[animal age at collection]',
+                        'Unit',
+                        'Characteristic[developmental stage]',
+                        'Characteristic[animal farm latitude]',
+                        'Characteristic[animal farm longitude]',
+                        'Characteristic[biobank description]',
+                        'Characteristic[biobank address]',
+                        'Characteristic[biobank contacts]',
 
-            ))
+                        ))
         # animals = get_list_or_404(Animals)
         # queryset = Animals.objects.filter(author=request.user.id)
         # animals = get_list_or_404(Animals, id='763')
         animals = get_list_or_404(Animals)
-
 
         for a in animals:
             # buffer = a.name
@@ -141,63 +142,134 @@ def sampletab2(request):
 
             # eva = a.eva.all()
             # eva_str = ';'.join([e.description for e in eva])
-            record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
-                a.name,
-                # a.name,
-                "IMAGE-a{0:05d}".format(a.id),
-                a.description,
-                'Image',
-                'organism',
-                a.breed.species,
-                a.sex.description,
-                a.breed.description,
-                '',
-                father,
-                mother,
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                a.farm_latitude,
-                a.farm_longitude,
-                '',
-                '',
-                '',
-                # '', # eva_str,
-            )
+            record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}" +\
+                "\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+                    a.name,
+                    # a.name,
+                    "IMAGE-a{0:05d}".format(a.id),
+                    a.description,
+                    'Image',
+                    'organism',
+                    a.breed.species,
+                    a.sex.description,
+                    a.breed.description,
+                    '',
+                    father,
+                    mother,
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    a.farm_latitude,
+                    a.farm_longitude,
+                    '',
+                    '',
+                    '',
+                    # '', # eva_str,
+                    )
             write_record(fileroot, record)
             samples = a.samples.all()
             for s in samples:
-                record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
-                    # "{}_{}".format(a.name, s.name),
-                    s.name,
-                    "IMAGE-s{0:05d}".format(s.id),
-                    s.description,
-                    'Image',
-                    'specimen from organism',
-                    '',
-                    '',
-                    '',
-                    "IMAGE-a{0:05d}".format(a.id),
-                    '',
-                    '',
-                    s.organism_part,
-                    s.collection_date,
-                    'YYYY-MM-DD',
-                    s.animal_age_at_collection,
-                    'year',
-                    s.developmental_stage,
-                    '',
-                    '',
-                    '',
-                )
+                record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}" +\
+                    "\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+                        # "{}_{}".format(a.name, s.name),
+                        s.name,
+                        "IMAGE-s{0:05d}".format(s.id),
+                        s.description,
+                        'Image',
+                        'specimen from organism',
+                        '',
+                        '',
+                        '',
+                        "IMAGE-a{0:05d}".format(a.id),
+                        '',
+                        '',
+                        s.organism_part,
+                        s.collection_date,
+                        'YYYY-MM-DD',
+                        s.animal_age_at_collection,
+                        'year',
+                        s.developmental_stage,
+                        '',
+                        '',
+                        '',
+                        )
                 write_record(fileroot, record)
 
     else:
         context = {'error_message': 'You are not authenticated'}
-
-
-
     return render(request, 'image_app/sampletab2.html', context)
+
+
+def model_form_upload(request):
+    if request.user.is_authenticated():
+        username = request.user.username
+        # context = {'username': username}
+
+        if request.method == 'POST':
+            form = BackupForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                return redirect('../../')
+        else:
+            form = BackupForm()
+        return render(request, 'image_app/model_form_upload.html', {
+            'form': form, 'username': username, })
+
+    else:
+        return redirect('../../')
+
+
+def dump_reading(request):
+    if request.user.is_authenticated():
+        username = request.user.username
+        context = {'username': username}
+
+        # TODO: fare una funzione per la lettura del file di backup
+        # e per la scrittura dei suoi dati nel database receiving...
+
+        last_backup = list(Backup.objects.all())[-1]
+
+
+        fullpath = last_backup.backup.file
+        context['fullpath'] = fullpath
+
+        try:
+            # engine = create_engine(
+            #    'mysql://climgen:Kie8thae@192.168.13.225/climgen', echo=False)
+            # engine = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb',
+            #                       echo=False)
+            
+#            output = subprocess.check_output(['/usr/bin/psql', 
+#                                              '-U', 'postgres',
+#                                              '-h', 'db',
+#                                              'image',
+#                                              '<',
+#                                              "{}".format(fullpath)])
+
+            cmd_line = "export PGPASSWORD='***REMOVED***'; /usr/bin/psql -U postgres -h db imported_from_cryoweb < {}".format(fullpath)
+            try:
+                output = subprocess.call(cmd_line, stderr=subprocess.STDOUT, 
+                                         shell=True)
+            except subprocess.CalledProcessError as e:
+                print(e.output)
+                
+            context['fullpath'] = output
+        except:
+            # print("non riesco a fare l'engine")
+
+            context['fullpath'] = "ERROR!"
+            raise
+
+        return render(request, 'image_app/dump_reading.html', context)
+
+    else:
+        return redirect('../../')
+
+
+# try:
+#     df.to_sql(name=table, con=engine, if_exists = 'append', index=False)
+# except:
+#     print("errore nella fx df.to_sql"); raise        

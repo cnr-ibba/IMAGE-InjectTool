@@ -13,21 +13,21 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import include, url
-from django.contrib import admin
+from django.conf.urls import url
 from image_app import views
+# from django.conf.urls import include
+# from django.contrib import admin
 
 
 urlpatterns = [
     # url(r'^$', views.listing, name='list'),
     # e.g., .../image_app/sampletab1/1/ for details about the donor
-    # url(r'^sampletab1/(?P<pk>[0-9]+)/$', views.sampletab1, name='sampletab1'),
+    # url(r'^sampletab1/(?P<pk>[0-9]+)/$', views.sampletab1,
+    #      name='sampletab1'),
     url(r'^sampletab1/$', views.sampletab1, name='sampletab1'),
     url(r'^sampletab2/$', views.sampletab2, name='sampletab2'),
     url(r'^check_metadata/$', views.check_metadata, name='check_metadata'),
+    url(r'^model_form_upload/$', views.model_form_upload,
+        name='model_form_upload'),
+    url(r'dump_reading/$', views.dump_reading, name='dump_reading'),
 ]
-
-
-
-
-
