@@ -8,10 +8,11 @@ from image_app.models import Animals
 from image_app.models import Submission, Person, Organization, Publication, \
     Database, Term_source, Backup
 import subprocess
-# from django.views import generic
-# import sys
 import pandas as pd
 from sqlalchemy import create_engine
+
+# from django.views import generic
+# import sys
 
 
 def check_metadata(request):
@@ -226,30 +227,14 @@ def dump_reading(request):
     if request.user.is_authenticated():
         username = request.user.username
         context = {'username': username}
-
-        # TODO: fare una funzione per la lettura del file di backup
-        # e per la scrittura dei suoi dati nel database receiving...
-
         last_backup = list(Backup.objects.all())[-1]
-
 
         fullpath = last_backup.backup.file
         context['fullpath'] = fullpath
-
+        output = ''
         try:
-            # engine = create_engine(
-            #    'mysql://climgen:Kie8thae@192.168.13.225/climgen', echo=False)
-            # engine = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb',
-            #                       echo=False)
-            
-#            output = subprocess.check_output(['/usr/bin/psql', 
-#                                              '-U', 'postgres',
-#                                              '-h', 'db',
-#                                              'image',
-#                                              '<',
-#                                              "{}".format(fullpath)])
-
-            cmd_line = "export PGPASSWORD='***REMOVED***'; /usr/bin/psql -U postgres -h db imported_from_cryoweb < {}".format(fullpath)
+            cmd_line = "export PGPASSWORD='***REMOVED***'; /usr/bin/psql -U postgres -h db " +\
+                       "imported_from_cryoweb < {}".format(fullpath)
             try:
                 output = subprocess.call(cmd_line, stderr=subprocess.STDOUT, 
                                          shell=True)
@@ -258,8 +243,6 @@ def dump_reading(request):
                 
             context['fullpath'] = output
         except:
-            # print("non riesco a fare l'engine")
-
             context['fullpath'] = "ERROR!"
             raise
 
@@ -269,7 +252,91 @@ def dump_reading(request):
         return redirect('../../')
 
 
-# try:
-#     df.to_sql(name=table, con=engine, if_exists = 'append', index=False)
-# except:
-#     print("errore nella fx df.to_sql"); raise        
+
+
+
+def dump_reading2(request):
+
+    def get_breed_id(row, df_breeds_species):
+        # global df_breeds_species
+        breed_id = df_breeds_species.loc[(df_breeds_species['db_breed'] == row['db_breed']) & (
+        df_breeds_species['db_species'] == row['db_species']), 'breed_id']
+
+        return int(breed_id)
+
+    if request.user.is_authenticated():
+        username = request.user.username
+        context = {'username': username}
+        try:
+            engine_from_cryoweb = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
+            engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
+
+            df_breeds_species = pd.read_sql_table('v_breeds_species', con=engine_from_cryoweb, schema='public')
+            # df_breeds_species.head()
+            df_breeds_fin = df_breeds_species[
+                ['breed_id', 'db_breed', 'efabis_mcname', 'efabis_species', 'efabis_country', 'efabis_lang']]
+            df_breeds_fin = df_breeds_fin.rename(
+                columns={
+                    'breed_id': 'id',
+                    'efabis_mcname': 'description',
+                    'efabis_species': 'species',
+                    'efabis_country': 'country',
+                    'efabis_lang': 'language',
+                }
+            )
+            df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_sampletab, if_exists='append', index=False)
+
+
+            df_animals = pd.read_sql_table('v_animal', con=engine_from_cryoweb, schema='public')
+            df_animals['breed_id'] = df_animals.apply(lambda row: get_breed_id(row, df_breeds_species), axis=1)
+
+            df_animals_fin = df_animals[
+                ['db_animal', 'ext_animal', 'breed_id', 'ext_sex', 'db_sire', 'db_dam', 'birth_dt', 'birth_year',
+                 'last_change_dt', 'latitude', 'longitude']]
+
+            df_animals_fin = df_animals_fin.rename(
+                columns={
+                    'db_animal': 'id',
+                    'ext_animal': 'name',
+                    'ext_sex': 'sex_id',
+                    'db_sire': 'father_id',
+                    'db_dam': 'mother_id',
+                    'birth_dt': 'birth_date',
+                    'last_change_dt': 'submission_date',
+                    'latitude': 'farm_latitude',
+                    'longitude': 'farm_longitude',
+                }
+            )
+            df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace({'m': 1, 'f': 2})
+            df_animals_fin['name'] = df_animals_fin['name'].str.replace('\t', '')
+            df_animals_fin.to_sql(name='animals', con=engine_to_sampletab, if_exists='append', index=False)
+
+            df_samples = pd.read_sql_table('v_vessels', con=engine_from_cryoweb, schema='public')
+            # df_samples.head()
+            df_samples_fin = df_samples[
+                ['db_vessel', 'ext_vessel', 'production_dt', 'ext_protocol_id', 'db_animal', 'comment']]
+            df_samples_fin = df_samples_fin.rename(
+                columns={
+                    'db_vessel': 'id',
+                    'ext_vessel': 'name',
+                    'production_dt': 'collection_date',
+                    'ext_protocol_id': 'protocol',
+                    'db_animal': 'animal_id',
+                    'comment': 'notes'
+                }
+            )
+
+            df_samples_fin['name'] = df_samples_fin['name'].str.replace('\t', '')
+
+            # df_samples_fin.head()
+            df_samples_fin.to_sql(name='samples', con=engine_to_sampletab, if_exists='append', index=False)
+
+            context['fullpath'] = "OK"
+
+        except:
+            context['fullpath'] = "ERROR!"
+            raise
+
+        return render(request, 'image_app/dump_reading2.html', context)
+    else:
+        return redirect('../../')

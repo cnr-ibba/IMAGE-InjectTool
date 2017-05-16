@@ -30,4 +30,6 @@ urlpatterns = [
     url(r'^model_form_upload/$', views.model_form_upload,
         name='model_form_upload'),
     url(r'dump_reading/$', views.dump_reading, name='dump_reading'),
+    url(r'dump_reading2/$', views.dump_reading2, name='dump_reading2'),
+
 ]

@@ -48,17 +48,19 @@
 {% endif %}
 </div>
 
-<p><strong><a target=_blank href="image/image_app/model_form_upload/"> - Dump file upload</a>
+<p><strong><a target=_blank href="{% url 'image_app:model_form_upload' %}"> - Dump file upload</a>
 </strong>
 
-<p><strong><a target=_blank href="image/image_app/dump_reading/"> - Dump file import (step 1)</a>
+<p><strong><a target=_blank href="{% url 'image_app:dump_reading' %}"> - Dump file import (step 1)</a>
 </strong>
 
-<p><strong><a target=_blank href="image/image_app/dump_reading/"> - Dump file import (step 2)</a>
+<p><strong><a target=_blank href="{% url 'image_app:dump_reading2' %}"> - Dump file import (step 2)</a>
 </strong>
 
-<p><strong><a target=_blank href="image/image_app/check_metadata/"> - Create Sampletab file</a>
+<p><strong><a target=_blank href="{% url 'image_app:check_metadata' %}"> - Create Sampletab file</a>
 </strong>
+
+
 
 
 

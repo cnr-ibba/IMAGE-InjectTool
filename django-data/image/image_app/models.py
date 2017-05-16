@@ -31,8 +31,8 @@ class DictBreeds(models.Model):
     species = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, blank=True, null=True)
     language = models.CharField(max_length=255, blank=True, null=True)
-    api_url = models.CharField(max_length=255, blank=True)
-    notes = models.TextField(blank=True)
+    api_url = models.CharField(max_length=255, blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return str(self.description)
@@ -74,13 +74,13 @@ class Animals(models.Model):
     birth_date = models.DateField(blank=True, null=True)
     birth_year = models.IntegerField(choices=YEAR_CHOICES, blank=True,
                                      null=True)
-    breed_standard = models.CharField(max_length=255, blank=True)
+    breed_standard = models.CharField(max_length=255, blank=True, null=True)
     submission_date = models.DateField(blank=True, null=True)
     farm_latitude = models.FloatField(blank=True, null=True)
     farm_longitude = models.FloatField(blank=True, null=True)
-    reproduction_place = models.CharField(max_length=255, blank=True)
+    reproduction_place = models.CharField(max_length=255, blank=True, null=True)
     # author = models.ForeignKey(User, related_name='authoranimals')
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name) + ", " +
@@ -97,14 +97,14 @@ class Samples(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     name = models.CharField(max_length=255, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
-    production_data = models.CharField(max_length=255, blank=True)
-    organism_part = models.CharField(max_length=255, blank=True)
+    production_data = models.CharField(max_length=255, blank=True, null=True)
+    organism_part = models.CharField(max_length=255, blank=True, null=True)
     collection_date = models.DateField(blank=True, null=True)
     animal_age_at_collection = models.IntegerField(null=True, blank=True)
     developmental_stage = models.CharField(max_length=255, blank=True,
                                            null=True)
     # biobank = models.ForeignKey(DictBiobanks, blank=True, null=True)
-    availability = models.CharField(max_length=5, blank=True)
+    availability = models.CharField(max_length=5, blank=True, null=True)
     protocol = models.CharField(max_length=255, blank=True, null=True)
     # animal_farm_latitude = models.FloatField(blank=True, null=True)
     # animal_farm_longitude = models.FloatField(blank=True, null=True)
@@ -116,7 +116,7 @@ class Samples(models.Model):
     animal = models.ForeignKey('Animals', db_index=True,
                                related_name='samples')
     # author = models.ForeignKey(User, related_name='authorsamples')
-    notes = models.CharField(max_length=255, blank=True)
+    notes = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name))
