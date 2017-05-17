@@ -98,8 +98,7 @@ def sampletab2(request):
             f.write('[MSI]\n')
             f.write('...\n')
             f.write('[SCD]\n')
-            f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}" +
-                    "\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+            f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
                         'Sample Name',
                         'Sample Accession',
                         'Sample Description',
@@ -143,8 +142,7 @@ def sampletab2(request):
 
             # eva = a.eva.all()
             # eva_str = ';'.join([e.description for e in eva])
-            record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}" +\
-                "\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+            record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
                     a.name,
                     # a.name,
                     "IMAGE-a{0:05d}".format(a.id),
@@ -173,8 +171,7 @@ def sampletab2(request):
             write_record(fileroot, record)
             samples = a.samples.all()
             for s in samples:
-                record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}" +\
-                    "\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+                record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
                         # "{}_{}".format(a.name, s.name),
                         s.name,
                         "IMAGE-s{0:05d}".format(s.id),
@@ -252,15 +249,12 @@ def dump_reading(request):
         return redirect('../../')
 
 
-
-
-
 def dump_reading2(request):
 
     def get_breed_id(row, df_breeds_species):
         # global df_breeds_species
         breed_id = df_breeds_species.loc[(df_breeds_species['db_breed'] == row['db_breed']) & (
-        df_breeds_species['db_species'] == row['db_species']), 'breed_id']
+            df_breeds_species['db_species'] == row['db_species']), 'breed_id']
 
         return int(breed_id)
 
@@ -285,7 +279,6 @@ def dump_reading2(request):
                 }
             )
             df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_sampletab, if_exists='append', index=False)
-
 
             df_animals = pd.read_sql_table('v_animal', con=engine_from_cryoweb, schema='public')
             df_animals['breed_id'] = df_animals.apply(lambda row: get_breed_id(row, df_breeds_species), axis=1)
