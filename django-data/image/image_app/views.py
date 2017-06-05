@@ -10,6 +10,7 @@ from image_app.models import Submission, Person, Organization, Publication, \
 import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
+import numpy
 
 # from django.views import generic
 # import sys
@@ -385,26 +386,36 @@ def dump_reading2(request):
 
             # ORGANIZATIONS
 
-            df_organizations = pd.read_sql_table('v_contacts', con=engine_from_cryoweb, schema='public')
+            df_contacts = pd.read_sql_table('v_contacts', con=engine_from_cryoweb, schema='public')
 
-            df_organizations['address'] = df_organizations['street'] + ", " + \
-                                          df_organizations['zip'] + " " + \
-                                          df_organizations['town'] + ", " + \
-                                          df_organizations['ext_country']
+            df_contacts['address'] = df_contacts['street'] + ", " + \
+                                          df_contacts['zip'] + " " + \
+                                          df_contacts['town'] + ", " + \
+                                          df_contacts['ext_country']
 
-            df_organizations['URI'] = "emailto:" + df_organizations['email']
-            df_organizations = df_organizations.rename(
+            df_contacts['URI'] = "emailto:" + df_contacts['email']
+            df_contacts = df_contacts.rename(
                 columns={
                     'third_name': 'name',
                 }
             )
-            # df_organizations['role'] = 'bank'
-            df_organizations_fin = df_organizations[
+
+            df_organizations = df_contacts[
                 ['name', 'address', 'URI']]
-            df_organizations_fin.to_sql(name='organizations', con=engine_to_sampletab, if_exists='append', index=False)
 
+            # df_organizations.to_sql(name='organizations', con=engine_to_sampletab, if_exists='append', index=False)
 
-            context['fullpath'] = df_organizations_fin.head()
+            df_persons = df_contacts[
+                ['first_name', 'second_name', 'email']]
+
+            df_persons = df_persons.rename(
+                columns={
+                    'second_name': 'last_name',
+                }
+            )
+            df_persons.to_sql(name='persons', con=engine_to_sampletab, if_exists='append', index=False)
+
+            context['fullpath'] = "OK"
 
         except:
             context['fullpath'] = "ERROR!"
