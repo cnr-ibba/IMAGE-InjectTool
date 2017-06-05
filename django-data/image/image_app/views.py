@@ -335,7 +335,7 @@ def dump_reading2(request):
                     'efabis_lang': 'language',
                 }
             )
-            # df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_sampletab, if_exists='append', index=False)
+            df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_sampletab, if_exists='append', index=False)
 
             # ANIMALS
 
@@ -361,7 +361,7 @@ def dump_reading2(request):
             )
             df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace({'m': 1, 'f': 2})
             df_animals_fin['name'] = df_animals_fin['name'].str.replace('\t', '')
-            # df_animals_fin.to_sql(name='animals', con=engine_to_sampletab, if_exists='append', index=False)
+            df_animals_fin.to_sql(name='animals', con=engine_to_sampletab, if_exists='append', index=False)
 
             # SAMPLES
 
@@ -382,7 +382,7 @@ def dump_reading2(request):
 
             df_samples_fin['name'] = df_samples_fin['name'].str.replace('\t', '')
 
-            # df_samples_fin.to_sql(name='samples', con=engine_to_sampletab, if_exists='append', index=False)
+            df_samples_fin.to_sql(name='samples', con=engine_to_sampletab, if_exists='append', index=False)
 
             # ORGANIZATIONS
 
@@ -403,7 +403,7 @@ def dump_reading2(request):
             df_organizations = df_contacts[
                 ['name', 'address', 'URI']]
 
-            # df_organizations.to_sql(name='organizations', con=engine_to_sampletab, if_exists='append', index=False)
+            df_organizations.to_sql(name='organizations', con=engine_to_sampletab, if_exists='append', index=False)
 
             df_persons = df_contacts[
                 ['first_name', 'second_name', 'email']]
