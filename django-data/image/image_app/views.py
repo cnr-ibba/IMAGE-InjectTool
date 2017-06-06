@@ -123,6 +123,45 @@ def sampletab2(request):
         pd.set_option("display.max_columns", None)
         pd.set_option("display.max_rows", None)
 
+
+
+        # --- Submission ---
+        df_submission = pd.read_sql_table('submissions', con=engine, schema='public')
+        df_submission = df_submission.drop(['id', 'identifier', 'version', 'reference_layer',
+                                            'update_date', 'release_date'], 1).head(1)
+        df_submission = df_submission.rename(
+            columns={
+                'title': 'Submission Title',
+                'description': 'Submission Description',
+            }
+        )
+
+        cols_as_strings = ["col" + str(ind) for ind in
+                           df_submission.index]  # Diverse persone sono indicate in colonne
+                                                    # con nomi 0, 1, 2 ecc..., che trasformo
+                                                    # in col0, col1, col2, ecc...
+        df_submission.index = cols_as_strings
+
+        # voglio una tabella come
+        # name pippo
+        # address via carducci
+        # ecc...
+        # perciò devo trasporre la tab del database
+        df_submission_T = df_submission.transpose()
+        df_submission_T['index1'] = df_submission_T.index # name, address, ecc... sono l'index (df.index)
+                                                                # io li trasformo in una colonna vera df['index1']
+        df_submission_T = df_submission_T[df_submission_T.columns[::-1]]   # inverto l'ordine delle colonne per
+                                                                                    # avere index1 come prima
+
+        submission_tbl = df_submission_T.to_csv(sep="\t", encoding="utf-8", index=False,
+                                                     header=False)  # se non metto il nome del file
+                                                                    # mi restituisce una stringa
+
+
+
+
+
+
         # --- Organizations ---
         df_organizations = pd.read_sql_table('organizations', con=engine, schema='public')
         df_organizations = df_organizations.drop(['id', 'role_id'], 1).head(5)  # oppure tail(5)
@@ -163,7 +202,7 @@ def sampletab2(request):
             columns={
                 'last_name': 'Person Last Name',
                 'first_name': 'Person First Name',
-                'email': 'Organization Email',
+                'email': 'Person Email',
             }
         )
 
@@ -194,6 +233,7 @@ def sampletab2(request):
 
         with codecs.open(fileroot, 'w', encoding="utf-8") as f:
             f.write('[MSI]\n')
+            f.write(submission_tbl)
             f.write(organizations_tbl)
             f.write(persons_tbl)
             f.write('\n')
