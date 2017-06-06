@@ -155,10 +155,10 @@ class Submission(models.Model):
 
 class Person(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
-    last_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255, blank=True, null=True)
     initials = models.CharField(max_length=255, blank=True, null=True)
     first_name = models.CharField(max_length=255, blank=True, null=True)
-    email = models.EmailField(max_length=70)
+    email = models.EmailField(max_length=70, blank=True, null=True)
     # role = models.CharField(max_length=255, blank=True, null=True)
     role = models.ForeignKey('Dict_organization_roles',
                              blank=True, null=True,

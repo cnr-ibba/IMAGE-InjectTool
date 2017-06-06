@@ -112,118 +112,198 @@ def sampletab2(request):
         fileroot = os.path.join(settings.MEDIA_ROOT, filename)  # con path
         fileurl = os.path.join(settings.MEDIA_URL, filename)  # URL
 
-        context = {'username': username, 'fileurl': "cippalippa"}
+        context = {'username': username, 'fileurl': fileurl}
 
-        # TEMP
 
-        return render(request, 'image_app/sampletab2.html', context)
+        # HEADER
 
-        # TEMP
-    #     with codecs.open(fileroot, 'w', encoding="utf-8") as f:
-    #         f.write('[MSI]\n')
-    #         f.write('...\n')
-    #         f.write('[SCD]\n')
-    #         f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
-    #                     'Sample Name',
-    #                     'Sample Accession',
-    #                     'Sample Description',
-    #                     'Characteristic[project]',
-    #                     'Material',
-    #                     'Organism',
-    #                     'Sex',
-    #                     'Characteristic[breed]',
-    #                     'Derived From',
-    #                     'Characteristic[father]',
-    #                     'Characteristic[mother]',
-    #                     'Characteristic[organism part]',
-    #                     'Characteristic[specimen collection date]',
-    #                     'Unit',
-    #                     'Characteristic[animal age at collection]',
-    #                     'Unit',
-    #                     'Characteristic[developmental stage]',
-    #                     'Characteristic[animal farm latitude]',
-    #                     'Characteristic[animal farm longitude]',
-    #                     'Characteristic[biobank description]',
-    #                     'Characteristic[biobank address]',
-    #                     'Characteristic[biobank contacts]',
-    #
-    #                     ))
-    #     # animals = get_list_or_404(Animals)
-    #     # queryset = Animals.objects.filter(author=request.user.id)
-    #     # animals = get_list_or_404(Animals, id='763')
-    #     animals = get_list_or_404(Animals)
-    #
-    #     for a in animals:
-    #         # buffer = a.name
-    #
-    #         try:
-    #             father = Animals.objects.get(pk=a.father_id).name
-    #         except Animals.DoesNotExist:
-    #             father = ''
-    #         try:
-    #             mother = Animals.objects.get(pk=a.mother_id).name
-    #         except Animals.DoesNotExist:
-    #             mother = ''
-    #
-    #         # eva = a.eva.all()
-    #         # eva_str = ';'.join([e.description for e in eva])
-    #         record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
-    #                 a.name,
-    #                 # a.name,
-    #                 "IMAGE-a{0:05d}".format(a.id),
-    #                 a.description,
-    #                 'Image',
-    #                 'organism',
-    #                 a.breed.species,
-    #                 a.sex.description,
-    #                 a.breed.description,
-    #                 '',
-    #                 father,
-    #                 mother,
-    #                 '',
-    #                 '',
-    #                 '',
-    #                 '',
-    #                 '',
-    #                 '',
-    #                 a.farm_latitude,
-    #                 a.farm_longitude,
-    #                 '',
-    #                 '',
-    #                 '',
-    #                 # '', # eva_str,
-    #                 )
-    #         write_record(fileroot, record)
-    #         samples = a.samples.all()
-    #         for s in samples:
-    #             record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
-    #                     # "{}_{}".format(a.name, s.name),
-    #                     s.name,
-    #                     "IMAGE-s{0:05d}".format(s.id),
-    #                     s.description,
-    #                     'Image',
-    #                     'specimen from organism',
-    #                     '',
-    #                     '',
-    #                     '',
-    #                     "IMAGE-a{0:05d}".format(a.id),
-    #                     '',
-    #                     '',
-    #                     s.organism_part,
-    #                     s.collection_date,
-    #                     'YYYY-MM-DD',
-    #                     s.animal_age_at_collection,
-    #                     'year',
-    #                     s.developmental_stage,
-    #                     '',
-    #                     '',
-    #                     '',
-    #                     )
-    #             write_record(fileroot, record)
-    #
-    # else:
-    #     context = {'error_message': 'You are not authenticated'}
-    # return render(request, 'image_app/sampletab2.html', context)
+
+        engine = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
+
+        pd.set_option("display.max_columns", None)
+        pd.set_option("display.max_rows", None)
+
+        # --- Organizations ---
+        df_organizations = pd.read_sql_table('organizations', con=engine, schema='public')
+        df_organizations = df_organizations.drop(['id', 'role_id'], 1).head(5)  # oppure tail(5)
+        df_organizations = df_organizations.rename(
+            columns={
+                'name': 'Organization Name',
+                'address': 'Organization Address',
+                'URI': 'Organization URI',
+            }
+        )
+        cols_as_strings = ["col" + str(ind) for ind in
+                           df_organizations.index]  # Diverse organizzazioni sono indicate in colonne
+                                                    # con nomi 0, 1, 2 ecc..., che trasformo
+                                                    # in col0, col1, col2, ecc...
+        df_organizations.index = cols_as_strings
+
+        # voglio una tabella come
+        # name pippo
+        # address via carducci
+        # ecc...
+        # perciò devo trasporre la tab del database
+        df_organizations_T = df_organizations.transpose()
+        df_organizations_T['index1'] = df_organizations_T.index # name, address, ecc... sono l'index (df.index)
+                                                                # io li trasformo in una colonna vera df['index1']
+        df_organizations_T = df_organizations_T[df_organizations_T.columns[::-1]]   # inverto l'ordine delle colonne per
+                                                                                    # avere index1 come prima
+
+        organizations_tbl = df_organizations_T.to_csv(sep="\t", encoding="utf-8", index=False,
+                                                     header=False)  # se non metto il nome del file
+                                                                    # mi restituisce una stringa
+
+
+
+        # --- Persons ---
+        df_persons = pd.read_sql_table('persons', con=engine, schema='public')
+        df_persons = df_persons.drop(['id', 'initials', 'role_id'], 1).head(5)  # oppure tail(5)
+        df_persons = df_persons.rename(
+            columns={
+                'last_name': 'Person Last Name',
+                'first_name': 'Person First Name',
+                'email': 'Organization Email',
+            }
+        )
+
+        cols_as_strings = ["col" + str(ind) for ind in
+                           df_persons.index]  # Diverse persone sono indicate in colonne
+                                                    # con nomi 0, 1, 2 ecc..., che trasformo
+                                                    # in col0, col1, col2, ecc...
+        df_persons.index = cols_as_strings
+
+        # voglio una tabella come
+        # name pippo
+        # address via carducci
+        # ecc...
+        # perciò devo trasporre la tab del database
+        df_persons_T = df_persons.transpose()
+        df_persons_T['index1'] = df_persons_T.index # name, address, ecc... sono l'index (df.index)
+                                                                # io li trasformo in una colonna vera df['index1']
+        df_persons_T = df_persons_T[df_persons_T.columns[::-1]]   # inverto l'ordine delle colonne per
+                                                                                    # avere index1 come prima
+
+        persons_tbl = df_persons_T.to_csv(sep="\t", encoding="utf-8", index=False,
+                                                     header=False)  # se non metto il nome del file
+                                                                    # mi restituisce una stringa
+
+
+
+
+
+        with codecs.open(fileroot, 'w', encoding="utf-8") as f:
+            f.write('[MSI]\n')
+            f.write(organizations_tbl)
+            f.write(persons_tbl)
+            f.write('\n')
+
+
+        with codecs.open(fileroot, 'a', encoding="utf-8") as f:
+            # f.write('[MSI]\n')
+            # f.write('...\n')
+            f.write('[SCD]\n')
+            f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(
+                        'Sample Name',
+                        'Sample Accession',
+                        'Sample Description',
+                        'Characteristic[project]',
+                        'Material',
+                        'Organism',
+                        'Sex',
+                        'Characteristic[breed]',
+                        'Derived From',
+                        'Characteristic[father]',
+                        'Characteristic[mother]',
+                        'Characteristic[organism part]',
+                        'Characteristic[specimen collection date]',
+                        'Unit',
+                        'Characteristic[animal age at collection]',
+                        'Unit',
+                        'Characteristic[developmental stage]',
+                        'Characteristic[animal farm latitude]',
+                        'Characteristic[animal farm longitude]',
+                        'Characteristic[biobank description]',
+                        'Characteristic[biobank address]',
+                        'Characteristic[biobank contacts]',
+
+                        ))
+        # animals = get_list_or_404(Animals)
+        # queryset = Animals.objects.filter(author=request.user.id)
+        # animals = get_list_or_404(Animals, id='763')
+        animals = get_list_or_404(Animals)
+
+        for a in animals:
+            # buffer = a.name
+
+            try:
+                father = Animals.objects.get(pk=a.father_id).name
+            except Animals.DoesNotExist:
+                father = ''
+            try:
+                mother = Animals.objects.get(pk=a.mother_id).name
+            except Animals.DoesNotExist:
+                mother = ''
+
+            # eva = a.eva.all()
+            # eva_str = ';'.join([e.description for e in eva])
+            record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+                    a.name,
+                    # a.name,
+                    "IMAGE-a{0:05d}".format(a.id),
+                    a.description,
+                    'Image',
+                    'organism',
+                    a.breed.species,
+                    a.sex.description,
+                    a.breed.description,
+                    '',
+                    father,
+                    mother,
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    a.farm_latitude,
+                    a.farm_longitude,
+                    '',
+                    '',
+                    '',
+                    # '', # eva_str,
+                    )
+            write_record(fileroot, record)
+            samples = a.samples.all()
+            for s in samples:
+                record = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+                        # "{}_{}".format(a.name, s.name),
+                        s.name,
+                        "IMAGE-s{0:05d}".format(s.id),
+                        s.description,
+                        'Image',
+                        'specimen from organism',
+                        '',
+                        '',
+                        '',
+                        "IMAGE-a{0:05d}".format(a.id),
+                        '',
+                        '',
+                        s.organism_part,
+                        s.collection_date,
+                        'YYYY-MM-DD',
+                        s.animal_age_at_collection,
+                        'year',
+                        s.developmental_stage,
+                        '',
+                        '',
+                        '',
+                        )
+                write_record(fileroot, record)
+
+    else:
+        context = {'error_message': 'You are not authenticated'}
+    return render(request, 'image_app/sampletab2.html', context)
 
 
 def model_form_upload(request):
