@@ -14,7 +14,7 @@ db:
     - "/etc/localtime:/etc/localtime:ro"
 
   ports:
-    - "35432:5432"
+    - "25432:5432"
 
 
 uwsgi:
@@ -38,7 +38,6 @@ uwsgi:
   links:
     - db
 
-
 nginx:
   # a custom image for NGINX
   build: ./nginx
@@ -52,7 +51,7 @@ nginx:
     - uwsgi
 
   ports:
-    - "65080:80"
+    - "26080:80"
 
   # link container uwsgi
   links:
