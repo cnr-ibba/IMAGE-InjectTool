@@ -20,6 +20,7 @@ class BackupAdmin(admin.ModelAdmin):
 
 class DictBreedsAdmin(admin.ModelAdmin):
     search_fields = ['description']
+    list_per_page = 9
     list_display = ('description', 'species', 'country', 'language',
                     'api_url', 'notes')
 
@@ -56,6 +57,7 @@ class SamplesInline(admin.StackedInline):
 class AnimalsAdmin(admin.ModelAdmin):
     # exclude = ('author',)
     search_fields = ['name']
+    list_per_page = 9
     list_display = (
         'name', 'description', 'breed', 'sex', 'father', 'mother',
         'birth_date', 'birth_year', 'breed_standard', 'submission_date',
@@ -73,6 +75,7 @@ class SamplesAdmin(admin.ModelAdmin):
     # exclude = ('author',)
     # prepopulated_fields = {'name': ['description']}
     search_fields = ['name']
+    list_per_page = 9
     list_display = (
         'name', 'description', 'production_data', 'organism_part',
         'collection_date', 'protocol', 'animal_age_at_collection',
