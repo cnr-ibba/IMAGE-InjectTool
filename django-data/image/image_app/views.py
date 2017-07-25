@@ -11,6 +11,7 @@ import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
 import numpy
+from django.core.management import call_command
 
 # from django.views import generic
 # import sys
@@ -387,23 +388,34 @@ def dump_reading(request):
     """
 
     if request.user.is_authenticated():
+        engine_from_cryoweb = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
+        num_animals = pd.read_sql_query('select count(*) as num from animal', con=engine_from_cryoweb)
+        num_animals = num_animals['num'].values[0]
+        # print("animals num:\n{}".format(num_animals))
+
         username = request.user.username
         context = {'username': username}
         last_backup = list(Backup.objects.all())[-1]
 
         fullpath = last_backup.backup.file
-        context['fullpath'] = fullpath
+
+        # context['fullpath'] = fullpath
+        context['fullpath'] = "ciccio {} pasticcio".format(num_animals)
+        if num_animals > 0:
+            return redirect('../../')
+            sys.exit()
+
         output = ''
         try:
-            cmd_line = "export PGPASSWORD='***REMOVED***'; /usr/bin/psql -U postgres -h db " +\
+            cmd_line = "export PGPASSWORD='***REMOVED***'; /usr/bin/psql -U cryoweb_insert_only -h db " + \
                        "imported_from_cryoweb < {}".format(fullpath)
             try:
-                output = subprocess.call(cmd_line, stderr=subprocess.STDOUT, 
-                                         shell=True)
-            except subprocess.CalledProcessError as e:
-                print(e.output)
-                
-            context['fullpath'] = output
+                output = subprocess.call(cmd_line, stderr=subprocess.STDOUT, shell=True)
+            except subprocess.CalledProcessError as exc:
+                context['fullpath'] = "returncode: {}, output: {}".format(exc.returncode, exc.output)
+            else:
+                context['fullpath'] = output
+
         except:
             context['fullpath'] = "ERROR!"
             raise
@@ -424,6 +436,13 @@ def dump_reading2(request):
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
     """
+    engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
+    num_animals = pd.read_sql_query('select count(*) as num from animals', con=engine_to_sampletab)
+    num_animals = num_animals['num'].values[0]
+    print("animals num:\n{}".format(num_animals))
+    if num_animals > 0:
+        return redirect('../../')
+        sys.exit()
 
     def get_breed_id(row, df_breeds_species):
         # global df_breeds_species
@@ -433,8 +452,13 @@ def dump_reading2(request):
         return int(breed_id)
 
     if request.user.is_authenticated():
+
+
         username = request.user.username
         context = {'username': username}
+
+
+
         try:
             engine_from_cryoweb = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
             engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
@@ -542,5 +566,84 @@ def dump_reading2(request):
             raise
 
         return render(request, 'image_app/dump_reading2.html', context)
+    else:
+        return redirect('../../')
+
+def truncate_databases(request):
+    """ truncate cryoweb and image tables
+
+    this fx calls the custom functions truncate_cryoweb_tables and truncate_image_tables,
+    defined in
+    image_app/management/commands/truncate_cryoweb_tables.py and
+    image_app/management/commands/truncate_image_tables.py
+    in order to have the same fx "command line" is necessary to call both
+    $ docker-compose run --rm uwsgi python manage.py truncate_cryoweb_tables
+    $ docker-compose run --rm uwsgi python manage.py truncate_image_tables
+
+    :param request: HTTP request automatically sent by the framework
+    :return: the resulting HTML page
+    """
+
+    if request.user.is_authenticated():
+        username = request.user.username
+        # context = {'username': username}
+
+        call_command('truncate_cryoweb_tables')
+        call_command('truncate_image_tables')
+        return redirect('../../')
+
+        # return render(request, 'image_app/model_form_upload.html', {
+        #     'form': form, 'username': username, })
+
+    else:
+        return redirect('../../')
+
+def truncate_image_tables(request):
+    """ truncate image tables
+
+    this fx calls the custom function truncate_image_tables, defined in
+    image_app/management/commands/truncate_image_tables.py
+    this fx can also be called command line as
+    $ docker-compose run --rm uwsgi python manage.py truncate_image_tables
+
+    :param request: HTTP request automatically sent by the framework
+    :return: the resulting HTML page
+    """
+
+    if request.user.is_authenticated():
+        username = request.user.username
+        # context = {'username': username}
+
+        call_command('truncate_image_tables')
+        return redirect('../../')
+
+        # return render(request, 'image_app/model_form_upload.html', {
+        #     'form': form, 'username': username, })
+
+    else:
+        return redirect('../../')
+
+def truncate_cryoweb_tables(request):
+    """ truncate cryoweb tables
+
+    this fx calls the custom function truncate_cryoweb_tables, defined in
+    image_app/management/commands/truncate_cryoweb_tables.py
+    this fx can also be called command line as
+    $ docker-compose run --rm uwsgi python manage.py truncate_cryoweb_tables
+
+    :param request: HTTP request automatically sent by the framework
+    :return: the resulting HTML page
+    """
+
+    if request.user.is_authenticated():
+        username = request.user.username
+        # context = {'username': username}
+
+        call_command('truncate_cryoweb_tables')
+        return redirect('../../')
+
+        # return render(request, 'image_app/model_form_upload.html', {
+        #     'form': form, 'username': username, })
+
     else:
         return redirect('../../')

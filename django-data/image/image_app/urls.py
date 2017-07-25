@@ -31,5 +31,8 @@ urlpatterns = [
         name='model_form_upload'),
     url(r'dump_reading/$', views.dump_reading, name='dump_reading'),
     url(r'dump_reading2/$', views.dump_reading2, name='dump_reading2'),
+    url(r'truncate_image_tables/$', views.truncate_image_tables, name='truncate_image_tables'),
+    url(r'truncate_cryoweb_tables/$', views.truncate_cryoweb_tables, name='truncate_cryoweb_tables'),
+    url(r'truncate_databases/$', views.truncate_databases, name='truncate_databases'),
 
 ]

@@ -51,14 +51,16 @@
 <p><strong><a target=_blank href="{% url 'image_app:model_form_upload' %}"> - Dump file upload</a>
 </strong>
 
-<p><strong><a target=_blank href="{% url 'image_app:dump_reading' %}"> - Dump file import (step 1)</a>
+<p><strong><a target=_blank href="{% url 'image_app:dump_reading' %}"> - Cryoweb file to database </a>
 </strong>
 
-<p><strong><a target=_blank href="{% url 'image_app:dump_reading2' %}"> - Dump file import (step 2)</a>
+<p><strong><a target=_blank href="{% url 'image_app:dump_reading2' %}"> - Cryoweb to image database </a>
 </strong>
 
-<p><strong><a target=_blank href="{% url 'image_app:check_metadata' %}"> - Create Sampletab file</a>
-</strong>
+<p><strong><a target=_blank href="{% url 'image_app:check_metadata' %}"> - Create Sampletab file</a></strong>
+<p><strong><a target=_blank href="{% url 'image_app:truncate_databases' %}"> - Truncate databases (both Cryoweb and Image Tables)</a></strong>
+<p><strong><a target=_blank href="{% url 'image_app:truncate_cryoweb_tables' %}"> - Truncate only Cryoweb Tables</a></strong>
+<p><strong><a target=_blank href="{% url 'image_app:truncate_image_tables' %}"> - Truncate only Image Tables</a></strong>
 
 
 
