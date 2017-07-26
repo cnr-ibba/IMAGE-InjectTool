@@ -399,8 +399,8 @@ def dump_reading(request):
 
         fullpath = last_backup.backup.file
 
-        # context['fullpath'] = fullpath
-        context['fullpath'] = "ciccio {} pasticcio".format(num_animals)
+        context['fullpath'] = fullpath
+        
         if num_animals > 0:
             return redirect('../../')
             sys.exit()
