@@ -3,6 +3,9 @@ mysql-data/
 postgres-data/
 tmp/
 django-data/andrea/
+django-data/.idea/
+*.swp
+.idea/
 
 
 # Byte-compiled / optimized / DLL files
