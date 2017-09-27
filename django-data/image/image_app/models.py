@@ -131,6 +131,7 @@ class Samples(models.Model):
 
 class Submission(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
+    project = models.CharField(max_length=25, default="IMAGE", editable=False)
     title = models.CharField(max_length=255,
                              help_text='Example: Roslin Sheep Atlas')
     identifier = models.CharField(max_length=255, blank=True, null=True,
