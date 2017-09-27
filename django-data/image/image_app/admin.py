@@ -45,7 +45,7 @@ class DictBreedsAdmin(admin.ModelAdmin):
 
 class SamplesInline(admin.StackedInline):
     fields = (
-        ('name', 'description', 'production_data'),
+        ('biosampleid', 'name', 'description', 'production_data'),
         ('organism_part',
          'collection_date', 'animal_age_at_collection', 'developmental_stage'),
         ('availability', 'animal', 'notes'),
@@ -60,7 +60,7 @@ class AnimalsAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_per_page = 9
     list_display = (
-        'name', 'description', 'breed', 'sex', 'father', 'mother',
+        'biosampleid', 'name', 'description', 'breed', 'sex', 'father', 'mother',
         'birth_date', 'birth_year', 'breed_standard', 'submission_date',
         'farm_latitude', 'farm_longitude', 'reproduction_place', 'notes'
     )
@@ -78,7 +78,7 @@ class SamplesAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_per_page = 9
     list_display = (
-        'name', 'description', 'production_data', 'organism_part',
+        'biosampleid', 'name', 'description', 'production_data', 'organism_part',
         'collection_date', 'protocol', 'animal_age_at_collection',
         'developmental_stage', 'availability', 'animal', 'notes',
     )

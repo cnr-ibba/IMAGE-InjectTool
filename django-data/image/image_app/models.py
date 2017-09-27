@@ -60,7 +60,7 @@ class DictSex(models.Model):
 
 class Animals(models.Model):
     # id = models.IntegerField(primary_key=True)
-
+    biosampleid = models.CharField(max_length=255, blank=True)
     name = models.CharField(max_length=255, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     breed = models.ForeignKey('DictBreeds', db_index=True,
@@ -95,6 +95,7 @@ class Animals(models.Model):
 
 class Samples(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
+    biosampleid = models.CharField(max_length=255, blank=True)
     name = models.CharField(max_length=255, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     production_data = models.CharField(max_length=255, blank=True, null=True)
