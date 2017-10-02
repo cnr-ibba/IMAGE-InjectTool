@@ -12,8 +12,8 @@ django-data/.idea/
 *tgz
 *tar.gz
 temp_scripts
-
-
+settings.py
+README*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
