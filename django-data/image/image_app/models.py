@@ -28,6 +28,7 @@ class DictBreeds(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     db_breed = models.IntegerField(blank=True, null=True)
     description = models.CharField(max_length=255, blank=True)
+    mapped_breed = models.CharField(max_length=255, blank=True, null=True)
     species = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, blank=True, null=True)
     language = models.CharField(max_length=255, blank=True, null=True)
@@ -60,8 +61,9 @@ class DictSex(models.Model):
 
 class Animals(models.Model):
     # id = models.IntegerField(primary_key=True)
-
+    biosampleid = models.CharField(max_length=255, blank=True)
     name = models.CharField(max_length=255, blank=True)
+    material = models.CharField(max_length=255, default="Organism", editable=False)
     description = models.CharField(max_length=255, blank=True, null=True)
     breed = models.ForeignKey('DictBreeds', db_index=True,
                               related_name='%(class)s_breed')
@@ -76,6 +78,7 @@ class Animals(models.Model):
                                      null=True)
     breed_standard = models.CharField(max_length=255, blank=True, null=True)
     submission_date = models.DateField(blank=True, null=True)
+    birth_location = models.CharField(max_length=255, blank=True, null=True)
     farm_latitude = models.FloatField(blank=True, null=True)
     farm_longitude = models.FloatField(blank=True, null=True)
     reproduction_place = models.CharField(max_length=255, blank=True, null=True)
@@ -95,16 +98,22 @@ class Animals(models.Model):
 
 class Samples(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
+    biosampleid = models.CharField(max_length=255, blank=True)
     name = models.CharField(max_length=255, blank=True)
+    material = models.CharField(max_length=255, default="Specimen from Organism", editable=False)
     description = models.CharField(max_length=255, blank=True, null=True)
     production_data = models.CharField(max_length=255, blank=True, null=True)
     organism_part = models.CharField(max_length=255, blank=True, null=True)
     collection_date = models.DateField(blank=True, null=True)
+    collection_place_latitude = models.FloatField(blank=True, null=True)
+    collection_place_longitude = models.FloatField(blank=True, null=True)
+    collection_place = models.CharField(max_length=255, blank=True, null=True)
     animal_age_at_collection = models.IntegerField(null=True, blank=True)
+    specimen_volume = models.IntegerField(null=True, blank=True)
     developmental_stage = models.CharField(max_length=255, blank=True,
                                            null=True)
     # biobank = models.ForeignKey(DictBiobanks, blank=True, null=True)
-    availability = models.CharField(max_length=5, blank=True, null=True)
+    availability = models.CharField(max_length=255, blank=True, null=True)
     protocol = models.CharField(max_length=255, blank=True, null=True)
     # animal_farm_latitude = models.FloatField(blank=True, null=True)
     # animal_farm_longitude = models.FloatField(blank=True, null=True)
@@ -130,6 +139,7 @@ class Samples(models.Model):
 
 class Submission(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
+    project = models.CharField(max_length=25, default="IMAGE", editable=False)
     title = models.CharField(max_length=255,
                              help_text='Example: Roslin Sheep Atlas')
     identifier = models.CharField(max_length=255, blank=True, null=True,
@@ -138,6 +148,10 @@ class Submission(models.Model):
     description = models.CharField(max_length=255,
                                    help_text='Example: The Roslin Institute ' +
                                    'Sheep Gene Expression Atlas Project')
+    data_source_name = models.CharField(max_length=255, blank=True, null=True,
+                                  help_text='example: Cryoweb IBBA')
+    data_source_version = models.CharField(max_length=255, blank=True, null=True,
+                                        help_text='examples: 2017-04, version 1.1')
     version = models.CharField(max_length=255, blank=True, null=True)
     reference_layer = models.CharField(max_length=255, blank=True, null=True)
     update_date = models.DateField(blank=True, null=True)
@@ -160,6 +174,7 @@ class Person(models.Model):
     first_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(max_length=70, blank=True, null=True)
     # role = models.CharField(max_length=255, blank=True, null=True)
+    affiliation = models.CharField(max_length=255, blank=True, null=True)
     role = models.ForeignKey('Dict_organization_roles',
                              blank=True, null=True,
                              related_name='%(class)s_role')
@@ -183,6 +198,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=255)
     address = models.CharField(max_length=255, blank=True, null=True,
                                help_text='One line, comma separated')
+    country = models.CharField(max_length=255, blank=True, null=True)
     URI = models.URLField(max_length=500, blank=True, null=True,
                           help_text='Web site')
     # role = models.CharField(max_length=255, blank=True, null=True)

@@ -22,7 +22,7 @@ class BackupAdmin(admin.ModelAdmin):
 class DictBreedsAdmin(admin.ModelAdmin):
     search_fields = ['description']
     list_per_page = 9
-    list_display = ('description', 'species', 'country', 'language',
+    list_display = ('description', 'mapped_breed', 'species', 'country', 'language',
                     'api_url', 'notes')
 
 # class DictBiobanksAdmin(admin.ModelAdmin):
@@ -45,9 +45,9 @@ class DictBreedsAdmin(admin.ModelAdmin):
 
 class SamplesInline(admin.StackedInline):
     fields = (
-        ('name', 'description', 'production_data'),
+        ('name', 'biosampleid', 'description', 'production_data'),
         ('organism_part',
-         'collection_date', 'animal_age_at_collection', 'developmental_stage'),
+         'collection_date', 'animal_age_at_collection', 'specimen_volume', 'developmental_stage'),
         ('availability', 'animal', 'notes'),
     )
 
@@ -60,14 +60,14 @@ class AnimalsAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_per_page = 9
     list_display = (
-        'name', 'description', 'breed', 'sex', 'father', 'mother',
-        'birth_date', 'birth_year', 'breed_standard', 'submission_date',
+        'name', 'biosampleid', 'material', 'description', 'breed', 'sex', 'father', 'mother',
+        'birth_date', 'birth_year', 'breed_standard', 'submission_date', 'birth_location',
         'farm_latitude', 'farm_longitude', 'reproduction_place', 'notes'
     )
     fields = (
-        'name', 'description', ('breed', 'breed_standard'), 'sex', 'father',
+        'name', 'biosampleid', 'description', ('breed', 'breed_standard'), 'sex', 'father',
         'mother', 'birth_date', 'birth_year', 'submission_date',
-        ('farm_latitude', 'farm_longitude', 'reproduction_place'), 'notes'
+        ('birth_location', 'farm_latitude', 'farm_longitude', 'reproduction_place'), 'notes'
     )
     inlines = [SamplesInline]
 
@@ -78,9 +78,9 @@ class SamplesAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_per_page = 9
     list_display = (
-        'name', 'description', 'production_data', 'organism_part',
-        'collection_date', 'protocol', 'animal_age_at_collection',
-        'developmental_stage', 'availability', 'animal', 'notes',
+        'name', 'biosampleid', 'material', 'description', 'production_data', 'organism_part',
+        'collection_date', 'collection_place_latitude', 'collection_place_longitude', 'collection_place', 'protocol', 'animal_age_at_collection',
+        'specimen_volume', 'developmental_stage', 'availability', 'animal', 'notes',
     )
 
     # def has_change_permission(self, request, obj=None):
@@ -107,7 +107,7 @@ class SamplesAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_display = (
-        'title', 'description', 'version', 'reference_layer', 'update_date',
+        'title', 'project', 'description', 'data_source_name', 'data_source_version', 'version', 'reference_layer', 'update_date',
         'release_date',
     )
 
@@ -115,14 +115,14 @@ class SubmissionAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     search_fields = ['last_name']
     list_display = (
-        'last_name', 'initials', 'first_name', 'email', 'role',
+        'last_name', 'initials', 'first_name', 'email', 'affiliation', 'role',
     )
 
 
 class OrganizationAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_display = (
-        'name', 'address', 'URI', 'role',
+        'name', 'address', 'country', 'URI', 'role',
     )
 
 
