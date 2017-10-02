@@ -5,7 +5,14 @@ tmp/
 django-data/andrea/
 django-data/.idea/
 *.swp
-.idea/
+*.idea/
+*backup_schemaless*
+*_test_mongo
+*migrations*
+*tgz
+*tar.gz
+temp_scripts
+
 
 
 # Byte-compiled / optimized / DLL files
