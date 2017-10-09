@@ -50,8 +50,26 @@ the entire system (three containers managed by Docker Compose) uses two shared v
 
 ```bash
 $ docker-compose up -d
+# docker will download all required dependences; it will need several minutes to complete.
+
 ```
 
+**Create the settings.py file**
+
+Django configuration file (named settings.py) must be created copying the
+settings.py_SAMPLE file in its own directory. After having created it,
+open it and write the password for the django-postgres connection. With this procedure, no password is stored into git history:
+
+```bash
+$ cd django-data/image/image
+$ cp settings.py_SAMPLE settings.py
+
+# open settings.py and replace **REMOVED** with the password
+# at the line
+# 'PASSWORD': '**REMOVED**',
+# you should find the password in the Trello Board.
+
+```
 
 
 **Useful commands**
