@@ -41,16 +41,12 @@ Once downloaded the tar-gz archive, open it and save the postgres-data directory
 the entire system (three containers managed by Docker Compose) uses two shared volumes [https://docs.docker.com/engine/admin/volumes/volumes/](https://docs.docker.com/engine/admin/volumes/volumes/) for persistent data: the (host) directories postgres-data and django-data. Django-data, containing the entire django working directory, is tracked in git and so it does not need to be downloaded from the FTP site.
 
 
-
-### InjectTool Use
-
----
-
 **Start the Docker-compose suite**
 
 ```bash
+# start the containers according to the docker-compose.yml specifications
+# docker will download and install all required dependences; it will need several minutes to complete.
 $ docker-compose up -d
-# docker will download all required dependences; it will need several minutes to complete.
 
 ```
 
@@ -72,9 +68,18 @@ $ cp settings.py_SAMPLE settings.py
 ```
 
 
+### InjectTool Use
+
+
+
+
+
 **Useful commands**
 
 ```bash
+# start the containers according to the docker-compose.yml specifications
+$ docker-compose up -d
+
 # see running processes, like unix ps command
 $ docker-compose ps
 
