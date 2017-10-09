@@ -38,7 +38,7 @@ Postgres data are not tracked in git. Simply download the postgres-data director
 Once downloaded the tar-gz archive, open it and save the postgres-data directory in your working directory. Please do not change file's ownerships: many directories, for example, need to be owned by the docker group.
 
 > NOTE:
-the entire system (three contained managed by Compose) has got two shared volumes [https://docs.docker.com/engine/admin/volumes/volumes/](https://docs.docker.com/engine/admin/volumes/volumes/), for persistent data (you can disrupt and recreate the containers and the database will survive them): postgres-data and django-data. Django-data, containing the entire django working directory, is tracked in git and so it does not need to be downloaded from the FTP site.
+the entire system (three containers managed by Docker Compose) uses two shared volumes [https://docs.docker.com/engine/admin/volumes/volumes/](https://docs.docker.com/engine/admin/volumes/volumes/) for persistent data: the (host) directories postgres-data and django-data. Django-data, containing the entire django working directory, is tracked in git and so it does not need to be downloaded from the FTP site.
 
 
 
