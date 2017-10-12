@@ -28,24 +28,35 @@ Please follow your platform documentation:
 
 The GitHub Inject-Tool repository is available at
 [https://github.com/bioinformatics-ptp/IMAGE-InjectTool](https://github.com/bioinformatics-ptp/IMAGE-InjectTool)
-
-
+The directory created by the cloning contains the following content (can be slightly different):
+```bash
+image/
+├── django-data
+├── docker-compose.yml
+├── nginx
+├── postgres-data
+├── README.md
+└── uwsgi
+```
+It will be referred to as the "working directory" in this file.
 
 **Download the Postgres database**
 
 Postgres data are not tracked in git. Simply download the postgres-data directory from the PTP FTP site. The instruction are on the Trello Image Board.
 
-Once downloaded the tar-gz archive, open it and save the postgres-data directory in your working directory. Please do not change file's ownerships: many directories, for example, need to be owned by the docker group.
+Once downloaded the tar-gz archive, open it and save the postgres-data directory in your working directory as administrator user; please do not change file's ownerships: many directories, for example, need to be owned by the docker group.
 
 > NOTE:
-the entire system (three containers managed by Docker Compose) uses two shared volumes [https://docs.docker.com/engine/admin/volumes/volumes/](https://docs.docker.com/engine/admin/volumes/volumes/) for persistent data: the (host) directories postgres-data and django-data. Django-data, containing the entire django working directory, is tracked in git and so it does not need to be downloaded from the FTP site.
+the entire system (three containers managed by Docker Compose) uses two shared volumes [https://docs.docker.com/engine/admin/volumes/volumes/](https://docs.docker.com/engine/admin/volumes/volumes/) for ensuring the existance of persistent data: on the host the two directories are named postgres-data/ and django-data/. The django-data directory, containing the entire django environment and codes, is tracked in git and so it does not need to be downloaded from the FTP site.
 
 
 **Start the Docker-compose suite**
 
 ```bash
+
 # start the containers according to the docker-compose.yml specifications
 # docker will download and install all required dependences; it will need several minutes to complete.
+# launch this command from the working directory
 $ docker-compose up -d
 
 ```
@@ -70,9 +81,15 @@ $ cp settings.py_SAMPLE settings.py
 
 ### InjectTool Use
 
+The Inject Tool interface is available for a local access through Internet browser at the URL: `http://localhost:28080/image/`.
 
+Pages are served by an nginx docker container controlled by Docker Compose (see the docker-compose.yml file content). In order to start the service:
 
+```bash
+# cd <working directory>
+$ docker-compose up -d
 
+```
 
 **Useful commands**
 
