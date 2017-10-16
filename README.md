@@ -8,7 +8,7 @@
 Please follow your platform documentation:
 [https://docs.docker.com/engine/installation/](https://docs.docker.com/engine/installation/)
 
->NOTE: if you want to interact with docker using your user and not root, you need to do the following:
+>NOTE: if you want to interact with docker using your user and not root, you need to do the following (only applies to Linux machines):
 ```bash
 $ sudo groupadd docker
 $ sudo usermod -aG docker <your user>
@@ -38,19 +38,24 @@ image/
 ├── README.md
 └── uwsgi
 ```
-It will be referred to as the "working directory" in this file.
+The image directory will be referred as the "working directory" in this document.
 
 **Download the Postgres database**
 
-Postgres data are not tracked in git. Simply download the postgres-data directory from the PTP FTP site. The instruction are on the Trello Image Board.
+Postgres data are not tracked in git. Simply download the postgres-data directory from the PTP FTP site. The instructions are on the Trello Image Board.
 
-Once downloaded the tar-gz archive, open it and save the postgres-data directory in your working directory as administrator user; please do not change file's ownerships: many directories, for example, need to be owned by the docker group.
+Once downloaded the tar-gz archive, open it and save the postgres-data directory in your working directory (the cloned directory where nginx, uwsgi and django-data folders are stored) as administrator user. Please do not change file's ownerships: many directories, for example, need to be owned by the docker group.
 
 > NOTE:
 the entire system (three containers managed by Docker Compose) uses two shared volumes [https://docs.docker.com/engine/admin/volumes/volumes/](https://docs.docker.com/engine/admin/volumes/volumes/) for ensuring the existance of persistent data: on the host the two directories are named postgres-data/ and django-data/. The django-data directory, containing the entire django environment and codes, is tracked in git and so it does not need to be downloaded from the FTP site.
 
 
 **Start the Docker-compose suite**
+There are three containers defined in docker-compose.yml
+
+ - uwsgi: the code base
+ - nginx: web interface
+ - db: the postgres database
 
 ```bash
 
@@ -63,7 +68,7 @@ $ docker-compose up -d
 
 **Create the settings.py file**
 
-Django configuration file (named settings.py) must be created copying the
+Django configuration file (settings.py) must be created by copying the
 settings.py_SAMPLE file in its own directory. After having created it,
 open it and write the password for the django-postgres connection. With this procedure, no password is stored into git history:
 
