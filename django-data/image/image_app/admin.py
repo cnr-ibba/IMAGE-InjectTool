@@ -115,14 +115,14 @@ class SubmissionAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     search_fields = ['last_name']
     list_display = (
-        'last_name', 'initials', 'first_name', 'email', 'affiliation', 'role',
+        'last_name', 'initials', 'first_name', 'email', 'affiliation', 'person_role',
     )
 
 
 class OrganizationAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_display = (
-        'name', 'address', 'country', 'URI', 'role',
+        'name', 'address', 'country', 'URI', 'organization_role',
     )
 
 

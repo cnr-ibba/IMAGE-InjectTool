@@ -178,6 +178,7 @@ class Person(models.Model):
     role = models.ForeignKey('Dict_organization_roles',
                              blank=True, null=True,
                              related_name='%(class)s_role')
+    person_role = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         if str(self.first_name):
@@ -204,6 +205,7 @@ class Organization(models.Model):
     # role = models.CharField(max_length=255, blank=True, null=True)
     role = models.ForeignKey('Dict_organization_roles', blank=True, null=True,
                              related_name='%(class)s_role')
+    organization_role = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name))
