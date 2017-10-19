@@ -466,10 +466,13 @@ def dump_reading2(request):
             pd.set_option("display.max_columns", None)
             pd.set_option("display.max_rows", None)
 
+            # read the the v_breeds_species view in the "imported_from_cryoweb database"
             df_breeds_species = pd.read_sql_table('v_breeds_species', con=engine_from_cryoweb, schema='public')
-            # df_breeds_species.head()
+
+            # keep only interesting columns and rename them
             df_breeds_fin = df_breeds_species[
                 ['breed_id', 'db_breed', 'efabis_mcname', 'efabis_species', 'efabis_country', 'efabis_lang']]
+
             df_breeds_fin = df_breeds_fin.rename(
                 columns={
                     'breed_id': 'id',
@@ -479,13 +482,18 @@ def dump_reading2(request):
                     'efabis_lang': 'language',
                 }
             )
+
+            # insert dataframe as table into the UID database; data are inserted (append) into the existing table
             df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_sampletab, if_exists='append', index=False)
 
             # ANIMALS
+            # the same for animals:
 
+            # read the v_animal view in the "imported_from_cryoweb" db
             df_animals = pd.read_sql_table('v_animal', con=engine_from_cryoweb, schema='public')
             df_animals['breed_id'] = df_animals.apply(lambda row: get_breed_id(row, df_breeds_species), axis=1)
 
+            # keep only interesting columns and rename them
             df_animals_fin = df_animals[
                 ['db_animal', 'ext_animal', 'breed_id', 'ext_sex', 'db_sire', 'db_dam', 'birth_dt', 'birth_year',
                  'last_change_dt', 'latitude', 'longitude']]
@@ -503,14 +511,21 @@ def dump_reading2(request):
                     'longitude': 'farm_longitude',
                 }
             )
+
+            # change values
             df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace({'m': 1, 'f': 2})
             df_animals_fin['name'] = df_animals_fin['name'].str.replace('\t', '')
+
+            # insert dataframe as table into the UID database
             df_animals_fin.to_sql(name='animals', con=engine_to_sampletab, if_exists='append', index=False)
 
             # SAMPLES
+            # the same for samples
 
+            # read view in "imported_from_cryoweb" db
             df_samples = pd.read_sql_table('v_vessels', con=engine_from_cryoweb, schema='public')
-            # df_samples.head()
+
+            # keep only interesting columns and rename them
             df_samples_fin = df_samples[
                 ['db_vessel', 'ext_vessel', 'production_dt', 'ext_protocol_id', 'db_animal', 'comment']]
             df_samples_fin = df_samples_fin.rename(
@@ -524,8 +539,10 @@ def dump_reading2(request):
                 }
             )
 
+            # change some data values:
             df_samples_fin['name'] = df_samples_fin['name'].str.replace('\t', '')
 
+            # insert dataframe as table into the UID database
             df_samples_fin.to_sql(name='samples', con=engine_to_sampletab, if_exists='append', index=False)
 
             # ORGANIZATIONS
