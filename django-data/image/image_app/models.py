@@ -61,7 +61,7 @@ class DictSex(models.Model):
 
 class Animals(models.Model):
     # id = models.IntegerField(primary_key=True)
-    biosampleid = models.CharField(max_length=255, blank=True)
+    biosampleid = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True)
     material = models.CharField(max_length=255, default="Organism", editable=False)
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -69,6 +69,7 @@ class Animals(models.Model):
                               related_name='%(class)s_breed')
     sex = models.ForeignKey('DictSex', db_index=True, blank=True, null=True,
                             default=-1, related_name='%(class)s_sex')
+
     father = models.ForeignKey('Animals', db_index=True, blank=True,
                                null=True, related_name='%(class)s_father')
     mother = models.ForeignKey('Animals', db_index=True, blank=True,
@@ -98,7 +99,7 @@ class Animals(models.Model):
 
 class Samples(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
-    biosampleid = models.CharField(max_length=255, blank=True)
+    biosampleid = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True)
     material = models.CharField(max_length=255, default="Specimen from Organism", editable=False)
     description = models.CharField(max_length=255, blank=True, null=True)

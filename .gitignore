@@ -11,10 +11,12 @@ django-data/.idea/
 *migrations*
 *tgz
 *tar.gz
+*.json
 temp_scripts
 settings.py
 README*
 *.tar
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -18,14 +18,19 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         # open a connection
-        engine_from_cryoweb = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
+        engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
 
         # read the animal view in the "imported from Cryoweb" database
         # this needs to be changed in the future with the
         # animal table in the unified internal database - only for format check now
 
-        df_animals = pd.read_sql_table('v_animal', con=engine_from_cryoweb, schema='public')
-        jsonstring = df_animals.to_json(orient='records')
+
+        # df_animals = pd.read_sql_table('animals', con=engine_to_sampletab, schema='public')
+        # jsonstring = df_animals.to_json(orient='records')
+        # df_breeds = pd.read_sql_table('dict_breeds', con=engine_to_sampletab, schema='public')
+        # jsonstring = df_breeds.to_json(orient='records')
+        df_samples = pd.read_sql_table('samples', con=engine_to_sampletab, schema='public')
+        jsonstring = df_samples.to_json(orient='records')
         return jsonstring
 
         # engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')

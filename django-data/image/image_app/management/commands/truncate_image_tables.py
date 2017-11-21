@@ -1,4 +1,4 @@
-from django.core.management import BaseCommand
+from django.core.management import BaseCommand, CommandError
 import os
 import glob
 import unittest
@@ -31,9 +31,8 @@ class Command(BaseCommand):
             try:
                 with engine_to_sampletab.begin() as connection:
                     r = connection.execute(statement)
-            except exc.SQLAlchemyError:
-                sys.exit("Encountered general SQLAlchemyError")
-
+            except Exception:
+                raise CommandError('Encountered general SQLAlchemyError')
 
         # call_command('mycheck')
 

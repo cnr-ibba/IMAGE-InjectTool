@@ -208,16 +208,15 @@ def sampletab2(request):
         )
 
         cols_as_strings = ["col" + str(ind) for ind in
-                           df_persons.index]  # Diverse persone sono indicate in colonne
-                                                    # con nomi 0, 1, 2 ecc..., che trasformo
-                                                    # in col0, col1, col2, ecc...
+                           df_persons.index]        # Convert indexes from integers to strings starting with "col"
+                                                    # e.g., 0, 1, 2 to col0, col1, col2
+
         df_persons.index = cols_as_strings
 
-        # voglio una tabella come
-        # name pippo
-        # address via carducci
-        # ecc...
-        # perciò devo trasporre la tab del database
+        # Transpose the persons table content to meet the header format
+        # e.g.,
+        # name\tjohn
+        # address\tFirst Street
         df_persons_T = df_persons.transpose()
         df_persons_T['index1'] = df_persons_T.index # name, address, ecc... sono l'index (df.index)
                                                                 # io li trasformo in una colonna vera df['index1']
@@ -368,6 +367,7 @@ def model_form_upload(request):
                 return redirect('../../')
         else:
             form = BackupForm()
+
         return render(request, 'image_app/model_form_upload.html', {
             'form': form, 'username': username, })
 
@@ -631,7 +631,10 @@ def truncate_image_tables(request):
         username = request.user.username
         # context = {'username': username}
 
+
         call_command('truncate_image_tables')
+
+
         return redirect('../../')
 
         # return render(request, 'image_app/model_form_upload.html', {
