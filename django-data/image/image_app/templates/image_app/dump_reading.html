@@ -1,6 +1,15 @@
 {% extends 'admin/base.html' %}
 
 {% block content %}
-{{ username }} {{ fullpath }} step 1
-{% endblock %}
 
+{% if returncode != 0 %}
+  <p><strong>{{ stderr }}</strong></p>
+{% else %}
+  {{ fullpath }} imported for user {{ username }} (step 1)
+{% endif %}
+
+{% for line in output %}
+  line
+{% endfor %}
+
+{% endblock %}

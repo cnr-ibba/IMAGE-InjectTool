@@ -1,5 +1,6 @@
 from django.shortcuts import get_list_or_404, render, redirect
 import os
+import shlex
 from image_app.forms import BackupForm
 from django.conf import settings
 import codecs
@@ -378,9 +379,9 @@ def model_form_upload(request):
 def dump_reading(request):
     """Imports backup into the received_from_cryoweb db
 
-    This function uses the container's installation of psql to import a backup file into the
-    "imported_from_cryoweb" database.
-    The imported backup file is the last inserted into the image's table Backups.
+    This function uses the container's installation of psql to import a backup
+    file into the "imported_from_cryoweb" database. The imported backup file is
+    the last inserted into the image's table Backups.
 
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
@@ -388,6 +389,7 @@ def dump_reading(request):
     """
 
     if request.user.is_authenticated():
+        # TODO: read parameters from file?
         engine_from_cryoweb = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
         num_animals = pd.read_sql_query('select count(*) as num from animal', con=engine_from_cryoweb)
         num_animals = num_animals['num'].values[0]
@@ -399,30 +401,43 @@ def dump_reading(request):
 
         fullpath = last_backup.backup.file
 
+        # get a string and quote fullpath
+        fullpath = shlex.quote(str(fullpath))
+
+        # append fullpath to context
         context['fullpath'] = fullpath
-        
+
         if num_animals > 0:
+            # TODO: give an error message
             return redirect('../../')
-            sys.exit()
 
-        output = ''
+        # define command line
+        cmd_line = ("/usr/bin/psql -U cryoweb_insert_only -h db "
+                    "imported_from_cryoweb")
+        cmds = shlex.split(cmd_line)
+
         try:
-            cmd_line = "export PGPASSWORD='***REMOVED***'; /usr/bin/psql -U cryoweb_insert_only -h db " + \
-                       "imported_from_cryoweb < {}".format(fullpath)
-            try:
-                output = subprocess.call(cmd_line, stderr=subprocess.STDOUT, shell=True)
-            except subprocess.CalledProcessError as exc:
-                context['fullpath'] = "returncode: {}, output: {}".format(exc.returncode, exc.output)
-            else:
-                context['fullpath'] = output
+            result = subprocess.run(
+                cmds,
+                stdin=open(fullpath),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+                env={'PGPASSWORD': '***REMOVED***'},
+                encoding='utf8'
+                )
 
-        except:
-            context['fullpath'] = "ERROR!"
-            raise
+        except subprocess.CalledProcessError as exc:
+            context['returncode'] = exc.returncode
+            context['stderr'] = exc.stderr
+
+        else:
+            context['output'] = result.stdout.split("\n")
 
         return render(request, 'image_app/dump_reading.html', context)
 
     else:
+        # redirect if not authenticated
         return redirect('../../')
 
 

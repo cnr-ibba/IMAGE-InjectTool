@@ -5,3 +5,4 @@ Django==1.11
 pandas
 SQLAlchemy
 pymongo
+ipython
