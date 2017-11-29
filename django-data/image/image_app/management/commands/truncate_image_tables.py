@@ -24,15 +24,14 @@ class Command(BaseCommand):
         num_animals = num_animals['num'].values[0]
         print("animals num:\n{}".format(num_animals))
 
-        if num_animals > 0:
-            statement = text(""" TRUNCATE animals, dict_breeds, samples; """)
+        statement = text(""" TRUNCATE animals, dict_breeds, samples; """)
 
-            print(statement)
-            try:
-                with engine_to_sampletab.begin() as connection:
-                    r = connection.execute(statement)
-            except Exception:
-                raise CommandError('Encountered general SQLAlchemyError')
+        print(statement)
+        try:
+            with engine_to_sampletab.begin() as connection:
+                r = connection.execute(statement)
+        except Exception:
+            raise CommandError('Encountered general SQLAlchemyError')
 
         # call_command('mycheck')
 

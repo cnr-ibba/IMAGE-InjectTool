@@ -412,7 +412,7 @@ def dump_reading(request):
             return redirect('../../')
 
         # define command line
-        cmd_line = ("/usr/bin/psql -U cryoweb_insert_only -h db "
+        cmd_line = ("/usr/bin/psql -U postgres -h db "
                     "imported_from_cryoweb")
         cmds = shlex.split(cmd_line)
 
