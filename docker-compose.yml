@@ -6,7 +6,8 @@ db:
 
   # Set db environment
   environment:
-    POSTGRES_PASSWORD: ***REMOVED***
+    # this password will be taken from .env file (not tracked in GIT)
+    POSTGRES_PASSWORD: $POSTGRES_PASSWORD
 
   # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
   volumes:
