@@ -14,10 +14,11 @@
 
 * define users to do different works
   - Add a distinct user to import data (avoid sql  injection) - I removed it by mistake
-  - sqlalchemy serializer: https://stackoverflow.com/questions/2786664/how-to-create-and-restore-a-backup-from-sqlalchemy
+  - [sqlalchemy serializer](https://stackoverflow.com/questions/2786664/how-to-create-and-restore-a-backup-from-sqlalchemy)
     can be useful?
 
 * Remove **all** passwords in repository. Create an environment file for passwords
+  - try to use [python decouple](https://simpleisbetterthancomplex.com/2015/11/26/package-of-the-week-python-decouple.html)
 
 * DDL for imported_from_cryoweb
 
@@ -27,12 +28,18 @@
 * get_json_1 need to be modified
   - The json extracted from database is different from exampleJSONfromUIDafterEnhancement.json
     need to add the following sections:
-    * submission
     * person
     * organization
     * species
   - check that attrib in sample, breed animals correspond (doesn't seem)
+    * fix into tables? fix in json dumps? (table seems better)
   - ontologies need to be already present in JSON
+  - [validate json](https://jsonlint.com/) output
+    * NaN is not a valid Json value
+    * NaT is not a valid Json value
+  - submission:
+    * Does Inject-Tool manage more than one submission at time?
+    * I need to get data relying on submission? is submission a foreign key?
 
 * Where JSON is in the whole pipeline? Is requested to fill data?
 
@@ -56,6 +63,7 @@
   - need to place Openrefine in docker compose?
   - can I place data directly in OpenRefine? I need to download data from Inject-Tool
     then load into OpenRefine? when data are ready, I need to place them back to Inject-Tool?
+  - test [OpenRefine client](https://github.com/OpenRefine/refine-client-py)
 
 * Should the columns exported from Inject-Tool be the same of IMAGE-metadata? check
   column consistencies.
@@ -64,3 +72,17 @@
   interface to users.
 
 * Unittest?
+
+* Those tables are unclear (and empty at the moment):
+  - Databases
+  - Term sources
+
+* organization roles has only one column. Could be a column of organization table?
+
+* Submission table is not referenced by any other table.
+  - Should I retrieve information using a submission id? Is submission the first
+    requirement to fill up when importing data?
+  - Suppose I want to do two separate submission. I have to wipe every time? if
+    yes, were data will be placed? If I do a submission, then I want to change something,
+    need I to modify the submission in my database? need I modify data downloaded
+    from biosample?

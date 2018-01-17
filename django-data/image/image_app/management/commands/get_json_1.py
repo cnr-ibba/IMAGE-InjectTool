@@ -16,6 +16,7 @@ import math
 import json
 import numpy
 import pandas as pd
+import datetime
 
 from pandas import Timestamp
 from sqlalchemy import create_engine
@@ -49,17 +50,26 @@ class Command(BaseCommand):
     returns a string containing json formatted data (about animals).
     """
 
-    # TODO: add a function to deal with parameters
-    # https://docs.djangoproject.com/en/2.0/howto/custom-management-commands/
+    # TODO: is this needed? does index 0 refer to the same object?
+    def add_arguments(self, parser):
+        """a function to deal with parameters"""
+
+        # Named (optional) arguments
+        parser.add_argument(
+            '-i',
+            '--index',
+            default=0,
+            type=int,
+            help="Get this index (def '%(default)s')",
+        )
 
     def handle(self, *args, **options):
 
         # define an output variable
         output = dict()
 
-        # get this dataframe index
-        # TODO: get this from cmd line
-        index = 0
+        # get this dataframe index from cmd line
+        index = options['index']
 
         # 1. take an animal record (entire dataframe row)
         # 2. read father_id and mother_id and derive animal names
@@ -91,6 +101,24 @@ class Command(BaseCommand):
 
             return derivedFrom
 
+        def getDictFromDF(df, index):
+            row = df.loc[index, ]
+
+            # convert into dictionary
+            a_dict = row.to_dict()
+
+            # replace all NaN values (for loating point)
+            for k, v in a_dict.items():
+                if isinstance(v, numpy.floating):
+                    if pd.isna(v):
+                        a_dict[k] = None
+
+                elif isinstance(v, datetime.datetime):
+                    if pd.isna(v):
+                        a_dict[k] = None
+
+            return a_dict
+
         # open a connection
         # TODO: read parameters from evironment files
         engine_to_sampletab = create_engine(
@@ -109,28 +137,12 @@ class Command(BaseCommand):
                 'description': 'suppliedBreed'
             })
 
-        # take first record from dataframe
-        row = df_breeds.loc[index, ]
-        dict_breed = row.to_dict()
-
-        # put this dictionary to output dictionary
-        output['breed'] = dict_breed
-
-#        print("'breed':[")
-#
-#        for index, row in df_breeds.iterrows():
-#            dict_breed = row.to_dict()
-#            print('{},'.format(dict_breed))
-#            if index == 0:
-#                break
-#        print("],")
+        # take first record from dataframe and convert into dictionary
+        output['breed'] = getDictFromDF(df_breeds, index)
 
         # =======
         # ANIMALS
         # =======
-
-#        df_sex = pd.read_sql_table(
-#                'dict_sex', con=engine_to_sampletab, schema='public')
 
         df_animals = pd.read_sql_table(
                 'animals', con=engine_to_sampletab, schema='public')
@@ -160,32 +172,8 @@ class Command(BaseCommand):
                 'birth_location': 'birthLocation',
             })
 
-        # take first record from dataframe
-        row = df_animals.loc[index, ]
-        dict_animal = row.to_dict()
-
-        # put this dictionary to output dictionary
-        output['animal'] = dict_animal
-
-#        print("'animal':[")
-#
-#        for index, row in df_animals.iterrows():
-#
-#            # row['submission_date'] = row['submission_date'].dt.strftime('%Y-%m-%d')
-#            # row['submission_date'] = "{0:0>4}-{1:0>2}-{2:0>2}".format(row['submission_date'].year,row['submission_date'].month,
-#            #                                            row['submission_date'].day)
-#
-#            dict_animal = row.to_dict()
-#            # json_animal = row.to_json(date_format='iso')
-#
-#            print('{},'.format(dict_animal))
-#
-#            # manage this animal's samples
-#
-#
-#            if index == 0:
-#                break
-#        print("],")
+        # take first record from dataframe and convert into dictionary
+        output['animal'] = getDictFromDF(df_animals, index)
 
         # =======
         # SAMPLES
@@ -206,36 +194,20 @@ class Command(BaseCommand):
         df_samples['dataSourceVersion'] = '23.01'
         df_samples['availability'] = 'mailto:peter@ebi.ac.uk'
 
-        # row['submission_date'] = "{0:0>4}-{1:0>2}-{2:0>2}".format(row['submission_date'].year,row['submission_date'].month,
-        #                                            row['submission_date'].day)
-        # <- TODO
+        # take first record from dataframe and convert into dictionary
+        output['sample'] = getDictFromDF(df_samples, index)
 
-        # df_samples = df_samples[['id', 'name', 'description', 'dataSourceId', 'dataSource',
-        #                          'dataSourceVersion', 'animal', 'availability']].rename(
-        #     columns={
-        #         'id': 'biosampleId',
-        #         'animal': 'derivedFrom'
-        #     })
+        # ==========
+        # SUBMISSION
+        # ==========
 
-         # take first record from dataframe
-        row = df_samples.loc[index, ]
-        dict_sample = row.to_dict()
+        df_submission = pd.read_sql_table(
+                'submissions', con=engine_to_sampletab, schema='public')
 
-        # put this dictionary to output dictionary
-        output['sample'] = dict_sample
+        # take first record from dataframe and convert into dictionary
+        output['submissions'] = getDictFromDF(df_submission, index)
 
-#        print("'sample':[")
-#
-#        for index, row in df_samples.iterrows():
-#            dict_sample = row.to_dict()
-#
-#            print('{},'.format(dict_sample))
-#
-#            if index == 0:
-#                break
-#
-#        print("]\n")
 
         # covert output in json
-        # TODO: render in django?
-        return json.dumps(output, sort_keys=True, indent=4, cls=MyEncoder)
+        return json.dumps(output, sort_keys=True, indent=4, allow_nan=False,
+                          cls=MyEncoder)
