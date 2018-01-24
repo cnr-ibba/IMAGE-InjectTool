@@ -110,7 +110,7 @@ def sampletab2(request):
     if request.user.is_authenticated():
         myusername = request.user.username
 
-        filename = "Sampletab_{}.csv".format(myusername)  # il solo nome
+        filename = "Sampletab_{}.txt".format(myusername)  # il solo nome
         fileroot = os.path.join(settings.MEDIA_ROOT, filename)  # con path
         fileurl = os.path.join(settings.MEDIA_URL, filename)  # URL
 

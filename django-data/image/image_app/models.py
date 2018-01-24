@@ -140,23 +140,54 @@ class Samples(models.Model):
 
 class Submission(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
-    project = models.CharField(max_length=25, default="IMAGE", editable=False)
-    title = models.CharField(max_length=255,
-                             help_text='Example: Roslin Sheep Atlas')
-    identifier = models.CharField(max_length=255, blank=True, null=True,
-                                  help_text='Must be blank if not assigned ' +
-                                  'by BioSamples Database')
-    description = models.CharField(max_length=255,
-                                   help_text='Example: The Roslin Institute ' +
-                                   'Sheep Gene Expression Atlas Project')
-    data_source_name = models.CharField(max_length=255, blank=True, null=True,
-                                  help_text='example: Cryoweb IBBA')
-    data_source_version = models.CharField(max_length=255, blank=True, null=True,
-                                        help_text='examples: 2017-04, version 1.1')
-    version = models.CharField(max_length=255, blank=True, null=True)
-    reference_layer = models.CharField(max_length=255, blank=True, null=True)
-    update_date = models.DateField(blank=True, null=True)
-    release_date = models.DateField(blank=True, null=True)
+    project = models.CharField(
+            max_length=25,
+            default="IMAGE",
+            editable=False)
+
+    title = models.CharField(
+            max_length=255,
+            help_text='Example: Roslin Sheep Atlas')
+
+    # Assigned by BioSample. Not specified in ruleset
+    identifier = models.CharField(
+            max_length=255, blank=True, null=True,
+            help_text='Must be blank if not assigned ' +
+                      'by BioSamples Database')
+
+    description = models.CharField(
+            max_length=255,
+            help_text='Example: The Roslin Institute ' +
+                      'Sheep Gene Expression Atlas Project')
+
+    # TODO: find a Biosample Key for this column
+    data_source_name = models.CharField(
+            max_length=255, blank=True, null=True,
+            help_text='example: Cryoweb IBBA')
+
+    # TODO: find a Biosample Key for this column
+    data_source_version = models.CharField(
+            max_length=255, blank=True, null=True,
+            help_text='examples: 2017-04, version 1.1')
+
+    # Not specified in ruleset
+    version = models.CharField(
+            max_length=255, blank=True, null=True,
+            default=1.2)
+
+    reference_layer = models.CharField(
+            max_length=255, blank=True, null=True,
+            help_text=('If this submission is part of the reference layer, '
+                       'this will be "true". Otherwise it will be "false"'))
+
+    update_date = models.DateField(
+            blank=True, null=True,
+            help_text="Date this submission was last modified")
+
+    release_date = models.DateField(
+            blank=True, null=True,
+            help_text=("Date to be made public on. If blank, it will be "
+                       "public immediately"))
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.title))
@@ -164,8 +195,8 @@ class Submission(models.Model):
     class Meta:
         # managed = False
         db_table = 'submissions'
-        verbose_name = 'Submission'
-        verbose_name_plural = 'Submissions'
+        verbose_name = 'submission'
+        verbose_name_plural = 'submissions'
 
 
 class Person(models.Model):

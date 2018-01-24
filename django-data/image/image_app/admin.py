@@ -107,7 +107,8 @@ class SamplesAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_display = (
-        'title', 'project', 'description', 'data_source_name', 'data_source_version', 'version', 'reference_layer', 'update_date',
+        'title', 'project', 'description', 'data_source_name',
+        'data_source_version', 'version', 'reference_layer', 'update_date',
         'release_date',
     )
 
