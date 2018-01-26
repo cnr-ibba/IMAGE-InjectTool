@@ -7,11 +7,11 @@ import codecs
 # from django.http import HttpResponse
 from image_app.models import Animals
 from image_app.models import Submission, Person, Organization, Publication, \
-    Database, Term_source, Backup
+    Database, Term_source, Backup, DictSex
 import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
-import numpy
+# import numpy
 from django.core.management import call_command
 
 # from django.views import generic
@@ -95,10 +95,11 @@ def sampletab2(request):
 
     This function creates the sampletab file. It is an unusually long fx, but
     made of a relatively simple structure:
-    It creates the header of the file, containing data coming from the organisms
-    and persons tables. Once finished writes the true data: writes the field names row, then
-    for each animal it reads all animal's samples
-    and write all (1 animal row + n sample rows) into the csv file, and does it for all animals.
+    It creates the header of the file, containing data coming from the
+    organisms and persons tables. Once finished writes the true data:
+    writes the field names row, then for each animal it reads all animal's
+    samples and write all (1 animal row + n sample rows) into the csv file,
+    and does it for all animals.
 
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
@@ -116,11 +117,10 @@ def sampletab2(request):
 
         context = {'username': username, 'fileurl': fileurl}
 
-
         # HEADER
 
-
-        engine = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
+        engine = create_engine(
+                'postgresql://postgres:***REMOVED***@db:5432/image')
 
         pd.set_option("display.max_columns", None)
         pd.set_option("display.max_rows", None)
@@ -501,6 +501,34 @@ def dump_reading2(request):
             # insert dataframe as table into the UID database; data are inserted (append) into the existing table
             df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_sampletab, if_exists='append', index=False)
 
+            # TRANSFER
+
+            # in order to use relational constraints in animal relations (
+            # mother, father) we need to 'register' an animal name into the
+            # database
+            df_transfer = pd.read_sql_table(
+                    'v_transfer',
+                    con=engine_from_cryoweb,
+                    schema='public')
+
+            # now derive animal names from columns
+            df_transfer['name'] = (
+                    df_transfer['ext_unit'] + ':::' +
+                    df_transfer['ext_animal'])
+
+            # subset of columns
+            df_transfer_fin = df_transfer[['db_animal', 'name']]
+
+            # remove empy spaces
+            df_transfer_fin['name'] = df_transfer_fin['name'].str.replace(
+                    '\s+', '_')
+
+            # insert dataframe as table into the UID database
+            df_transfer_fin.to_sql(
+                    name='image_app_transfer',
+                    con=engine_to_sampletab,
+                    if_exists='append', index=False)
+
             # ANIMALS
             # the same for animals:
 
@@ -510,13 +538,12 @@ def dump_reading2(request):
 
             # keep only interesting columns and rename them
             df_animals_fin = df_animals[
-                ['db_animal', 'ext_animal', 'breed_id', 'ext_sex', 'db_sire', 'db_dam', 'birth_dt', 'birth_year',
+                ['db_animal', 'breed_id', 'ext_sex', 'db_sire', 'db_dam', 'birth_dt', 'birth_year',
                  'last_change_dt', 'latitude', 'longitude']]
 
             df_animals_fin = df_animals_fin.rename(
                 columns={
-                    'db_animal': 'id',
-                    'ext_animal': 'name',
+                    'db_animal': 'name_id',
                     'ext_sex': 'sex_id',
                     'db_sire': 'father_id',
                     'db_dam': 'mother_id',
@@ -527,22 +554,34 @@ def dump_reading2(request):
                 }
             )
 
-            # change values
-            df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace({'m': 1, 'f': 2})
-            df_animals_fin['name'] = df_animals_fin['name'].str.replace('\t', '')
+            # change values for sex
+            # TODO: translate sex into male and female objects
+            male = DictSex.objects.get(label="male")
+            female = DictSex.objects.get(label="female")
+
+            df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace(
+                    {'m': male.id, 'f': female.id})
 
             # insert dataframe as table into the UID database
-            df_animals_fin.to_sql(name='animals', con=engine_to_sampletab, if_exists='append', index=False)
+            df_animals_fin.to_sql(
+                    name='animals',
+                    con=engine_to_sampletab,
+                    if_exists='append',
+                    index=False)
 
             # SAMPLES
             # the same for samples
 
             # read view in "imported_from_cryoweb" db
-            df_samples = pd.read_sql_table('v_vessels', con=engine_from_cryoweb, schema='public')
+            df_samples = pd.read_sql_table(
+                    'v_vessels',
+                    con=engine_from_cryoweb,
+                    schema='public')
 
             # keep only interesting columns and rename them
             df_samples_fin = df_samples[
                 ['db_vessel', 'ext_vessel', 'production_dt', 'ext_protocol_id', 'db_animal', 'comment']]
+
             df_samples_fin = df_samples_fin.rename(
                 columns={
                     'db_vessel': 'id',

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from image_app.models import Animals, DictBreeds, \
     Samples, Submission, Person, Organization, Publication, Database, \
-    Term_source, Dict_organization_roles, Backup
+    Term_source, DictRole, Backup, Transfer
 
 
 # from import_export import resources
@@ -11,7 +11,9 @@ from image_app.models import Animals, DictBreeds, \
 # class SampletabResource(resources.ModelResource):
 # 	class Meta:
 # 		model = Sampletab
-class Dict_organization_rolesAdmin(admin.ModelAdmin):
+
+
+class DictRoleAdmin(admin.ModelAdmin):
     pass
 
 
@@ -22,8 +24,8 @@ class BackupAdmin(admin.ModelAdmin):
 class DictBreedsAdmin(admin.ModelAdmin):
     search_fields = ['description']
     list_per_page = 9
-    list_display = ('description', 'mapped_breed', 'species', 'country', 'language',
-                    'api_url', 'notes')
+    list_display = ('description', 'mapped_breed', 'species', 'country',
+                    'language', 'api_url', 'notes')
 
 # class DictBiobanksAdmin(admin.ModelAdmin):
 #     search_fields = ['description']
@@ -53,6 +55,17 @@ class SamplesInline(admin.StackedInline):
 
     model = Samples
     extra = 0
+
+
+class TransferAdmin(admin.ModelAdmin):
+    """A class to deal with animal names"""
+
+    exclude = ('db_animal',)
+
+    # remove this admin class from admin page, even if such class is registered
+    # however this class will be editable from classes using Foreign Keys
+    def get_model_perms(self, request):
+        return {}
 
 
 class AnimalsAdmin(admin.ModelAdmin):
@@ -116,14 +129,14 @@ class SubmissionAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     search_fields = ['last_name']
     list_display = (
-        'last_name', 'initials', 'first_name', 'email', 'affiliation', 'person_role',
+        'last_name', 'initials', 'first_name', 'email', 'affiliation', 'role',
     )
 
 
 class OrganizationAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_display = (
-        'name', 'address', 'country', 'URI', 'organization_role',
+        'name', 'address', 'country', 'URI', 'role',
     )
 
 
@@ -150,6 +163,7 @@ class Term_sourceAdmin(admin.ModelAdmin):
 
 admin.site.register(Animals, AnimalsAdmin)
 admin.site.register(Samples, SamplesAdmin)
+admin.site.register(Transfer, TransferAdmin)
 
 admin.site.register(DictBreeds, DictBreedsAdmin)
 # admin.site.register(DictBiobanks, DictBiobanksAdmin)
@@ -163,5 +177,5 @@ admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Database, DatabaseAdmin)
 admin.site.register(Term_source, Term_sourceAdmin)
-admin.site.register(Dict_organization_roles, Dict_organization_rolesAdmin)
+admin.site.register(DictRole, DictRoleAdmin)
 admin.site.register(Backup, BackupAdmin)

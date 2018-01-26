@@ -98,3 +98,6 @@
     yes, were data will be placed? If I do a submission, then I want to change something,
     need I to modify the submission in my database? need I modify data downloaded
     from biosample?
+
+* Check UID columns, IMAGE-metadata and IMAGE_sample_empty_template_20180122 columns
+  are not the same

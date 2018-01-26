@@ -10,18 +10,30 @@ for r in range(1980, (datetime.datetime.now().year+1)):
     YEAR_CHOICES.append((r, r))
 
 
-class Dict_organization_roles(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
-    description = models.CharField(max_length=255)
+class DictRole(models.Model):
+    """A class to model roles defined as childs of
+    http://www.ebi.ac.uk/efo/EFO_0002012"""
+
+    # if not defined, this table will have an own primary key
+    label = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: submitter")
+
+    short_form = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: EFO_0001741")
 
     def __str__(self):
-        return str(self.description)
+        return "{label} ({short_form})".format(
+                label=self.label,
+                short_form=self.short_form)
 
     class Meta:
-        # managed = False
-        db_table = 'dict_organization_roles'
-        verbose_name = 'Organization role'
-        verbose_name_plural = 'Organization roles'
+        # db_table will be <app_name>_<classname>
+        verbose_name = "dict role"
+        unique_together = (("label", "short_form"),)
 
 
 class DictBreeds(models.Model):
@@ -46,34 +58,82 @@ class DictBreeds(models.Model):
 
 
 class DictSex(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
-    description = models.CharField(max_length=255, blank=True)
+    """A class to model sex as defined in PATO"""
+
+    label = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: male")
+
+    short_form = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: PATO_0000384")
+
+    # HINT: model translation in database?
 
     def __str__(self):
-        return str(self.description)
+        return "{label} ({short_form})".format(
+                label=self.label,
+                short_form=self.short_form)
 
     class Meta:
-        # managed = False
-        db_table = 'dict_sex'
         verbose_name = 'sex'
         verbose_name_plural = 'sex'
+        unique_together = (("label", "short_form"),)
+
+
+class Transfer(models.Model):
+    """Model cryoweb transfer view: define all animal names in order to be
+    referenced by Animal classes"""
+
+    # force primary key creation.
+    # ???: Is cryoweb animal_id important?
+    db_animal = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, blank=False)
+
+    def __str__(self):
+        return str(self.name)
+
+    class Meta:
+        verbose_name = 'Animal name'
 
 
 class Animals(models.Model):
     # id = models.IntegerField(primary_key=True)
     biosampleid = models.CharField(max_length=255, blank=True, null=True)
-    name = models.CharField(max_length=255, blank=True)
-    material = models.CharField(max_length=255, default="Organism", editable=False)
+
+    # an animal name has a entry in transfer table
+    name = models.ForeignKey(
+            'Transfer',
+            on_delete=models.PROTECT,
+            related_name='%(class)s_name')
+
+    material = models.CharField(
+            max_length=255,
+            default="Organism",
+            editable=False,
+            null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     breed = models.ForeignKey('DictBreeds', db_index=True,
                               related_name='%(class)s_breed')
+
+    # HINT: need sex a constraint?
     sex = models.ForeignKey('DictSex', db_index=True, blank=True, null=True,
                             default=-1, related_name='%(class)s_sex')
 
-    father = models.ForeignKey('Animals', db_index=True, blank=True,
-                               null=True, related_name='%(class)s_father')
-    mother = models.ForeignKey('Animals', db_index=True, blank=True,
-                               null=True, related_name='%(class)s_mother')
+    # Need I check if animals father and mother are already present in
+    # database? shuold I check relationship by constraints?
+    father = models.ForeignKey(
+            'Transfer',
+            on_delete=models.PROTECT,
+            related_name='%(class)s_father')
+
+    mother = models.ForeignKey(
+            'Transfer',
+            on_delete=models.PROTECT,
+            null=True, related_name='%(class)s_mother')
+
     birth_date = models.DateField(blank=True, null=True)
     birth_year = models.IntegerField(choices=YEAR_CHOICES, blank=True,
                                      null=True)
@@ -101,7 +161,11 @@ class Samples(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     biosampleid = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True)
-    material = models.CharField(max_length=255, default="Specimen from Organism", editable=False)
+    material = models.CharField(
+            max_length=255,
+            default="Specimen from Organism",
+            editable=False,
+            null=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     production_data = models.CharField(max_length=255, blank=True, null=True)
     organism_part = models.CharField(max_length=255, blank=True, null=True)
@@ -123,8 +187,11 @@ class Samples(models.Model):
     # ena = models.ForeignKey(DictENA, blank=True, null=True)
     # animal = models.ForeignKey('Animals', blank=True, null=True,
     # related_name='%(class)s_animal')
-    animal = models.ForeignKey('Animals', db_index=True,
-                               related_name='samples')
+    animal = models.ForeignKey(
+            'Animals',
+            on_delete=models.PROTECT,
+            related_name='%(class)s_animal')
+
     # author = models.ForeignKey(User, related_name='authorsamples')
     notes = models.CharField(max_length=255, blank=True, null=True)
 
@@ -207,10 +274,11 @@ class Person(models.Model):
     email = models.EmailField(max_length=70, blank=True, null=True)
     # role = models.CharField(max_length=255, blank=True, null=True)
     affiliation = models.CharField(max_length=255, blank=True, null=True)
-    role = models.ForeignKey('Dict_organization_roles',
-                             blank=True, null=True,
-                             related_name='%(class)s_role')
-    person_role = models.CharField(max_length=255, blank=True, null=True)
+
+    role = models.ForeignKey(
+            'DictRole',
+            on_delete=models.PROTECT,
+            related_name='%(class)s_role')
 
     def __str__(self):
         if str(self.first_name):
@@ -234,10 +302,11 @@ class Organization(models.Model):
     country = models.CharField(max_length=255, blank=True, null=True)
     URI = models.URLField(max_length=500, blank=True, null=True,
                           help_text='Web site')
-    # role = models.CharField(max_length=255, blank=True, null=True)
-    role = models.ForeignKey('Dict_organization_roles', blank=True, null=True,
-                             related_name='%(class)s_role')
-    organization_role = models.CharField(max_length=255, blank=True, null=True)
+
+    role = models.ForeignKey(
+            'DictRole',
+            on_delete=models.PROTECT,
+            related_name='%(class)s_role')
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name))
