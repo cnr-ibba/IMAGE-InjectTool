@@ -7,12 +7,17 @@ db:
   # Set db environment
   environment:
     # this password will be taken from .env file (not tracked in GIT)
-    POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    POSTGRES_PASSWORD: $PGPASSWORD
+    PGPASSWORD: $PGPASSWORD
+    IMAGE_USER: $IMAGE_USER
+    IMAGE_PASSWORD: $IMAGE_PASSWORD
+    CRYOWEB_INSERT_ONLY_PW: $CRYOWEB_INSERT_ONLY_PW
 
   # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
   volumes:
     - "./postgres-data:/var/lib/postgresql/data"
     - "/etc/localtime:/etc/localtime:ro"
+    - "./postgres/:/docker-entrypoint-initdb.d/"
 
   ports:
     - "25432:5432"

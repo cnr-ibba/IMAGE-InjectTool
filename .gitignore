@@ -1,16 +1,16 @@
 # user defined
 mysql-data/
 postgres-data/
+croweb-data/
+django-data/image/media/
 tmp/
 *.swp
 .idea/
-*backup_schemaless*
 *_test_mongo
 *migrations*
 *tgz
 *tar.gz
 *.json
-temp_scripts
 settings.py
 *.tar
 *.csv

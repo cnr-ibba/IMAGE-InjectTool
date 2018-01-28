@@ -390,8 +390,18 @@ def dump_reading(request):
 
     if request.user.is_authenticated():
         # TODO: read parameters from file?
-        engine_from_cryoweb = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
-        num_animals = pd.read_sql_query('select count(*) as num from animal', con=engine_from_cryoweb)
+        engine_from_cryoweb = create_engine(
+            'postgresql://postgres:***REMOVED***@db:5432/imported_'
+            'from_cryoweb')
+
+        # change default schema
+        conn = engine_from_cryoweb.connect()
+        conn.execute("SET search_path TO apiis_admin, public")
+
+        num_animals = pd.read_sql_query(
+            'select count(*) as num from animal',
+            con=conn)
+
         num_animals = num_animals['num'].values[0]
         # print("animals num:\n{}".format(num_animals))
 
@@ -412,8 +422,9 @@ def dump_reading(request):
             return redirect('../../')
 
         # define command line
-        cmd_line = ("/usr/bin/psql -U postgres -h db "
+        cmd_line = ("/usr/bin/psql -U cryoweb_insert_only -h db "
                     "imported_from_cryoweb")
+
         cmds = shlex.split(cmd_line)
 
         try:
@@ -451,13 +462,24 @@ def dump_reading2(request):
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
     """
-    engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
-    num_animals = pd.read_sql_query('select count(*) as num from animals', con=engine_to_sampletab)
+    engine_to_image = create_engine(
+        'postgresql://postgres:***REMOVED***@db:5432/image')
+
+    engine_from_cryoweb = create_engine(
+        'postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
+
+    # change default schema
+    engine_from_cryoweb.execute("SET search_path TO apiis_admin, public")
+
+    num_animals = pd.read_sql_query(
+            'select count(*) as num from animals',
+            con=engine_to_image)
+
     num_animals = num_animals['num'].values[0]
     print("animals num:\n{}".format(num_animals))
+
     if num_animals > 0:
         return redirect('../../')
-        sys.exit()
 
     def get_breed_id(row, df_breeds_species):
         # global df_breeds_species
@@ -475,14 +497,14 @@ def dump_reading2(request):
 
 
         try:
-            engine_from_cryoweb = create_engine('postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
-            engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
+
+            engine_to_image = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
 
             pd.set_option("display.max_columns", None)
             pd.set_option("display.max_rows", None)
 
             # read the the v_breeds_species view in the "imported_from_cryoweb database"
-            df_breeds_species = pd.read_sql_table('v_breeds_species', con=engine_from_cryoweb, schema='public')
+            df_breeds_species = pd.read_sql_table('v_breeds_species', con=engine_from_cryoweb)
 
             # keep only interesting columns and rename them
             df_breeds_fin = df_breeds_species[
@@ -499,7 +521,7 @@ def dump_reading2(request):
             )
 
             # insert dataframe as table into the UID database; data are inserted (append) into the existing table
-            df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_sampletab, if_exists='append', index=False)
+            df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_image, if_exists='append', index=False)
 
             # TRANSFER
 
@@ -508,8 +530,7 @@ def dump_reading2(request):
             # database
             df_transfer = pd.read_sql_table(
                     'v_transfer',
-                    con=engine_from_cryoweb,
-                    schema='public')
+                    con=engine_from_cryoweb)
 
             # now derive animal names from columns
             df_transfer['name'] = (
@@ -526,14 +547,14 @@ def dump_reading2(request):
             # insert dataframe as table into the UID database
             df_transfer_fin.to_sql(
                     name='image_app_transfer',
-                    con=engine_to_sampletab,
+                    con=engine_to_image,
                     if_exists='append', index=False)
 
             # ANIMALS
             # the same for animals:
 
             # read the v_animal view in the "imported_from_cryoweb" db
-            df_animals = pd.read_sql_table('v_animal', con=engine_from_cryoweb, schema='public')
+            df_animals = pd.read_sql_table('v_animal', con=engine_from_cryoweb)
             df_animals['breed_id'] = df_animals.apply(lambda row: get_breed_id(row, df_breeds_species), axis=1)
 
             # keep only interesting columns and rename them
@@ -565,7 +586,7 @@ def dump_reading2(request):
             # insert dataframe as table into the UID database
             df_animals_fin.to_sql(
                     name='animals',
-                    con=engine_to_sampletab,
+                    con=engine_to_image,
                     if_exists='append',
                     index=False)
 
@@ -575,8 +596,7 @@ def dump_reading2(request):
             # read view in "imported_from_cryoweb" db
             df_samples = pd.read_sql_table(
                     'v_vessels',
-                    con=engine_from_cryoweb,
-                    schema='public')
+                    con=engine_from_cryoweb)
 
             # keep only interesting columns and rename them
             df_samples_fin = df_samples[
@@ -597,11 +617,11 @@ def dump_reading2(request):
             df_samples_fin['name'] = df_samples_fin['name'].str.replace('\t', '')
 
             # insert dataframe as table into the UID database
-            df_samples_fin.to_sql(name='samples', con=engine_to_sampletab, if_exists='append', index=False)
+            df_samples_fin.to_sql(name='samples', con=engine_to_image, if_exists='append', index=False)
 
             # ORGANIZATIONS
 
-            df_contacts = pd.read_sql_table('v_contacts', con=engine_from_cryoweb, schema='public')
+            df_contacts = pd.read_sql_table('v_contacts', con=engine_from_cryoweb)
 
             df_contacts['address'] = df_contacts['street'] + ", " + \
                                           df_contacts['zip'] + " " + \
@@ -618,7 +638,7 @@ def dump_reading2(request):
             df_organizations = df_contacts[
                 ['name', 'address', 'URI']]
 
-            df_organizations.to_sql(name='organizations', con=engine_to_sampletab, if_exists='append', index=False)
+            df_organizations.to_sql(name='organizations', con=engine_to_image, if_exists='append', index=False)
 
             df_persons = df_contacts[
                 ['first_name', 'second_name', 'email']]
@@ -628,7 +648,7 @@ def dump_reading2(request):
                     'second_name': 'last_name',
                 }
             )
-            df_persons.to_sql(name='persons', con=engine_to_sampletab, if_exists='append', index=False)
+            df_persons.to_sql(name='persons', con=engine_to_image, if_exists='append', index=False)
 
             context['fullpath'] = "OK"
 
