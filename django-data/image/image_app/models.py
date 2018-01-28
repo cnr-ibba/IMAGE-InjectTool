@@ -87,9 +87,8 @@ class Transfer(models.Model):
     """Model cryoweb transfer view: define all animal names in order to be
     referenced by Animal classes"""
 
-    # force primary key creation.
     # ???: Is cryoweb animal_id important?
-    db_animal = models.AutoField(primary_key=True)
+    db_animal = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=255, blank=False)
 
     def __str__(self):
@@ -142,7 +141,11 @@ class Animals(models.Model):
     birth_location = models.CharField(max_length=255, blank=True, null=True)
     farm_latitude = models.FloatField(blank=True, null=True)
     farm_longitude = models.FloatField(blank=True, null=True)
-    reproduction_place = models.CharField(max_length=255, blank=True, null=True)
+    reproduction_place = models.CharField(
+            max_length=255,
+            blank=True,
+            null=True)
+
     # author = models.ForeignKey(User, related_name='authoranimals')
     notes = models.TextField(blank=True, null=True)
 

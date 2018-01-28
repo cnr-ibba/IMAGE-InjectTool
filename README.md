@@ -132,7 +132,7 @@ $ docker-compose up -d
 
 After inizialization, a new django user with administrative privilges is needed. This is
 not the default postgres user, but a user valid only in django environment. Moreover
-the django tables need tobe defined:
+the django tables need to be defined:
 
 ```
 $ docker-compose run --rm uwsgi python manage.py check
@@ -149,6 +149,13 @@ folder:
 
 ```
 $ docker-compose run --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media && chmod g+rwx media && chgrp -R www-data .'
+```
+
+Next, you need to initialize the InjectTool database by filling up default accessory
+tables. You can do it by launching the following command:
+
+```
+$ docker-compose run --rm uwsgi python manage.py initializedb
 ```
 
 ### Useful commands

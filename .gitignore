@@ -1,7 +1,7 @@
 # user defined
 mysql-data/
 postgres-data/
-croweb-data/
+cryoweb-data/
 django-data/image/media/
 tmp/
 *.swp

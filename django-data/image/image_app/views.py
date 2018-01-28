@@ -1,4 +1,5 @@
 from django.shortcuts import get_list_or_404, render, redirect
+from django.contrib.auth.decorators import login_required
 import os
 import shlex
 from image_app.forms import BackupForm
@@ -452,6 +453,7 @@ def dump_reading(request):
         return redirect('../../')
 
 
+@login_required
 def dump_reading2(request):
     """Reformats data and write it into the image database
 
@@ -462,203 +464,244 @@ def dump_reading2(request):
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
     """
+
+    # TODO: set those values using a function
     engine_to_image = create_engine(
         'postgresql://postgres:***REMOVED***@db:5432/image')
 
     engine_from_cryoweb = create_engine(
         'postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
 
-    # change default schema
-    engine_from_cryoweb.execute("SET search_path TO apiis_admin, public")
+    # Read how many records are in the animal table.
+    # TODO: What abount a second submission?
+    num_animals = Animals.objects.count()
 
-    num_animals = pd.read_sql_query(
-            'select count(*) as num from animals',
-            con=engine_to_image)
-
-    num_animals = num_animals['num'].values[0]
-    print("animals num:\n{}".format(num_animals))
-
+    # TODO: return an error, or something like this
     if num_animals > 0:
         return redirect('../../')
 
     def get_breed_id(row, df_breeds_species):
         # global df_breeds_species
-        breed_id = df_breeds_species.loc[(df_breeds_species['db_breed'] == row['db_breed']) & (
-            df_breeds_species['db_species'] == row['db_species']), 'breed_id']
+        breed_id = df_breeds_species.loc[
+                (df_breeds_species['db_breed'] == row['db_breed']) & (
+                    df_breeds_species['db_species'] == row['db_species']),
+                'breed_id']
 
         return int(breed_id)
 
-    if request.user.is_authenticated():
+    # get username from context
+    username = request.user.username
+    context = {'username': username}
 
+    # HINT: what about this try-except? why raising the same errors at the end?
+    # TODO: model the issue at the end of the page
+    try:
+        # read the the v_breeds_species view in the "imported_from_cryoweb
+        # database"
+        df_breeds_species = pd.read_sql_table(
+                'v_breeds_species',
+                con=engine_from_cryoweb,
+                schema="apiis_admin")
 
-        username = request.user.username
-        context = {'username': username}
+        # keep only interesting columns and rename them
+        df_breeds_fin = df_breeds_species[
+            ['breed_id',
+             'db_breed',
+             'efabis_mcname',
+             'efabis_species',
+             'efabis_country',
+             'efabis_lang']]
 
+        df_breeds_fin = df_breeds_fin.rename(
+            columns={
+                'breed_id': 'id',
+                'efabis_mcname': 'description',
+                'efabis_species': 'species',
+                'efabis_country': 'country',
+                'efabis_lang': 'language',
+            }
+        )
 
+        # insert dataframe as table into the UID database; data are
+        # inserted (append) into the existing table
+        df_breeds_fin.to_sql(
+                name='dict_breeds',
+                con=engine_to_image,
+                if_exists='append',
+                index=False)  # don't write DataFrame index as a column
 
-        try:
+        # TRANSFER
 
-            engine_to_image = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
+        # in order to use relational constraints in animal relations (
+        # mother, father) we need to 'register' an animal name into the
+        # database
+        df_transfer = pd.read_sql_table(
+                'v_transfer',
+                con=engine_from_cryoweb,
+                schema="apiis_admin")
 
-            pd.set_option("display.max_columns", None)
-            pd.set_option("display.max_rows", None)
+        # now derive animal names from columns
+        df_transfer['name'] = (
+                df_transfer['ext_unit'] + ':::' +
+                df_transfer['ext_animal'])
 
-            # read the the v_breeds_species view in the "imported_from_cryoweb database"
-            df_breeds_species = pd.read_sql_table('v_breeds_species', con=engine_from_cryoweb)
+        # subset of columns
+        df_transfer_fin = df_transfer[['db_animal', 'name']]
 
-            # keep only interesting columns and rename them
-            df_breeds_fin = df_breeds_species[
-                ['breed_id', 'db_breed', 'efabis_mcname', 'efabis_species', 'efabis_country', 'efabis_lang']]
+        # remove empy spaces
+        df_transfer_fin['name'] = df_transfer_fin['name'].str.replace(
+                '\s+', '_')
 
-            df_breeds_fin = df_breeds_fin.rename(
-                columns={
-                    'breed_id': 'id',
-                    'efabis_mcname': 'description',
-                    'efabis_species': 'species',
-                    'efabis_country': 'country',
-                    'efabis_lang': 'language',
-                }
-            )
+        # insert dataframe as table into the UID database
+        df_transfer_fin.to_sql(
+                name='image_app_transfer',
+                con=engine_to_image,
+                if_exists='append',
+                index=False)
 
-            # insert dataframe as table into the UID database; data are inserted (append) into the existing table
-            df_breeds_fin.to_sql(name='dict_breeds', con=engine_to_image, if_exists='append', index=False)
+        # ANIMALS
+        # the same for animals:
 
-            # TRANSFER
+        # read the v_animal view in the "imported_from_cryoweb" db
+        df_animals = pd.read_sql_table(
+                'v_animal',
+                con=engine_from_cryoweb,
+                schema="apiis_admin")
 
-            # in order to use relational constraints in animal relations (
-            # mother, father) we need to 'register' an animal name into the
-            # database
-            df_transfer = pd.read_sql_table(
-                    'v_transfer',
-                    con=engine_from_cryoweb)
+        df_animals['breed_id'] = df_animals.apply(
+                lambda row: get_breed_id(row, df_breeds_species), axis=1)
 
-            # now derive animal names from columns
-            df_transfer['name'] = (
-                    df_transfer['ext_unit'] + ':::' +
-                    df_transfer['ext_animal'])
+        # keep only interesting columns and rename them
+        df_animals_fin = df_animals[
+            ['db_animal',
+             'breed_id',
+             'ext_sex',
+             'db_sire',
+             'db_dam',
+             'birth_dt',
+             'birth_year',
+             'last_change_dt',
+             'latitude',
+             'longitude']]
 
-            # subset of columns
-            df_transfer_fin = df_transfer[['db_animal', 'name']]
+        df_animals_fin = df_animals_fin.rename(
+            columns={
+                'db_animal': 'name_id',
+                'ext_sex': 'sex_id',
+                'db_sire': 'father_id',
+                'db_dam': 'mother_id',
+                'birth_dt': 'birth_date',
+                'last_change_dt': 'submission_date',
+                'latitude': 'farm_latitude',
+                'longitude': 'farm_longitude',
+            }
+        )
 
-            # remove empy spaces
-            df_transfer_fin['name'] = df_transfer_fin['name'].str.replace(
-                    '\s+', '_')
+        # change values for sex
+        # TODO: translate sex into male and female objects
+        male = DictSex.objects.get(label="male")
+        female = DictSex.objects.get(label="female")
 
-            # insert dataframe as table into the UID database
-            df_transfer_fin.to_sql(
-                    name='image_app_transfer',
-                    con=engine_to_image,
-                    if_exists='append', index=False)
+        df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace(
+                {'m': male.id, 'f': female.id})
 
-            # ANIMALS
-            # the same for animals:
+        # insert dataframe as table into the UID database
+        df_animals_fin.to_sql(
+                name='animals',
+                con=engine_to_image,
+                if_exists='append',
+                index=False)
 
-            # read the v_animal view in the "imported_from_cryoweb" db
-            df_animals = pd.read_sql_table('v_animal', con=engine_from_cryoweb)
-            df_animals['breed_id'] = df_animals.apply(lambda row: get_breed_id(row, df_breeds_species), axis=1)
+        # SAMPLES
+        # the same for samples
 
-            # keep only interesting columns and rename them
-            df_animals_fin = df_animals[
-                ['db_animal', 'breed_id', 'ext_sex', 'db_sire', 'db_dam', 'birth_dt', 'birth_year',
-                 'last_change_dt', 'latitude', 'longitude']]
+        # read view in "imported_from_cryoweb" db
+        df_samples = pd.read_sql_table(
+                'v_vessels',
+                con=engine_from_cryoweb,
+                schema="apiis_admin")
 
-            df_animals_fin = df_animals_fin.rename(
-                columns={
-                    'db_animal': 'name_id',
-                    'ext_sex': 'sex_id',
-                    'db_sire': 'father_id',
-                    'db_dam': 'mother_id',
-                    'birth_dt': 'birth_date',
-                    'last_change_dt': 'submission_date',
-                    'latitude': 'farm_latitude',
-                    'longitude': 'farm_longitude',
-                }
-            )
+        # keep only interesting columns and rename them
+        df_samples_fin = df_samples[
+            ['db_vessel',
+             'ext_vessel',
+             'production_dt',
+             'ext_protocol_id',
+             'db_animal',
+             'comment']]
 
-            # change values for sex
-            # TODO: translate sex into male and female objects
-            male = DictSex.objects.get(label="male")
-            female = DictSex.objects.get(label="female")
+        df_samples_fin = df_samples_fin.rename(
+            columns={
+                'db_vessel': 'id',
+                'ext_vessel': 'name',
+                'production_dt': 'collection_date',
+                'ext_protocol_id': 'protocol',
+                'db_animal': 'animal_id',
+                'comment': 'notes'
+            }
+        )
 
-            df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace(
-                    {'m': male.id, 'f': female.id})
+        # change some data values:
+        df_samples_fin['name'] = df_samples_fin['name'].str.replace(
+                '\t', '')
 
-            # insert dataframe as table into the UID database
-            df_animals_fin.to_sql(
-                    name='animals',
-                    con=engine_to_image,
-                    if_exists='append',
-                    index=False)
+        # insert dataframe as table into the UID database
+        df_samples_fin.to_sql(
+                name='samples',
+                con=engine_to_image,
+                if_exists='append',
+                index=False)
 
-            # SAMPLES
-            # the same for samples
+        # ORGANIZATIONS
+        df_contacts = pd.read_sql_table(
+                'v_contacts',
+                con=engine_from_cryoweb,
+                schema="apiis_admin")
 
-            # read view in "imported_from_cryoweb" db
-            df_samples = pd.read_sql_table(
-                    'v_vessels',
-                    con=engine_from_cryoweb)
+        df_contacts['address'] = (df_contacts['street'] + ", " +
+                                  df_contacts['zip'] + " " +
+                                  df_contacts['town'] + ", " +
+                                  df_contacts['ext_country'])
 
-            # keep only interesting columns and rename them
-            df_samples_fin = df_samples[
-                ['db_vessel', 'ext_vessel', 'production_dt', 'ext_protocol_id', 'db_animal', 'comment']]
+        df_contacts['URI'] = "emailto:" + df_contacts['email']
+        df_contacts = df_contacts.rename(
+            columns={
+                'third_name': 'name',
+            }
+        )
 
-            df_samples_fin = df_samples_fin.rename(
-                columns={
-                    'db_vessel': 'id',
-                    'ext_vessel': 'name',
-                    'production_dt': 'collection_date',
-                    'ext_protocol_id': 'protocol',
-                    'db_animal': 'animal_id',
-                    'comment': 'notes'
-                }
-            )
+        df_organizations = df_contacts[
+            ['name', 'address', 'URI']]
 
-            # change some data values:
-            df_samples_fin['name'] = df_samples_fin['name'].str.replace('\t', '')
+        df_organizations.to_sql(
+                name='organizations',
+                con=engine_to_image,
+                if_exists='append',
+                index=False)
 
-            # insert dataframe as table into the UID database
-            df_samples_fin.to_sql(name='samples', con=engine_to_image, if_exists='append', index=False)
+        df_persons = df_contacts[
+            ['first_name', 'second_name', 'email']]
 
-            # ORGANIZATIONS
+        df_persons = df_persons.rename(
+            columns={
+                'second_name': 'last_name',
+            }
+        )
 
-            df_contacts = pd.read_sql_table('v_contacts', con=engine_from_cryoweb)
+        df_persons.to_sql(
+                name='persons',
+                con=engine_to_image,
+                if_exists='append',
+                index=False)
 
-            df_contacts['address'] = df_contacts['street'] + ", " + \
-                                          df_contacts['zip'] + " " + \
-                                          df_contacts['town'] + ", " + \
-                                          df_contacts['ext_country']
+        context['fullpath'] = "OK"
 
-            df_contacts['URI'] = "emailto:" + df_contacts['email']
-            df_contacts = df_contacts.rename(
-                columns={
-                    'third_name': 'name',
-                }
-            )
+    except Exception:
+        context['fullpath'] = "ERROR!"
+        raise
 
-            df_organizations = df_contacts[
-                ['name', 'address', 'URI']]
+    return render(request, 'image_app/dump_reading2.html', context)
 
-            df_organizations.to_sql(name='organizations', con=engine_to_image, if_exists='append', index=False)
-
-            df_persons = df_contacts[
-                ['first_name', 'second_name', 'email']]
-
-            df_persons = df_persons.rename(
-                columns={
-                    'second_name': 'last_name',
-                }
-            )
-            df_persons.to_sql(name='persons', con=engine_to_image, if_exists='append', index=False)
-
-            context['fullpath'] = "OK"
-
-        except:
-            context['fullpath'] = "ERROR!"
-            raise
-
-        return render(request, 'image_app/dump_reading2.html', context)
-    else:
-        return redirect('../../')
 
 def truncate_databases(request):
     """ truncate cryoweb and image tables
