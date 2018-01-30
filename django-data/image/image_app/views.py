@@ -1,14 +1,16 @@
+from django.views import View
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_list_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 import os
 import shlex
-from image_app.forms import BackupForm
+from image_app.forms import DataSourceForm
 from django.conf import settings
 import codecs
 # from django.http import HttpResponse
 from image_app.models import (
         Animals, Submission, Person, Organization, Publication, Database,
-        Term_source, Backup, DictSex, DictBreed, Transfer)
+        Term_source, DataSource, DictSex, DictBreed, Transfer)
 import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
@@ -81,7 +83,8 @@ def write_record(myfile, record):
     """Writes a string into a file, then newline
 
     :param myfile: a file opened in append mode
-    :param record: a tab separated string to be added, in append mode, in the file
+    :param record: a tab separated string to be added, in append mode,
+                   in the file
     """
 
     global codecs
@@ -348,33 +351,28 @@ def sampletab2(request):
     return render(request, 'image_app/sampletab2.html', context)
 
 
-def model_form_upload(request):
-    """Creates the upload form
+class DataSourceView(View):
+    """Handling DataSource forms with class based views"""
 
-    This function creates the BackupForm, defined in the forms.py file.
-    This form adds a file to the Backups table, together with a description string.
+    form_class = DataSourceForm
+    template_name = "image_app/data_upload.html"
 
-    :param request: HTTP request automatically sent by the framework
-    :return: the resulting HTML page
-    """
+    def get(self, request, *args, **kwargs):
+        """Return this when accessing form through GET method"""
 
-    if request.user.is_authenticated():
-        username = request.user.username
-        # context = {'username': username}
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
 
-        if request.method == 'POST':
-            form = BackupForm(request.POST, request.FILES)
-            if form.is_valid():
-                form.save()
-                return redirect('../../')
-        else:
-            form = BackupForm()
+    def post(self, request, *args, **kwargs):
+        """Return this when accessing form through POST method"""
 
-        return render(request, 'image_app/model_form_upload.html', {
-            'form': form, 'username': username, })
+        form = self.form_class(request.POST, request.FILES)
 
-    else:
-        return redirect('../../')
+        if form.is_valid():
+            # <process form cleaned data>
+            return HttpResponseRedirect('../../')
+
+        return render(request, self.template_name, {'form': form})
 
 
 def dump_reading(request):
@@ -382,7 +380,7 @@ def dump_reading(request):
 
     This function uses the container's installation of psql to import a backup
     file into the "imported_from_cryoweb" database. The imported backup file is
-    the last inserted into the image's table Backups.
+    the last inserted into the image's table image_app_datasource.
 
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
@@ -408,7 +406,7 @@ def dump_reading(request):
 
         username = request.user.username
         context = {'username': username}
-        last_backup = list(Backup.objects.all())[-1]
+        last_backup = list(DataSource.objects.all())[-1]
 
         fullpath = last_backup.backup.file
 
@@ -800,11 +798,9 @@ def truncate_databases(request):
         call_command('truncate_image_tables')
         return redirect('../../')
 
-        # return render(request, 'image_app/model_form_upload.html', {
-        #     'form': form, 'username': username, })
-
     else:
         return redirect('../../')
+
 
 def truncate_image_tables(request):
     """ truncate image tables
@@ -822,17 +818,13 @@ def truncate_image_tables(request):
         username = request.user.username
         # context = {'username': username}
 
-
         call_command('truncate_image_tables')
 
-
         return redirect('../../')
-
-        # return render(request, 'image_app/model_form_upload.html', {
-        #     'form': form, 'username': username, })
 
     else:
         return redirect('../../')
+
 
 def truncate_cryoweb_tables(request):
     """ truncate cryoweb tables
@@ -852,9 +844,6 @@ def truncate_cryoweb_tables(request):
 
         call_command('truncate_cryoweb_tables')
         return redirect('../../')
-
-        # return render(request, 'image_app/model_form_upload.html', {
-        #     'form': form, 'username': username, })
 
     else:
         return redirect('../../')

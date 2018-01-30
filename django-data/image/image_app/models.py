@@ -239,16 +239,6 @@ class Submission(models.Model):
             help_text='Example: The Roslin Institute ' +
                       'Sheep Gene Expression Atlas Project')
 
-    # TODO: find a Biosample Key for this column
-    data_source_name = models.CharField(
-            max_length=255, blank=True, null=True,
-            help_text='example: Cryoweb IBBA')
-
-    # TODO: find a Biosample Key for this column
-    data_source_version = models.CharField(
-            max_length=255, blank=True, null=True,
-            help_text='examples: 2017-04, version 1.1')
-
     # Not specified in ruleset
     version = models.CharField(
             max_length=255, blank=True, null=True,
@@ -388,7 +378,29 @@ class Term_source(models.Model):
         verbose_name_plural = 'Term Sources'
 
 
-class Backup(models.Model):
-    description = models.CharField(max_length=255, blank=True)
-    backup = models.FileField(upload_to='backups/')
+class DataSource(models.Model):
+    upload_dir = 'data_source/'
+    uploaded_file = models.FileField(upload_to=upload_dir)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    # TODO: find a Biosample Key for this column
+    name = models.CharField(
+            max_length=255,
+            blank=False,
+            null=False,
+            help_text='example: Cryoweb IBBA')
+
+    # TODO: find a Biosample Key for this column
+    version = models.CharField(
+            max_length=255,
+            blank=False,
+            null=False,
+            help_text='examples: 2017-04, version 1.1')
+
+    def __str__(self):
+        return "%s, %s" % (self.name, self.version)
+
+    class Meta:
+        # HINT: can I put two files for my cryoweb instance? May they have two
+        # different version
+        unique_together = (("name", "version"),)

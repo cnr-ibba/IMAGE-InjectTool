@@ -1,7 +1,8 @@
+
 from django.contrib import admin
-from image_app.models import Animals, DictBreed, \
-    Samples, Submission, Person, Organization, Publication, Database, \
-    Term_source, DictRole, Backup, Transfer
+from image_app.models import (
+        Animals, DictBreed, Samples, Submission, Person, Organization,
+        Publication, Database, Term_source, DictRole, DataSource, Transfer)
 
 
 # from import_export import resources
@@ -17,8 +18,8 @@ class DictRoleAdmin(admin.ModelAdmin):
     pass
 
 
-class BackupAdmin(admin.ModelAdmin):
-    list_display = ('description', 'backup', 'uploaded_at')
+class DataSourceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'version', 'uploaded_file', 'uploaded_at')
 
 
 class DictBreedAdmin(admin.ModelAdmin):
@@ -120,9 +121,8 @@ class SamplesAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_display = (
-        'title', 'project', 'description', 'data_source_name',
-        'data_source_version', 'version', 'reference_layer', 'update_date',
-        'release_date',
+        'title', 'project', 'description', 'version', 'reference_layer',
+        'update_date', 'release_date',
     )
 
 
@@ -178,4 +178,4 @@ admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Database, DatabaseAdmin)
 admin.site.register(Term_source, Term_sourceAdmin)
 admin.site.register(DictRole, DictRoleAdmin)
-admin.site.register(Backup, BackupAdmin)
+admin.site.register(DataSource, DataSourceAdmin)

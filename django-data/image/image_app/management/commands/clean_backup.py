@@ -9,6 +9,7 @@ import subprocess
 from django.conf import settings
 from django.core.management import call_command
 
+
 class Command(BaseCommand):
     help = """
     	Deletes orphaned backup files: files in filesystem without any correspondence in the backup table are deleted.

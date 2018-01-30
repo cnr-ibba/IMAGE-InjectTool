@@ -1,8 +1,9 @@
+
 from django import forms
-from image_app.models import Backup
+from image_app.models import DataSource
 
 
-class BackupForm(forms.ModelForm):
+class DataSourceForm(forms.ModelForm):
     class Meta:
-        model = Backup
-        fields = ('description', 'backup')
+        model = DataSource
+        fields = ('name', 'version', 'uploaded_file')

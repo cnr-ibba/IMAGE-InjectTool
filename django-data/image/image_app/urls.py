@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+
+from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
 from image_app import views
 # from django.conf.urls import include
@@ -20,19 +22,18 @@ from image_app import views
 
 
 urlpatterns = [
-    # url(r'^$', views.listing, name='list'),
-    # e.g., .../image_app/sampletab1/1/ for details about the donor
-    # url(r'^sampletab1/(?P<pk>[0-9]+)/$', views.sampletab1,
-    #      name='sampletab1'),
+    # to upload data in image database
+    # TODO: deal with excel upload
+    url(r'data_upload/$',
+        login_required(views.DataSourceView.as_view()),
+        name='data_upload'),
+
     url(r'^sampletab1/$', views.sampletab1, name='sampletab1'),
     url(r'^sampletab2/$', views.sampletab2, name='sampletab2'),
     url(r'^check_metadata/$', views.check_metadata, name='check_metadata'),
-    url(r'^model_form_upload/$', views.model_form_upload,
-        name='model_form_upload'),
     url(r'dump_reading/$', views.dump_reading, name='dump_reading'),
     url(r'dump_reading2/$', views.dump_reading2, name='dump_reading2'),
     url(r'truncate_image_tables/$', views.truncate_image_tables, name='truncate_image_tables'),
     url(r'truncate_cryoweb_tables/$', views.truncate_cryoweb_tables, name='truncate_cryoweb_tables'),
     url(r'truncate_databases/$', views.truncate_databases, name='truncate_databases'),
-
 ]
