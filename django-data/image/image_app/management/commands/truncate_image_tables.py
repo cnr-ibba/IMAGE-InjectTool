@@ -24,7 +24,7 @@ class Command(BaseCommand):
         num_animals = num_animals['num'].values[0]
         print("animals num:\n{}".format(num_animals))
 
-        statement = text(""" TRUNCATE animals, dict_breeds, samples, image_app_transfer; """)
+        statement = text(""" TRUNCATE animals, image_app_dictbreed, samples, image_app_transfer; """)
 
         print(statement)
         try:

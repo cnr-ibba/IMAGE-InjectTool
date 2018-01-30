@@ -36,7 +36,7 @@ class DictRole(models.Model):
         unique_together = (("label", "short_form"),)
 
 
-class DictBreeds(models.Model):
+class DictBreed(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     db_breed = models.IntegerField(blank=True, null=True)
     description = models.CharField(max_length=255, blank=True)
@@ -51,10 +51,12 @@ class DictBreeds(models.Model):
         return str(self.description)
 
     class Meta:
-        # managed = False
-        db_table = 'dict_breeds'
         verbose_name = 'Breed'
-        verbose_name_plural = 'Breeds'
+
+        # HINT: would mapped_breed ba a better choice to define a unique key
+        # using breed and species? in that case, mapped breed need to have a
+        # default value, ex the descricption (breed_name)
+        unique_together = (("description", "species"),)
 
 
 class DictSex(models.Model):
@@ -63,6 +65,7 @@ class DictSex(models.Model):
     label = models.CharField(
             max_length=255,
             blank=False,
+            unique=True,
             help_text="Example: male")
 
     short_form = models.CharField(
@@ -80,16 +83,21 @@ class DictSex(models.Model):
     class Meta:
         verbose_name = 'sex'
         verbose_name_plural = 'sex'
-        unique_together = (("label", "short_form"),)
 
 
 class Transfer(models.Model):
     """Model cryoweb transfer view: define all animal names in order to be
     referenced by Animal classes"""
 
-    # ???: Is cryoweb animal_id important?
+    # ???: Is cryoweb internal animal_id important?
     db_animal = models.IntegerField(blank=True, null=True)
-    name = models.CharField(max_length=255, blank=False)
+
+    # HINT: can two different animal have the same name? if yes, How I can
+    # find its mother and father?
+    name = models.CharField(
+            max_length=255,
+            blank=False,
+            unique=True)
 
     def __str__(self):
         return str(self.name)
@@ -113,8 +121,9 @@ class Animals(models.Model):
             default="Organism",
             editable=False,
             null=True)
+
     description = models.CharField(max_length=255, blank=True, null=True)
-    breed = models.ForeignKey('DictBreeds', db_index=True,
+    breed = models.ForeignKey('DictBreed', db_index=True,
                               related_name='%(class)s_breed')
 
     # HINT: need sex a constraint?
@@ -131,7 +140,7 @@ class Animals(models.Model):
     mother = models.ForeignKey(
             'Transfer',
             on_delete=models.PROTECT,
-            null=True, related_name='%(class)s_mother')
+            related_name='%(class)s_mother')
 
     birth_date = models.DateField(blank=True, null=True)
     birth_year = models.IntegerField(choices=YEAR_CHOICES, blank=True,

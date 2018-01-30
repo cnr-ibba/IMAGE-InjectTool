@@ -24,7 +24,7 @@ from django.core.management import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 
 # image models
-from image_app.models import DictSex, Animals, DictBreeds
+from image_app.models import DictSex, Animals, DictBreed
 
 
 class MyEncoder(json.JSONEncoder):
@@ -157,7 +157,7 @@ class Command(BaseCommand):
                 lambda row: get_derivedFrom(row), axis=1)
 
         df_animals['breed'] = df_animals['breed_id'].apply(
-                lambda x: DictBreeds.objects.get(id=x).description)
+                lambda x: DictBreed.objects.get(id=x).description)
 
         df_animals['id'] = df_animals['id'].apply(lambda x: 'temp' + str(x))
 

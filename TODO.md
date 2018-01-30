@@ -101,3 +101,15 @@
 
 * Check UID columns, IMAGE-metadata and IMAGE_sample_empty_template_20180122 columns
   are not the same
+
+* Animal (or samples) could have the same names (ie ANIMAL:::ID:::123456) so the
+  unique identifier is composed by "data source name", "data source version", "animal data source id"-> "Cryoweb de", "version 1", "ANIMAL:::ID:::123456". Data version and source need to be defined when loading
+  data.
+
+* Animal (and samples) could have spaces in their names, so replace them with `_`:
+  if name is already present (in the same data source and version) take it
+  - Rename backup table and Object in data source
+  - Rename Transfer into Name (to store names for samples and animal).
+  - Link Name to data source
+
+* Where Submission takes place? could be a one to many Samples or Animals?

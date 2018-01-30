@@ -6,9 +6,9 @@ from image_app.forms import BackupForm
 from django.conf import settings
 import codecs
 # from django.http import HttpResponse
-from image_app.models import Animals
-from image_app.models import Submission, Person, Organization, Publication, \
-    Database, Term_source, Backup, DictSex
+from image_app.models import (
+        Animals, Submission, Person, Organization, Publication, Database,
+        Term_source, Backup, DictSex, DictBreed, Transfer)
 import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
@@ -480,16 +480,44 @@ def dump_reading2(request):
     if num_animals > 0:
         return redirect('../../')
 
-    def get_breed_id(row, df_breeds_species):
-        # global df_breeds_species
-        breed_id = df_breeds_species.loc[
-                (df_breeds_species['db_breed'] == row['db_breed']) & (
-                    df_breeds_species['db_species'] == row['db_species']),
-                'breed_id']
+    # define a function to get the row from database starting from dataframe
+    def getDictBreedId(row, df_breeds_fin):
+        """Returns DictBreed.id from a row from df_animals and df_breed"""
 
-        return int(breed_id)
+        # get db_breed index from row
+        db_breed = row.db_breed.values[0]
 
-    # get username from context
+        # get data from df_breeds_fin using dataframr indexes
+        data = df_breeds_fin.loc[db_breed].to_dict()
+
+        # ok get an object from database. Only one result is expected
+        dict_breed = DictBreed.objects.get(
+                description__iexact=data["description"],
+                species__iexact=data["species"])
+
+        # return internal database id
+        return dict_breed.id
+
+    def getTransferId(row, df_transfer_fin, tag):
+        """Returns Transfer.di from df_animal, df_transfer and a tag like
+        father_id, mother_id and animal_id"""
+
+        if tag not in ["db_animal", "db_sire", "db_dam"]:
+            raise Exception("Unknown tag: %s" % (tag))
+
+        # get index from tag name
+        index = getattr(row, tag).values[0]
+
+        # get data for index
+        data = df_transfer_fin.loc[index].to_dict()
+        transfer = Transfer.objects.get(
+                name__iexact=data["name"])
+
+        # return key for requested tag
+        return transfer.id
+
+    # get username from context.
+    # HINT: It is used?
     username = request.user.username
     context = {'username': username}
 
@@ -505,8 +533,7 @@ def dump_reading2(request):
 
         # keep only interesting columns and rename them
         df_breeds_fin = df_breeds_species[
-            ['breed_id',
-             'db_breed',
+            ['db_breed',
              'efabis_mcname',
              'efabis_species',
              'efabis_country',
@@ -514,7 +541,6 @@ def dump_reading2(request):
 
         df_breeds_fin = df_breeds_fin.rename(
             columns={
-                'breed_id': 'id',
                 'efabis_mcname': 'description',
                 'efabis_species': 'species',
                 'efabis_country': 'country',
@@ -522,8 +548,21 @@ def dump_reading2(request):
             }
         )
 
+        # set index to dataframe. Index will be internal cryoweb id
+        df_breeds_fin.index = df_breeds_fin["db_breed"]
+
+        # HINT: the internal cryoweb id has no sense in the UID, since the same
+        # breed, for example, may have two different cryoweb id in two
+        # different cryoweb instances
+
+        # TODO: db_breed column need to be removed from DictBreed model
+
         # insert dataframe as table into the UID database; data are
         # inserted (append) into the existing table
+        # breeds have their internal ids
+        # HINT: if we don't truncate any data, I can't put all breeds as they
+        # are in database, but I need to check and add only new breeds
+        # TODO: check data before insert
         df_breeds_fin.to_sql(
                 name='dict_breeds',
                 con=engine_to_image,
@@ -548,11 +587,18 @@ def dump_reading2(request):
         # subset of columns
         df_transfer_fin = df_transfer[['db_animal', 'name']]
 
-        # remove empy spaces
+        # remove empty spaces
+        # HACK: this raise a warning in since df_transfer_fin['name'] is a
+        # reference to df_transfer['name'] column, so also the original column
+        # has its spaces removed. For the aim of this function this will be OK
         df_transfer_fin['name'] = df_transfer_fin['name'].str.replace(
                 '\s+', '_')
 
+        # set index to dataframe
+        df_transfer_fin.index = df_transfer_fin["db_animal"]
+
         # insert dataframe as table into the UID database
+        # TODO: check animal in database and fill only missing names
         df_transfer_fin.to_sql(
                 name='image_app_transfer',
                 con=engine_to_image,
@@ -568,8 +614,33 @@ def dump_reading2(request):
                 con=engine_from_cryoweb,
                 schema="apiis_admin")
 
+        # assign the breed_id column as DictBreed.id (will fill the)
+        # breed id foreign key in animals table
         df_animals['breed_id'] = df_animals.apply(
-                lambda row: get_breed_id(row, df_breeds_species), axis=1)
+                lambda row: getDictBreedId(row, df_breeds_fin), axis=1)
+
+        # get internal keys from name
+        df_animals['db_animal'] = df_animals.apply(
+                lambda row: getTransferId(
+                        row,
+                        df_transfer_fin,
+                        "db_animal"),
+                axis=1)
+
+        # get internal keys from mother and father
+        df_animals["db_sire"] = df_animals.apply(
+                lambda row: getTransferId(
+                        row,
+                        df_transfer_fin,
+                        "db_sire"),
+                axis=1)
+
+        df_animals["db_dam"] = df_animals.apply(
+                lambda row: getTransferId(
+                        row,
+                        df_transfer_fin,
+                        "db_dam"),
+                axis=1)
 
         # keep only interesting columns and rename them
         df_animals_fin = df_animals[
@@ -597,11 +668,11 @@ def dump_reading2(request):
             }
         )
 
-        # change values for sex
-        # TODO: translate sex into male and female objects
+        # get male and female DictSex objects fomr database
         male = DictSex.objects.get(label="male")
         female = DictSex.objects.get(label="female")
 
+        # HINT: here we can translate sex value in male.id or female.id
         df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace(
                 {'m': male.id, 'f': female.id})
 
@@ -611,6 +682,9 @@ def dump_reading2(request):
                 con=engine_to_image,
                 if_exists='append',
                 index=False)
+
+        # debug: arrive here
+        return render(request, 'image_app/dump_reading2.html', context)
 
         # SAMPLES
         # the same for samples

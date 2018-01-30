@@ -1,5 +1,5 @@
 from django.contrib import admin
-from image_app.models import Animals, DictBreeds, \
+from image_app.models import Animals, DictBreed, \
     Samples, Submission, Person, Organization, Publication, Database, \
     Term_source, DictRole, Backup, Transfer
 
@@ -21,7 +21,7 @@ class BackupAdmin(admin.ModelAdmin):
     list_display = ('description', 'backup', 'uploaded_at')
 
 
-class DictBreedsAdmin(admin.ModelAdmin):
+class DictBreedAdmin(admin.ModelAdmin):
     search_fields = ['description']
     list_per_page = 9
     list_display = ('description', 'mapped_breed', 'species', 'country',
@@ -165,7 +165,7 @@ admin.site.register(Animals, AnimalsAdmin)
 admin.site.register(Samples, SamplesAdmin)
 admin.site.register(Transfer, TransferAdmin)
 
-admin.site.register(DictBreeds, DictBreedsAdmin)
+admin.site.register(DictBreed, DictBreedAdmin)
 # admin.site.register(DictBiobanks, DictBiobanksAdmin)
 # admin.site.register(DictBiosample, DictBiosampleAdmin)
 # admin.site.register(DictEVA, DictEVAAdmin)
