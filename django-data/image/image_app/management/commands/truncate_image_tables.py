@@ -1,37 +1,42 @@
-from django.core.management import BaseCommand, CommandError
-import os
-import glob
-import unittest
-import pandas as pd
+
+from django.core.management import BaseCommand
 from sqlalchemy import create_engine
-from sqlalchemy.sql import text
-import pprint
-import subprocess
-from django.conf import settings
-from sqlalchemy import exc
-import sys
+
 
 class Command(BaseCommand):
-    help = """
-    	Truncate animals, samples and dict_breeds tables
-    """
+    help = """Truncate animals, samples and dict_breeds tables"""
 
     def handle(self, *args, **options):
 
-        engine_to_sampletab = create_engine('postgresql://postgres:***REMOVED***@db:5432/image')
-        num_animals = pd.read_sql_query('select count(*) as num from animals', con=engine_to_sampletab)
+        engine_to_sampletab = create_engine(
+                'postgresql://postgres:***REMOVED***@db:5432/image')
 
-        num_animals = num_animals['num'].values[0]
-        print("animals num:\n{}".format(num_animals))
+        # estabilishing a connection
+        conn = engine_to_sampletab.connect()
 
-        statement = text(""" TRUNCATE animals, image_app_dictbreed, samples, image_app_transfer; """)
+        print("Truncating image tables...")
 
-        print(statement)
-        try:
-            with engine_to_sampletab.begin() as connection:
-                r = connection.execute(statement)
-        except Exception:
-            raise CommandError('Encountered general SQLAlchemyError')
+        # TODO: move add prefix image_app to django modeled image tables
+        # HINT: maybe UID or InjectTools could be more informative than
+        # image_app suffix?
+        statement = """
+                TRUNCATE animals,
+                         databases,
+                         image_app_datasource,
+                         image_app_dictbreed,
+                         image_app_dictrole,
+                         image_app_dictsex,
+                         image_app_name,
+                         organizations,
+                         persons,
+                         publications,
+                         samples,
+                         submissions,
+                         term_sources
+                    """
 
-        # call_command('mycheck')
-
+        # start a transaction
+        trans = conn.begin()
+        conn.execute(statement)
+        trans.commit()
+        print("Done!")
