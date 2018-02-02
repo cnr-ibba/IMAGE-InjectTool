@@ -1,3 +1,4 @@
+import sys
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_list_or_404, render, redirect
@@ -10,7 +11,7 @@ import codecs
 # from django.http import HttpResponse
 from image_app.models import (
         Animals, Submission, Person, Organization, Publication, Database,
-        Term_source, DataSource, DictSex, DictBreed, Transfer)
+        Term_source, DataSource, DictSex, DictBreed, Name)
 import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
@@ -369,12 +370,16 @@ class DataSourceView(View):
         form = self.form_class(request.POST, request.FILES)
 
         if form.is_valid():
-            # <process form cleaned data>
+            # save data
+            form.save()
+
+            # return to succes page (home in this case)
             return HttpResponseRedirect('../../')
 
         return render(request, self.template_name, {'form': form})
 
 
+# TODO: name change
 def dump_reading(request):
     """Imports backup into the received_from_cryoweb db
 
@@ -402,23 +407,26 @@ def dump_reading(request):
             con=conn)
 
         num_animals = num_animals['num'].values[0]
-        # print("animals num:\n{}".format(num_animals))
+
+        if num_animals > 0:
+            # TODO: give an error message
+            return redirect('../../')
 
         username = request.user.username
         context = {'username': username}
-        last_backup = list(DataSource.objects.all())[-1]
 
-        fullpath = last_backup.backup.file
+        # TODO: get datasource to load from link or admin
+        datasource = DataSource.objects.order_by("-uploaded_at").first()
+
+        # this is not only database value, but the full path in docker
+        # container
+        fullpath = datasource.uploaded_file.file
 
         # get a string and quote fullpath
         fullpath = shlex.quote(str(fullpath))
 
         # append fullpath to context
         context['fullpath'] = fullpath
-
-        if num_animals > 0:
-            # TODO: give an error message
-            return redirect('../../')
 
         # define command line
         cmd_line = ("/usr/bin/psql -U cryoweb_insert_only -h db "
@@ -436,6 +444,7 @@ def dump_reading(request):
                 env={'PGPASSWORD': '***REMOVED***'},
                 encoding='utf8'
                 )
+            conn.close()
 
         except subprocess.CalledProcessError as exc:
             context['returncode'] = exc.returncode
@@ -478,12 +487,15 @@ def dump_reading2(request):
     if num_animals > 0:
         return redirect('../../')
 
+    # TODO: get datasource to load from link or admin
+    datasource = DataSource.objects.order_by("-uploaded_at").first()
+
     # define a function to get the row from database starting from dataframe
     def getDictBreedId(row, df_breeds_fin):
         """Returns DictBreed.id from a row from df_animals and df_breed"""
 
         # get db_breed index from row
-        db_breed = row.db_breed.values[0]
+        db_breed = row.db_breed
 
         # get data from df_breeds_fin using dataframr indexes
         data = df_breeds_fin.loc[db_breed].to_dict()
@@ -496,23 +508,24 @@ def dump_reading2(request):
         # return internal database id
         return dict_breed.id
 
-    def getTransferId(row, df_transfer_fin, tag):
-        """Returns Transfer.di from df_animal, df_transfer and a tag like
+    def getNameId(row, df_transfer_fin, tag, datasource=datasource):
+        """Returns Name.di from df_animal, df_transfer and a tag like
         father_id, mother_id and animal_id"""
 
         if tag not in ["db_animal", "db_sire", "db_dam"]:
             raise Exception("Unknown tag: %s" % (tag))
 
-        # get index from tag name
-        index = getattr(row, tag).values[0]
+        # get index from tag name (now is a row index)
+        index = getattr(row, tag)
 
-        # get data for index
+        # get data for index (using supplied datasource)
         data = df_transfer_fin.loc[index].to_dict()
-        transfer = Transfer.objects.get(
-                name__iexact=data["name"])
+        name = Name.objects.get(
+                name__iexact=data["name"],
+                datasource=datasource)
 
         # return key for requested tag
-        return transfer.id
+        return name.id
 
     # get username from context.
     # HINT: It is used?
@@ -562,7 +575,7 @@ def dump_reading2(request):
         # are in database, but I need to check and add only new breeds
         # TODO: check data before insert
         df_breeds_fin.to_sql(
-                name='dict_breeds',
+                name=DictBreed._meta.db_table,
                 con=engine_to_image,
                 if_exists='append',
                 index=False)  # don't write DataFrame index as a column
@@ -596,12 +609,14 @@ def dump_reading2(request):
         df_transfer_fin.index = df_transfer_fin["db_animal"]
 
         # insert dataframe as table into the UID database
-        # TODO: check animal in database and fill only missing names
-        df_transfer_fin.to_sql(
-                name='image_app_transfer',
-                con=engine_to_image,
-                if_exists='append',
-                index=False)
+        for row in df_transfer_fin.itertuples():
+            obj, created = Name.objects.get_or_create(
+                    name=row.name,
+                    datasource=datasource)
+
+            if created is False:
+                print("%s: already present in database" % (str(row)),
+                      file=sys.stderr)
 
         # ANIMALS
         # the same for animals:
@@ -619,7 +634,7 @@ def dump_reading2(request):
 
         # get internal keys from name
         df_animals['db_animal'] = df_animals.apply(
-                lambda row: getTransferId(
+                lambda row: getNameId(
                         row,
                         df_transfer_fin,
                         "db_animal"),
@@ -627,14 +642,14 @@ def dump_reading2(request):
 
         # get internal keys from mother and father
         df_animals["db_sire"] = df_animals.apply(
-                lambda row: getTransferId(
+                lambda row: getNameId(
                         row,
                         df_transfer_fin,
                         "db_sire"),
                 axis=1)
 
         df_animals["db_dam"] = df_animals.apply(
-                lambda row: getTransferId(
+                lambda row: getNameId(
                         row,
                         df_transfer_fin,
                         "db_dam"),
@@ -676,7 +691,7 @@ def dump_reading2(request):
 
         # insert dataframe as table into the UID database
         df_animals_fin.to_sql(
-                name='animals',
+                name=Animals._meta.db_table,
                 con=engine_to_image,
                 if_exists='append',
                 index=False)

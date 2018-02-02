@@ -37,8 +37,12 @@ class Command(BaseCommand):
 
         for datasource_file in data_source_files:
             if datasource_file not in database_files:
-                os.remove(os.path.join(
+                to_remove = os.path.join(
                         settings.MEDIA_ROOT,
-                        datasource_file))
+                        datasource_file)
+
+                # debug
+                print("Removing %s" % (to_remove))
+                os.remove(to_remove)
 
         call_command('mycheck')

@@ -2,7 +2,7 @@
 from django.contrib import admin
 from image_app.models import (
         Animals, DictBreed, Samples, Submission, Person, Organization,
-        Publication, Database, Term_source, DictRole, DataSource, Transfer)
+        Publication, Database, Term_source, DictRole, DataSource, Name)
 
 
 # from import_export import resources
@@ -58,20 +58,22 @@ class SamplesInline(admin.StackedInline):
     extra = 0
 
 
-class TransferAdmin(admin.ModelAdmin):
+class NameAdmin(admin.ModelAdmin):
     """A class to deal with animal names"""
 
+    # TODO: remove this column
     exclude = ('db_animal',)
 
     # remove this admin class from admin page, even if such class is registered
     # however this class will be editable from classes using Foreign Keys
+    # TODO: expose this class?
     def get_model_perms(self, request):
         return {}
 
 
 class AnimalsAdmin(admin.ModelAdmin):
     # exclude = ('author',)
-    search_fields = ['name']
+    search_fields = ['name__name']
     list_per_page = 9
     list_display = (
         'name', 'biosampleid', 'material', 'description', 'breed', 'sex', 'father', 'mother',
@@ -163,7 +165,7 @@ class Term_sourceAdmin(admin.ModelAdmin):
 
 admin.site.register(Animals, AnimalsAdmin)
 admin.site.register(Samples, SamplesAdmin)
-admin.site.register(Transfer, TransferAdmin)
+admin.site.register(Name, NameAdmin)
 
 admin.site.register(DictBreed, DictBreedAdmin)
 # admin.site.register(DictBiobanks, DictBiobanksAdmin)

@@ -85,25 +85,30 @@ class DictSex(models.Model):
         verbose_name_plural = 'sex'
 
 
-class Transfer(models.Model):
-    """Model cryoweb transfer view: define all animal names in order to be
-    referenced by Animal classes"""
+class Name(models.Model):
+    """Model UID names: define a name (sample or animal) unique for each
+    data submission"""
 
     # ???: Is cryoweb internal animal_id important?
     db_animal = models.IntegerField(blank=True, null=True)
 
-    # HINT: can two different animal have the same name? if yes, How I can
-    # find its mother and father?
+    # two different animal may have the same name. Its unicity depens on
+    # data source name and version
     name = models.CharField(
             max_length=255,
             blank=False,
-            unique=True)
+            null=False)
+
+    datasource = models.ForeignKey(
+            'DataSource', db_index=True,
+            related_name='%(class)s_datasource')
 
     def __str__(self):
-        return str(self.name)
+        return "%s (%s)" % (self.name, self.datasource)
 
     class Meta:
         verbose_name = 'Animal name'
+        unique_together = (("name", "datasource"),)
 
 
 class Animals(models.Model):
@@ -112,7 +117,7 @@ class Animals(models.Model):
 
     # an animal name has a entry in transfer table
     name = models.ForeignKey(
-            'Transfer',
+            'Name',
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
 
@@ -133,12 +138,12 @@ class Animals(models.Model):
     # Need I check if animals father and mother are already present in
     # database? shuold I check relationship by constraints?
     father = models.ForeignKey(
-            'Transfer',
+            'Name',
             on_delete=models.PROTECT,
             related_name='%(class)s_father')
 
     mother = models.ForeignKey(
-            'Transfer',
+            'Name',
             on_delete=models.PROTECT,
             related_name='%(class)s_mother')
 
