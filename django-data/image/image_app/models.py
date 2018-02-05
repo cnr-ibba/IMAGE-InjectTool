@@ -1,13 +1,7 @@
 from django.db import models
 # from django.contrib.auth.models import User
-import datetime
 # from django.core.exceptions import ValidationError
 # from django.utils.translation import ugettext_lazy as _
-
-
-YEAR_CHOICES = []
-for r in range(1980, (datetime.datetime.now().year+1)):
-    YEAR_CHOICES.append((r, r))
 
 
 class DictRole(models.Model):
@@ -124,17 +118,18 @@ class Animal(models.Model):
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
 
+    alternative_id = models.CharField(max_length=255, blank=True, null=True)
+
     material = models.CharField(
             max_length=255,
             default="Organism",
             editable=False,
             null=True)
 
-    description = models.CharField(max_length=255, blank=True, null=True)
     breed = models.ForeignKey('DictBreed', db_index=True,
                               related_name='%(class)s_breed')
 
-    # HINT: need sex a constraint?
+    # using a constraint for sex
     sex = models.ForeignKey('DictSex', db_index=True, blank=True, null=True,
                             default=-1, related_name='%(class)s_sex')
 
@@ -150,28 +145,20 @@ class Animal(models.Model):
             on_delete=models.PROTECT,
             related_name='%(class)s_mother')
 
-    birth_date = models.DateField(blank=True, null=True)
-    birth_year = models.IntegerField(choices=YEAR_CHOICES, blank=True,
-                                     null=True)
-    breed_standard = models.CharField(max_length=255, blank=True, null=True)
-    submission_date = models.DateField(blank=True, null=True)
-    birth_location = models.CharField(max_length=255, blank=True, null=True)
-    farm_latitude = models.FloatField(blank=True, null=True)
-    farm_longitude = models.FloatField(blank=True, null=True)
-    reproduction_place = models.CharField(
+    # TODO: need to set this value? How?
+    birth_location = models.CharField(
             max_length=255,
             blank=True,
             null=True)
 
-    notes = models.TextField(blank=True, null=True)
+    farm_latitude = models.FloatField(blank=True, null=True)
+    farm_longitude = models.FloatField(blank=True, null=True)
 
     def __str__(self):
-        return str(str(self.id) + ", " + str(self.name) + ", " +
-                   str(self.description))
+        return str(self.name)
 
 
 class Sample(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
     biosampleid = models.CharField(max_length=255, blank=True, null=True)
 
     # a sample name has a entry in name table
@@ -180,33 +167,46 @@ class Sample(models.Model):
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
 
+    alternative_id = models.CharField(max_length=255, blank=True, null=True)
+
     material = models.CharField(
-            max_length=255,
-            default="Specimen from Organism",
-            editable=False,
-            null=True)
-
-    description = models.CharField(max_length=255, blank=True, null=True)
-    production_data = models.CharField(max_length=255, blank=True, null=True)
-    organism_part = models.CharField(max_length=255, blank=True, null=True)
-    collection_date = models.DateField(blank=True, null=True)
-    collection_place_latitude = models.FloatField(blank=True, null=True)
-    collection_place_longitude = models.FloatField(blank=True, null=True)
-    collection_place = models.CharField(max_length=255, blank=True, null=True)
-    animal_age_at_collection = models.IntegerField(null=True, blank=True)
-    specimen_volume = models.IntegerField(null=True, blank=True)
-    developmental_stage = models.CharField(max_length=255, blank=True,
-                                           null=True)
-
-    availability = models.CharField(max_length=255, blank=True, null=True)
-    protocol = models.CharField(max_length=255, blank=True, null=True)
+        max_length=255,
+        default="Specimen from Organism",
+        editable=False,
+        null=True)
 
     animal = models.ForeignKey(
             'Animal',
             on_delete=models.PROTECT,
             related_name='%(class)s_animal')
 
-    notes = models.CharField(max_length=255, blank=True, null=True)
+    protocol = models.CharField(max_length=255, blank=True, null=True)
+
+    collection_date = models.DateField(blank=True, null=True)
+    collection_place_latitude = models.FloatField(blank=True, null=True)
+    collection_place_longitude = models.FloatField(blank=True, null=True)
+    collection_place = models.CharField(max_length=255, blank=True, null=True)
+    organism_part = models.CharField(max_length=255, blank=True, null=True)
+    developmental_stage = models.CharField(
+            max_length=255,
+            blank=True,
+            null=True)
+    physiological_stage = models.CharField(
+            max_length=255,
+            blank=True,
+            null=True)
+    animal_age_at_collection = models.IntegerField(null=True, blank=True)
+
+    availability = models.CharField(max_length=255, blank=True, null=True)
+
+    storage = models.CharField(max_length=255, blank=True, null=True)
+
+    storage_processing = models.CharField(
+            max_length=255,
+            blank=True,
+            null=True)
+
+    preparation_interval = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name))
@@ -255,12 +255,6 @@ class Submission(models.Model):
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.title))
-
-    class Meta:
-        # managed = False
-        db_table = 'submissions'
-        verbose_name = 'submission'
-        verbose_name_plural = 'submissions'
 
 
 class Person(models.Model):

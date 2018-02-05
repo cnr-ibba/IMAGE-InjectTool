@@ -46,18 +46,6 @@ class DictBreedAdmin(admin.ModelAdmin):
 #     list_display = ('description', 'animal', 'api_url', 'notes')
 
 
-class SampleInline(admin.StackedInline):
-    fields = (
-        ('name', 'biosampleid', 'description', 'production_data'),
-        ('organism_part',
-         'collection_date', 'animal_age_at_collection', 'specimen_volume', 'developmental_stage'),
-        ('availability', 'animal', 'notes'),
-    )
-
-    model = Sample
-    extra = 0
-
-
 class NameAdmin(admin.ModelAdmin):
     """A class to deal with animal names"""
 
@@ -71,20 +59,33 @@ class NameAdmin(admin.ModelAdmin):
         return {}
 
 
+class SampleInline(admin.StackedInline):
+    fields = (
+        ('name', 'biosampleid', 'alternative_id'),
+        ('animal', 'protocol', 'organism_part'),
+        ('collection_date', 'collection_place_latitude',
+         'collection_place_longitude', 'collection_place'),
+        ('developmental_stage', 'physiological_stage',
+         'animal_age_at_collection', 'availability'),
+        ('storage_processing', 'preparation_interval')
+    )
+
+    model = Sample
+    extra = 0
+
+
 class AnimalAdmin(admin.ModelAdmin):
-    # exclude = ('author',)
     search_fields = ['name__name']
     list_per_page = 9
     list_display = (
-        'name', 'biosampleid', 'material', 'description', 'breed', 'sex', 'father', 'mother',
-        'birth_date', 'birth_year', 'breed_standard', 'submission_date', 'birth_location',
-        'farm_latitude', 'farm_longitude', 'reproduction_place', 'notes'
-    )
+        'name', 'biosampleid', 'alternative_id', 'material', 'breed', 'sex',
+        'father', 'mother', 'birth_location', 'farm_latitude',
+        'farm_longitude'
+        )
     fields = (
-        'name', 'biosampleid', 'description', ('breed', 'breed_standard'), 'sex', 'father',
-        'mother', 'birth_date', 'birth_year', 'submission_date',
-        ('birth_location', 'farm_latitude', 'farm_longitude', 'reproduction_place'), 'notes'
-    )
+        'biosampleid', 'name', 'alternative_id', 'breed', 'sex', 'father',
+        'mother', ('birth_location', 'farm_latitude', 'farm_longitude'),
+        )
     inlines = [SampleInline]
 
 
@@ -94,11 +95,12 @@ class SampleAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_per_page = 9
     list_display = (
-        'name', 'biosampleid', 'material', 'description', 'production_data',
-        'organism_part', 'collection_date', 'collection_place_latitude',
-        'collection_place_longitude', 'collection_place', 'protocol',
-        'animal_age_at_collection', 'specimen_volume', 'developmental_stage',
-        'availability', 'animal', 'notes',
+        'name', 'biosampleid', 'alternative_id', 'material', 'animal',
+        'protocol', 'collection_date', 'collection_place_latitude',
+        'collection_place_longitude', 'collection_place', 'organism_part',
+        'developmental_stage', 'physiological_stage',
+        'animal_age_at_collection', 'availability', 'storage_processing',
+        'preparation_interval'
     )
 
     # def has_change_permission(self, request, obj=None):

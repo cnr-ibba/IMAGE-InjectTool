@@ -28,10 +28,10 @@ class Command(BaseCommand):
                          image_app_dictsex,
                          image_app_name,
                          image_app_sample,
+                         image_app_submission,
                          organizations,
                          persons,
                          publications,
-                         submissions,
                          term_sources
                     """
 

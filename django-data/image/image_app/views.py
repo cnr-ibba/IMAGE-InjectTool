@@ -131,10 +131,12 @@ def sampletab2(request):
         pd.set_option("display.max_columns", None)
         pd.set_option("display.max_rows", None)
 
-
-
         # --- Submission ---
-        df_submission = pd.read_sql_table('submissions', con=engine, schema='public')
+        df_submission = pd.read_sql_table(
+                Submission._meta.db_table,
+                con=engine,
+                schema='public')
+
         df_submission = df_submission.drop(['id', 'identifier', 'version', 'reference_layer',
                                             'update_date', 'release_date'], 1).head(1)
         df_submission = df_submission.rename(
@@ -533,17 +535,6 @@ def dump_reading2(request):
         # return key for requested tag
         return name.id
 
-    # TODO: sanitize all names with this function
-    def sanitize(value):
-        """Perform data transformation on values"""
-
-        if isinstance(value, datetime.datetime):
-            if pd.isna(value):
-                return None
-
-        else:
-            return value
-
     # get username from context.
     # HINT: It is used?
     username = request.user.username
@@ -680,9 +671,6 @@ def dump_reading2(request):
              'ext_sex',
              'db_sire',
              'db_dam',
-             'birth_dt',
-             'birth_year',
-             'last_change_dt',
              'latitude',
              'longitude']]
 
@@ -692,8 +680,6 @@ def dump_reading2(request):
                 'ext_sex': 'sex_id',
                 'db_sire': 'father_id',
                 'db_dam': 'mother_id',
-                'birth_dt': 'birth_date',
-                'last_change_dt': 'submission_date',
                 'latitude': 'farm_latitude',
                 'longitude': 'farm_longitude',
             }
@@ -717,9 +703,6 @@ def dump_reading2(request):
                     sex_id=row.sex_id,
                     father_id=row.father_id,
                     mother_id=row.mother_id,
-                    birth_date=sanitize(row.birth_date),
-                    birth_year=row.birth_year,
-                    submission_date=sanitize(row.submission_date),
                     farm_latitude=row.farm_latitude,
                     farm_longitude=row.farm_longitude)
 
@@ -758,24 +741,21 @@ def dump_reading2(request):
              'ext_vessel',
              'production_dt',
              'ext_protocol_id',
-             'animal_id',
-             'comment']]
+             'animal_id']]
+
+        # TODO: ext_protocol_id need to be resolved in protocol name
 
         df_samples_fin = df_samples_fin.rename(
             columns={
                 'ext_vessel': 'name',
                 'production_dt': 'collection_date',
                 'ext_protocol_id': 'protocol',
-                'comment': 'notes'
             }
         )
 
         # change some data values: replace spaces in names and notes
         df_samples_fin['name'] = df_samples_fin['name'].str.replace(
                 '\s+', '_')
-
-        df_samples_fin['notes'] = df_samples_fin['notes'].str.replace(
-                '\s+', ' ')
 
         # add index
         df_samples_fin.index = df_samples_fin['db_vessel']
