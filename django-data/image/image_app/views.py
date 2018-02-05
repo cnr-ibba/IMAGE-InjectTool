@@ -1,4 +1,5 @@
 import sys
+import datetime
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_list_or_404, render, redirect
@@ -532,6 +533,17 @@ def dump_reading2(request):
         # return key for requested tag
         return name.id
 
+    # TODO: sanitize all names with this function
+    def sanitize(value):
+        """Perform data transformation on values"""
+
+        if isinstance(value, datetime.datetime):
+            if pd.isna(value):
+                return None
+
+        else:
+            return value
+
     # get username from context.
     # HINT: It is used?
     username = request.user.username
@@ -620,7 +632,8 @@ def dump_reading2(request):
                     datasource=datasource)
 
             if created is False:
-                print("%s: already present in database" % (str(row)),
+                print("%s: already present in database (%s)" % (
+                        str(row), str(obj)),
                       file=sys.stderr)
 
         # ANIMALS
@@ -694,15 +707,26 @@ def dump_reading2(request):
         df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace(
                 {'m': male.id, 'f': female.id})
 
-        # insert dataframe as table into the UID database
-        df_animals_fin.to_sql(
-                name=Animal._meta.db_table,
-                con=engine_to_image,
-                if_exists='append',
-                index=False)
-
+        # insert animal in database
         # HINT: ANIMAL:::ID:::Ramon_142436 is present two times in database
-        # how to fix it? Using google refine?
+        # with this, the second entry will not be inserted into Animal table
+        for row in df_animals_fin.itertuples():
+            obj, created = Animal.objects.get_or_create(
+                    name_id=row.name_id,
+                    breed_id=row.breed_id,
+                    sex_id=row.sex_id,
+                    father_id=row.father_id,
+                    mother_id=row.mother_id,
+                    birth_date=sanitize(row.birth_date),
+                    birth_year=row.birth_year,
+                    submission_date=sanitize(row.submission_date),
+                    farm_latitude=row.farm_latitude,
+                    farm_longitude=row.farm_longitude)
+
+            if created is False:
+                print("%s: already present in database (%s)" % (
+                        str(row), str(obj)),
+                      file=sys.stderr)
 
         # SAMPLES
         # the same for samples
@@ -724,7 +748,8 @@ def dump_reading2(request):
         # now get a row in the animal table
         df_samples['animal_id'] = df_samples.apply(
                 lambda row: Name.objects.get(
-                        id=row['name_id']).animal_name.get().id,
+                        id=row['name_id'],
+                        datasource=datasource).animal_name.id,
                 axis=1)
 
         # keep only interesting columns and rename them
@@ -763,7 +788,8 @@ def dump_reading2(request):
                     datasource=datasource)
 
             if created is False:
-                print("%s: already present in database" % (str(row)),
+                print("%s: already present in database (%s)" % (
+                        str(row), str(obj)),
                       file=sys.stderr)
 
         # now get Name.id from table

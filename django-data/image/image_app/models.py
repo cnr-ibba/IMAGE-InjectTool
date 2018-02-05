@@ -119,7 +119,7 @@ class Animal(models.Model):
     # ???: need I the animal_id column for debugging purpose?
 
     # an animal name has a entry in name table
-    name = models.ForeignKey(
+    name = models.OneToOneField(
             'Name',
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
