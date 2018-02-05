@@ -472,6 +472,11 @@ def dump_reading2(request):
     :return: the resulting HTML page
     """
 
+    # TODO: check that database is initialized
+    # check that dict sex table contains data
+    if len(DictSex.objects.all()) == 0:
+        raise Exception("You have to upload DictSex data")
+
     # TODO: set those values using a function
     engine_to_image = create_engine(
         'postgresql://postgres:***REMOVED***@db:5432/image')
@@ -696,8 +701,8 @@ def dump_reading2(request):
                 if_exists='append',
                 index=False)
 
-        # debug: arrive here
-        return render(request, 'image_app/dump_reading2.html', context)
+        # HINT: ANIMAL:::ID:::Ramon_142436 is present two times in database
+        # how to fix it? Using google refine?
 
         # SAMPLES
         # the same for samples
@@ -708,29 +713,68 @@ def dump_reading2(request):
                 con=engine_from_cryoweb,
                 schema="apiis_admin")
 
+        # get internal keys from animal name
+        df_samples['name_id'] = df_samples.apply(
+                lambda row: getNameId(
+                        row,
+                        df_transfer_fin,
+                        "db_animal"),
+                axis=1)
+
+        # now get a row in the animal table
+        df_samples['animal_id'] = df_samples.apply(
+                lambda row: Name.objects.get(
+                        id=row['name_id']).animals_name.get().id,
+                axis=1)
+
         # keep only interesting columns and rename them
         df_samples_fin = df_samples[
             ['db_vessel',
              'ext_vessel',
              'production_dt',
              'ext_protocol_id',
-             'db_animal',
+             'animal_id',
              'comment']]
 
         df_samples_fin = df_samples_fin.rename(
             columns={
-                'db_vessel': 'id',
                 'ext_vessel': 'name',
                 'production_dt': 'collection_date',
                 'ext_protocol_id': 'protocol',
-                'db_animal': 'animal_id',
                 'comment': 'notes'
             }
         )
 
-        # change some data values:
+        # change some data values: replace spaces in names and notes
         df_samples_fin['name'] = df_samples_fin['name'].str.replace(
-                '\t', '')
+                '\s+', '_')
+
+        df_samples_fin['notes'] = df_samples_fin['notes'].str.replace(
+                '\s+', ' ')
+
+        # add index
+        df_samples_fin.index = df_samples_fin['db_vessel']
+        del(df_samples_fin['db_vessel'])
+
+        # insert sample names in Name table into the UID database
+        for row in df_samples_fin.itertuples():
+            obj, created = Name.objects.get_or_create(
+                    name=row.name,
+                    datasource=datasource)
+
+            if created is False:
+                print("%s: already present in database" % (str(row)),
+                      file=sys.stderr)
+
+        # now get Name.id from table
+        df_samples_fin["name_id"] = df_samples_fin.apply(
+                lambda row: Name.objects.get(
+                        name=row['name'],
+                        datasource=datasource).id,
+                axis=1)
+
+        # drop colunm name (cause now I have an ID)
+        del(df_samples_fin["name"])
 
         # insert dataframe as table into the UID database
         df_samples_fin.to_sql(
@@ -739,54 +783,15 @@ def dump_reading2(request):
                 if_exists='append',
                 index=False)
 
-        # ORGANIZATIONS
-        df_contacts = pd.read_sql_table(
-                'v_contacts',
-                con=engine_from_cryoweb,
-                schema="apiis_admin")
-
-        df_contacts['address'] = (df_contacts['street'] + ", " +
-                                  df_contacts['zip'] + " " +
-                                  df_contacts['town'] + ", " +
-                                  df_contacts['ext_country'])
-
-        df_contacts['URI'] = "emailto:" + df_contacts['email']
-        df_contacts = df_contacts.rename(
-            columns={
-                'third_name': 'name',
-            }
-        )
-
-        df_organizations = df_contacts[
-            ['name', 'address', 'URI']]
-
-        df_organizations.to_sql(
-                name='organizations',
-                con=engine_to_image,
-                if_exists='append',
-                index=False)
-
-        df_persons = df_contacts[
-            ['first_name', 'second_name', 'email']]
-
-        df_persons = df_persons.rename(
-            columns={
-                'second_name': 'last_name',
-            }
-        )
-
-        df_persons.to_sql(
-                name='persons',
-                con=engine_to_image,
-                if_exists='append',
-                index=False)
-
+        # TODO: organization, persons and so on were filled using
+        # login information or template excel files
         context['fullpath'] = "OK"
 
     except Exception:
         context['fullpath'] = "ERROR!"
         raise
 
+    # TODO: render a better page
     return render(request, 'image_app/dump_reading2.html', context)
 
 

@@ -113,9 +113,12 @@ class Name(models.Model):
 
 class Animals(models.Model):
     # id = models.IntegerField(primary_key=True)
+
     biosampleid = models.CharField(max_length=255, blank=True, null=True)
 
-    # an animal name has a entry in transfer table
+    # ???: need I the animal_id column for debugging purpose?
+
+    # an animal name has a entry in name table
     name = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
@@ -177,12 +180,19 @@ class Animals(models.Model):
 class Samples(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     biosampleid = models.CharField(max_length=255, blank=True, null=True)
-    name = models.CharField(max_length=255, blank=True)
+
+    # a sample name has a entry in name table
+    name = models.ForeignKey(
+            'Name',
+            on_delete=models.PROTECT,
+            related_name='%(class)s_name')
+
     material = models.CharField(
             max_length=255,
             default="Specimen from Organism",
             editable=False,
             null=True)
+
     description = models.CharField(max_length=255, blank=True, null=True)
     production_data = models.CharField(max_length=255, blank=True, null=True)
     organism_part = models.CharField(max_length=255, blank=True, null=True)
@@ -218,8 +228,6 @@ class Samples(models.Model):
     class Meta:
         # managed = False
         db_table = 'samples'
-        verbose_name = 'Sample'
-        verbose_name_plural = 'Samples'
 
 
 class Submission(models.Model):

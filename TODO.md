@@ -113,3 +113,6 @@
   - Link Name to data source
 
 * Where Submission takes place? could be a one to many Samples or Animals?
+
+* ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
+  Using google refine?
