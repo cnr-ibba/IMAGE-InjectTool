@@ -1,7 +1,7 @@
 
 from django.contrib import admin
 from image_app.models import (
-        Animals, DictBreed, Samples, Submission, Person, Organization,
+        Animal, DictBreed, Sample, Submission, Person, Organization,
         Publication, Database, Term_source, DictRole, DataSource, Name)
 
 
@@ -46,7 +46,7 @@ class DictBreedAdmin(admin.ModelAdmin):
 #     list_display = ('description', 'animal', 'api_url', 'notes')
 
 
-class SamplesInline(admin.StackedInline):
+class SampleInline(admin.StackedInline):
     fields = (
         ('name', 'biosampleid', 'description', 'production_data'),
         ('organism_part',
@@ -54,7 +54,7 @@ class SamplesInline(admin.StackedInline):
         ('availability', 'animal', 'notes'),
     )
 
-    model = Samples
+    model = Sample
     extra = 0
 
 
@@ -71,7 +71,7 @@ class NameAdmin(admin.ModelAdmin):
         return {}
 
 
-class AnimalsAdmin(admin.ModelAdmin):
+class AnimalAdmin(admin.ModelAdmin):
     # exclude = ('author',)
     search_fields = ['name__name']
     list_per_page = 9
@@ -85,22 +85,25 @@ class AnimalsAdmin(admin.ModelAdmin):
         'mother', 'birth_date', 'birth_year', 'submission_date',
         ('birth_location', 'farm_latitude', 'farm_longitude', 'reproduction_place'), 'notes'
     )
-    inlines = [SamplesInline]
+    inlines = [SampleInline]
 
 
-class SamplesAdmin(admin.ModelAdmin):
+class SampleAdmin(admin.ModelAdmin):
     # exclude = ('author',)
     # prepopulated_fields = {'name': ['description']}
     search_fields = ['name']
     list_per_page = 9
     list_display = (
-        'name', 'biosampleid', 'material', 'description', 'production_data', 'organism_part',
-        'collection_date', 'collection_place_latitude', 'collection_place_longitude', 'collection_place', 'protocol', 'animal_age_at_collection',
-        'specimen_volume', 'developmental_stage', 'availability', 'animal', 'notes',
+        'name', 'biosampleid', 'material', 'description', 'production_data',
+        'organism_part', 'collection_date', 'collection_place_latitude',
+        'collection_place_longitude', 'collection_place', 'protocol',
+        'animal_age_at_collection', 'specimen_volume', 'developmental_stage',
+        'availability', 'animal', 'notes',
     )
 
     # def has_change_permission(self, request, obj=None):
-    #     has_class_permission = super(SamplesAdmin, self).has_change_permission(request, obj)
+    #     has_class_permission = super(
+    #         SampleAdmin, self).has_change_permission(request, obj)
     #     if not has_class_permission:
     #         return False
     #     if obj is not None and not request.user.is_superuser
@@ -110,8 +113,8 @@ class SamplesAdmin(admin.ModelAdmin):
     #
     # def get_queryset(self, request):
     #     if request.user.is_superuser:
-    #         return Samples.objects.all()
-    #     return Samples.objects.filter(author=request.user)
+    #         return Sample.objects.all()
+    #     return Sample.objects.filter(author=request.user)
     #
 
     # def save_model(self, request, obj, form, change):
@@ -163,8 +166,8 @@ class Term_sourceAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Animals, AnimalsAdmin)
-admin.site.register(Samples, SamplesAdmin)
+admin.site.register(Animal, AnimalAdmin)
+admin.site.register(Sample, SampleAdmin)
 admin.site.register(Name, NameAdmin)
 
 admin.site.register(DictBreed, DictBreedAdmin)

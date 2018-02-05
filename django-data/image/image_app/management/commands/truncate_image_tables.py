@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 
 
 class Command(BaseCommand):
-    help = """Truncate animals, samples and dict_breeds tables"""
+    help = """Truncate all image_app tables"""
 
     def handle(self, *args, **options):
 
@@ -20,17 +20,17 @@ class Command(BaseCommand):
         # HINT: maybe UID or InjectTools could be more informative than
         # image_app suffix?
         statement = """
-                TRUNCATE animals,
-                         databases,
+                TRUNCATE databases,
+                         image_app_animal,
                          image_app_datasource,
                          image_app_dictbreed,
                          image_app_dictrole,
                          image_app_dictsex,
                          image_app_name,
+                         image_app_sample,
                          organizations,
                          persons,
                          publications,
-                         samples,
                          submissions,
                          term_sources
                     """

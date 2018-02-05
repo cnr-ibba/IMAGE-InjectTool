@@ -10,8 +10,8 @@ from django.conf import settings
 import codecs
 # from django.http import HttpResponse
 from image_app.models import (
-        Animals, Submission, Person, Organization, Publication, Database,
-        Term_source, DataSource, DictSex, DictBreed, Name)
+        Animal, Submission, Person, Organization, Publication, Database,
+        Term_source, DataSource, DictSex, DictBreed, Name, Sample)
 import subprocess
 import pandas as pd
 from sqlalchemy import create_engine
@@ -274,21 +274,21 @@ def sampletab2(request):
                         'Characteristic[biobank contacts]',
 
                         ))
-        # animals = get_list_or_404(Animals)
-        # queryset = Animals.objects.filter(author=request.user.id)
-        # animals = get_list_or_404(Animals, id='763')
-        animals = get_list_or_404(Animals)
+        # animals = get_list_or_404(Animal)
+        # queryset = Animal.objects.filter(author=request.user.id)
+        # animals = get_list_or_404(Animal, id='763')
+        animals = get_list_or_404(Animal)
 
         for a in animals:
             # buffer = a.name
 
             try:
-                father = Animals.objects.get(pk=a.father_id).name
-            except Animals.DoesNotExist:
+                father = Animal.objects.get(pk=a.father_id).name
+            except Animal.DoesNotExist:
                 father = ''
             try:
-                mother = Animals.objects.get(pk=a.mother_id).name
-            except Animals.DoesNotExist:
+                mother = Animal.objects.get(pk=a.mother_id).name
+            except Animal.DoesNotExist:
                 mother = ''
 
             # eva = a.eva.all()
@@ -486,7 +486,7 @@ def dump_reading2(request):
 
     # Read how many records are in the animal table.
     # TODO: What abount a second submission?
-    num_animals = Animals.objects.count()
+    num_animals = Animal.objects.count()
 
     # TODO: return an error, or something like this
     if num_animals > 0:
@@ -696,7 +696,7 @@ def dump_reading2(request):
 
         # insert dataframe as table into the UID database
         df_animals_fin.to_sql(
-                name=Animals._meta.db_table,
+                name=Animal._meta.db_table,
                 con=engine_to_image,
                 if_exists='append',
                 index=False)
@@ -724,7 +724,7 @@ def dump_reading2(request):
         # now get a row in the animal table
         df_samples['animal_id'] = df_samples.apply(
                 lambda row: Name.objects.get(
-                        id=row['name_id']).animals_name.get().id,
+                        id=row['name_id']).animal_name.get().id,
                 axis=1)
 
         # keep only interesting columns and rename them
@@ -778,7 +778,7 @@ def dump_reading2(request):
 
         # insert dataframe as table into the UID database
         df_samples_fin.to_sql(
-                name='samples',
+                name=Sample._meta.db_table,
                 con=engine_to_image,
                 if_exists='append',
                 index=False)

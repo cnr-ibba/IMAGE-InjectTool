@@ -111,7 +111,7 @@ class Name(models.Model):
         unique_together = (("name", "datasource"),)
 
 
-class Animals(models.Model):
+class Animal(models.Model):
     # id = models.IntegerField(primary_key=True)
 
     biosampleid = models.CharField(max_length=255, blank=True, null=True)
@@ -138,7 +138,7 @@ class Animals(models.Model):
     sex = models.ForeignKey('DictSex', db_index=True, blank=True, null=True,
                             default=-1, related_name='%(class)s_sex')
 
-    # Need I check if animals father and mother are already present in
+    # Need I check if animal father and mother are already present in
     # database? shuold I check relationship by constraints?
     father = models.ForeignKey(
             'Name',
@@ -163,21 +163,14 @@ class Animals(models.Model):
             blank=True,
             null=True)
 
-    # author = models.ForeignKey(User, related_name='authoranimals')
     notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name) + ", " +
                    str(self.description))
 
-    class Meta:
-        # managed = False
-        db_table = 'animals'
-        verbose_name = 'Animal'
-        verbose_name_plural = 'Animals'
 
-
-class Samples(models.Model):
+class Sample(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     biosampleid = models.CharField(max_length=255, blank=True, null=True)
 
@@ -204,30 +197,19 @@ class Samples(models.Model):
     specimen_volume = models.IntegerField(null=True, blank=True)
     developmental_stage = models.CharField(max_length=255, blank=True,
                                            null=True)
-    # biobank = models.ForeignKey(DictBiobanks, blank=True, null=True)
+
     availability = models.CharField(max_length=255, blank=True, null=True)
     protocol = models.CharField(max_length=255, blank=True, null=True)
-    # animal_farm_latitude = models.FloatField(blank=True, null=True)
-    # animal_farm_longitude = models.FloatField(blank=True, null=True)
-    # biosample = models.ForeignKey(DictBiosample, blank=True, null=True)
-    # eva = models.ForeignKey(DictEVA, blank=True, null=True)
-    # ena = models.ForeignKey(DictENA, blank=True, null=True)
-    # animal = models.ForeignKey('Animals', blank=True, null=True,
-    # related_name='%(class)s_animal')
+
     animal = models.ForeignKey(
-            'Animals',
+            'Animal',
             on_delete=models.PROTECT,
             related_name='%(class)s_animal')
 
-    # author = models.ForeignKey(User, related_name='authorsamples')
     notes = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name))
-
-    class Meta:
-        # managed = False
-        db_table = 'samples'
 
 
 class Submission(models.Model):

@@ -24,7 +24,7 @@ from django.core.management import BaseCommand
 from django.core.exceptions import ObjectDoesNotExist
 
 # image models
-from image_app.models import DictSex, Animals, DictBreed
+from image_app.models import DictSex, Animal, DictBreed
 
 
 class MyEncoder(json.JSONEncoder):
@@ -81,7 +81,7 @@ class Command(BaseCommand):
 
             if row['father_id'] and not math.isnan(row['father_id']):
                 try:
-                    father = Animals.objects.get(id=row['father_id']).name
+                    father = Animal.objects.get(id=row['father_id']).name
                     derivedFrom = father
 
                 except ObjectDoesNotExist:
@@ -89,7 +89,7 @@ class Command(BaseCommand):
 
             if row['mother_id'] and not math.isnan(row['mother_id']):
                 try:
-                    mother = Animals.objects.get(id=row['mother_id']).name
+                    mother = Animal.objects.get(id=row['mother_id']).name
 
                 except ObjectDoesNotExist:
                     mother = ''
@@ -185,7 +185,7 @@ class Command(BaseCommand):
         df_samples['id'] = df_samples['name']
         df_samples['dataSourceId'] = df_samples['name']
         df_samples['animal'] = df_samples['animal_id'].apply(
-                lambda x: Animals.objects.get(id=x).name)
+                lambda x: Animal.objects.get(id=x).name)
 
         # TODO -> read these from login information
         df_samples['dataSource'] = 'CryoWeb'

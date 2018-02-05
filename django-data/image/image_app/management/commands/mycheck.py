@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import BaseCommand
 from sqlalchemy import create_engine
 
-from image_app.models import Animals, DataSource
+from image_app.models import Animal, DataSource
 
 
 class Command(BaseCommand):
@@ -41,14 +41,14 @@ class TestDB(unittest.TestCase):
         # pprint.pprint(df_count['n_rows'].values[0])
         self.assertTrue(int(df_count['n_rows'].values[0]) > 0)
 
-    def test_db2_animals_table_is_not_empty(self):
-        """Tests that image.animals table is not empty"""
+    def test_db2_animal_table_is_not_empty(self):
+        """Tests that image animal table is not empty"""
 
         # pprint.pprint(df_count['n_rows'].values[0])
-        self.assertTrue(Animals.objects.count() > 0,
+        self.assertTrue(Animal.objects.count() > 0,
                         msg="%s.%s table is empty!!!" % (
                                 settings.DATABASES['default']['NAME'],
-                                Animals._meta.db_table))
+                                Animal._meta.db_table))
 
     def test_no_orphaned_backup_files_in_filesys(self):
         """Tests no orphaned backup files in /media/data_source dir"""
