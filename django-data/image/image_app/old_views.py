@@ -1,5 +1,4 @@
 import sys
-import datetime
 from django.views import View
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_list_or_404, render, redirect
@@ -355,6 +354,7 @@ def sampletab2(request):
     return render(request, 'image_app/sampletab2.html', context)
 
 
+# TODO: render as a FormView
 class DataSourceView(View):
     """Handling DataSource forms with class based views"""
 

@@ -16,7 +16,9 @@ Including another URLconf
 
 from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
-from image_app import views
+
+# TODO: remove old_views after migrating views in their apposite submodule
+from image_app import views, old_views
 # from django.conf.urls import include
 # from django.contrib import admin
 
@@ -25,15 +27,27 @@ urlpatterns = [
     # to upload data in image database
     # TODO: deal with excel upload
     url(r'data_upload/$',
-        login_required(views.DataSourceView.as_view()),
+        login_required(old_views.DataSourceView.as_view()),
         name='data_upload'),
 
-    url(r'^sampletab1/$', views.sampletab1, name='sampletab1'),
-    url(r'^sampletab2/$', views.sampletab2, name='sampletab2'),
-    url(r'^check_metadata/$', views.check_metadata, name='check_metadata'),
-    url(r'dump_reading/$', views.dump_reading, name='dump_reading'),
-    url(r'dump_reading2/$', views.dump_reading2, name='dump_reading2'),
-    url(r'truncate_image_tables/$', views.truncate_image_tables, name='truncate_image_tables'),
-    url(r'truncate_cryoweb_tables/$', views.truncate_cryoweb_tables, name='truncate_cryoweb_tables'),
-    url(r'truncate_databases/$', views.truncate_databases, name='truncate_databases'),
+    url(r'^sampletab1/$', old_views.sampletab1, name='sampletab1'),
+    url(r'^sampletab2/$', old_views.sampletab2, name='sampletab2'),
+    url(r'^check_metadata/$', old_views.check_metadata, name='check_metadata'),
+    url(r'^upload_cryoweb/$', views.upload_cryoweb, name='upload_cryoweb'),
+
+    url(r'^import_from_cryoweb/$',
+        views.import_from_cryoweb,
+        name='import_from_cryoweb'),
+
+    url(r'^truncate_image_tables/$',
+        old_views.truncate_image_tables,
+        name='truncate_image_tables'),
+
+    url(r'^truncate_cryoweb_tables/$',
+        views.truncate_cryoweb_tables,
+        name='truncate_cryoweb_tables'),
+
+    url(r'^truncate_databases/$',
+        old_views.truncate_databases,
+        name='truncate_databases'),
 ]
