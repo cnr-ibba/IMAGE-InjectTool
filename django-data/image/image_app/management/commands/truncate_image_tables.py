@@ -1,39 +1,65 @@
 
 from django.core.management import BaseCommand
-from sqlalchemy import create_engine
+
+from image_app import helper
 
 
 class Command(BaseCommand):
-    help = """Truncate all image_app tables"""
+    help = """Truncate image_app tables"""
+
+    def add_arguments(self, parser):
+        # Named (optional) arguments
+        parser.add_argument(
+            '--all',
+            action='store_true',
+            dest='all',
+            help='Truncate all image_app tables',
+        )
 
     def handle(self, *args, **options):
-
-        engine_to_sampletab = create_engine(
-                'postgresql://postgres:***REMOVED***@db:5432/image')
+        imagedb = helper.ImageDB()
 
         # estabilishing a connection
-        conn = engine_to_sampletab.connect()
-
-        print("Truncating image tables...")
+        conn = imagedb.get_connection()
 
         # TODO: move add prefix image_app to django modeled image tables
         # HINT: maybe UID or InjectTools could be more informative than
         # image_app suffix?
-        statement = """
-                TRUNCATE databases,
-                         image_app_animal,
-                         image_app_datasource,
-                         image_app_dictbreed,
-                         image_app_dictrole,
-                         image_app_dictsex,
-                         image_app_name,
-                         image_app_sample,
-                         image_app_submission,
-                         organizations,
-                         persons,
-                         publications,
-                         term_sources
-                    """
+
+        if options['all'] is True:
+            print("Truncating all image tables...")
+
+            statement = """
+                    TRUNCATE databases,
+                             image_app_animal,
+                             image_app_datasource,
+                             image_app_dictbreed,
+                             image_app_dictrole,
+                             image_app_dictsex,
+                             image_app_name,
+                             image_app_sample,
+                             image_app_submission,
+                             organizations,
+                             persons,
+                             publications,
+                             term_sources
+                        """
+
+        else:
+            print("Truncating filled image tables...")
+
+            statement = """
+                    TRUNCATE databases,
+                             image_app_animal,
+                             image_app_dictbreed,
+                             image_app_name,
+                             image_app_sample,
+                             image_app_submission,
+                             organizations,
+                             persons,
+                             publications,
+                             term_sources
+                        """
 
         # start a transaction
         trans = conn.begin()

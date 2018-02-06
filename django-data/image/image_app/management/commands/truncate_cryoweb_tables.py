@@ -1,19 +1,18 @@
 
 from django.core.management import BaseCommand
-from sqlalchemy import create_engine
+
+from image_app import helper
 
 
 class Command(BaseCommand):
     help = """Truncate all tables in the imported_from_cryoweb db"""
 
     def handle(self, *args, **options):
-        engine_from_cryoweb = create_engine(
-                'postgresql://postgres:***REMOVED***@db:5432/'
-                'imported_from_cryoweb')
+        # get a cryoweb helper instance
+        cryowebdb = helper.CryowebDB()
 
-        # estabilishing a connection and change default schema
-        conn = engine_from_cryoweb.connect()
-        conn.execute("SET search_path TO apiis_admin, public")
+        # get a connection object
+        conn = cryowebdb.get_connection(search_path='apiis_admin')
 
         print("Truncating imported_from_cryoweb tables...")
 

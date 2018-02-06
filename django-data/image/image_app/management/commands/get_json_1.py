@@ -12,19 +12,19 @@ $ python manage.py get_json_1
 """
 
 
-import math
+import datetime
 import json
+import math
+
 import numpy
 import pandas as pd
-import datetime
-
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.management import BaseCommand
 from pandas import Timestamp
 from sqlalchemy import create_engine
-from django.core.management import BaseCommand
-from django.core.exceptions import ObjectDoesNotExist
 
 # image models
-from image_app.models import DictSex, Animal, DictBreed
+from image_app.models import Animal, DictBreed, DictSex
 
 
 class MyEncoder(json.JSONEncoder):

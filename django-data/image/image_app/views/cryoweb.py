@@ -9,16 +9,18 @@ In this module views regarding data import from cryoweb are described
 
 """
 
-from sqlalchemy import create_engine
-import pandas as pd
 import shlex
-import sys
 import subprocess
-from django.shortcuts import render, redirect
-from image_app.models import (
-        Animal, DictBreed, DictSex, DataSource, Name, Sample)
+import sys
+
+import pandas as pd
 from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
+from django.shortcuts import redirect, render
+
+from image_app import helper
+from image_app.models import (Animal, DataSource, DictBreed, DictSex, Name,
+                              Sample)
 
 
 @login_required
@@ -34,24 +36,15 @@ def upload_cryoweb(request):
 
     """
 
-    # TODO: read parameters from file?
-    engine_from_cryoweb = create_engine(
-        'postgresql://postgres:***REMOVED***@db:5432/imported_'
-        'from_cryoweb')
+    # get a cryoweb helper instance
+    cryowebdb = helper.CryowebDB()
 
-    # change default schema
-    conn = engine_from_cryoweb.connect()
-    conn.execute("SET search_path TO apiis_admin, public")
-
-    num_animals = pd.read_sql_query(
-        'select count(*) as num from animal',
-        con=conn)
-
-    num_animals = num_animals['num'].values[0]
-
-    if num_animals > 0:
+    # test if cryoweb has data or not
+    if cryowebdb.has_data(search_path='apiis_admin'):
         # TODO: give an error message
-        return redirect('../../')
+        # using admin urls
+        # https://docs.djangoproject.com/en/dev/ref/contrib/admin/#admin-reverse-urls
+        return redirect('admin:index')
 
     username = request.user.username
     context = {'username': username}
@@ -85,7 +78,6 @@ def upload_cryoweb(request):
             env={'PGPASSWORD': '***REMOVED***'},
             encoding='utf8'
             )
-        conn.close()
 
     except subprocess.CalledProcessError as exc:
         context['returncode'] = exc.returncode
@@ -114,20 +106,19 @@ def import_from_cryoweb(request):
     if len(DictSex.objects.all()) == 0:
         raise Exception("You have to upload DictSex data")
 
-    # TODO: set those values using a function
-    engine_to_image = create_engine(
-        'postgresql://postgres:***REMOVED***@db:5432/image')
+    # define helper database objects
+    cryowebdb = helper.CryowebDB()
+    imagedb = helper.ImageDB()
 
-    engine_from_cryoweb = create_engine(
-        'postgresql://postgres:***REMOVED***@db:5432/imported_from_cryoweb')
+    # set those values using a function
+    engine_to_image = imagedb.get_engine()
+    engine_from_cryoweb = cryowebdb.get_engine()
 
     # Read how many records are in the animal table.
     # TODO: What abount a second submission?
-    num_animals = Animal.objects.count()
-
     # TODO: return an error, or something like this
-    if num_animals > 0:
-        return redirect('../../')
+    if imagedb.has_data():
+        return redirect('admin:index')
 
     # TODO: get datasource to load from link or admin
     datasource = DataSource.objects.order_by("-uploaded_at").first()
@@ -451,4 +442,4 @@ def truncate_cryoweb_tables(request):
     """
 
     call_command('truncate_cryoweb_tables')
-    return redirect('../../')
+    return redirect('admin:index')
