@@ -1,9 +1,9 @@
 
 from django.contrib import admin
-from image_app.models import (
-        Animal, DictBreed, Sample, Submission, Person, Organization,
-        Publication, Database, Term_source, DictRole, DataSource, Name)
 
+from image_app.models import (Animal, Database, DataSource, DictBreed,
+                              DictRole, Name, Organization, Person,
+                              Publication, Sample, Submission, Term_source)
 
 # from import_export import resources
 # from import_export.admin import ExportMixin, ExportActionModelAdmin

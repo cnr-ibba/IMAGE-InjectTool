@@ -14,11 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 
-from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
+from django.contrib.auth.decorators import login_required
 
 # TODO: remove old_views after migrating views in their apposite submodule
 from image_app import views
+
 # from django.conf.urls import include
 # from django.contrib import admin
 

@@ -1,8 +1,9 @@
-from django.test import TestCase
 import pandas as pd
+from django.test import TestCase
 
-from image_app.models import Submission, Person, Organization, Publication, \
-    Database, Term_source
+from image_app.models import (Database, Organization, Person, Publication,
+                              Submission, Term_source)
+
 
 class HeaderBuildTest(TestCase):
 

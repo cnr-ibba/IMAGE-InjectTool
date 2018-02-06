@@ -11,6 +11,7 @@ Common functions in image_app
 
 import pandas as pd
 from sqlalchemy import create_engine
+
 from .models import Animal
 
 

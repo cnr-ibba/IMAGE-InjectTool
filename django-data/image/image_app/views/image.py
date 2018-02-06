@@ -6,41 +6,32 @@ Created on Tue Feb  6 15:04:07 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
-from django.views import View
-from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.views.generic.edit import FormView
+from django.shortcuts import redirect, reverse
 from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
 
 from image_app.forms import DataSourceForm
 
 
-# TODO: render as a FormView
-class DataSourceView(View):
+class DataSourceView(FormView):
     """Handling DataSource forms with class based views"""
 
     form_class = DataSourceForm
     template_name = "image_app/data_upload.html"
 
-    def get(self, request, *args, **kwargs):
-        """Return this when accessing form through GET method"""
+    def get_success_url(self):
+        """Override default function"""
 
-        form = self.form_class()
-        return render(request, self.template_name, {'form': form})
+        return reverse("admin:index")
 
-    def post(self, request, *args, **kwargs):
-        """Return this when accessing form through POST method"""
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        # It should return an HttpResponse.
+        # save data
+        form.save()
 
-        form = self.form_class(request.POST, request.FILES)
-
-        if form.is_valid():
-            # save data
-            form.save()
-
-            # return to succes page (home in this case)
-            return HttpResponseRedirect('admin:index')
-
-        return render(request, self.template_name, {'form': form})
+        return super(DataSourceView, self).form_valid(form)
 
 
 @login_required
