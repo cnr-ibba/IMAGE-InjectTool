@@ -37,10 +37,10 @@ class Command(BaseCommand):
                              image_app_dictrole,
                              image_app_dictsex,
                              image_app_name,
+                             image_app_person,
                              image_app_sample,
                              image_app_submission,
                              organizations,
-                             persons,
                              publications,
                              term_sources
                         """
@@ -56,7 +56,6 @@ class Command(BaseCommand):
                              image_app_sample,
                              image_app_submission,
                              organizations,
-                             persons,
                              publications,
                              term_sources
                         """

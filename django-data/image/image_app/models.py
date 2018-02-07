@@ -1,8 +1,6 @@
 from django.db import models
 
-# from django.contrib.auth.models import User
-# from django.core.exceptions import ValidationError
-# from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.models import User
 
 
 class DictRole(models.Model):
@@ -27,7 +25,7 @@ class DictRole(models.Model):
 
     class Meta:
         # db_table will be <app_name>_<classname>
-        verbose_name = "dict role"
+        verbose_name = "role"
         unique_together = (("label", "short_form"),)
 
 
@@ -259,13 +257,11 @@ class Submission(models.Model):
 
 
 class Person(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
-    last_name = models.CharField(max_length=255, blank=True, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     initials = models.CharField(max_length=255, blank=True, null=True)
-    first_name = models.CharField(max_length=255, blank=True, null=True)
-    email = models.EmailField(max_length=70, blank=True, null=True)
-    # role = models.CharField(max_length=255, blank=True, null=True)
     affiliation = models.CharField(max_length=255, blank=True, null=True)
+
+    # last_name, first_name and email comes from User model
 
     role = models.ForeignKey(
             'DictRole',
@@ -273,17 +269,10 @@ class Person(models.Model):
             related_name='%(class)s_role')
 
     def __str__(self):
-        if str(self.first_name):
-            return str(str(self.id) + ", " + str(self.first_name) + " " +
-                       str(self.last_name))
-        else:
-            return str(str(self.id) + ", " + str(self.last_name))
-
-    class Meta:
-        # managed = False
-        db_table = 'persons'
-        verbose_name = 'Person'
-        verbose_name_plural = 'Persons'
+        return "{name} {surname} ({affiliation})".format(
+                name=self.user.first_name,
+                surname=self.user.last_name,
+                affiliation=self.affiliation)
 
 
 class Organization(models.Model):

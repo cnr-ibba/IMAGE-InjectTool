@@ -1,17 +1,11 @@
 
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 
 from image_app.models import (Animal, Database, DataSource, DictBreed,
                               DictRole, Name, Organization, Person,
                               Publication, Sample, Submission, Term_source)
-
-# from import_export import resources
-# from import_export.admin import ExportMixin, ExportActionModelAdmin
-
-
-# class SampletabResource(resources.ModelResource):
-# 	class Meta:
-# 		model = Sampletab
 
 
 class DictRoleAdmin(admin.ModelAdmin):
@@ -134,10 +128,22 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 
 class PersonAdmin(admin.ModelAdmin):
-    search_fields = ['last_name']
     list_display = (
-        'last_name', 'initials', 'first_name', 'email', 'affiliation', 'role',
+        'user_name', 'initials', 'affiliation', 'role',
     )
+
+    def user_name(self, obj):
+        return "%s %s" % (obj.user.first_name, obj.user.last_name)
+
+    user_name.short_description = "User"
+
+
+class PersonInLine(admin.StackedInline):
+    model = Person
+
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (PersonInLine, )
 
 
 class OrganizationAdmin(admin.ModelAdmin):
@@ -171,13 +177,7 @@ class Term_sourceAdmin(admin.ModelAdmin):
 admin.site.register(Animal, AnimalAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(Name, NameAdmin)
-
 admin.site.register(DictBreed, DictBreedAdmin)
-# admin.site.register(DictBiobanks, DictBiobanksAdmin)
-# admin.site.register(DictBiosample, DictBiosampleAdmin)
-# admin.site.register(DictEVA, DictEVAAdmin)
-# admin.site.register(DictENA, DictENAAdmin)
-
 admin.site.register(Submission, SubmissionAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Organization, OrganizationAdmin)
@@ -186,3 +186,7 @@ admin.site.register(Database, DatabaseAdmin)
 admin.site.register(Term_source, Term_sourceAdmin)
 admin.site.register(DictRole, DictRoleAdmin)
 admin.site.register(DataSource, DataSourceAdmin)
+
+# Re-register UserAdmin
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
