@@ -289,14 +289,10 @@ class Organization(models.Model):
             on_delete=models.PROTECT,
             related_name='%(class)s_role')
 
-    def __str__(self):
-        return str(str(self.id) + ", " + str(self.name))
+    users = models.ManyToManyField(User)
 
-    class Meta:
-        # managed = False
-        db_table = 'organizations'
-        verbose_name = 'Organization'
-        verbose_name_plural = 'Organizations'
+    def __str__(self):
+        return self.name
 
 
 class Database(models.Model):
@@ -310,12 +306,6 @@ class Database(models.Model):
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name))
 
-    class Meta:
-        # managed = False
-        db_table = 'databases'
-        verbose_name = 'Database'
-        verbose_name_plural = 'Databases'
-
 
 class Publication(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
@@ -326,12 +316,6 @@ class Publication(models.Model):
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.pubmed_id))
-
-    class Meta:
-        # managed = False
-        db_table = 'publications'
-        verbose_name = 'Publication'
-        verbose_name_plural = 'Publications'
 
 
 class Term_source(models.Model):
@@ -349,12 +333,6 @@ class Term_source(models.Model):
 
     def __str__(self):
         return str(str(self.id) + ", " + str(self.name))
-
-    class Meta:
-        # managed = False
-        db_table = 'term_sources'
-        verbose_name = 'Term Source'
-        verbose_name_plural = 'Term Sources'
 
 
 class DataSource(models.Model):

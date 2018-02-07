@@ -30,34 +30,31 @@ class Command(BaseCommand):
             print("Truncating all image tables...")
 
             statement = """
-                    TRUNCATE databases,
-                             image_app_animal,
+                    TRUNCATE image_app_animal,
+                             image_app_database,
                              image_app_datasource,
                              image_app_dictbreed,
                              image_app_dictrole,
                              image_app_dictsex,
                              image_app_name,
+                             image_app_organization,
+                             image_app_organization_users,
                              image_app_person,
+                             image_app_publication,
                              image_app_sample,
                              image_app_submission,
-                             organizations,
-                             publications,
-                             term_sources
+                             image_app_term_source
                         """
 
         else:
             print("Truncating filled image tables...")
 
             statement = """
-                    TRUNCATE databases,
-                             image_app_animal,
+                    TRUNCATE image_app_animal,
                              image_app_dictbreed,
                              image_app_name,
                              image_app_sample,
                              image_app_submission,
-                             organizations,
-                             publications,
-                             term_sources
                         """
 
         # start a transaction

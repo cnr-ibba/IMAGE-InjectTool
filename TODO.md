@@ -1,8 +1,4 @@
 
-* SQL commands to generate data only dumps (for cryoweb)
-  - data export, default schema (public?)
-  - API to import from an external database?
-
 * deal with temporary file?
   - clean up (using Andrea's commands - management)
 
@@ -13,14 +9,11 @@
   - PEP8?
 
 * define users to do different works
-  - Add a distinct user to import data (avoid sql  injection) - I removed it by mistake
   - [sqlalchemy serializer](https://stackoverflow.com/questions/2786664/how-to-create-and-restore-a-backup-from-sqlalchemy)
     can be useful?
 
 * Remove **all** passwords in repository. Create an environment file for passwords
   - try to use [python decouple](https://simpleisbetterthancomplex.com/2015/11/26/package-of-the-week-python-decouple.html)
-
-* DDL for imported_from_cryoweb
 
 * Django was updated to 2.0. Urls changed!!! Need to test if we can migrate to newer
   django release? - This version However is a LTS version - not so important a the moment
@@ -51,19 +44,16 @@
 * [Django REST framework](http://www.django-rest-framework.org/) to get json data?
   to work with OpenRefine client?
 
-* update documentation:
-  - need to explain how to generate database
-  - need to explain how define permissions
-
 * Distribution: Inject tool is inside or infrastructure? or a user need to run its
   own instance
 
 * Data export: How data needs to be exported? how IMAGE-metadata works?
-  - I need to export a .xlsx table with a sheet for each category of IMAGE-metadata?
-  - Should I do the validation? or it can be external? in such case, what external tool
-    use? FAANG?
-
-* Data import: maybe UID need to have the same columns name as defined by IMAGE-metadata
+  - IMAGE-metadata define fields in .xls used for import. There is a correspondance
+    between IMAGE-metadata columns and UID database columns
+  - Data will be exported using JSON (preferabli). Sampletab could be useful
+    for testing purpose.
+  - Exporing data in IMAGE-metadata excel template, could be useful for data
+    cleaning?
 
 * Suppose to fill up ontlogy terms in some way (or data useful to many Inject-Tool
   installation). Common data need to be in a common database? Or the should be a copy
@@ -85,11 +75,9 @@
 
 * Unittest?
 
-* Those tables are unclear (and empty at the moment):
+* Those tables are empty at the moment:
   - Databases
   - Term sources
-
-* organization roles has only one column. Could be a column of organization table?
 
 * Submission table is not referenced by any other table.
   - Should I retrieve information using a submission id? Is submission the first
@@ -99,20 +87,16 @@
     need I to modify the submission in my database? need I modify data downloaded
     from biosample?
 
-* Check UID columns, IMAGE-metadata and IMAGE_sample_empty_template_20180122 columns
-  are not the same
-
 * Animal (or samples) could have the same names (ie ANIMAL:::ID:::123456) so the
-  unique identifier is composed by "data source name", "data source version", "animal data source id"-> "Cryoweb de", "version 1", "ANIMAL:::ID:::123456". Data version and source need to be defined when loading
-  data.
+  unique identifier is composed by "data source name", "data source version",
+  "animal data source id"-> "Cryoweb de", "version 1", "ANIMAL:::ID:::123456".
+  Data version and source need to be defined when loading data.
 
 * Animal (and samples) could have spaces in their names, so replace them with `_`:
   if name is already present (in the same data source and version) take it
-  - Rename backup table and Object in data source
-  - Rename Transfer into Name (to store names for samples and animal).
-  - Link Name to data source
 
 * Where Submission takes place? could be a one to many Samples or Animals?
 
 * ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
-  Using google refine? For the moment, no duplicate can be inserted into database
+  Using google refine? For the moment, no duplicate can be inserted into database,
+  the second occurrence will not be included in database.
