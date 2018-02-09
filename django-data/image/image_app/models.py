@@ -1,6 +1,7 @@
-from django.db import models
-
 from django.contrib.auth.models import User
+from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class DictRole(models.Model):
@@ -266,13 +267,31 @@ class Person(models.Model):
     role = models.ForeignKey(
             'DictRole',
             on_delete=models.PROTECT,
-            related_name='%(class)s_role')
+            related_name='%(class)s_role',
+            null=True)
 
     def __str__(self):
         return "{name} {surname} ({affiliation})".format(
                 name=self.user.first_name,
                 surname=self.user.last_name,
                 affiliation=self.affiliation)
+
+
+# https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
+# we will now define signals so our Person model will be automatically
+# created/updated when we create/update User instances.
+# Basically we are hooking the create_user_person and save_user_person
+# methods to the User model, whenever a save event occurs. This kind of signal
+# is called post_save.
+@receiver(post_save, sender=User)
+def create_user_person(sender, instance, created, **kwargs):
+    if created:
+        Person.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_person(sender, instance, **kwargs):
+    instance.person.save()
 
 
 class Organization(models.Model):

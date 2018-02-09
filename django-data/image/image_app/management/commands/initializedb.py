@@ -12,7 +12,7 @@ data from cryoweb database (or xls template files, or ...)
 
 from django.core.management import BaseCommand
 
-from image_app.models import DictSex
+from image_app.models import DictSex, DictRole
 
 
 def fill_DictSex():
@@ -31,6 +31,13 @@ def fill_DictSex():
 
 
 # TODO: define a function to fill up DictRoles
+def fill_DictRoles():
+    # define a submitter role
+    role, created = DictRole.objects.get_or_create(
+            label='submitter', short_form='EFO_0001741')
+
+    if created is True:
+        print("Created: %s" % (role))
 
 
 class Command(BaseCommand):
@@ -39,3 +46,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # call commands and fill tables. Fill sex tables
         fill_DictSex()
+
+        # fill DictRoles table
+        fill_DictRoles()

@@ -6,12 +6,14 @@ Created on Tue Feb  6 15:04:07 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
-from django.views.generic.edit import FormView
-from django.shortcuts import redirect, reverse
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
+from django.db import transaction
+from django.shortcuts import redirect, render, reverse
+from django.views.generic.edit import FormView
 
-from image_app.forms import DataSourceForm
+from image_app.forms import DataSourceForm, PersonForm, UserForm
 
 
 class DataSourceView(FormView):
@@ -32,6 +34,35 @@ class DataSourceView(FormView):
         form.save()
 
         return super(DataSourceView, self).form_valid(form)
+
+
+@login_required
+@transaction.atomic
+def update_profile(request):
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=request.user)
+        person_form = PersonForm(request.POST, instance=request.user.person)
+
+        if user_form.is_valid() and person_form.is_valid():
+            user_form.save()
+            person_form.save()
+
+            messages.success(
+                    request, 'Your profile was successfully updated!')
+
+            return redirect('admin:index')
+
+        else:
+            messages.error(
+                    request, 'Please correct the error below.')
+    else:
+        user_form = UserForm(instance=request.user)
+        person_form = PersonForm(instance=request.user.person)
+
+    return render(request, 'image_app/update_user.html', {
+        'user_form': user_form,
+        'person_form': person_form
+    })
 
 
 @login_required

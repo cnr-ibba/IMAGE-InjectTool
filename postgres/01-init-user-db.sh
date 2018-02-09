@@ -11,7 +11,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
     CREATE USER $IMAGE_USER PASSWORD '$IMAGE_PASSWORD';
     CREATE DATABASE image;
 
-    -- Assigning privileges to database
+    -- Assigning privileges to database (public schema)
     GRANT ALL PRIVILEGES ON DATABASE image TO $IMAGE_USER;
     GRANT ALL PRIVILEGES ON DATABASE imported_from_cryoweb TO cryoweb_insert_only;
 EOSQL

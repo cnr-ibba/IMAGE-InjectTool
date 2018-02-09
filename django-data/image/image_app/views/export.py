@@ -10,15 +10,15 @@ In this module, all function useful to export data are defined
 """
 
 import os
+
 import pandas as pd
-from django.shortcuts import get_list_or_404, render
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_list_or_404, render
 
 from image_app import helper
-from image_app.models import (
-        Submission, Person, Organization, Database, Term_source, Publication,
-        Animal)
+from image_app.models import (Animal, Database, Organization, Person,
+                              Publication, Submission, Term_source)
 
 
 @login_required
