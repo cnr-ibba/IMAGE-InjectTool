@@ -283,6 +283,7 @@ class Person(models.Model):
 # Basically we are hooking the create_user_person and save_user_person
 # methods to the User model, whenever a save event occurs. This kind of signal
 # is called post_save.
+# TODO: add default values when creating a superuser
 @receiver(post_save, sender=User)
 def create_user_person(sender, instance, created, **kwargs):
     if created:

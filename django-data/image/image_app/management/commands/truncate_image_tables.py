@@ -54,7 +54,7 @@ class Command(BaseCommand):
                              image_app_dictbreed,
                              image_app_name,
                              image_app_sample,
-                             image_app_submission,
+                             image_app_submission
                         """
 
         # start a transaction

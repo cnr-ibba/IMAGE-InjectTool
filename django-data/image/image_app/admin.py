@@ -138,12 +138,30 @@ class PersonAdmin(admin.ModelAdmin):
     user_name.short_description = "User"
 
 
+# https://simpleisbetterthancomplex.com/tutorial/2016/11/23/how-to-add-user-profile-to-django-admin.html
 class PersonInLine(admin.StackedInline):
     model = Person
+    can_delete = False
+    verbose_name_plural = 'Person'
+    fk_name = 'user'
 
 
 class UserAdmin(BaseUserAdmin):
     inlines = (PersonInLine, )
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff',
+                    'get_role')
+    list_select_related = ('person', )
+
+    # this will display a column Role in User admin
+    def get_role(self, instance):
+        return instance.person.role
+    get_role.short_description = 'Role'
+
+    # display the inlines only in the edit form
+    def get_inline_instances(self, request, obj=None):
+        if not obj:
+            return list()
+        return super(UserAdmin, self).get_inline_instances(request, obj)
 
 
 class OrganizationAdmin(admin.ModelAdmin):
