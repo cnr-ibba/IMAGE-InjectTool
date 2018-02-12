@@ -19,7 +19,6 @@ Install Docker-compose
 ----------------------
 
 Compose is a tool for defining and running multi-container Docker applications.
-
 Please follow your platform documentation:
 [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
 
@@ -59,6 +58,10 @@ IMAGE_PASSWORD=<user password>
 CRYOWEB_INSERT_ONLY_PW=<user_password>
 ```
 
+> *TODO*: manage sensitive data using secret in docker-compose, as described
+[here](https://docs.docker.com/engine/swarm/secrets/#use-secrets-in-compose) and
+[here](https://docs.docker.com/compose/compose-file/#secrets)
+
 Preparing the database
 ----------------------
 
@@ -78,29 +81,7 @@ is initialized. After that, every instance of postgres will use the `postgres-da
 directory, mantaing already generate data. If you plan to move `IMAGE-InjectTool`,
 you have to move all `IMAGE-InjectTool` directory with all its content
 
-Create the settings.py file
----------------------------
-
-Django configuration file (settings.py) must be created by copying the
-settings.py_SAMPLE file in its own directory. After having created it,
-open it and write the password for the django-postgres connection. With this procedure, no password is stored into git history:
-
-```bash
-$ cd django-data/image/image
-$ cp settings.py_SAMPLE settings.py
-
-# open settings.py and replace **REMOVED** with the password
-# at the line
-# 'PASSWORD': '**REMOVED**',
-# you should find the password in the Trello Board.
-
-```
-
-> TODO:
-settings.py will be defined using [python decouple](https://simpleisbetterthancomplex.com/2015/11/26/package-of-the-week-python-decouple.html)
-reading values from `.env` file.
-
-Start the Docker-compose suite
+Build the docker-compose suite
 ------------------------------
 
 There are three containers defined in docker-compose.yml
@@ -110,25 +91,68 @@ There are three containers defined in docker-compose.yml
  - db: the postgres database
 
 ```bash
-
-# start the containers according to the docker-compose.yml specifications
-# docker will download and install all required dependences; it will need several minutes to complete.
+# build the images according to the docker-compose.yml specificatios. Docker will
+# download and install all required dependences; it will need several minutes to complete.
 # launch this command from the working directory
-$ docker-compose up -d
-
+$ docker-compose build
 ```
 
 InjectTool Use
 --------------
 
-The Inject Tool interface is available for a local access through Internet browser at the URL: `http://localhost:28080/image/`.
+### Django configuration
 
-Pages are served by an nginx docker container controlled by Docker Compose (see the docker-compose.yml file content). In order to start the service:
+Django configuration relies on a `settings.py` module, which loads sensitive data
+like password and `SECRET_KEY` from an another `.env` file through
+the [python decouple](https://simpleisbetterthancomplex.com/2015/11/26/package-of-the-week-python-decouple.html)
+module. You need to create a new `.env` file in `image` settings directory. start
+from working directory, then:
+
+```bash
+$ cd django-data/image/image
+$ touch .env
+```
+
+You need to define a new django `SECRET_KEY`. Start a python terminal with docker:
+
+
+```bash
+$ docker-compose run --rm uwsgi python
+```
+then execute this python code, as described [here](https://stackoverflow.com/a/16630719):
+
+```python
+>>> from django.utils.crypto import get_random_string
+>>> chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+>>> get_random_string(50, chars)
+```
+
+Copy the resulting key and then paste into a new `.env` file like this:
+
+```
+SECRET_KEY=<your SECRET_KEY>
+DEBUG=False
+IMAGE_USER=***REMOVED***
+IMAGE_PASSWORD=<user password>
+CRYOWEB_INSERT_ONLY_PW=<user_password>
+```
+
+Database passwords have to be the same of the previous `.env` file.
+
+### Start composed image
+
+Pages are served by an nginx docker container controlled by Docker Compose
+(see the docker-compose.yml file content). In order to start the service:
 
 ```bash
 # cd <working directory>
 $ docker-compose up -d
 ```
+
+The Inject Tool interface is available for a local access through Internet browser at the URL:
+`http://localhost:26080/image/`.
+
+### Initialize Django tables
 
 After inizialization, a new django user with administrative privilges is needed. This is
 not the default postgres user, but a user valid only in django environment. Moreover
@@ -141,8 +165,12 @@ $ docker-compose run --rm uwsgi python manage.py migrate
 $ docker-compose run --rm uwsgi python manage.py createsuperuser
 ```
 
-The last commands will prompt for a user creation. Track user credentials since
-those will be not stored in `.env` file of `IMAGE-InjectTool` directory.
+The last commands will prompt for a user creation. This will be a new django
+admin user, not the database users described in `env` files. Track user credentials
+since those will be not stored in
+`.env` file of `IMAGE-InjectTool` directory.
+
+### Fixing django permissions
 
 You will also to check file permissions in django data, expecially for `media`
 folder:
@@ -158,7 +186,7 @@ tables. You can do it by launching the following command:
 $ docker-compose run --rm uwsgi python manage.py initializedb
 ```
 
-### Useful commands
+### Other useful commands
 
 ```bash
 # start the containers according to the docker-compose.yml specifications
@@ -181,7 +209,8 @@ $ docker-compose run --rm uwsgi python manage.py check
 $ docker-compose run --rm db psql -h db -U postgres
 ```
 
-### Exporting cryoweb data
+Exporting data from cryoweb
+---------------------------
 
 At this point cryoweb tables are already defined for import, so we need to export
 only data from an existing cryoweb instance. Execute a dump from a cryoweb like this:

@@ -4,9 +4,9 @@ import unittest
 import pandas as pd
 from django.conf import settings
 from django.core.management import BaseCommand
-from sqlalchemy import create_engine
 
 from image_app.models import Animal, DataSource
+from image_app import helper
 
 
 class Command(BaseCommand):
@@ -22,14 +22,11 @@ class TestDB(unittest.TestCase):
     """Testing database status"""
 
     def setUp(self):
-        # TODO: load connection parameters from environment
-        engine_from_cryoweb = create_engine(
-                'postgresql://postgres:***REMOVED***@db:5432/'
-                'imported_from_cryoweb')
+        # get a cryoweb helper instance
+        self.cryowebdb = helper.CryowebDB()
 
-        # change default schema for imported_from_cryoweb
-        self.conn = engine_from_cryoweb.connect()
-        self.conn.execute("SET search_path TO apiis_admin, public")
+        # get a connection object
+        self.conn = self.cryowebdb.get_connection(search_path='apiis_admin')
 
     def test_db1_animal_table_is_not_empty(self):
         """Tests that imported_from_cryoweb.animal table is not empty"""

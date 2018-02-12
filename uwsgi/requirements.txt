@@ -1,9 +1,10 @@
 uwsgi
 mysqlclient
-psycopg2
+psycopg2-binary
 Django==1.11
 pandas
 SQLAlchemy
 pymongo
 ipython
-django-debug-toolbar
+django-debug-toolbar==1.9.1
+python-decouple

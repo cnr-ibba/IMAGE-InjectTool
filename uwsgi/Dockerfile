@@ -26,10 +26,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create directory for a django project
 RUN mkdir /var/uwsgi/
 
-# Install custom modules (uwsgi)
-COPY requirements.txt /root/
-RUN pip install -r /root/requirements.txt
-
 # Set corrent working directory
 WORKDIR /var/uwsgi/
 
@@ -41,6 +37,10 @@ EXPOSE 8000
 
 # This environment variable force stdin, stdout and stderr to be totally unbuffered
 ENV PYTHONUNBUFFERED 1
+
+# Install custom modules (uwsgi)
+COPY requirements.txt /root/
+RUN pip install -r /root/requirements.txt
 
 # Execute a default command
 CMD ["/bin/bash"]

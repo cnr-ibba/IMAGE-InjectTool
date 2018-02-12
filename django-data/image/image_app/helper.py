@@ -9,10 +9,19 @@ Common functions in image_app
 
 """
 
+import os
+
 import pandas as pd
+from django.conf import settings
 from sqlalchemy import create_engine
 
+from decouple import AutoConfig
+
 from .models import Animal
+
+# define a decouple config object
+settings_dir = os.path.join(settings.BASE_DIR, 'image')
+config = AutoConfig(search_path=settings_dir)
 
 
 class Database():
@@ -59,8 +68,10 @@ class CryowebDB(Database):
         super().__init__()
 
         self.engine_uri = (
-                'postgresql://postgres:***REMOVED***@db:5432/imported_'
-                'from_cryoweb')
+                'postgresql://{user}:{password}@db:5432/imported_'
+                'from_cryoweb'.format(
+                        user=config('IMAGE_USER'),
+                        password=config('IMAGE_PASSWORD')))
 
     def has_data(self, search_path=None):
         """A method to test if database is filled or not. Returns True/False"""
@@ -88,7 +99,9 @@ class ImageDB(Database):
         super().__init__()
 
         self.engine_uri = (
-                'postgresql://postgres:***REMOVED***@db:5432/image')
+                'postgresql://{user}:{password}@db:5432/image'.format(
+                        user=config('IMAGE_USER'),
+                        password=config('IMAGE_PASSWORD')))
 
     def has_data(self, search_path=None):
         """A method to test if database is filled or not. Returns True/False"""

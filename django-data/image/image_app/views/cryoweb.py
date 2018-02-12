@@ -75,7 +75,7 @@ def upload_cryoweb(request):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            env={'PGPASSWORD': '***REMOVED***'},
+            env={'PGPASSWORD': helper.config('CRYOWEB_INSERT_ONLY_PW')},
             encoding='utf8'
             )
 

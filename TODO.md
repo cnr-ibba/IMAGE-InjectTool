@@ -12,9 +12,6 @@
   - [sqlalchemy serializer](https://stackoverflow.com/questions/2786664/how-to-create-and-restore-a-backup-from-sqlalchemy)
     can be useful?
 
-* Remove **all** passwords in repository. Create an environment file for passwords
-  - try to use [python decouple](https://simpleisbetterthancomplex.com/2015/11/26/package-of-the-week-python-decouple.html)
-
 * Django was updated to 2.0. Urls changed!!! Need to test if we can migrate to newer
   django release? - This version However is a LTS version - not so important a the moment
 
@@ -36,10 +33,7 @@
 
 * Sampletab need to be modified
   - Sampletab columns have to reflect IMAGE-metadata?
-
-* person, organization comes from authentication
-
-* Where JSON is in the whole pipeline? Is requested to fill data?
+  - Sampletab need to be removed: biosample is planngin to import only JSON
 
 * [Django REST framework](http://www.django-rest-framework.org/) to get json data?
   to work with OpenRefine client?
@@ -50,7 +44,7 @@
 * Data export: How data needs to be exported? how IMAGE-metadata works?
   - IMAGE-metadata define fields in .xls used for import. There is a correspondance
     between IMAGE-metadata columns and UID database columns
-  - Data will be exported using JSON (preferabli). Sampletab could be useful
+  - Data will be exported using JSON (preferably). Sampletab could be useful
     for testing purpose.
   - Exporing data in IMAGE-metadata excel template, could be useful for data
     cleaning?
@@ -73,6 +67,8 @@
 * Usability: remove unuseful or danger links from home page: define a more friendly
   interface to users.
 
+* Add messages when views are called or code executed
+
 * Unittest?
 
 * Those tables are empty at the moment:
@@ -86,14 +82,6 @@
     yes, were data will be placed? If I do a submission, then I want to change something,
     need I to modify the submission in my database? need I modify data downloaded
     from biosample?
-
-* Animal (or samples) could have the same names (ie ANIMAL:::ID:::123456) so the
-  unique identifier is composed by "data source name", "data source version",
-  "animal data source id"-> "Cryoweb de", "version 1", "ANIMAL:::ID:::123456".
-  Data version and source need to be defined when loading data.
-
-* Animal (and samples) could have spaces in their names, so replace them with `_`:
-  if name is already present (in the same data source and version) take it
 
 * Where Submission takes place? could be a one to many Samples or Animals?
 

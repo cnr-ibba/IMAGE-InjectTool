@@ -11,7 +11,6 @@ tmp/
 *tgz
 *tar.gz
 *.json
-settings.py
 *.tar
 *.csv
 

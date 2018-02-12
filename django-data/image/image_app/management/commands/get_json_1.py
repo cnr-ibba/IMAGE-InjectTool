@@ -21,10 +21,10 @@ import pandas as pd
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 from pandas import Timestamp
-from sqlalchemy import create_engine
 
 # image models
 from image_app.models import Animal, DictBreed, DictSex
+from image_app import helper
 
 
 class MyEncoder(json.JSONEncoder):
@@ -120,16 +120,17 @@ class Command(BaseCommand):
             return a_dict
 
         # open a connection
-        # TODO: read parameters from evironment files
-        engine_to_sampletab = create_engine(
-                'postgresql://postgres:***REMOVED***@db:5432/image')
+        imagedb = helper.ImageDB()
+
+        # estabilishing a connection
+        conn = imagedb.get_connection()
 
         # ======
         # BREEDS
         # ======
 
         df_breeds = pd.read_sql_table(
-                'dict_breeds', con=engine_to_sampletab, schema='public')
+                'dict_breeds', con=conn, schema='public')
 
         # select 3 columns and rename description
         df_breeds = df_breeds[['description', 'country', 'species']].rename(
@@ -145,7 +146,7 @@ class Command(BaseCommand):
         # =======
 
         df_animals = pd.read_sql_table(
-                'animals', con=engine_to_sampletab, schema='public')
+                'animals', con=conn, schema='public')
 
         # convert gender id in gender desc
         # DictSex is a ORM's Object pointing to the dict_sex postgres table
@@ -180,7 +181,7 @@ class Command(BaseCommand):
         # =======
 
         df_samples = pd.read_sql_table(
-                'samples', con=engine_to_sampletab, schema='public')
+                'samples', con=conn, schema='public')
 
         df_samples['id'] = df_samples['name']
         df_samples['dataSourceId'] = df_samples['name']
@@ -202,12 +203,11 @@ class Command(BaseCommand):
         # ==========
 
         df_submission = pd.read_sql_table(
-                'submissions', con=engine_to_sampletab, schema='public')
+                'submissions', con=conn, schema='public')
 
         # take first record from dataframe and convert into dictionary
         output['submissions'] = getDictFromDF(df_submission, index)
 
-
-        # covert output in json
+        # convert output in json
         return json.dumps(output, sort_keys=True, indent=4, allow_nan=False,
                           cls=MyEncoder)
