@@ -6,3 +6,4 @@ pandas
 SQLAlchemy
 pymongo
 ipython
+django-debug-toolbar
