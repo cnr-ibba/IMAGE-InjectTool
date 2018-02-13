@@ -29,7 +29,7 @@ uwsgi:
   build: ./uwsgi
 
   # exec a different command from image
-  command: uwsgi --ini /var/uwsgi/image_uwsgi.ini
+  command: uwsgi --ini /var/uwsgi/image_uwsgi.ini --memory-report
 
   # set working dir for uwsgi
   working_dir: /var/uwsgi/image/
