@@ -170,16 +170,38 @@ def fill_transfer(engine_from_cryoweb, datasource):
     # set index to dataframe
     df_transfer_fin.index = df_transfer_fin["db_animal"]
 
+    # A dictionary of object to create
+    to_create = {}
+
+    # get list of names of already inserted animals
+    queryset = Name.objects.filter(datasource=datasource)
+    in_table_names = [name.name for name in queryset]
+
     # insert dataframe as table into the UID database
     for row in df_transfer_fin.itertuples():
-        obj, created = Name.objects.get_or_create(
-                name=row.name,
-                datasource=datasource)
-
-        if created is False:
-            print("%s: already present in database (%s)" % (
-                    str(row), str(obj)),
+        # skip duplicates (in the same bulk insert)
+        if row.name in to_create:
+            print("%s: already marked for insertion (%s)" % (
+                    str(row), str(to_create[row.name])),
                   file=sys.stderr)
+
+        # get or create objects: check for existance if not create an
+        # object for a bulk_insert
+        elif row.name in in_table_names:
+            print("%s: already present in database" % (
+                    str(row)), file=sys.stderr)
+
+        else:
+            # create a new object
+            obj = Name(name=row.name,
+                       datasource=datasource)
+
+            # append object to to_create list
+            to_create[row.name] = obj
+
+    # Now eval to_create list; if necessary, bulk_insert
+    if len(to_create) > 0:
+        Name.objects.bulk_create(to_create.values(), batch_size=100)
 
     # return processed objects
     return df_transfer_fin
@@ -294,11 +316,35 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace(
             {'m': male.id, 'f': female.id})
 
+    # debug: subset the final matrix
+    df_animals_fin = df_animals_fin[:50]
+
+    # A dictionary of object to create
+    to_create = {}
+
     # insert animal in database
     # HINT: ANIMAL:::ID:::Ramon_142436 is present two times in database
     # with this, the second entry will not be inserted into Animal table
+    # Same way of fill_transfer
+    queryset = Animal.objects.filter(name__datasource=datasource)
+    in_table_name_ids = [animal.name_id for animal in queryset]
+
     for row in df_animals_fin.itertuples():
-        obj, created = Animal.objects.get_or_create(
+        # skip duplicates (in the same bulk insert)
+        if row.name_id in to_create:
+            print("%s: already marked for insertion (%s)" % (
+                    str(row), str(to_create[row.name_id])),
+                  file=sys.stderr)
+
+        # get or create objects: check for existance if not create an
+        # object for a bulk_insert
+        elif row.name_id in in_table_name_ids:
+            print("%s: already present in database" % (
+                    str(row)), file=sys.stderr)
+
+        else:
+            # create a new object
+            obj = Animal(
                 name_id=row.name_id,
                 breed_id=row.breed_id,
                 sex_id=row.sex_id,
@@ -307,10 +353,12 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                 farm_latitude=row.farm_latitude,
                 farm_longitude=row.farm_longitude)
 
-        if created is False:
-            print("%s: already present in database (%s)" % (
-                    str(row), str(obj)),
-                  file=sys.stderr)
+            # append object to to_create list
+            to_create[row.name_id] = obj
+
+    # Now eval to_create list; if necessary, bulk_insert
+    if len(to_create) > 0:
+        Animal.objects.bulk_create(to_create.values())
 
     # return animal data frame
     return df_animals_fin
@@ -454,8 +502,8 @@ def import_from_cryoweb(request):
                      datasource)
 
         # SAMPLES
-        fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
-                     datasource)
+#        fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
+#                     datasource)
 
         # TODO: organization, persons and so on were filled using
         # login information or template excel files

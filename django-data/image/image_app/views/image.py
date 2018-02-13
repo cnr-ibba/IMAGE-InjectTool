@@ -87,6 +87,7 @@ def truncate_databases(request):
     return redirect('admin:index')
 
 
+# TODO: this will be removed in production
 @login_required
 def truncate_image_tables(request):
     """ truncate image tables
@@ -100,6 +101,10 @@ def truncate_image_tables(request):
     :return: the resulting HTML page
     """
 
+    # TODO: warn message if empty
+
     call_command('truncate_image_tables')
+
+    messages.success(request, 'image database was truncated with success')
 
     return redirect('admin:index')
