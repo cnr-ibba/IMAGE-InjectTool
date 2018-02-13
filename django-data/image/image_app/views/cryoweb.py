@@ -141,6 +141,44 @@ def fill_breeds(engine_from_cryoweb, engine_to_image):
     return df_breeds_fin
 
 
+def fill_names(dataframe, datasource):
+    """A generic function to fill Name table starting from a dataframe and
+    datasource"""
+
+    # A dictionary of object to create
+    to_create = {}
+
+    # get list of names of already inserted animals
+    queryset = Name.objects.filter(datasource=datasource)
+    in_table_names = [name.name for name in queryset]
+
+    # insert dataframe as table into the UID database
+    for row in dataframe.itertuples():
+        # skip duplicates (in the same bulk insert)
+        if row.name in to_create:
+            print("%s: already marked for insertion (%s)" % (
+                    str(row), str(to_create[row.name])),
+                  file=sys.stderr)
+
+        # get or create objects: check for existance if not create an
+        # object for a bulk_insert
+        elif row.name in in_table_names:
+            print("%s: already present in database" % (
+                    str(row)), file=sys.stderr)
+
+        else:
+            # create a new object
+            obj = Name(name=row.name,
+                       datasource=datasource)
+
+            # append object to to_create list
+            to_create[row.name] = obj
+
+    # Now eval to_create list; if necessary, bulk_insert
+    if len(to_create) > 0:
+        Name.objects.bulk_create(to_create.values(), batch_size=100)
+
+
 def fill_transfer(engine_from_cryoweb, datasource):
     """Helper function to fill transfer data into image name table"""
 
@@ -170,45 +208,16 @@ def fill_transfer(engine_from_cryoweb, datasource):
     # set index to dataframe
     df_transfer_fin.index = df_transfer_fin["db_animal"]
 
-    # A dictionary of object to create
-    to_create = {}
-
-    # get list of names of already inserted animals
-    queryset = Name.objects.filter(datasource=datasource)
-    in_table_names = [name.name for name in queryset]
-
-    # insert dataframe as table into the UID database
-    for row in df_transfer_fin.itertuples():
-        # skip duplicates (in the same bulk insert)
-        if row.name in to_create:
-            print("%s: already marked for insertion (%s)" % (
-                    str(row), str(to_create[row.name])),
-                  file=sys.stderr)
-
-        # get or create objects: check for existance if not create an
-        # object for a bulk_insert
-        elif row.name in in_table_names:
-            print("%s: already present in database" % (
-                    str(row)), file=sys.stderr)
-
-        else:
-            # create a new object
-            obj = Name(name=row.name,
-                       datasource=datasource)
-
-            # append object to to_create list
-            to_create[row.name] = obj
-
-    # Now eval to_create list; if necessary, bulk_insert
-    if len(to_create) > 0:
-        Name.objects.bulk_create(to_create.values(), batch_size=100)
+    # call a function to fill name table
+    fill_names(df_transfer_fin, datasource)
 
     # return processed objects
     return df_transfer_fin
 
 
-# define a function to get the row from database starting from dataframe
-def getDictBreedId(row, df_breeds_fin):
+# define a function to get the row from a dictionary of
+# {(species, description: dictbreed.id} starting from dataframe
+def getDictBreedId(row, df_breeds_fin, breed_to_id):
     """Returns DictBreed.id from a row from df_animals and df_breed"""
 
     # get db_breed index from row
@@ -217,17 +226,13 @@ def getDictBreedId(row, df_breeds_fin):
     # get data from df_breeds_fin using dataframr indexes
     data = df_breeds_fin.loc[db_breed].to_dict()
 
-    # ok get an object from database. Only one result is expected
-    dict_breed = DictBreed.objects.get(
-            description__iexact=data["description"],
-            species__iexact=data["species"])
-
-    # return internal database id
-    return dict_breed.id
+    # ok get dictbreed.id from dictionary
+    key = (data['description'], data['species'])
+    return breed_to_id[key]
 
 
-def getNameId(row, df_transfer_fin, tag, datasource):
-    """Returns Name.di from df_animal, df_transfer and a tag like
+def getNameId(row, df_transfer_fin, tag, name_to_id):
+    """Returns Name.id from df_animal, df_transfer and a tag like
     father_id, mother_id and animal_id"""
 
     if tag not in ["db_animal", "db_sire", "db_dam"]:
@@ -238,12 +243,9 @@ def getNameId(row, df_transfer_fin, tag, datasource):
 
     # get data for index (using supplied datasource)
     data = df_transfer_fin.loc[index].to_dict()
-    name = Name.objects.get(
-            name__iexact=data["name"],
-            datasource=datasource)
 
-    # return key for requested tag
-    return name.id
+    # get name.id from dictionary
+    return name_to_id[data["name"]]
 
 
 def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
@@ -256,10 +258,26 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
             con=engine_from_cryoweb,
             schema="apiis_admin")
 
+    # now get breeds and their ids from database
+    breed_to_id = {}
+
+    # map breed name and species to its id
+    for dictbreed in DictBreed.objects.all():
+        breed_to_id[(dictbreed.description, dictbreed.species)] = dictbreed.id
+
     # assign the breed_id column as DictBreed.id (will fill the)
     # breed id foreign key in animals table
     df_animals['breed_id'] = df_animals.apply(
-            lambda row: getDictBreedId(row, df_breeds_fin), axis=1)
+            lambda row: getDictBreedId(
+                    row, df_breeds_fin, breed_to_id),
+            axis=1)
+
+    # get name to id relation
+    name_to_id = {}
+
+    # get all names for this datasource
+    for name in Name.objects.filter(datasource=datasource):
+        name_to_id[name.name] = name.id
 
     # get internal keys from name
     df_animals['db_animal'] = df_animals.apply(
@@ -267,7 +285,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                     row,
                     df_transfer_fin,
                     "db_animal",
-                    datasource),
+                    name_to_id),
             axis=1)
 
     # get internal keys from mother and father
@@ -276,7 +294,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                     row,
                     df_transfer_fin,
                     "db_sire",
-                    datasource),
+                    name_to_id),
             axis=1)
 
     df_animals["db_dam"] = df_animals.apply(
@@ -284,7 +302,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                     row,
                     df_transfer_fin,
                     "db_dam",
-                    datasource),
+                    name_to_id),
             axis=1)
 
     # keep only interesting columns and rename them
@@ -315,9 +333,6 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     # HINT: here we can translate sex value in male.id or female.id
     df_animals_fin['sex_id'] = df_animals_fin['sex_id'].replace(
             {'m': male.id, 'f': female.id})
-
-    # debug: subset the final matrix
-    df_animals_fin = df_animals_fin[:50]
 
     # A dictionary of object to create
     to_create = {}
@@ -358,7 +373,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
 
     # Now eval to_create list; if necessary, bulk_insert
     if len(to_create) > 0:
-        Animal.objects.bulk_create(to_create.values())
+        Animal.objects.bulk_create(to_create.values(), batch_size=100)
 
     # return animal data frame
     return df_animals_fin
@@ -374,20 +389,33 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
             con=engine_from_cryoweb,
             schema="apiis_admin")
 
+    # get name to id relation
+    name_to_id = {}
+
+    # get all names for this datasource
+    for name in Name.objects.filter(datasource=datasource):
+        name_to_id[name.name] = name.id
+
     # get internal keys from animal name
     df_samples['name_id'] = df_samples.apply(
             lambda row: getNameId(
                     row,
                     df_transfer_fin,
                     "db_animal",
-                    datasource),
+                    name_to_id),
             axis=1)
+
+    # get animal to id relation
+    animal_to_id = {}
+
+    # get all names for this datasource
+    for animal in Animal.objects.select_related('name').filter(
+            name__datasource=datasource):
+        animal_to_id[animal.name_id] = animal.id
 
     # now get a row in the animal table
     df_samples['animal_id'] = df_samples.apply(
-            lambda row: Name.objects.get(
-                    id=row['name_id'],
-                    datasource=datasource).animal_name.id,
+            lambda row: animal_to_id[row['name_id']],
             axis=1)
 
     # keep only interesting columns and rename them
@@ -416,22 +444,18 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
     df_samples_fin.index = df_samples_fin['db_vessel']
     del(df_samples_fin['db_vessel'])
 
-    # insert sample names in Name table into the UID database
-    for row in df_samples_fin.itertuples():
-        obj, created = Name.objects.get_or_create(
-                name=row.name,
-                datasource=datasource)
+    # call a function to fill name table
+    fill_names(df_samples_fin, datasource)
 
-        if created is False:
-            print("%s: already present in database (%s)" % (
-                    str(row), str(obj)),
-                  file=sys.stderr)
+    # get name to id relation
+    name_to_id = {}
 
-    # now get Name.id from table
+    # get all names for this datasource
+    for name in Name.objects.filter(datasource=datasource):
+        name_to_id[name.name] = name.id
+
     df_samples_fin["name_id"] = df_samples_fin.apply(
-            lambda row: Name.objects.get(
-                    name=row['name'],
-                    datasource=datasource).id,
+            lambda row: name_to_id[row['name']],
             axis=1)
 
     # drop colunm name (cause now I have an ID)
@@ -502,8 +526,8 @@ def import_from_cryoweb(request):
                      datasource)
 
         # SAMPLES
-#        fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
-#                     datasource)
+        fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
+                     datasource)
 
         # TODO: organization, persons and so on were filled using
         # login information or template excel files
