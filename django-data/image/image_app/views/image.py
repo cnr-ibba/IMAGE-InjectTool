@@ -82,7 +82,13 @@ def truncate_databases(request):
     """
 
     call_command('truncate_cryoweb_tables')
+
+    messages.success(request, 'imported_from_cryoweb database was truncated '
+                              'with success')
+
     call_command('truncate_image_tables')
+
+    messages.success(request, 'image database was truncated with success')
 
     return redirect('admin:index')
 
@@ -101,8 +107,7 @@ def truncate_image_tables(request):
     :return: the resulting HTML page
     """
 
-    # TODO: warn message if empty
-
+    # TODO: move commands to a function
     call_command('truncate_image_tables')
 
     messages.success(request, 'image database was truncated with success')

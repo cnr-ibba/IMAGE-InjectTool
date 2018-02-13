@@ -1,7 +1,12 @@
 
+import logging
+
 from django.core.management import BaseCommand
 
 from image_app import helper
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -27,7 +32,7 @@ class Command(BaseCommand):
         # image_app suffix?
 
         if options['all'] is True:
-            print("Truncating all image tables...")
+            logger.info("Truncating all image tables...")
 
             statement = """
                     TRUNCATE image_app_animal,
@@ -47,7 +52,7 @@ class Command(BaseCommand):
                         """
 
         else:
-            print("Truncating filled image tables...")
+            logger.info("Truncating filled image tables...")
 
             statement = """
                     TRUNCATE image_app_animal,
@@ -57,8 +62,13 @@ class Command(BaseCommand):
                              image_app_submission
                         """
 
+        # debug
+        logger.debug("Executing: %s" % (statement))
+
         # start a transaction
         trans = conn.begin()
         conn.execute(statement)
         trans.commit()
-        print("Done!")
+
+        # debug
+        logger.info("Done!")

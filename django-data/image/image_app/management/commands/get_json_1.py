@@ -22,9 +22,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 from pandas import Timestamp
 
+from image_app import helper
 # image models
 from image_app.models import Animal, DictBreed, DictSex
-from image_app import helper
 
 
 class MyEncoder(json.JSONEncoder):

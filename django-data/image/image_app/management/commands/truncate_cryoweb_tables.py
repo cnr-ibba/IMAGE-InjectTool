@@ -1,7 +1,12 @@
 
+import logging
+
 from django.core.management import BaseCommand
 
 from image_app import helper
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -14,7 +19,7 @@ class Command(BaseCommand):
         # get a connection object
         conn = cryowebdb.get_connection(search_path='apiis_admin')
 
-        print("Truncating imported_from_cryoweb tables...")
+        logger.info("Truncating imported_from_cryoweb tables...")
 
         statement = """
                 TRUNCATE animal,
@@ -55,8 +60,13 @@ class Command(BaseCommand):
                          vessels_storage
                     """
 
+        # debug
+        logger.debug("Executing: %s" % (statement))
+
         # start a transaction
         trans = conn.begin()
         conn.execute(statement)
         trans.commit()
-        print("Done!")
+
+        # debug
+        logger.info("Done!")

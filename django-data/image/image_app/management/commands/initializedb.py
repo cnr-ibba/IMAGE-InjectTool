@@ -12,7 +12,7 @@ data from cryoweb database (or xls template files, or ...)
 
 from django.core.management import BaseCommand
 
-from image_app.models import DictSex, DictRole
+from image_app.models import DictRole, DictSex
 
 
 def fill_DictSex():

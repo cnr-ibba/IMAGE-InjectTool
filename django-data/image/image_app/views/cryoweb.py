@@ -9,11 +9,13 @@ In this module views regarding data import from cryoweb are described
 
 """
 
+import logging
 import shlex
 import subprocess
 import sys
 
 import pandas as pd
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
 from django.shortcuts import redirect, render
@@ -21,6 +23,9 @@ from django.shortcuts import redirect, render
 from image_app import helper
 from image_app.models import (Animal, DataSource, DictBreed, DictSex, Name,
                               Sample)
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -36,14 +41,17 @@ def upload_cryoweb(request):
 
     """
 
+    logger.info("called upload_cryoweb with request: %s" % (request))
+
     # get a cryoweb helper instance
     cryowebdb = helper.CryowebDB()
 
     # test if cryoweb has data or not
     if cryowebdb.has_data(search_path='apiis_admin'):
-        # TODO: give an error message
-        # using admin urls
-        # https://docs.djangoproject.com/en/dev/ref/contrib/admin/#admin-reverse-urls
+        # give an error message
+        logger.warn("cryoweb mirror database has data. Ignoring data load")
+        messages.warning(request, "cryoweb mirror database has data. Ignoring"
+                                  " data load")
         return redirect('admin:index')
 
     username = request.user.username
@@ -51,6 +59,8 @@ def upload_cryoweb(request):
 
     # TODO: get datasource to load from link or admin
     datasource = DataSource.objects.order_by("-uploaded_at").first()
+
+    logger.debug("Got DataSource %s" % (datasource))
 
     # this is not only database value, but the full path in docker
     # container
@@ -68,6 +78,8 @@ def upload_cryoweb(request):
 
     cmds = shlex.split(cmd_line)
 
+    logger.debug("Executing: %s" % " ".join(cmds))
+
     try:
         result = subprocess.run(
             cmds,
@@ -79,12 +91,21 @@ def upload_cryoweb(request):
             encoding='utf8'
             )
 
-    except subprocess.CalledProcessError as exc:
-        context['returncode'] = exc.returncode
-        context['stderr'] = exc.stderr
+    except Exception as exc:
+        context['returncode'] = -1
+        context['stderr'] = str(exc)
+        messages.error(request, "error in calling upload_cryoweb")
+        logger.error("error in calling upload_cryoweb: %s" % (exc))
 
     else:
-        context['output'] = result.stdout.split("\n")
+        context['returncode'] = result.returncode
+        context['output'] = result.stderr.split("\n")
+        n_of_statements = len(result.stdout.split("\n"))
+
+        messages.success(request, '%s statement executed' % (n_of_statements))
+        logger.debug("%s statement executed" % n_of_statements)
+
+    logger.info("upload_cryoweb finished")
 
     return render(request, 'image_app/upload_cryoweb.html', context)
 
@@ -92,12 +113,18 @@ def upload_cryoweb(request):
 def fill_breeds(engine_from_cryoweb, engine_to_image):
     """Helper function to upload breeds data in image database"""
 
+    # debug
+    logger.info("called fill_breeds()")
+
     # read the the v_breeds_species view in the "imported_from_cryoweb
     # database"
     df_breeds_species = pd.read_sql_table(
             'v_breeds_species',
             con=engine_from_cryoweb,
             schema="apiis_admin")
+
+    logger.debug("Read %s records from v_breeds_species" % (
+            df_breeds_species.shape[0]))
 
     # keep only interesting columns and rename them
     df_breeds_fin = df_breeds_species[
@@ -137,6 +164,9 @@ def fill_breeds(engine_from_cryoweb, engine_to_image):
             if_exists='append',
             index=False)  # don't write DataFrame index as a column
 
+    logger.debug("%s breeds added into database" % (df_breeds_fin.shape[0]))
+    logger.info("fill_breeds() completed")
+
     # return processed dataframe
     return df_breeds_fin
 
@@ -145,6 +175,9 @@ def fill_names(dataframe, datasource):
     """A generic function to fill Name table starting from a dataframe and
     datasource"""
 
+    # debug
+    logger.info("called fill_names()")
+
     # A dictionary of object to create
     to_create = {}
 
@@ -152,19 +185,21 @@ def fill_names(dataframe, datasource):
     queryset = Name.objects.filter(datasource=datasource)
     in_table_names = [name.name for name in queryset]
 
+    # debug
+    logger.debug("read %s names" % (queryset.count()))
+
     # insert dataframe as table into the UID database
     for row in dataframe.itertuples():
         # skip duplicates (in the same bulk insert)
         if row.name in to_create:
-            print("%s: already marked for insertion (%s)" % (
-                    str(row), str(to_create[row.name])),
-                  file=sys.stderr)
+            logger.warn("%s: already marked for insertion (%s)" % (
+                    str(row), str(to_create[row.name])))
 
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
         elif row.name in in_table_names:
-            print("%s: already present in database" % (
-                    str(row)), file=sys.stderr)
+            logger.warn("%s: already present in database" % (
+                    str(row)))
 
         else:
             # create a new object
@@ -178,9 +213,15 @@ def fill_names(dataframe, datasource):
     if len(to_create) > 0:
         Name.objects.bulk_create(to_create.values(), batch_size=100)
 
+    logger.debug("%s names added to database" % (len(to_create)))
+    logger.info("fill_names() finished")
+
 
 def fill_transfer(engine_from_cryoweb, datasource):
     """Helper function to fill transfer data into image name table"""
+
+    # debug
+    logger.info("called fill_transfer()")
 
     # in order to use relational constraints in animal relations (
     # mother, father) we need to 'register' an animal name into the
@@ -190,18 +231,22 @@ def fill_transfer(engine_from_cryoweb, datasource):
             con=engine_from_cryoweb,
             schema="apiis_admin")
 
+    logger.debug("Read %s records from v_transfer" % (
+            df_transfer.shape[0]))
+
     # now derive animal names from columns
     df_transfer['name'] = (
             df_transfer['ext_unit'] + ':::' +
             df_transfer['ext_animal'])
 
-    # subset of columns
-    df_transfer_fin = df_transfer[['db_animal', 'name']]
+    # subset of columns: copy the dataframe as suggested at
+    # https://stackoverflow.com/a/43358763 in order to resolve
+    # https://www.dataquest.io/blog/settingwithcopywarning/
+    df_transfer_fin = df_transfer.copy()[['db_animal', 'name']]
+
+    logger.debug("Removing spaces from names")
 
     # remove empty spaces
-    # HACK: this raise a warning in since df_transfer_fin['name'] is a
-    # reference to df_transfer['name'] column, so also the original column
-    # has its spaces removed. For the aim of this function this will be OK
     df_transfer_fin['name'] = df_transfer_fin['name'].str.replace(
             '\s+', '_')
 
@@ -210,6 +255,9 @@ def fill_transfer(engine_from_cryoweb, datasource):
 
     # call a function to fill name table
     fill_names(df_transfer_fin, datasource)
+
+    # debug
+    logger.info("fill_transfer() finished")
 
     # return processed objects
     return df_transfer_fin
@@ -252,11 +300,17 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                  datasource):
     """Helper function to fill animal data in image animal table"""
 
+    # debug
+    logger.info("called fill_animals()")
+
     # read the v_animal view in the "imported_from_cryoweb" db
     df_animals = pd.read_sql_table(
             'v_animal',
             con=engine_from_cryoweb,
             schema="apiis_admin")
+
+    logger.debug("Read %s records from v_animal" % (
+            df_animals.shape[0]))
 
     # now get breeds and their ids from database
     breed_to_id = {}
@@ -264,6 +318,8 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     # map breed name and species to its id
     for dictbreed in DictBreed.objects.all():
         breed_to_id[(dictbreed.description, dictbreed.species)] = dictbreed.id
+
+    logger.debug("read %s breeds" % (DictBreed.objects.count()))
 
     # assign the breed_id column as DictBreed.id (will fill the)
     # breed id foreign key in animals table
@@ -278,6 +334,9 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     # get all names for this datasource
     for name in Name.objects.filter(datasource=datasource):
         name_to_id[name.name] = name.id
+
+    logger.debug("read %s names" % (
+            Name.objects.filter(datasource=datasource).count()))
 
     # get internal keys from name
     df_animals['db_animal'] = df_animals.apply(
@@ -347,15 +406,14 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     for row in df_animals_fin.itertuples():
         # skip duplicates (in the same bulk insert)
         if row.name_id in to_create:
-            print("%s: already marked for insertion (%s)" % (
-                    str(row), str(to_create[row.name_id])),
-                  file=sys.stderr)
+            logger.warn("%s: already marked for insertion (%s)" % (
+                    str(row), str(to_create[row.name_id])))
 
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
         elif row.name_id in in_table_name_ids:
-            print("%s: already present in database" % (
-                    str(row)), file=sys.stderr)
+            logger.warn("%s: already present in database" % (
+                    str(row)))
 
         else:
             # create a new object
@@ -375,6 +433,10 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     if len(to_create) > 0:
         Animal.objects.bulk_create(to_create.values(), batch_size=100)
 
+    # debug
+    logger.debug("%s animals added to database" % (len(to_create)))
+    logger.info("fill_animals() finished")
+
     # return animal data frame
     return df_animals_fin
 
@@ -383,11 +445,17 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
                  datasource):
     """Helper function to fill image samples table"""
 
+    # debug
+    logger.info("called fill_samples()")
+
     # read view in "imported_from_cryoweb" db
     df_samples = pd.read_sql_table(
             'v_vessels',
             con=engine_from_cryoweb,
             schema="apiis_admin")
+
+    logger.debug("Read %s records from v_vessels" % (
+            df_samples.shape[0]))
 
     # get name to id relation
     name_to_id = {}
@@ -395,6 +463,9 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
     # get all names for this datasource
     for name in Name.objects.filter(datasource=datasource):
         name_to_id[name.name] = name.id
+
+    logger.debug("read %s names" % (
+            Name.objects.filter(datasource=datasource).count()))
 
     # get internal keys from animal name
     df_samples['name_id'] = df_samples.apply(
@@ -408,10 +479,14 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
     # get animal to id relation
     animal_to_id = {}
 
+    queryset = Animal.objects.select_related('name').filter(
+            name__datasource=datasource)
+
     # get all names for this datasource
-    for animal in Animal.objects.select_related('name').filter(
-            name__datasource=datasource):
+    for animal in queryset:
         animal_to_id[animal.name_id] = animal.id
+
+    logger.debug("read %s animals" % (queryset.count()))
 
     # now get a row in the animal table
     df_samples['animal_id'] = df_samples.apply(
@@ -454,6 +529,9 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
     for name in Name.objects.filter(datasource=datasource):
         name_to_id[name.name] = name.id
 
+    logger.debug("read %s names" % (
+            Name.objects.filter(datasource=datasource).count()))
+
     df_samples_fin["name_id"] = df_samples_fin.apply(
             lambda row: name_to_id[row['name']],
             axis=1)
@@ -468,6 +546,10 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
             con=engine_to_image,
             if_exists='append',
             index=False)
+
+    # debug
+    logger.debug("%s samples added to database" % (df_samples_fin.shape[0]))
+    logger.info("fill_samples() finished")
 
     # return processed object
     return df_samples_fin
@@ -484,6 +566,9 @@ def import_from_cryoweb(request):
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
     """
+
+    # debug
+    logger.info("called import_from_cryoweb with request: %s" % (request))
 
     # TODO: check that database is initialized
     # check that dict sex table contains data
@@ -502,10 +587,15 @@ def import_from_cryoweb(request):
     # TODO: What abount a second submission?
     # TODO: return an error, or something like this
     if imagedb.has_data():
+        logger.warn("image database has data. For the moment, I do nothing")
+        messages.warning(request, "image database has data! please implement"
+                                  " this feature")
         return redirect('admin:index')
 
     # TODO: get datasource to load from link or admin
     datasource = DataSource.objects.order_by("-uploaded_at").first()
+
+    logger.debug("Got DataSource %s" % (datasource))
 
     # get username from context.
     # HINT: It is used?
@@ -529,13 +619,15 @@ def import_from_cryoweb(request):
         fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
                      datasource)
 
-        # TODO: organization, persons and so on were filled using
+        # organization, persons are filled using
         # login information or template excel files
         context['fullpath'] = "OK"
 
-    except Exception:
-        context['fullpath'] = "ERROR!"
-        raise
+    except Exception as e:
+        context['fullpath'] = "ERROR!: %s" % (e)
+        logger.error(e)
+
+    logger.info("import_from_cryoweb finished")
 
     # TODO: render a better page
     return render(request, 'image_app/import_from_cryoweb.html', context)
@@ -555,4 +647,8 @@ def truncate_cryoweb_tables(request):
     """
 
     call_command('truncate_cryoweb_tables')
+
+    messages.success(request, 'imported_from_cryoweb database was truncated '
+                              'with success')
+
     return redirect('admin:index')

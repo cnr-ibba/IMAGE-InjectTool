@@ -5,8 +5,8 @@ import pandas as pd
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from image_app.models import Animal, DataSource
 from image_app import helper
+from image_app.models import Animal, DataSource
 
 
 class Command(BaseCommand):
