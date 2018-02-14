@@ -98,10 +98,9 @@ class Name(models.Model):
             related_name='%(class)s_datasource')
 
     def __str__(self):
-        return "%s (%s)" % (self.name, self.datasource)
+        return "%s (DataSource: %s)" % (self.name, self.datasource_id)
 
     class Meta:
-        verbose_name = 'Animal name'
         unique_together = (("name", "datasource"),)
 
 
@@ -209,7 +208,7 @@ class Sample(models.Model):
     preparation_interval = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return str(str(self.id) + ", " + str(self.name))
+        return str(self.name)
 
 
 class Submission(models.Model):

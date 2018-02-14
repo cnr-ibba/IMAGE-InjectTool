@@ -1,4 +1,5 @@
 
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
@@ -46,6 +47,10 @@ class NameAdmin(admin.ModelAdmin):
     # TODO: remove this column
     exclude = ('db_animal',)
 
+    list_select_related = (
+        'datasource',
+    )
+
     # remove this admin class from admin page, even if such class is registered
     # however this class will be editable from classes using Foreign Keys
     # TODO: expose this class?
@@ -80,10 +85,30 @@ class AnimalAdmin(admin.ModelAdmin):
         'biosampleid', 'name', 'alternative_id', 'breed', 'sex', 'father',
         'mother', ('birth_location', 'farm_latitude', 'farm_longitude'),
         )
+
+    # ???: is this a readonly field
+    # readonly_fields = ('name')
+
+    # https://medium.com/@hakibenita/things-you-must-know-about-django-admin-as-your-app-gets-bigger-6be0b0ee9614
+    list_select_related = ('name', 'breed', 'sex', 'father', 'mother')
+
     inlines = [SampleInline]
 
 
+class SampleAdminForm(forms.ModelForm):
+    class Meta:
+        model = Sample
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(SampleAdminForm, self).__init__(*args, **kwargs)
+        # This is the bit that matters:
+        self.fields['animal'].queryset = Animal.objects.select_related('name')
+
+
 class SampleAdmin(admin.ModelAdmin):
+    form = SampleAdminForm
+
     # exclude = ('author',)
     # prepopulated_fields = {'name': ['description']}
     search_fields = ['name']
@@ -96,6 +121,10 @@ class SampleAdmin(admin.ModelAdmin):
         'animal_age_at_collection', 'availability', 'storage_processing',
         'preparation_interval'
     )
+
+    # To tell Django we want to perform a join instead of fetching the names of
+    # the categories one by one
+    list_select_related = ('name', 'animal__name')
 
     # def has_change_permission(self, request, obj=None):
     #     has_class_permission = super(
