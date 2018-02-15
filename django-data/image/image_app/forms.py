@@ -20,4 +20,4 @@ class UserForm(forms.ModelForm):
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
-        fields = ('initials', 'affiliation', 'role')
+        fields = ('initials', 'affiliation', 'role', 'organizations')

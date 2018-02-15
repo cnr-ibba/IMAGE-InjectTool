@@ -119,6 +119,8 @@ class Animal(models.Model):
 
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
 
+    description = models.CharField(max_length=255, blank=True, null=True)
+
     material = models.CharField(
             max_length=255,
             default="Organism",
@@ -167,6 +169,8 @@ class Sample(models.Model):
             related_name='%(class)s_name')
 
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
+
+    description = models.CharField(max_length=255, blank=True, null=True)
 
     material = models.CharField(
         max_length=255,
@@ -269,6 +273,11 @@ class Person(models.Model):
             related_name='%(class)s_role',
             null=True)
 
+    organizations = models.ManyToManyField('Organization')
+
+    def get_organizations(self):
+        return ", ".join([p.name for p in self.organizations.all()])
+
     def __str__(self):
         return "{name} {surname} ({affiliation})".format(
                 name=self.user.first_name,
@@ -307,8 +316,6 @@ class Organization(models.Model):
             'DictRole',
             on_delete=models.PROTECT,
             related_name='%(class)s_role')
-
-    users = models.ManyToManyField(User)
 
     def __str__(self):
         return self.name

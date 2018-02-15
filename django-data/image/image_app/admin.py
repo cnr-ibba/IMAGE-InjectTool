@@ -58,9 +58,36 @@ class NameAdmin(admin.ModelAdmin):
         return {}
 
 
+class SampleAdminForm(forms.ModelForm):
+    class Meta:
+        model = Sample
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(SampleAdminForm, self).__init__(*args, **kwargs)
+        # This is the bit that matters:
+        self.fields['animal'].queryset = Animal.objects.select_related('name')
+
+
+class SampleInLineFormset(forms.BaseInlineFormSet):
+    ''' Base Inline formset for Sample Model'''
+
+    def __init__(self, *args, **kwargs):
+        super(SampleInLineFormset, self).__init__(*args, **kwargs)
+
+        # Animal will be a Animal object called when editing animal
+        animal = kwargs["instance"]
+
+        self.queryset = Sample.objects.select_related(
+                'animal').select_related(
+                        'name').filter(animal=animal)
+
+
 class SampleInline(admin.StackedInline):
+    formset = SampleInLineFormset
+
     fields = (
-        ('name', 'biosampleid', 'alternative_id'),
+        ('name', 'biosampleid', 'alternative_id', 'description'),
         ('animal', 'protocol', 'organism_part'),
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
@@ -71,39 +98,6 @@ class SampleInline(admin.StackedInline):
 
     model = Sample
     extra = 0
-
-
-class AnimalAdmin(admin.ModelAdmin):
-    search_fields = ['name__name']
-    list_per_page = 9
-    list_display = (
-        'name', 'biosampleid', 'alternative_id', 'material', 'breed', 'sex',
-        'father', 'mother', 'birth_location', 'farm_latitude',
-        'farm_longitude'
-        )
-    fields = (
-        'biosampleid', 'name', 'alternative_id', 'breed', 'sex', 'father',
-        'mother', ('birth_location', 'farm_latitude', 'farm_longitude'),
-        )
-
-    # ???: is this a readonly field
-    # readonly_fields = ('name')
-
-    # https://medium.com/@hakibenita/things-you-must-know-about-django-admin-as-your-app-gets-bigger-6be0b0ee9614
-    list_select_related = ('name', 'breed', 'sex', 'father', 'mother')
-
-    inlines = [SampleInline]
-
-
-class SampleAdminForm(forms.ModelForm):
-    class Meta:
-        model = Sample
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        super(SampleAdminForm, self).__init__(*args, **kwargs)
-        # This is the bit that matters:
-        self.fields['animal'].queryset = Animal.objects.select_related('name')
 
 
 class SampleAdmin(admin.ModelAdmin):
@@ -119,12 +113,22 @@ class SampleAdmin(admin.ModelAdmin):
         'collection_place_longitude', 'collection_place', 'organism_part',
         'developmental_stage', 'physiological_stage',
         'animal_age_at_collection', 'availability', 'storage_processing',
-        'preparation_interval'
+        'preparation_interval', 'description'
     )
 
     # To tell Django we want to perform a join instead of fetching the names of
     # the categories one by one
     list_select_related = ('name', 'animal__name')
+
+    fields = (
+        ('name', 'biosampleid', 'alternative_id', 'description'),
+        ('animal', 'protocol', 'organism_part'),
+        ('collection_date', 'collection_place_latitude',
+         'collection_place_longitude', 'collection_place'),
+        ('developmental_stage', 'physiological_stage',
+         'animal_age_at_collection', 'availability'),
+        ('storage_processing', 'preparation_interval')
+    )
 
     # def has_change_permission(self, request, obj=None):
     #     has_class_permission = super(
@@ -148,6 +152,32 @@ class SampleAdmin(admin.ModelAdmin):
     #     obj.save()
 
 
+class AnimalAdmin(admin.ModelAdmin):
+    search_fields = ['name__name']
+
+    list_per_page = 9
+
+    list_display = (
+        'name', 'biosampleid', 'alternative_id', 'material', 'breed', 'sex',
+        'father', 'mother', 'birth_location', 'farm_latitude',
+        'farm_longitude', 'description'
+        )
+
+    fields = (
+        'biosampleid', 'name', 'alternative_id', 'breed', 'sex', 'father',
+        'mother', ('birth_location', 'farm_latitude', 'farm_longitude'),
+        'description'
+        )
+
+    # ???: is this a readonly field
+    # readonly_fields = ('name')
+
+    # https://medium.com/@hakibenita/things-you-must-know-about-django-admin-as-your-app-gets-bigger-6be0b0ee9614
+    list_select_related = ('name', 'breed', 'sex', 'father', 'mother')
+
+    inlines = [SampleInline]
+
+
 class SubmissionAdmin(admin.ModelAdmin):
     search_fields = ['title']
     list_display = (
@@ -158,13 +188,20 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 class PersonAdmin(admin.ModelAdmin):
     list_display = (
-        'user_name', 'initials', 'affiliation', 'role',
+        'user_name', 'initials', 'affiliation', 'role', 'get_organizations'
     )
 
     def user_name(self, obj):
         return "%s %s" % (obj.user.first_name, obj.user.last_name)
 
+    # rename column in admin
     user_name.short_description = "User"
+
+    def get_organizations(self, obj):
+        return obj.get_organizations()
+
+    # rename column in admin
+    get_organizations.short_description = 'Organizations'
 
 
 # https://simpleisbetterthancomplex.com/tutorial/2016/11/23/how-to-add-user-profile-to-django-admin.html

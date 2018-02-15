@@ -12,7 +12,6 @@ In this module views regarding data import from cryoweb are described
 import logging
 import shlex
 import subprocess
-import sys
 
 import pandas as pd
 from django.contrib import messages
@@ -372,7 +371,8 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
          'db_sire',
          'db_dam',
          'latitude',
-         'longitude']]
+         'longitude',
+         'comment']]
 
     df_animals_fin = df_animals_fin.rename(
         columns={
@@ -382,6 +382,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
             'db_dam': 'mother_id',
             'latitude': 'farm_latitude',
             'longitude': 'farm_longitude',
+            'comment': 'description'
         }
     )
 
@@ -424,7 +425,8 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                 father_id=row.father_id,
                 mother_id=row.mother_id,
                 farm_latitude=row.farm_latitude,
-                farm_longitude=row.farm_longitude)
+                farm_longitude=row.farm_longitude,
+                description=row.description)
 
             # append object to to_create list
             to_create[row.name_id] = obj
@@ -499,7 +501,8 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
          'ext_vessel',
          'production_dt',
          'ext_protocol_id',
-         'animal_id']]
+         'animal_id',
+         'comment']]
 
     # TODO: ext_protocol_id need to be resolved in protocol name
 
@@ -508,6 +511,7 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
             'ext_vessel': 'name',
             'production_dt': 'collection_date',
             'ext_protocol_id': 'protocol',
+            'comment': 'description'
         }
     )
 
