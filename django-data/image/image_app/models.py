@@ -19,6 +19,8 @@ class DictRole(models.Model):
             blank=False,
             help_text="Example: EFO_0001741")
 
+    # TODO: fk with Ontology table
+
     def __str__(self):
         return "{label} ({short_form})".format(
                 label=self.label,
@@ -31,13 +33,33 @@ class DictRole(models.Model):
 
 
 class DictBreed(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
+    # ???: Is cryoweb internal breed_id important?
     db_breed = models.IntegerField(blank=True, null=True)
+
+    # TODO: change name with supplied breed
     description = models.CharField(max_length=255, blank=True)
     mapped_breed = models.CharField(max_length=255, blank=True, null=True)
-    species = models.CharField(max_length=255, blank=True, null=True)
+
+    # TODO add Mapped breed ontology library FK To Term source (Ontology)
+    mapped_breed_ontology_accession = models.CharField(
+            max_length=255,
+            blank=True,
+            help_text="Example: LBO_0000347")
+
     country = models.CharField(max_length=255, blank=True, null=True)
+    species = models.CharField(max_length=255, blank=True, null=True)
+
+    species_ontology_accession = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: NCBITaxon_9823")
+
+    # TODO add Species ontology library FK To Term source (Ontology)
+
+    # TODO: remove this column
     language = models.CharField(max_length=255, blank=True, null=True)
+
+    # TODO: remove those columns
     api_url = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
@@ -68,6 +90,8 @@ class DictSex(models.Model):
             help_text="Example: PATO_0000384")
 
     # HINT: model translation in database?
+
+    # TODO: fk with Ontology table
 
     def __str__(self):
         return "{label} ({short_form})".format(
@@ -117,6 +141,7 @@ class Animal(models.Model):
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
 
+    # ???: can alternative id store the internal id in data source?
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
 
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -129,6 +154,8 @@ class Animal(models.Model):
 
     breed = models.ForeignKey('DictBreed', db_index=True,
                               related_name='%(class)s_breed')
+
+    # species is in DictBreed table
 
     # using a constraint for sex
     sex = models.ForeignKey('DictSex', db_index=True, blank=True, null=True,
@@ -152,6 +179,7 @@ class Animal(models.Model):
             blank=True,
             null=True)
 
+    # TODO: change columns name in birth_location latitude and longitude
     farm_latitude = models.FloatField(blank=True, null=True)
     farm_longitude = models.FloatField(blank=True, null=True)
 
@@ -168,6 +196,7 @@ class Sample(models.Model):
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
 
+    # Sample id in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
 
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -242,15 +271,19 @@ class Submission(models.Model):
             max_length=255, blank=True, null=True,
             default=1.2)
 
+    # the following three attributes are related to Biosample submission
+    # in general. Not in ruleset
     reference_layer = models.CharField(
             max_length=255, blank=True, null=True,
             help_text=('If this submission is part of the reference layer, '
                        'this will be "true". Otherwise it will be "false"'))
 
+    # Not in ruleset
     update_date = models.DateField(
             blank=True, null=True,
             help_text="Date this submission was last modified")
 
+    # Not in ruleset
     release_date = models.DateField(
             blank=True, null=True,
             help_text=("Date to be made public on. If blank, it will be "
@@ -337,6 +370,8 @@ class Publication(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     pubmed_id = models.CharField(max_length=255,
                                  help_text='Valid PubMed ID, numeric only')
+
+    # This column is in submission sheet of template file
     doi = models.CharField(max_length=255,
                            help_text='Valid Digital Object Identifier')
 
@@ -344,21 +379,25 @@ class Publication(models.Model):
         return str(str(self.id) + ", " + str(self.pubmed_id))
 
 
-class Term_source(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
-    name = models.CharField(max_length=255,
-                            help_text='Each value must be unique')
-    URI = models.URLField(max_length=500, blank=True, null=True,
-                          help_text='Each value must be unique ' +
-                          'and with a valid URL')
-    version = models.CharField(max_length=255, blank=True, null=True,
-                               help_text='If version is unknown, ' +
-                               'then last access date should be provided. ' +
-                               'If no date is provided, one will be assigned' +
-                               ' at submission.')
+class Ontology(models.Model):
+    library_name = models.CharField(
+            max_length=255,
+            help_text='Each value must be unique',
+            unique=True)
+
+    library_uri = models.URLField(
+            max_length=500, blank=True, null=True,
+            help_text='Each value must be unique ' +
+                      'and with a valid URL')
+
+    comment = models.CharField(
+            max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return str(str(self.id) + ", " + str(self.name))
+        return self.library_name
+
+    class Meta:
+        verbose_name_plural = "ontologies"
 
 
 class DataSource(models.Model):

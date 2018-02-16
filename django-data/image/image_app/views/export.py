@@ -18,7 +18,7 @@ from django.shortcuts import get_list_or_404, render
 
 from image_app import helper
 from image_app.models import (Animal, Database, Organization, Person,
-                              Publication, Submission, Term_source)
+                              Publication, Submission, Ontology)
 
 
 @login_required
@@ -26,7 +26,7 @@ def check_metadata(request):
     # username = None
     check_passed = True
     submissions = persons = organizations = 'static/admin/img/icon-no.svg'
-    publications = databases = term_sources = 'static/admin/img/icon-yes.svg'
+    publications = databases = ontologies = 'static/admin/img/icon-yes.svg'
 
     username = request.user.username
     context = {'username': username}
@@ -51,15 +51,15 @@ def check_metadata(request):
         publications = 'static/admin/img/icon-yes.svg'
     if len(Database.objects.all()) > 0:
         databases = 'static/admin/img/icon-yes.svg'
-    if len(Term_source.objects.all()) > 0:
-        term_sources = 'static/admin/img/icon-yes.svg'
+    if len(Ontology.objects.all()) > 0:
+        ontologies = 'static/admin/img/icon-yes.svg'
 
     context['submissions'] = submissions
     context['persons'] = persons
     context['organizations'] = organizations
     context['publications'] = publications
     context['databases'] = databases
-    context['term_sources'] = term_sources
+    context['ontologies'] = ontologies
     context['check_passed'] = check_passed
 
     return render(request, 'image_app/check_metadata.html', context)

@@ -88,3 +88,7 @@
 * ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
   Using google refine? For the moment, no duplicate can be inserted into database,
   the second occurrence will not be included in database.
+
+* Biosample ID are names, so the need to stay in Name table
+
+* NGINX media folder can serve media files (jpg, etc). Deal with dump files

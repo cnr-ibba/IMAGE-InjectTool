@@ -34,6 +34,9 @@ class Command(BaseCommand):
         if options['all'] is True:
             logger.info("Truncating all image tables...")
 
+            # HINT: image_app_person, image_app_organization and
+            # image_app_person_organizations haven't to be deleted or user
+            # registered in django admin will not work anymore
             statement = """
                     TRUNCATE image_app_animal,
                              image_app_database,
@@ -42,13 +45,10 @@ class Command(BaseCommand):
                              image_app_dictrole,
                              image_app_dictsex,
                              image_app_name,
-                             image_app_organization,
-                             image_app_organization_users,
-                             image_app_person,
+                             image_app_ontology,
                              image_app_publication,
                              image_app_sample,
-                             image_app_submission,
-                             image_app_term_source
+                             image_app_submission
                         """
 
         else:

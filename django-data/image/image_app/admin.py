@@ -5,8 +5,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
 from image_app.models import (Animal, Database, DataSource, DictBreed,
-                              DictRole, Name, Organization, Person,
-                              Publication, Sample, Submission, Term_source)
+                              DictRole, Name, Ontology, Organization, Person,
+                              Publication, Sample, Submission)
 
 
 class DictRoleAdmin(admin.ModelAdmin):
@@ -22,23 +22,6 @@ class DictBreedAdmin(admin.ModelAdmin):
     list_per_page = 9
     list_display = ('description', 'mapped_breed', 'species', 'country',
                     'language', 'api_url', 'notes')
-
-# class DictBiobanksAdmin(admin.ModelAdmin):
-#     search_fields = ['description']
-#     list_display = ('description', 'address', 'contacts',
-#                     'collection_institution', 'notes')
-
-# class DictBiosampleAdmin(admin.ModelAdmin):
-#     search_fields = ['description']
-#     list_display = ('description', 'api_url', 'notes')
-
-# class DictEVAAdmin(admin.ModelAdmin):
-#     search_fields = ['description']
-#     list_display = ('description', 'animal', 'api_url', 'notes')
-#
-# class DictENAAdmin(admin.ModelAdmin):
-#     search_fields = ['description']
-#     list_display = ('description', 'animal', 'api_url', 'notes')
 
 
 class NameAdmin(admin.ModelAdmin):
@@ -69,6 +52,8 @@ class SampleAdminForm(forms.ModelForm):
         self.fields['animal'].queryset = Animal.objects.select_related('name')
 
 
+# inspired from here:
+# https://github.com/geex-arts/django-jet/issues/244#issuecomment-325001298
 class SampleInLineFormset(forms.BaseInlineFormSet):
     ''' Base Inline formset for Sample Model'''
 
@@ -78,6 +63,11 @@ class SampleInLineFormset(forms.BaseInlineFormSet):
         # Animal will be a Animal object called when editing animal
         animal = kwargs["instance"]
 
+        # get all Sample names from a certain animal with a unique query
+        # HINT: all problems related to subquery when displaying names arise
+        # from my __str__s methods, which display Sample and Animal name
+        # and the relation between table Name. In order to have all sample
+        # names for each animal, I need a join with three tables
         self.queryset = Sample.objects.select_related(
                 'animal').select_related(
                         'name').filter(animal=animal)
@@ -251,10 +241,10 @@ class DatabaseAdmin(admin.ModelAdmin):
     )
 
 
-class Term_sourceAdmin(admin.ModelAdmin):
-    search_fields = ['name']
+class OntologyAdmin(admin.ModelAdmin):
+    search_fields = ['library_name']
     list_display = (
-        'name', 'URI', 'version',
+        'library_name', 'library_uri', 'comment',
     )
 
 
@@ -267,7 +257,7 @@ admin.site.register(Person, PersonAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Database, DatabaseAdmin)
-admin.site.register(Term_source, Term_sourceAdmin)
+admin.site.register(Ontology, OntologyAdmin)
 admin.site.register(DictRole, DictRoleAdmin)
 admin.site.register(DataSource, DataSourceAdmin)
 
