@@ -413,6 +413,9 @@ class DataSource(models.Model):
             null=False,
             help_text='examples: 2017-04, version 1.1')
 
+    # internal column to check if data were uploaded in image db or not
+    loaded = models.BooleanField(default=False)
+
     def __str__(self):
         return "%s, %s" % (self.name, self.version)
 

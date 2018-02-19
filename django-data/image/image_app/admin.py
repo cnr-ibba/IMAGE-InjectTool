@@ -14,7 +14,8 @@ class DictRoleAdmin(admin.ModelAdmin):
 
 
 class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'version', 'uploaded_file', 'uploaded_at')
+    list_display = ('name', 'version', 'uploaded_file', 'uploaded_at',
+                    'loaded')
 
 
 class DictBreedAdmin(admin.ModelAdmin):

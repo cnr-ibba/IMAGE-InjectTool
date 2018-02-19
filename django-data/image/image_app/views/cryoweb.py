@@ -109,6 +109,19 @@ def upload_cryoweb(request):
     return render(request, 'image_app/upload_cryoweb.html', context)
 
 
+def add_warnings(context, section, msg):
+    """Helper function for import_from_cryoweb and its functions"""
+
+    if context["has_warnings"] is False:
+        context["has_warnings"] = True
+
+    if section in context['warnings']:
+        context['warnings'][section] += [msg]
+
+    else:
+        context['warnings'][section] = [msg]
+
+
 def fill_breeds(engine_from_cryoweb, context):
     """Helper function to upload breeds data in image database"""
 
@@ -166,11 +179,20 @@ def fill_breeds(engine_from_cryoweb, context):
             logger.warn("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.supplied_breed])))
 
+            msg = "Duplicated record %s" % (str(row))
+
+            # add warning to context
+            add_warnings(context, 'breed', msg)
+
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
         elif row.supplied_breed in in_table_breeds:
-            logger.warn("%s: already present in database" % (
-                    str(row)))
+            msg = "%s: already present in database" % (str(row))
+            logger.warn(msg)
+
+            # add warning to context
+            # HINT: is this a warning?
+            add_warnings(context, 'breed', msg)
 
         else:
             # create a new object
@@ -218,11 +240,19 @@ def fill_names(dataframe, datasource, context):
             logger.warn("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.name])))
 
+            msg = "Duplicated record %s" % (str(row))
+
+            # add warning to context
+            add_warnings(context, 'name', msg)
+
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
         elif row.name in in_table_names:
-            logger.warn("%s: already present in database" % (
-                    str(row)))
+            msg = "%s: already present in database" % (str(row))
+            logger.warn(msg)
+
+            # add warning to context
+            add_warnings(context, 'name', msg)
 
         else:
             # create a new object
@@ -449,11 +479,19 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
             logger.warn("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.name_id])))
 
+            msg = "Duplicated record %s" % (str(row))
+
+            # add warning to context
+            add_warnings(context, 'animal', msg)
+
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
         elif row.name_id in in_table_name_ids:
-            logger.warn("%s: already present in database" % (
-                    str(row)))
+            msg = "%s: already present in database" % (str(row))
+            logger.warn(msg)
+
+            # add warning to context
+            add_warnings(context, 'animal', msg)
 
         else:
             # create a new object
@@ -663,11 +701,19 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
             logger.warn("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.name_id])))
 
+            msg = "Duplicated record %s" % (str(row))
+
+            # add warning to context
+            add_warnings(context, 'sample', msg)
+
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
         elif row.name_id in in_table_name_ids:
-            logger.warn("%s: already present in database" % (
-                    str(row)))
+            msg = "%s: already present in database" % (str(row))
+            logger.warn(msg)
+
+            # add warning to context
+            add_warnings(context, 'sample', msg)
 
         else:
             # create a new object
@@ -725,12 +771,23 @@ def import_from_cryoweb(request):
     # TODO: get datasource to load from link or admin
     datasource = DataSource.objects.order_by("-uploaded_at").first()
 
+    if datasource.loaded is True:
+        logger.warn("datasource %s was already uploaded" % datasource)
+        messages.warning(
+                request,
+                "datasource %s was already uploaded" % datasource)
+
+        return redirect('index')
+
     logger.debug("Got DataSource %s" % (datasource))
 
     # get username from context.
-    # HINT: It is used?
     username = request.user.username
-    context = {'username': username, 'loaded': {}}
+    context = {
+            'username': username,
+            'loaded': {},
+            'warnings': {},
+            'has_warnings': False}
 
     # catch errors and render them to pages
     try:
@@ -768,6 +825,10 @@ def import_from_cryoweb(request):
         logger.error(e)
 
     logger.info("import_from_cryoweb finished")
+
+    # update datasource.loaded field (I have alread loaded this data)
+    datasource.loaded = True
+    datasource.save()
 
     return render(request, 'image_app/import_from_cryoweb.html', context)
 

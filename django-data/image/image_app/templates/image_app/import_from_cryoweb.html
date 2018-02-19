@@ -16,6 +16,21 @@
 
 {% endif %}
 
+{% if has_warnings is True %}
+  The following issues were found:
+  <ol>
+    {% for key, value in warnings.items %}
+      <li> {{ key }}:
+        <ul>
+          {% for el in value %}
+            <li>{{el}}</li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+  </ol>
+{% endif%}
+
 <p><a href="{% url 'index' %}">Return to home</a></p>
 
 {% endblock %}

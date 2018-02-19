@@ -1,7 +1,4 @@
 
-* deal with temporary file?
-  - clean up (using Andrea's commands - management)
-
 * documentation?
   - Sphynx module documentation?
   - document how to reconstruct database (internal)
@@ -62,10 +59,10 @@
 * Should the columns exported from Inject-Tool be the same of IMAGE-metadata? yes
   UID need to have the same columns of IMAGE-metadata git project.
   - import cryoweb data accordingly to database definition (map column to IDS)
-  - data export have to follow IMAGE-metadata.
+  - data export has to follow IMAGE-metadata.
 
-* Usability: remove unuseful or danger links from home page: define a more friendly
-  interface to users.
+* Usability: remove unuseful or danger links from home page (ie: truncate database):
+  define a more friendly interface to users.
 
 * Add messages when views are called or code executed
 
@@ -73,7 +70,6 @@
 
 * Those tables are empty at the moment:
   - Databases
-  - Term sources
 
 * Submission table is not referenced by any other table.
   - Should I retrieve information using a submission id? Is submission the first
@@ -88,7 +84,5 @@
 * ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
   Using google refine? For the moment, no duplicate can be inserted into database,
   the second occurrence will not be included in database.
-
-* Biosample ID are names, so the need to stay in Name table
 
 * NGINX media folder can serve media files (jpg, etc). Deal with dump files
