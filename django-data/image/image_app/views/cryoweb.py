@@ -109,7 +109,7 @@ def upload_cryoweb(request):
     return render(request, 'image_app/upload_cryoweb.html', context)
 
 
-def fill_breeds(engine_from_cryoweb, engine_to_image):
+def fill_breeds(engine_from_cryoweb, context):
     """Helper function to upload breeds data in image database"""
 
     # debug
@@ -146,26 +146,55 @@ def fill_breeds(engine_from_cryoweb, engine_to_image):
         }
     )
 
-    # insert dataframe as table into the UID database; data are
-    # inserted (append) into the existing table
-    # breeds have their internal ids
-    # HINT: if we don't truncate any data, I can't put all breeds as they
+    # if we don't truncate any data, I can't put all breeds as they
     # are in database, but I need to check and add only new breeds
-    # TODO: check data before insert
-    df_breeds_fin.to_sql(
-            name=DictBreed._meta.db_table,
-            con=engine_to_image,
-            if_exists='append',
-            index=False)  # don't write DataFrame index as a column
 
-    logger.debug("%s breeds added into database" % (df_breeds_fin.shape[0]))
+    # A dictionary of object to create
+    to_create = {}
+
+    # get list of breeds present in database
+    queryset = DictBreed.objects.filter()
+    in_table_breeds = [breed.supplied_breed for breed in queryset]
+
+    # debug
+    logger.debug("read %s breeds" % (queryset.count()))
+
+    # insert dataframe as table into the UID database
+    for row in df_breeds_fin.itertuples():
+        # skip duplicates (in the same bulk insert)
+        if row.supplied_breed in to_create:
+            logger.warn("%s: already marked for insertion (%s)" % (
+                    str(row), str(to_create[row.supplied_breed])))
+
+        # get or create objects: check for existance if not create an
+        # object for a bulk_insert
+        elif row.supplied_breed in in_table_breeds:
+            logger.warn("%s: already present in database" % (
+                    str(row)))
+
+        else:
+            # create a new object
+            obj = DictBreed(
+                    supplied_breed=row.supplied_breed,
+                    species=row.species,
+                    country=row.country)
+
+            # append object to to_create list
+            to_create[row.supplied_breed] = obj
+
+    # Now eval to_create list; if necessary, bulk_insert
+    if len(to_create) > 0:
+        DictBreed.objects.bulk_create(to_create.values(), batch_size=100)
+
+    logger.debug("%s breeds added to database" % (len(to_create)))
+    context['loaded']['breed'] = len(to_create)
     logger.info("fill_breeds() completed")
 
     # return processed dataframe
     return df_breeds_fin
 
 
-def fill_names(dataframe, datasource):
+def fill_names(dataframe, datasource, context):
     """A generic function to fill Name table starting from a dataframe and
     datasource"""
 
@@ -208,10 +237,18 @@ def fill_names(dataframe, datasource):
         Name.objects.bulk_create(to_create.values(), batch_size=100)
 
     logger.debug("%s names added to database" % (len(to_create)))
+
+    # update context
+    if 'name' in context['loaded']:
+        context['loaded']['name'] += len(to_create)
+
+    else:
+        context['loaded']['name'] = len(to_create)
+
     logger.info("fill_names() finished")
 
 
-def fill_transfer(engine_from_cryoweb, datasource):
+def fill_transfer(engine_from_cryoweb, datasource, context):
     """Helper function to fill transfer data into image name table"""
 
     # debug
@@ -251,7 +288,7 @@ def fill_transfer(engine_from_cryoweb, datasource):
     del(df_transfer_fin["db_animal"])
 
     # call a function to fill name table
-    fill_names(df_transfer_fin, datasource)
+    fill_names(df_transfer_fin, datasource, context)
 
     # debug
     logger.info("fill_transfer() finished")
@@ -294,7 +331,7 @@ def getNameId(row, df_transfer_fin, tag, name_to_id):
 
 
 def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
-                 datasource):
+                 datasource, context):
     """Helper function to fill animal data in image animal table"""
 
     # debug
@@ -404,6 +441,8 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     queryset = Animal.objects.filter(name__datasource=datasource)
     in_table_name_ids = [animal.name_id for animal in queryset]
 
+    logger.debug("read %s animals" % (queryset.count()))
+
     for row in df_animals_fin.itertuples():
         # skip duplicates (in the same bulk insert)
         if row.name_id in to_create:
@@ -438,6 +477,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
 
     # debug
     logger.debug("%s animals added to database" % (len(to_create)))
+    context['loaded']['animal'] = len(to_create)
     logger.info("fill_animals() finished")
 
     # return animal data frame
@@ -483,8 +523,7 @@ def get_protocols(engine_from_cryoweb):
     return df_protocols_fin
 
 
-def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
-                 datasource):
+def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     """Helper function to fill image samples table"""
 
     # debug
@@ -582,7 +621,7 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
             '\s+', '_')
 
     # call a function to fill name table
-    fill_names(df_samples_fin, datasource)
+    fill_names(df_samples_fin, datasource, context)
 
     # get name to id relation
     name_to_id = {}
@@ -601,16 +640,56 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
     # drop colunm name (cause now I have an ID)
     del(df_samples_fin["name"])
 
-    # insert dataframe as table into the UID database
-    # TODO: using ORM to fill tables
-    df_samples_fin.to_sql(
-            name=Sample._meta.db_table,
-            con=engine_to_image,
-            if_exists='append',
-            index=False)
+    # A dictionary of object to create
+    to_create = {}
+
+    # get list of breeds present in database
+    queryset = Sample.objects.filter(name__datasource=datasource)
+    in_table_name_ids = [sample.name_id for sample in queryset]
 
     # debug
-    logger.debug("%s samples added to database" % (df_samples_fin.shape[0]))
+    logger.debug("read %s samples" % (queryset.count()))
+
+    # beware NaT
+    def sanitizeTime(value):
+        if value is pd.NaT:
+            return None
+
+        return value
+
+    for row in df_samples_fin.itertuples():
+        # skip duplicates (in the same bulk insert)
+        if row.name_id in to_create:
+            logger.warn("%s: already marked for insertion (%s)" % (
+                    str(row), str(to_create[row.name_id])))
+
+        # get or create objects: check for existance if not create an
+        # object for a bulk_insert
+        elif row.name_id in in_table_name_ids:
+            logger.warn("%s: already present in database" % (
+                    str(row)))
+
+        else:
+            # create a new object
+            obj = Sample(
+                name_id=row.name_id,
+                alternative_id=row.alternative_id,
+                collection_date=sanitizeTime(row.collection_date),
+                protocol=row.protocol,
+                organism_part=row.organism_part,
+                animal_id=row.animal_id,
+                description=row.description)
+
+            # append object to to_create list
+            to_create[row.name_id] = obj
+
+    # Now eval to_create list; if necessary, bulk_insert
+    if len(to_create) > 0:
+        Sample.objects.bulk_create(to_create.values(), batch_size=100)
+
+    # debug
+    logger.debug("%s samples added to database" % (len(to_create)))
+    context['loaded']['sample'] = len(to_create)
     logger.info("fill_samples() finished")
 
     # return processed object
@@ -639,20 +718,9 @@ def import_from_cryoweb(request):
 
     # define helper database objects
     cryowebdb = helper.CryowebDB()
-    imagedb = helper.ImageDB()
 
     # set those values using a function from helper objects
-    engine_to_image = imagedb.get_engine()
     engine_from_cryoweb = cryowebdb.get_engine()
-
-    # Read how many records are in the animal table.
-    # TODO: What abount a second submission?
-    # TODO: return an error, or something like this
-    if imagedb.has_data():
-        logger.warn("image database has data. For the moment, I do nothing")
-        messages.warning(request, "image database has data! please implement"
-                                  " this feature")
-        return redirect('admin:index')
 
     # TODO: get datasource to load from link or admin
     datasource = DataSource.objects.order_by("-uploaded_at").first()
@@ -662,36 +730,45 @@ def import_from_cryoweb(request):
     # get username from context.
     # HINT: It is used?
     username = request.user.username
-    context = {'username': username}
+    context = {'username': username, 'loaded': {}}
 
-    # HINT: what about this try-except? why raising the same errors at the end?
-    # TODO: model the issue at the end of the page
+    # catch errors and render them to pages
     try:
         # BREEDS
-        df_breeds_fin = fill_breeds(engine_from_cryoweb, engine_to_image)
+        df_breeds_fin = fill_breeds(
+                engine_from_cryoweb,
+                context)
 
         # TRANSFER
-        df_transfer_fin = fill_transfer(engine_from_cryoweb, datasource)
+        df_transfer_fin = fill_transfer(
+                engine_from_cryoweb,
+                datasource,
+                context)
 
         # ANIMALS
-        fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
-                     datasource)
+        fill_animals(
+                engine_from_cryoweb,
+                df_breeds_fin,
+                df_transfer_fin,
+                datasource,
+                context)
 
         # SAMPLES
-        fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
-                     datasource)
+        fill_samples(
+                engine_from_cryoweb,
+                df_transfer_fin,
+                datasource,
+                context)
 
         # organization, persons are filled using
         # login information or template excel files
-        context['fullpath'] = "OK"
 
     except Exception as e:
-        context['fullpath'] = "ERROR!: %s" % (e)
+        context['error'] = "ERROR!: %s" % (e)
         logger.error(e)
 
     logger.info("import_from_cryoweb finished")
 
-    # TODO: render a better page
     return render(request, 'image_app/import_from_cryoweb.html', context)
 
 

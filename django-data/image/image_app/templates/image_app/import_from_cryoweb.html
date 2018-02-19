@@ -2,7 +2,20 @@
 {% extends 'admin/base_site.html' %}
 
 {% block content %}
-<!-- {{ username }} asd -->
-<PRE>
-{{ fullpath }}
+
+{% if error %}
+  <p><strong>{{ error }}</strong></p>
+{% else %}
+  Cryoweb data imported into image database for user {{ username }} (step 2)
+
+  <ul>
+    {% for k, v in loaded.items %}
+      <li>{{v}} new {{ k }}{{ v|pluralize }} added </li>
+    {% endfor %}
+  </ul>
+
+{% endif %}
+
+<p><a href="{% url 'index' %}">Return to home</a></p>
+
 {% endblock %}

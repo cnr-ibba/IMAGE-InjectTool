@@ -166,6 +166,8 @@ class Animal(models.Model):
             on_delete=models.PROTECT,
             related_name='%(class)s_mother')
 
+    # HINT: and birth date?
+
     # TODO: need to set this value? How?
     birth_location = models.CharField(
             max_length=255,
