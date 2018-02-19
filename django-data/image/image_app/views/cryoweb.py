@@ -130,26 +130,21 @@ def fill_breeds(engine_from_cryoweb, engine_to_image):
         ['db_breed',
          'efabis_mcname',
          'efabis_species',
-         'efabis_country',
-         'efabis_lang']]
-
-    df_breeds_fin = df_breeds_fin.rename(
-        columns={
-            'efabis_mcname': 'description',
-            'efabis_species': 'species',
-            'efabis_country': 'country',
-            'efabis_lang': 'language',
-        }
-    )
+         'efabis_country']]
 
     # set index to dataframe. Index will be internal cryoweb id
     df_breeds_fin.index = df_breeds_fin["db_breed"]
 
-    # HINT: the internal cryoweb id has no sense in the UID, since the same
-    # breed, for example, may have two different cryoweb id in two
-    # different cryoweb instances
+    # remove db_breed column
+    del(df_breeds_fin["db_breed"])
 
-    # TODO: db_breed column need to be removed from DictBreed model
+    df_breeds_fin = df_breeds_fin.rename(
+        columns={
+            'efabis_mcname': 'supplied_breed',
+            'efabis_species': 'species',
+            'efabis_country': 'country',
+        }
+    )
 
     # insert dataframe as table into the UID database; data are
     # inserted (append) into the existing table
@@ -252,6 +247,9 @@ def fill_transfer(engine_from_cryoweb, datasource):
     # set index to dataframe
     df_transfer_fin.index = df_transfer_fin["db_animal"]
 
+    # remove column from dataframe
+    del(df_transfer_fin["db_animal"])
+
     # call a function to fill name table
     fill_names(df_transfer_fin, datasource)
 
@@ -274,7 +272,7 @@ def getDictBreedId(row, df_breeds_fin, breed_to_id):
     data = df_breeds_fin.loc[db_breed].to_dict()
 
     # ok get dictbreed.id from dictionary
-    key = (data['description'], data['species'])
+    key = (data['supplied_breed'], data['species'])
     return breed_to_id[key]
 
 
@@ -316,7 +314,8 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
 
     # map breed name and species to its id
     for dictbreed in DictBreed.objects.all():
-        breed_to_id[(dictbreed.description, dictbreed.species)] = dictbreed.id
+        breed_to_id[
+            (dictbreed.supplied_breed, dictbreed.species)] = dictbreed.id
 
     logger.debug("read %s breeds" % (DictBreed.objects.count()))
 
@@ -338,7 +337,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
             Name.objects.filter(datasource=datasource).count()))
 
     # get internal keys from name
-    df_animals['db_animal'] = df_animals.apply(
+    df_animals['name_id'] = df_animals.apply(
             lambda row: getNameId(
                     row,
                     df_transfer_fin,
@@ -365,7 +364,8 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
 
     # keep only interesting columns and rename them
     df_animals_fin = df_animals[
-        ['db_animal',
+        ['name_id',
+         'db_animal',
          'breed_id',
          'ext_sex',
          'db_sire',
@@ -376,12 +376,12 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
 
     df_animals_fin = df_animals_fin.rename(
         columns={
-            'db_animal': 'name_id',
+            'db_animal': 'alternative_id',
             'ext_sex': 'sex_id',
             'db_sire': 'father_id',
             'db_dam': 'mother_id',
-            'latitude': 'farm_latitude',
-            'longitude': 'farm_longitude',
+            'latitude': 'birth_location_latitude',
+            'longitude': 'birth_location_longitude',
             'comment': 'description'
         }
     )
@@ -420,12 +420,13 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
             # create a new object
             obj = Animal(
                 name_id=row.name_id,
+                alternative_id=row.alternative_id,
                 breed_id=row.breed_id,
                 sex_id=row.sex_id,
                 father_id=row.father_id,
                 mother_id=row.mother_id,
-                farm_latitude=row.farm_latitude,
-                farm_longitude=row.farm_longitude,
+                birth_location_latitude=row.birth_location_latitude,
+                birth_location_longitude=row.birth_location_longitude,
                 description=row.description)
 
             # append object to to_create list
@@ -441,6 +442,45 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
 
     # return animal data frame
     return df_animals_fin
+
+
+def get_protocols(engine_from_cryoweb):
+    """helper function to deal with v_protocol table"""
+
+    # debug
+    logger.info("called get_protocols()")
+
+    # read view in "imported_from_cryoweb" db
+    df_protocols = pd.read_sql_table(
+            'v_protocols',
+            con=engine_from_cryoweb,
+            schema="apiis_admin")
+
+    # keep only interesting columns and rename them
+    df_protocols_fin = df_protocols[
+        ['protocol_id',
+         'protocol_name',
+         'ext_material_type',
+         'comment']]
+
+    df_protocols_fin = df_protocols_fin.rename(
+        columns={
+            'protocol_name': 'name',
+            'ext_material_type': 'organism_part',
+            'comment': 'description'
+        }
+    )
+
+    # add index
+    df_protocols_fin.index = df_protocols_fin['protocol_id']
+    del(df_protocols_fin['protocol_id'])
+
+    # debug
+    logger.debug("%s protocols read" % (df_protocols_fin.shape[0]))
+    logger.info("get_protocols() finished")
+
+    # return dataframe
+    return df_protocols_fin
 
 
 def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
@@ -469,7 +509,7 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
     logger.debug("read %s names" % (
             Name.objects.filter(datasource=datasource).count()))
 
-    # get internal keys from animal name
+    # get name_id from name table, using db_animal from df_transfer_fin
     df_samples['name_id'] = df_samples.apply(
             lambda row: getNameId(
                     row,
@@ -490,9 +530,29 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
 
     logger.debug("read %s animals" % (queryset.count()))
 
-    # now get a row in the animal table
+    # now get the corresponding animal_id using animal names
     df_samples['animal_id'] = df_samples.apply(
             lambda row: animal_to_id[row['name_id']],
+            axis=1)
+
+    # ext_protocol_id need to be resolved in protocol name
+    df_protocols = get_protocols(engine_from_cryoweb)
+
+    # helper function to get protocol name
+    def getProtocolName(row, df_protocols):
+        index = row['ext_protocol_id']
+        return df_protocols.loc[index]['name']
+
+    def getPartName(row, df_protocols):
+        index = row['ext_protocol_id']
+        return df_protocols.loc[index]['organism_part']
+
+    df_samples['protocol'] = df_samples.apply(
+            lambda row: getProtocolName(row, df_protocols),
+            axis=1)
+
+    df_samples['organism_part'] = df_samples.apply(
+            lambda row: getPartName(row, df_protocols),
             axis=1)
 
     # keep only interesting columns and rename them
@@ -500,17 +560,19 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
         ['db_vessel',
          'ext_vessel',
          'production_dt',
-         'ext_protocol_id',
+         'protocol',
+         'organism_part',
          'animal_id',
          'comment']]
 
-    # TODO: ext_protocol_id need to be resolved in protocol name
+    # add index
+    df_samples_fin.index = df_samples_fin['db_vessel']
 
     df_samples_fin = df_samples_fin.rename(
         columns={
             'ext_vessel': 'name',
+            'db_vessel': 'alternative_id',
             'production_dt': 'collection_date',
-            'ext_protocol_id': 'protocol',
             'comment': 'description'
         }
     )
@@ -518,10 +580,6 @@ def fill_samples(engine_from_cryoweb, engine_to_image, df_transfer_fin,
     # change some data values: replace spaces in names and notes
     df_samples_fin['name'] = df_samples_fin['name'].str.replace(
             '\s+', '_')
-
-    # add index
-    df_samples_fin.index = df_samples_fin['db_vessel']
-    del(df_samples_fin['db_vessel'])
 
     # call a function to fill name table
     fill_names(df_samples_fin, datasource)

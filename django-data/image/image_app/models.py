@@ -33,17 +33,20 @@ class DictRole(models.Model):
 
 
 class DictBreed(models.Model):
-    # ???: Is cryoweb internal breed_id important?
-    db_breed = models.IntegerField(blank=True, null=True)
-
-    # TODO: change name with supplied breed
-    description = models.CharField(max_length=255, blank=True)
+    # this was the description field in cryoweb v_breeds_species tables
+    supplied_breed = models.CharField(max_length=255, blank=True)
     mapped_breed = models.CharField(max_length=255, blank=True, null=True)
 
-    # TODO add Mapped breed ontology library FK To Term source (Ontology)
+    # TODO add Mapped breed ontology library FK To Ontology
+#    mapped_breed_ontology_library = models.ForeignKey(
+#            'Ontology',
+#            db_index=True,
+#            related_name='%(class)s_mapped_breed_ontology_library')
+
     mapped_breed_ontology_accession = models.CharField(
             max_length=255,
             blank=True,
+            null=True,
             help_text="Example: LBO_0000347")
 
     country = models.CharField(max_length=255, blank=True, null=True)
@@ -52,27 +55,26 @@ class DictBreed(models.Model):
     species_ontology_accession = models.CharField(
             max_length=255,
             blank=False,
+            null=True,
             help_text="Example: NCBITaxon_9823")
 
     # TODO add Species ontology library FK To Term source (Ontology)
-
-    # TODO: remove this column
-    language = models.CharField(max_length=255, blank=True, null=True)
-
-    # TODO: remove those columns
-    api_url = models.CharField(max_length=255, blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
+#    species_ontology_library = models.ForeignKey(
+#            'Ontology',
+#            db_index=True,
+#            related_name='%(class)s_mapped_breed_ontology_library')
 
     def __str__(self):
-        return str(self.description)
+        # HINT: should I return mapped breed instead?
+        return str(self.supplied_breed)
 
     class Meta:
         verbose_name = 'Breed'
 
         # HINT: would mapped_breed ba a better choice to define a unique key
         # using breed and species? in that case, mapped breed need to have a
-        # default value, ex the descricption (breed_name)
-        unique_together = (("description", "species"),)
+        # default value, ex the descricption (supplied_breed)
+        unique_together = (("supplied_breed", "species"),)
 
 
 class DictSex(models.Model):
@@ -89,10 +91,6 @@ class DictSex(models.Model):
             blank=False,
             help_text="Example: PATO_0000384")
 
-    # HINT: model translation in database?
-
-    # TODO: fk with Ontology table
-
     def __str__(self):
         return "{label} ({short_form})".format(
                 label=self.label,
@@ -107,9 +105,6 @@ class Name(models.Model):
     """Model UID names: define a name (sample or animal) unique for each
     data submission"""
 
-    # ???: Is cryoweb internal animal_id important?
-    db_animal = models.IntegerField(blank=True, null=True)
-
     # two different animal may have the same name. Its unicity depens on
     # data source name and version
     name = models.CharField(
@@ -121,7 +116,12 @@ class Name(models.Model):
             'DataSource', db_index=True,
             related_name='%(class)s_datasource')
 
+    # This need to be assigned after submission
+    # HINT: this column should be UNIQUE?
+    biosample_id = models.CharField(max_length=255, blank=True, null=True)
+
     def __str__(self):
+        # HINT: shuold I return biosampleid if defined?
         return "%s (DataSource: %s)" % (self.name, self.datasource_id)
 
     class Meta:
@@ -129,19 +129,13 @@ class Name(models.Model):
 
 
 class Animal(models.Model):
-    # id = models.IntegerField(primary_key=True)
-
-    biosampleid = models.CharField(max_length=255, blank=True, null=True)
-
-    # ???: need I the animal_id column for debugging purpose?
-
     # an animal name has a entry in name table
     name = models.OneToOneField(
             'Name',
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
 
-    # ???: can alternative id store the internal id in data source?
+    # alternative id will store the internal id in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
 
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -161,8 +155,7 @@ class Animal(models.Model):
     sex = models.ForeignKey('DictSex', db_index=True, blank=True, null=True,
                             default=-1, related_name='%(class)s_sex')
 
-    # Need I check if animal father and mother are already present in
-    # database? shuold I check relationship by constraints?
+    # check that father and mother are defined using Foreign Keys
     father = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
@@ -179,24 +172,21 @@ class Animal(models.Model):
             blank=True,
             null=True)
 
-    # TODO: change columns name in birth_location latitude and longitude
-    farm_latitude = models.FloatField(blank=True, null=True)
-    farm_longitude = models.FloatField(blank=True, null=True)
+    birth_location_latitude = models.FloatField(blank=True, null=True)
+    birth_location_longitude = models.FloatField(blank=True, null=True)
 
     def __str__(self):
         return str(self.name)
 
 
 class Sample(models.Model):
-    biosampleid = models.CharField(max_length=255, blank=True, null=True)
-
     # a sample name has a entry in name table
     name = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
             related_name='%(class)s_name')
 
-    # Sample id in data source
+    # db_vessel in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
 
     description = models.CharField(max_length=255, blank=True, null=True)
@@ -218,7 +208,9 @@ class Sample(models.Model):
     collection_place_latitude = models.FloatField(blank=True, null=True)
     collection_place_longitude = models.FloatField(blank=True, null=True)
     collection_place = models.CharField(max_length=255, blank=True, null=True)
+
     organism_part = models.CharField(max_length=255, blank=True, null=True)
+
     developmental_stage = models.CharField(
             max_length=255,
             blank=True,
@@ -227,6 +219,7 @@ class Sample(models.Model):
             max_length=255,
             blank=True,
             null=True)
+
     animal_age_at_collection = models.IntegerField(null=True, blank=True)
 
     availability = models.CharField(max_length=255, blank=True, null=True)
@@ -245,7 +238,6 @@ class Sample(models.Model):
 
 
 class Submission(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
     project = models.CharField(
             max_length=25,
             default="IMAGE",

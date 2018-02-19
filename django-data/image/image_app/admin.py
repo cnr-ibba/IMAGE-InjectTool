@@ -18,18 +18,17 @@ class DataSourceAdmin(admin.ModelAdmin):
 
 
 class DictBreedAdmin(admin.ModelAdmin):
-    search_fields = ['description']
+    search_fields = ['supplied_breed']
     list_per_page = 9
-    list_display = ('description', 'mapped_breed', 'species', 'country',
-                    'language', 'api_url', 'notes')
+    list_display = ('supplied_breed', 'mapped_breed',
+                    'mapped_breed_ontology_accession', 'country', 'species',
+                    'species_ontology_accession')
 
 
 class NameAdmin(admin.ModelAdmin):
     """A class to deal with animal names"""
 
-    # TODO: remove this column
-    exclude = ('db_animal',)
-
+    # join immediately name with DataSouce, in order to speed up name rendering
     list_select_related = (
         'datasource',
     )
@@ -41,6 +40,8 @@ class NameAdmin(admin.ModelAdmin):
         return {}
 
 
+# redefine form to edit Sample. Link animal to names in order to speed up
+# name rendering
 class SampleAdminForm(forms.ModelForm):
     class Meta:
         model = Sample
@@ -48,17 +49,18 @@ class SampleAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SampleAdminForm, self).__init__(*args, **kwargs)
+
         # This is the bit that matters:
         self.fields['animal'].queryset = Animal.objects.select_related('name')
 
 
 # inspired from here:
 # https://github.com/geex-arts/django-jet/issues/244#issuecomment-325001298
-class SampleInLineFormset(forms.BaseInlineFormSet):
+class SampleInLineFormSet(forms.BaseInlineFormSet):
     ''' Base Inline formset for Sample Model'''
 
     def __init__(self, *args, **kwargs):
-        super(SampleInLineFormset, self).__init__(*args, **kwargs)
+        super(SampleInLineFormSet, self).__init__(*args, **kwargs)
 
         # Animal will be a Animal object called when editing animal
         animal = kwargs["instance"]
@@ -74,10 +76,10 @@ class SampleInLineFormset(forms.BaseInlineFormSet):
 
 
 class SampleInline(admin.StackedInline):
-    formset = SampleInLineFormset
+    formset = SampleInLineFormSet
 
     fields = (
-        ('name', 'biosampleid', 'alternative_id', 'description'),
+        ('name', 'alternative_id', 'description'),
         ('animal', 'protocol', 'organism_part'),
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
@@ -98,7 +100,7 @@ class SampleAdmin(admin.ModelAdmin):
     search_fields = ['name']
     list_per_page = 9
     list_display = (
-        'name', 'biosampleid', 'alternative_id', 'material', 'animal',
+        'name', 'alternative_id', 'animal',
         'protocol', 'collection_date', 'collection_place_latitude',
         'collection_place_longitude', 'collection_place', 'organism_part',
         'developmental_stage', 'physiological_stage',
@@ -111,7 +113,7 @@ class SampleAdmin(admin.ModelAdmin):
     list_select_related = ('name', 'animal__name')
 
     fields = (
-        ('name', 'biosampleid', 'alternative_id', 'description'),
+        ('name', 'alternative_id', 'description'),
         ('animal', 'protocol', 'organism_part'),
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
@@ -148,14 +150,15 @@ class AnimalAdmin(admin.ModelAdmin):
     list_per_page = 9
 
     list_display = (
-        'name', 'biosampleid', 'alternative_id', 'material', 'breed', 'sex',
-        'father', 'mother', 'birth_location', 'farm_latitude',
-        'farm_longitude', 'description'
+        'name', 'alternative_id', 'breed', 'sex',
+        'father', 'mother', 'birth_location', 'birth_location_latitude',
+        'birth_location_longitude', 'description'
         )
 
     fields = (
-        'biosampleid', 'name', 'alternative_id', 'breed', 'sex', 'father',
-        'mother', ('birth_location', 'farm_latitude', 'farm_longitude'),
+        'name', 'alternative_id', 'breed', 'sex', 'father',
+        'mother', ('birth_location', 'birth_location_latitude',
+                   'birth_location_longitude'),
         'description'
         )
 

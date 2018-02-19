@@ -33,7 +33,7 @@
 
 * Sampletab need to be modified
   - Sampletab columns have to reflect IMAGE-metadata?
-  - Sampletab need to be removed: biosample is planngin to import only JSON
+  - Sampletab need to be removed: biosample is planning to import only JSON
 
 * [Django REST framework](http://www.django-rest-framework.org/) to get json data?
   to work with OpenRefine client?

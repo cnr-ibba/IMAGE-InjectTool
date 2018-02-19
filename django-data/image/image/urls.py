@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(url="/image/admin/")),
 ]
 
+# Activate django-debug-toolbar only when settings.DEBUG is True
 if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [

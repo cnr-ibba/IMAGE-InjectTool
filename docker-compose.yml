@@ -1,5 +1,5 @@
 
-# Create a coposed Django-Postgres-NGINX instance
+# Create a composed Django-Postgres-NGINX instance
 db:
   # get the latest postgres server
   image: postgres:9.6
