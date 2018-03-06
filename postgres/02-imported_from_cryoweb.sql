@@ -2333,7 +2333,8 @@ CREATE TABLE vessels (
     last_change_user text,
     owner text,
     synch boolean,
-    version smallint
+    version smallint,
+    db_contributor integer
 );
 
 

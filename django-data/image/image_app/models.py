@@ -49,6 +49,10 @@ class DictBreed(models.Model):
             null=True,
             help_text="Example: LBO_0000347")
 
+    # HINT: country is efabis_country. For chianina there are Germany and
+    # Italy breeds. There are also for other countries. Are they the same
+    # breed? Need I to store country for user or datasource (useful for
+    # translation)?
     country = models.CharField(max_length=255, blank=True, null=True)
     species = models.CharField(max_length=255, blank=True, null=True)
 
@@ -415,6 +419,8 @@ class DataSource(models.Model):
 
     # internal column to check if data were uploaded in image db or not
     loaded = models.BooleanField(default=False)
+
+    # need I store country here?
 
     def __str__(self):
         return "%s, %s" % (self.name, self.version)

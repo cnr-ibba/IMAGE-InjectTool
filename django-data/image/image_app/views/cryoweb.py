@@ -167,6 +167,8 @@ def fill_breeds(engine_from_cryoweb, context):
 
     # get list of breeds present in database
     queryset = DictBreed.objects.filter()
+
+    # BUG: need to be supplied_breed, species as a key
     in_table_breeds = [breed.supplied_breed for breed in queryset]
 
     # debug
@@ -175,6 +177,7 @@ def fill_breeds(engine_from_cryoweb, context):
     # insert dataframe as table into the UID database
     for row in df_breeds_fin.itertuples():
         # skip duplicates (in the same bulk insert)
+        # BUG: need to be supplied_breed, species as a key
         if row.supplied_breed in to_create:
             logger.warn("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.supplied_breed])))
@@ -186,6 +189,7 @@ def fill_breeds(engine_from_cryoweb, context):
 
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
+        # BUG: need to be supplied_breed, species as a key
         elif row.supplied_breed in in_table_breeds:
             msg = "%s: already present in database" % (str(row))
             logger.warn(msg)
@@ -202,6 +206,7 @@ def fill_breeds(engine_from_cryoweb, context):
                     country=row.country)
 
             # append object to to_create list
+            # BUG: need to be supplied_breed, species as a key
             to_create[row.supplied_breed] = obj
 
     # Now eval to_create list; if necessary, bulk_insert
