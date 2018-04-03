@@ -89,6 +89,10 @@ class SampleInline(admin.StackedInline):
         ('storage_processing', 'preparation_interval')
     )
 
+    # manage a fields with many FK keys
+    # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
+    raw_id_fields = ("name", "animal")
+
     model = Sample
     extra = 0
 
@@ -123,26 +127,9 @@ class SampleAdmin(admin.ModelAdmin):
         ('storage_processing', 'preparation_interval')
     )
 
-    # def has_change_permission(self, request, obj=None):
-    #     has_class_permission = super(
-    #         SampleAdmin, self).has_change_permission(request, obj)
-    #     if not has_class_permission:
-    #         return False
-    #     if obj is not None and not request.user.is_superuser
-    #       and request.user.id != obj.author.id:
-    #         return False
-    #     return True
-    #
-    # def get_queryset(self, request):
-    #     if request.user.is_superuser:
-    #         return Sample.objects.all()
-    #     return Sample.objects.filter(author=request.user)
-    #
-
-    # def save_model(self, request, obj, form, change):
-    #     if not change:
-    #         obj.author = request.user
-    #     obj.save()
+    # manage a fields with many FK keys
+    # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
+    raw_id_fields = ("name", "animal")
 
 
 class AnimalAdmin(admin.ModelAdmin):
@@ -163,8 +150,12 @@ class AnimalAdmin(admin.ModelAdmin):
         'description'
         )
 
-    # ???: is this a readonly field
-    # readonly_fields = ('name')
+    # I can add manually an item if it is a readonly field
+    # readonly_fields = ("name",)
+
+    # manage a fields with many FK keys
+    # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
+    raw_id_fields = ("name", "father", "mother", "breed")
 
     # https://medium.com/@hakibenita/things-you-must-know-about-django-admin-as-your-app-gets-bigger-6be0b0ee9614
     list_select_related = ('name', 'breed', 'sex', 'father', 'mother')

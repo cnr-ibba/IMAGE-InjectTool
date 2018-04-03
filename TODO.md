@@ -34,6 +34,10 @@
 
 * [Django REST framework](http://www.django-rest-framework.org/) to get json data?
   to work with OpenRefine client?
+  - This module is strictly related to models. If I want to get a JSON object like
+    biosample, I need to think a model with relations as the json will be. For the
+    moment is better to think a biosample object as a django view. This module could
+    be an option in modifying attributes
 
 * Distribution: Inject tool is inside or infrastructure? or a user need to run its
   own instance
@@ -85,4 +89,30 @@
   Using google refine? For the moment, no duplicate can be inserted into database,
   the second occurrence will not be included in database.
 
-* NGINX media folder can serve media files (jpg, etc). Deal with dump files
+* NGINX media folder can serve media files (jpg, etc). Deal with dump files (permissions?)
+
+* add a message when uploading data source
+
+* deal with timeout when uploading data sources
+
+* When google cache is active, two pages are loaded: deal with executing scripts in
+  the same session
+
+* when truncating image tables, unset the loaded flag in data sources table
+
+* Filter out the admin person (add the admin role? - not in EF0)
+
+* What happens if two user load data in the same time? deal with concurrency
+
+* record need to have a column in which the status is recorded (need revisions,
+  submitted, ...)
+
+* Latitude and longitude need to be TEXT for the moment: we may help user to transform
+  values.
+
+* Django-admin performance issues:
+  - all foreign keys dropdown lists are rendered in HTML page, and this make the
+  pages bigger. At the moment, pages are rendered using `raw_id_fields` as described
+  [here](https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html).
+  Others solutions could be [autocomplete fields](http://django-extensions.readthedocs.io/en/latest/admin_extensions.html?highlight=ForeignKeyAutocompleteAdmin)
+  or using [django-salmonella](https://github.com/lincolnloop/django-dynamic-raw-id)
