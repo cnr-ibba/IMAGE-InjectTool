@@ -10,6 +10,7 @@ In this module, all function useful to export data are defined
 """
 
 import os
+import logging
 
 import pandas as pd
 from django.conf import settings
@@ -18,7 +19,12 @@ from django.shortcuts import get_list_or_404, render
 
 from image_app import helper
 from image_app.models import (Animal, Database, Organization, Person,
-                              Publication, Submission, Ontology)
+                              Publication, Submission, Ontology, Sample)
+from image_app.views import custom
+
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -360,3 +366,21 @@ def sampletab2(request):
             write_record(fileroot, record)
 
     return render(request, 'image_app/sampletab2.html', context)
+
+
+class SampleJSON(custom.JSONDetailView):
+
+    model = Sample
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(SampleJSON, self).get_context_data(**kwargs)
+
+        logger.info("Got: %s" % context)
+
+        context = {
+            'name': 'Vitor',
+            'location': 'Finland',
+            'is_active': True,
+            'count': 28
+        }

@@ -49,11 +49,19 @@ class DictBreed(models.Model):
             null=True,
             help_text="Example: LBO_0000347")
 
+    # TODO: species and countries need to have a dictionary table
+
     # HINT: country is efabis_country. For chianina there are Germany and
     # Italy breeds. There are also for other countries. Are they the same
     # breed? Need I to store country for user or datasource (useful for
     # translation)?
     country = models.CharField(max_length=255, blank=True, null=True)
+    country_ontology_accession = models.CharField(
+            max_length=255,
+            blank=True,
+            null=True,
+            help_text="Example: NCIT_C16636")
+
     species = models.CharField(max_length=255, blank=True, null=True)
 
     species_ontology_accession = models.CharField(
@@ -71,6 +79,18 @@ class DictBreed(models.Model):
     def __str__(self):
         # HINT: should I return mapped breed instead?
         return str(self.supplied_breed)
+
+    def to_biosample(self):
+        result = {}
+
+        result['suppliedBreed'] = self.supplied_breed
+        result['mappedBreed'] = {
+                'text': self.mapped_breed,
+                'ontologyTerms': self.mapped_breed_ontology_accession}
+        result['country'] = {
+                'text': self.country,
+                'ontologyTerms': self.country_ontology_accession}
+        return result
 
     class Meta:
         verbose_name = 'Breed'
@@ -99,6 +119,9 @@ class DictSex(models.Model):
         return "{label} ({short_form})".format(
                 label=self.label,
                 short_form=self.short_form)
+
+    def to_biosample(self):
+        return dict(text=self.label, ontologyTerms=self.short_form)
 
     class Meta:
         verbose_name = 'sex'

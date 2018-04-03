@@ -54,5 +54,9 @@ urlpatterns = [
 
     url(r'^update_user/$',
         views.update_profile,
-        name='update_profile')
+        name='update_profile'),
+
+    url(r'^sample/(?P<pk>[0-9]+)/json/$',
+        views.SampleJSON.as_view(),
+        name='sample-json'),
 ]

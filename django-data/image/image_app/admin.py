@@ -22,7 +22,8 @@ class DictBreedAdmin(admin.ModelAdmin):
     search_fields = ['supplied_breed']
     list_per_page = 9
     list_display = ('supplied_breed', 'mapped_breed',
-                    'mapped_breed_ontology_accession', 'country', 'species',
+                    'mapped_breed_ontology_accession', 'country',
+                    'country_ontology_accession', 'species',
                     'species_ontology_accession')
 
 

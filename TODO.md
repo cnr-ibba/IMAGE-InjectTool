@@ -39,9 +39,6 @@
     moment is better to think a biosample object as a django view. This module could
     be an option in modifying attributes
 
-* Distribution: Inject tool is inside or infrastructure? or a user need to run its
-  own instance
-
 * Data export: How data needs to be exported? how IMAGE-metadata works?
   - IMAGE-metadata define fields in .xls used for import. There is a correspondance
     between IMAGE-metadata columns and UID database columns
@@ -116,3 +113,18 @@
   [here](https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html).
   Others solutions could be [autocomplete fields](http://django-extensions.readthedocs.io/en/latest/admin_extensions.html?highlight=ForeignKeyAutocompleteAdmin)
   or using [django-salmonella](https://github.com/lincolnloop/django-dynamic-raw-id)
+
+* import June code:
+  - geo standardization
+  - date standardization
+  - zooma:
+    - high confidence: use it
+    - good: ask to user?
+
+* One instance of UID and Inject-tool. (all hosted at PTP). Each user is isolated
+  from the others. Same UID? UID for each each user? Maybe UID centralized and isolate
+  user data.
+
+* Status code for submission
+
+* Error handling (API?/String messages?)
