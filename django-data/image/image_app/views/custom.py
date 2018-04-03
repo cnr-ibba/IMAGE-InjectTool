@@ -22,6 +22,8 @@ class JSONResponseMixin(object):
         """
         return JsonResponse(
             self.get_data(context),
+            # https://stackoverflow.com/a/42418852
+            json_dumps_params={'indent': 4},
             **response_kwargs
         )
 

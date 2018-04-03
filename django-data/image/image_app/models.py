@@ -207,6 +207,43 @@ class Animal(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def to_biosample(self):
+        """Get a biosample representation of animal"""
+
+        result = {}
+
+        # get a biosample id or a default value
+        biosample_id = self.name.biosample_id or "temp%s" % (
+                self.alternative_id)
+
+        result["biosampleId"] = biosample_id
+
+        result["project"] = "IMAGE"
+        result["description"] = self.description
+        result["material"] = {
+                "text": "organism",
+                "ontologyTerms": "OBI_0100026"
+        }
+
+        result["name"] = self.name.name
+
+        result["dataSourceName"] = self.name.datasource.name
+        result["dataSourceVersion"] = self.name.datasource.version
+        result["dataSourceId"] = self.alternative_id
+
+        result["species"] = {
+                "text": self.breed.species,
+                "ontologyTerms": self.breed.species_ontology_accession
+        }
+
+        result["breed"] = self.breed.to_biosample()
+
+        result["sex"] = self.sex.to_biosample()
+
+        # TODO: were are father and mother? Should unknown return no fields?
+
+        return result
+
 
 class Sample(models.Model):
     # a sample name has a entry in name table

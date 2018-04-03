@@ -207,6 +207,10 @@ $ docker-compose run --rm uwsgi python manage.py check
 
 # connect to the postgres database as administrator
 $ docker-compose run --rm db psql -h db -U postgres
+
+# executing Unittest
+$ docker-compose run --rm uwsgi python manage.py test image_app.tests
+$ docker-compose run --rm uwsgi python manage.py test image_app.tests.test_models
 ```
 
 Exporting data from cryoweb

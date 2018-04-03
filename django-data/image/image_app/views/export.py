@@ -384,3 +384,17 @@ class SampleJSON(custom.JSONDetailView):
             'is_active': True,
             'count': 28
         }
+
+        return context
+
+
+class AnimalJSON(custom.JSONDetailView):
+
+    model = Animal
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(AnimalJSON, self).get_context_data(**kwargs)
+        logger.info("Got: %s" % context)
+
+        return context["object"].to_biosample()
