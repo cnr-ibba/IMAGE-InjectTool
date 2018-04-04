@@ -368,7 +368,7 @@ def sampletab2(request):
     return render(request, 'image_app/sampletab2.html', context)
 
 
-class SampleJSON(custom.JSONDetailView):
+class SampleJSON(custom.BioSampleView):
 
     model = Sample
 
@@ -378,7 +378,7 @@ class SampleJSON(custom.JSONDetailView):
 
         logger.info("Got: %s" % context)
 
-        context = {
+        context['biosample'] = {
             'name': 'Vitor',
             'location': 'Finland',
             'is_active': True,
@@ -388,13 +388,39 @@ class SampleJSON(custom.JSONDetailView):
         return context
 
 
-class AnimalJSON(custom.JSONDetailView):
+class AnimalJSON(custom.BioSampleDetailView):
 
     model = Animal
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super(AnimalJSON, self).get_context_data(**kwargs)
-        logger.info("Got: %s" % context)
 
-        return context["object"].to_biosample()
+        # add a new object to context wich is rendered using
+        # BioSampleDetailView and its method
+        context["biosample"] = self.object.to_biosample()
+
+        # return a new context object
+        return context
+
+
+class AnimalListJSON(custom.BioSampleListView):
+    """Get all animals from database in JSON"""
+
+    model = Animal
+
+    # limit results to 5
+    queryset = Animal.objects.all()[:5]
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(AnimalListJSON, self).get_context_data(**kwargs)
+
+        # add a new object to context wich is rendered using
+        # BioSampleDetailView and its method. self.object_list has all
+        # queryset objects
+        context["biosample"] = [
+                animal.to_biosample() for animal in self.object_list]
+
+        # return a new context object
+        return context

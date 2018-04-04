@@ -63,4 +63,8 @@ urlpatterns = [
     url(r'^animal/(?P<pk>[0-9]+)/json/$',
         login_required(views.AnimalJSON.as_view()),
         name='animal-json'),
+
+    url(r'^animals/json/$',
+        login_required(views.AnimalListJSON.as_view()),
+        name='animallist-json'),
 ]
