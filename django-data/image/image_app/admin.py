@@ -103,13 +103,14 @@ class SampleAdmin(admin.ModelAdmin):
 
     # exclude = ('author',)
     # prepopulated_fields = {'name': ['description']}
-    search_fields = ['name']
+    search_fields = ['name__name']
     list_per_page = 9
     list_display = (
         'name', 'alternative_id', 'animal',
         'protocol', 'collection_date', 'collection_place_latitude',
         'collection_place_longitude', 'collection_place', 'organism_part',
-        'developmental_stage', 'physiological_stage',
+        'organism_part_ontology_accession', 'developmental_stage',
+        'developmental_stage_ontology_accession', 'physiological_stage',
         'animal_age_at_collection', 'availability', 'storage_processing',
         'preparation_interval', 'description'
     )
@@ -120,11 +121,12 @@ class SampleAdmin(admin.ModelAdmin):
 
     fields = (
         ('name', 'alternative_id', 'description'),
-        ('animal', 'protocol', 'organism_part'),
+        ('animal', 'protocol', 'organism_part',
+         'organism_part_ontology_accession'),
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
-        ('developmental_stage', 'physiological_stage',
-         'animal_age_at_collection', 'availability'),
+        ('developmental_stage', 'developmental_stage_ontology_accession',
+         'physiological_stage', 'animal_age_at_collection', 'availability'),
         ('storage_processing', 'preparation_interval')
     )
 

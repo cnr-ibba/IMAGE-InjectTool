@@ -167,6 +167,7 @@ class Animal(models.Model):
 
     description = models.CharField(max_length=255, blank=True, null=True)
 
+    # HINT: link to a term list table?
     material = models.CharField(
             max_length=255,
             default="Organism",
@@ -215,16 +216,19 @@ class Animal(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def get_biosample_id(self):
+        """Get the biosample id or a temporary name"""
+
+        return self.name.biosample_id or "animal_%s" % (
+                self.id)
+
     def to_biosample(self):
         """Get a biosample representation of animal"""
 
         result = {}
 
         # get a biosample id or a default value
-        biosample_id = self.name.biosample_id or "temp%s" % (
-                self.alternative_id)
-
-        result["biosampleId"] = biosample_id
+        result["biosampleId"] = self.get_biosample_id()
 
         result["project"] = "IMAGE"
         result["description"] = self.description
@@ -265,6 +269,7 @@ class Sample(models.Model):
 
     description = models.CharField(max_length=255, blank=True, null=True)
 
+    # HINT: link to a term list table?
     material = models.CharField(
         max_length=255,
         default="Specimen from Organism",
@@ -285,10 +290,23 @@ class Sample(models.Model):
 
     organism_part = models.CharField(max_length=255, blank=True, null=True)
 
+    organism_part_ontology_accession = models.CharField(
+            max_length=255,
+            blank=False,
+            null=True,
+            help_text="Example: UBERON_0001968")
+
     developmental_stage = models.CharField(
             max_length=255,
             blank=True,
             null=True)
+
+    developmental_stage_ontology_accession = models.CharField(
+            max_length=255,
+            blank=False,
+            null=True,
+            help_text="Example: EFO_0001272")
+
     physiological_stage = models.CharField(
             max_length=255,
             blank=True,
@@ -309,6 +327,62 @@ class Sample(models.Model):
 
     def __str__(self):
         return str(self.name)
+
+    def get_biosample_id(self):
+        """Get the biosample id or a temporary name"""
+
+        return self.name.biosample_id or "sample_%s" % (
+                self.id)
+
+    def to_biosample(self):
+        """Get a biosample representation of animal"""
+
+        # define value tu return
+        result = {}
+
+        # get a biosample id or a default value
+        result["biosampleId"] = self.get_biosample_id()
+
+        result["project"] = "IMAGE"
+        result["description"] = self.description
+        result["material"] = {
+                "text": "specimen from organism",
+                "ontologyTerms": "OBI_0001479"
+        }
+
+        result["name"] = self.name.name
+
+        result["dataSourceName"] = self.name.datasource.name
+        result["dataSourceVersion"] = self.name.datasource.version
+        result["dataSourceId"] = self.alternative_id
+
+        result["derivedFrom"] = self.animal.get_biosample_id()
+
+        result["collectionDate"] = {
+                "text": str(self.collection_date),
+                "unit": "YYYY-MM-DD"
+        }
+
+        result["collectionPlace"] = self.collection_place
+
+        result["organismPart"] = {
+                "text": self.organism_part,
+                "ontologyTerms": self.organism_part_ontology_accession
+        }
+
+        result["developmentStage"] = {
+                "text": self.developmental_stage,
+                "ontologyTerms": self.developmental_stage_ontology_accession
+        }
+
+        result["animalAgeAtCollection"] = {
+                "text": self.animal_age_at_collection,
+                "unit": "years"
+        }
+
+        result["availability"] = self.availability
+
+        return result
 
 
 class Submission(models.Model):

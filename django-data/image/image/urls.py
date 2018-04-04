@@ -21,7 +21,7 @@ from django.views.generic.base import RedirectView
 urlpatterns = [
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
     url(r'^admin/', admin.site.urls),
-    url(r'^$', RedirectView.as_view(url="/image/admin/"), name='index'),
+    url(r'^$', RedirectView.as_view(pattern_name="admin:index"), name='index'),
 ]
 
 # Activate django-debug-toolbar only when settings.DEBUG is True
