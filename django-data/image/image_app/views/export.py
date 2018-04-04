@@ -368,7 +368,8 @@ def sampletab2(request):
     return render(request, 'image_app/sampletab2.html', context)
 
 
-class SampleJSON(custom.BioSampleView):
+class SampleJSON(custom.BioSampleDetailView):
+    """Get a specific sample in JSON"""
 
     model = Sample
 
@@ -376,19 +377,37 @@ class SampleJSON(custom.BioSampleView):
         # Call the base implementation first to get a context
         context = super(SampleJSON, self).get_context_data(**kwargs)
 
-        logger.info("Got: %s" % context)
-
-        context['biosample'] = {
-            'name': 'Vitor',
-            'location': 'Finland',
-            'is_active': True,
-            'count': 28
-        }
+        # add a new object to context wich is rendered using
+        # BioSampleDetailView and its method
+        context["biosample"] = self.object.to_biosample()
 
         return context
 
 
+class SampleListJSON(custom.BioSampleListView):
+    """Get all samples from database in JSON"""
+
+    model = Sample
+
+    # limit results to 5
+    queryset = Sample.objects.all()[:5]
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(SampleListJSON, self).get_context_data(**kwargs)
+
+        # add a new object to context wich is rendered using
+        # BioSampleDetailView and its method. self.object_list has all
+        # queryset objects
+        context["biosample"] = [
+                sample.to_biosample() for sample in self.object_list]
+
+        # return a new context object
+        return context
+
+
 class AnimalJSON(custom.BioSampleDetailView):
+    """Get a specific animal in JSON"""
 
     model = Animal
 

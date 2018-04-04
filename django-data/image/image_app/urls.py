@@ -60,6 +60,10 @@ urlpatterns = [
         login_required(views.SampleJSON.as_view()),
         name='sample-json'),
 
+    url(r'^samples/json/$',
+        login_required(views.SampleListJSON.as_view()),
+        name='samplelist-json'),
+
     url(r'^animal/(?P<pk>[0-9]+)/json/$',
         login_required(views.AnimalJSON.as_view()),
         name='animal-json'),
