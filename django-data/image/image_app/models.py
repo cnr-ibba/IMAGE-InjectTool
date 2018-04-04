@@ -179,18 +179,26 @@ class Animal(models.Model):
     # species is in DictBreed table
 
     # using a constraint for sex
-    sex = models.ForeignKey('DictSex', db_index=True, blank=True, null=True,
-                            default=-1, related_name='%(class)s_sex')
+    sex = models.ForeignKey(
+            'DictSex',
+            db_index=True,
+            blank=True,
+            null=True,
+            default=-1,
+            related_name='%(class)s_sex')
 
     # check that father and mother are defined using Foreign Keys
+    # HINT: mother and father are not mandatory in all datasource
     father = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
+            null=True,
             related_name='%(class)s_father')
 
     mother = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
+            null=True,
             related_name='%(class)s_mother')
 
     # HINT: and birth date?

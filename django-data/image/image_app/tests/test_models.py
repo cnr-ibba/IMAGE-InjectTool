@@ -74,15 +74,6 @@ class AnimalTestCase(TestCase):
                 name='CryoWeb DE',
                 version='23.01')
 
-        # I need to create unknown father and mother
-        father = Name.objects.create(
-                name='ANIMAL:::ID:::unknown_sire',
-                datasource=ds)
-
-        mother = Name.objects.create(
-                name='ANIMAL:::ID:::unknown_dam',
-                datasource=ds)
-
         name = Name.objects.create(
                 name='ANIMAL:::ID:::132713',
                 datasource=ds)
@@ -104,9 +95,7 @@ class AnimalTestCase(TestCase):
                 alternative_id=11,
                 description="a 4-year old pig organic fed",
                 breed=breed,
-                sex=sex,
-                father=father,
-                mother=mother)
+                sex=sex)
 
     def test_to_biosample(self):
         reference = {

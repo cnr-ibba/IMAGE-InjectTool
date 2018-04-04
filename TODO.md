@@ -128,3 +128,8 @@
 * Status code for submission
 
 * Error handling (API?/String messages?)
+
+* Data source name will change with metadata rules
+
+* Mother and Father are not mandatory, for the moment; They should have unknown
+  values for other data than cryoweb
