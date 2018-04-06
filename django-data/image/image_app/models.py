@@ -40,8 +40,7 @@ class DictBreed(models.Model):
     # TODO add Mapped breed ontology library FK To Ontology
 #    mapped_breed_ontology_library = models.ForeignKey(
 #            'Ontology',
-#            db_index=True,
-#            related_name='%(class)s_mapped_breed_ontology_library')
+#            db_index=True)
 
     mapped_breed_ontology_accession = models.CharField(
             max_length=255,
@@ -73,8 +72,7 @@ class DictBreed(models.Model):
     # TODO add Species ontology library FK To Term source (Ontology)
 #    species_ontology_library = models.ForeignKey(
 #            'Ontology',
-#            db_index=True,
-#            related_name='%(class)s_mapped_breed_ontology_library')
+#            db_index=True)
 
     def __str__(self):
         # HINT: should I return mapped breed instead?
@@ -140,8 +138,7 @@ class Name(models.Model):
             null=False)
 
     datasource = models.ForeignKey(
-            'DataSource', db_index=True,
-            related_name='%(class)s_datasource')
+            'DataSource', db_index=True)
 
     # This need to be assigned after submission
     # HINT: this column should be UNIQUE?
@@ -159,8 +156,7 @@ class Animal(models.Model):
     # an animal name has a entry in name table
     name = models.OneToOneField(
             'Name',
-            on_delete=models.PROTECT,
-            related_name='%(class)s_name')
+            on_delete=models.PROTECT)
 
     # alternative id will store the internal id in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
@@ -174,8 +170,7 @@ class Animal(models.Model):
             editable=False,
             null=True)
 
-    breed = models.ForeignKey('DictBreed', db_index=True,
-                              related_name='%(class)s_breed')
+    breed = models.ForeignKey('DictBreed', db_index=True)
 
     # species is in DictBreed table
 
@@ -185,22 +180,19 @@ class Animal(models.Model):
             db_index=True,
             blank=True,
             null=True,
-            default=-1,
-            related_name='%(class)s_sex')
+            default=-1)
 
     # check that father and mother are defined using Foreign Keys
     # HINT: mother and father are not mandatory in all datasource
     father = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
-            null=True,
-            related_name='%(class)s_father')
+            null=True)
 
     mother = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
-            null=True,
-            related_name='%(class)s_mother')
+            null=True)
 
     # HINT: and birth date?
 
@@ -261,8 +253,7 @@ class Sample(models.Model):
     # a sample name has a entry in name table
     name = models.ForeignKey(
             'Name',
-            on_delete=models.PROTECT,
-            related_name='%(class)s_name')
+            on_delete=models.PROTECT)
 
     # db_vessel in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
@@ -278,8 +269,7 @@ class Sample(models.Model):
 
     animal = models.ForeignKey(
             'Animal',
-            on_delete=models.PROTECT,
-            related_name='%(class)s_animal')
+            on_delete=models.PROTECT)
 
     protocol = models.CharField(max_length=255, blank=True, null=True)
 
@@ -443,7 +433,6 @@ class Person(models.Model):
     role = models.ForeignKey(
             'DictRole',
             on_delete=models.PROTECT,
-            related_name='%(class)s_role',
             null=True)
 
     organizations = models.ManyToManyField('Organization')
@@ -487,8 +476,7 @@ class Organization(models.Model):
 
     role = models.ForeignKey(
             'DictRole',
-            on_delete=models.PROTECT,
-            related_name='%(class)s_role')
+            on_delete=models.PROTECT)
 
     def __str__(self):
         return self.name
