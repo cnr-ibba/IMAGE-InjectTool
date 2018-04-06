@@ -71,4 +71,12 @@ urlpatterns = [
     url(r'^animals/json/$',
         login_required(views.AnimalListJSON.as_view()),
         name='animallist-json'),
+
+    url(r'^animal/(?P<pk>[0-9]+)/biosample/$',
+        login_required(views.BioSampleJSON.as_view()),
+        name='animal-biosample'),
+
+    url(r'^animals/biosample/$',
+        login_required(views.BioSampleListJSON.as_view()),
+        name='animallist-biosample'),
 ]

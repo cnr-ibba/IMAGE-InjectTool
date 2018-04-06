@@ -4,13 +4,14 @@ import logging
 from django.core.management import BaseCommand
 
 from image_app import helper
+from image_app.models import DataSource
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = """Truncate image_app tables"""
+    help = """Truncate image_app tables and reset counters"""
 
     def add_arguments(self, parser):
         # Named (optional) arguments
@@ -18,7 +19,7 @@ class Command(BaseCommand):
             '--all',
             action='store_true',
             dest='all',
-            help='Truncate all image_app tables',
+            help='Truncate all image_app tables and reset counters',
         )
 
     def handle(self, *args, **options):
@@ -48,7 +49,7 @@ class Command(BaseCommand):
                              image_app_ontology,
                              image_app_publication,
                              image_app_sample,
-                             image_app_submission
+                             image_app_submission RESTART IDENTITY
                         """
 
         else:
@@ -59,7 +60,7 @@ class Command(BaseCommand):
                              image_app_dictbreed,
                              image_app_name,
                              image_app_sample,
-                             image_app_submission
+                             image_app_submission RESTART IDENTITY
                         """
 
         # debug
@@ -69,6 +70,11 @@ class Command(BaseCommand):
         trans = conn.begin()
         conn.execute(statement)
         trans.commit()
+
+        # unset loaded flag from data source
+        for datasource in DataSource.objects.all():
+            datasource.loaded = False
+            datasource.save()
 
         # debug
         logger.info("Done!")

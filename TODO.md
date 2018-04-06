@@ -132,4 +132,5 @@
 * Data source name will change with metadata rules
 
 * Mother and Father are not mandatory, for the moment; They should have unknown
-  values for other data than cryoweb
+  values for other data than cryoweb. When they are unknown, they shouldn't be
+  exported.
