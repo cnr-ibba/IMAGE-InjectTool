@@ -138,7 +138,9 @@ class Name(models.Model):
             null=False)
 
     datasource = models.ForeignKey(
-            'DataSource', db_index=True)
+            'DataSource',
+            db_index=True,
+            related_name='name_set')
 
     # This need to be assigned after submission
     # HINT: this column should be UNIQUE?
@@ -187,12 +189,14 @@ class Animal(models.Model):
     father = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
-            null=True)
+            null=True,
+            related_name='father_set')
 
     mother = models.ForeignKey(
             'Name',
             on_delete=models.PROTECT,
-            null=True)
+            null=True,
+            related_name='mother_set')
 
     # HINT: and birth date?
 
