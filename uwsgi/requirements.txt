@@ -1,7 +1,7 @@
 uwsgi
 mysqlclient
 psycopg2-binary
-Django==1.11
+Django==1.11.12
 pandas
 SQLAlchemy
 pymongo

@@ -1,7 +1,6 @@
 
 * documentation?
   - Sphynx module documentation?
-  - document how to reconstruct database (internal)
   - link to project sections, refer to IMAGE-metadata?
   - PEP8?
 
@@ -95,17 +94,12 @@
 * When google cache is active, two pages are loaded: deal with executing scripts in
   the same session
 
-* when truncating image tables, unset the loaded flag in data sources table
-
 * Filter out the admin person (add the admin role? - not in EF0)
 
 * What happens if two user load data in the same time? deal with concurrency
 
 * record need to have a column in which the status is recorded (need revisions,
   submitted, ...)
-
-* Latitude and longitude need to be TEXT for the moment: we may help user to transform
-  values.
 
 * Django-admin performance issues:
   - all foreign keys dropdown lists are rendered in HTML page, and this make the

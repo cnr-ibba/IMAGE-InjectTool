@@ -220,5 +220,5 @@ At this point cryoweb tables are already defined for import, so we need to expor
 only data from an existing cryoweb instance. Execute a dump from a cryoweb like this:
 
 ```
-$ pg_dump -U <user> -h <host> --column-inserts --data-only --schema apiis_admin --column-inserts <cryoweb_database> > cryoweb_data_only.sql
+$ pg_dump -U <user> -h <host> --column-inserts --data-only --schema apiis_admin <cryoweb_database> > cryoweb_data_only.sql
 ```
