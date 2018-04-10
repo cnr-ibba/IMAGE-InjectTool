@@ -825,15 +825,15 @@ def import_from_cryoweb(request):
         # organization, persons are filled using
         # login information or template excel files
 
+        # update datasource.loaded field (I have alread loaded this data)
+        datasource.loaded = True
+        datasource.save()
+
     except Exception as e:
         context['error'] = "ERROR!: %s" % (e)
         logger.error(e)
 
     logger.info("import_from_cryoweb finished")
-
-    # update datasource.loaded field (I have alread loaded this data)
-    datasource.loaded = True
-    datasource.save()
 
     return render(request, 'image_app/import_from_cryoweb.html', context)
 

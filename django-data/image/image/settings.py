@@ -30,6 +30,8 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
+    'image_app.apps.ImageAppConfig',
+    'cryoweb.apps.CryowebConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -37,8 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
-    'image_app',
-    'cryoweb.apps.CryowebConfig'
 ]
 
 MIDDLEWARE = [
