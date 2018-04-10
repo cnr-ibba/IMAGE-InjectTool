@@ -83,8 +83,26 @@ DATABASES = {
         'PASSWORD': config('IMAGE_PASSWORD'),
         'HOST': 'db',
         'PORT': 5432,
+    },
+    # https://docs.djangoproject.com/en/1.11/topics/db/multi-db/
+    'cryoweb': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'imported_from_cryoweb',
+        'USER': config('IMAGE_USER'),
+        'PASSWORD': config('IMAGE_PASSWORD'),
+        'HOST': 'db',
+        'PORT': 5432,
+        'OPTIONS': {
+            'options': '-c search_path=apiis_admin'
+        }
     }
 }
+
+
+# dealing with multiple databases. Is a path at a module in the same directory
+# of this configuration file
+
+DATABASE_ROUTERS = ['routers']
 
 
 # Password validation
