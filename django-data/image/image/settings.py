@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
-    'image_app'
+    'image_app',
+    'cryoweb.apps.CryowebConfig'
 ]
 
 MIDDLEWARE = [
@@ -102,7 +103,7 @@ DATABASES = {
 # dealing with multiple databases. Is a path at a module in the same directory
 # of this configuration file
 
-DATABASE_ROUTERS = ['routers']
+DATABASE_ROUTERS = ['image.routers.CryowebRouter']
 
 
 # Password validation
