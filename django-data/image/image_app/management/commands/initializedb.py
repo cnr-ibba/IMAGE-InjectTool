@@ -31,6 +31,7 @@ EFO;http://www.ebi.ac.uk/ols/ontologies/efo;Experimental Factor Ontology
 OBI;http://www.ebi.ac.uk/ols/ontologies/obi;Ontology for Biomedical Investigations
 NCBITaxon;http://www.ebi.ac.uk/ols/ontologies/ncbitaxon;NCBI Taxonomy
 UBERON;http://www.ebi.ac.uk/ols/ontologies/uberon;cross-species ontology covering anatomical structures in animals
+GAZ;https://www.ebi.ac.uk/ols/ontologies/gaz;A gazetteer constructed on ontological principles
 """
 
     handle = io.StringIO(data)

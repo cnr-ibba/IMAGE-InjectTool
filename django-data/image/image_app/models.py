@@ -32,6 +32,63 @@ class DictRole(models.Model):
         unique_together = (("label", "short_form"),)
 
 
+class DictCountry(models.Model):
+    """A class to model contries defined by Gazetteer
+    https://www.ebi.ac.uk/ols/ontologies/gaz"""
+
+    # if not defined, this table will have an own primary key
+    label = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: Germany")
+
+    short_form = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: GAZ_00002646")
+
+    # TODO: fk with Ontology table
+
+    def __str__(self):
+        return "{label} ({short_form})".format(
+                label=self.label,
+                short_form=self.short_form)
+
+    class Meta:
+        # db_table will be <app_name>_<classname>
+        verbose_name = "country"
+        verbose_name_plural = "countries"
+        unique_together = (("label", "short_form"),)
+
+
+class DictSpecie(models.Model):
+    """A class to model species defined by NCBI organismal classification
+    http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
+
+    # if not defined, this table will have an own primary key
+    label = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: Sus scrofa")
+
+    short_form = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: NCBITaxon_9823")
+
+    # TODO: fk with Ontology table
+
+    def __str__(self):
+        return "{label} ({short_form})".format(
+                label=self.label,
+                short_form=self.short_form)
+
+    class Meta:
+        # db_table will be <app_name>_<classname>
+        verbose_name = "specie"
+        unique_together = (("label", "short_form"),)
+
+
 class DictBreed(models.Model):
     # this was the description field in cryoweb v_breeds_species tables
     supplied_breed = models.CharField(max_length=255, blank=True)
@@ -48,35 +105,19 @@ class DictBreed(models.Model):
             null=True,
             help_text="Example: LBO_0000347")
 
-    # TODO: species and countries need to have a dictionary table
+    # using a constraint for country.
+    country = models.ForeignKey('DictCountry')
 
-    # HINT: country is efabis_country. For chianina there are Germany and
-    # Italy breeds. There are also for other countries. Are they the same
-    # breed? Need I to store country for user or datasource (useful for
-    # translation)?
-    country = models.CharField(max_length=255, blank=True, null=True)
-    country_ontology_accession = models.CharField(
-            max_length=255,
-            blank=True,
-            null=True,
-            help_text="Example: NCIT_C16636")
-
-    species = models.CharField(max_length=255, blank=True, null=True)
-
-    species_ontology_accession = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: NCBITaxon_9823")
-
-    # TODO add Species ontology library FK To Term source (Ontology)
-#    species_ontology_library = models.ForeignKey(
-#            'Ontology',
-#            db_index=True)
+    # using a constraint for specie
+    species = models.ForeignKey('DictSpecie')
 
     def __str__(self):
-        # HINT: should I return mapped breed instead?
-        return str(self.supplied_breed)
+        # return mapped breed if defined
+        if self.mapped_breed:
+            return str(self.mapped_breed)
+
+        else:
+            return str(self.supplied_breed)
 
     def to_biosample(self):
         result = {}
@@ -179,7 +220,6 @@ class Animal(models.Model):
     # using a constraint for sex
     sex = models.ForeignKey(
             'DictSex',
-            db_index=True,
             blank=True,
             null=True,
             default=-1)
@@ -511,6 +551,7 @@ class Publication(models.Model):
         return str(str(self.id) + ", " + str(self.pubmed_id))
 
 
+# HINT: do I need this table?
 class Ontology(models.Model):
     library_name = models.CharField(
             max_length=255,

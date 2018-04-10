@@ -5,12 +5,9 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
 from image_app.models import (Animal, Database, DataSource, DictBreed,
-                              DictRole, Name, Ontology, Organization, Person,
-                              Publication, Sample, Submission)
-
-
-class DictRoleAdmin(admin.ModelAdmin):
-    pass
+                              DictCountry, DictRole, DictSpecie, Name,
+                              Ontology, Organization, Person, Publication,
+                              Sample, Submission)
 
 
 class DataSourceAdmin(admin.ModelAdmin):
@@ -22,9 +19,7 @@ class DictBreedAdmin(admin.ModelAdmin):
     search_fields = ['supplied_breed']
     list_per_page = 9
     list_display = ('supplied_breed', 'mapped_breed',
-                    'mapped_breed_ontology_accession', 'country',
-                    'country_ontology_accession', 'species',
-                    'species_ontology_accession')
+                    'mapped_breed_ontology_accession', 'country', 'species')
 
 
 class NameAdmin(admin.ModelAdmin):
@@ -246,6 +241,12 @@ class OntologyAdmin(admin.ModelAdmin):
     )
 
 
+# default admin class
+admin.site.register(DictRole, admin.ModelAdmin)
+admin.site.register(DictSpecie, admin.ModelAdmin)
+admin.site.register(DictCountry, admin.ModelAdmin)
+
+# Custom admin class
 admin.site.register(Animal, AnimalAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(Name, NameAdmin)
@@ -256,7 +257,6 @@ admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Database, DatabaseAdmin)
 admin.site.register(Ontology, OntologyAdmin)
-admin.site.register(DictRole, DictRoleAdmin)
 admin.site.register(DataSource, DataSourceAdmin)
 
 # Re-register UserAdmin
