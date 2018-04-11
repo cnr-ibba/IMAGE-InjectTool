@@ -10,4 +10,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
 
     -- Creating image user
     CREATE USER $IMAGE_USER PASSWORD '$IMAGE_PASSWORD';
+
+    -- Assigning privileges to $IMAGE_USER
+    ALTER USER $IMAGE_USER CREATEDB;
 EOSQL
