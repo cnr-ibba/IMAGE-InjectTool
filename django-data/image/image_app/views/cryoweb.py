@@ -29,10 +29,10 @@ logger = logging.getLogger(__name__)
 
 @login_required
 def upload_cryoweb(request):
-    """Imports backup into the imported_from_cryoweb db
+    """Imports backup into the cryoweb db
 
     This function uses the container's installation of psql to import a backup
-    file into the "imported_from_cryoweb" database. The imported backup file is
+    file into the "cryoweb" database. The imported backup file is
     the last inserted into the image's table image_app_datasource.
 
     :param request: HTTP request automatically sent by the framework
@@ -73,7 +73,7 @@ def upload_cryoweb(request):
 
     # define command line
     cmd_line = ("/usr/bin/psql -U cryoweb_insert_only -h db "
-                "imported_from_cryoweb")
+                "cryoweb")
 
     cmds = shlex.split(cmd_line)
 
@@ -128,7 +128,7 @@ def fill_breeds(engine_from_cryoweb, context):
     # debug
     logger.info("called fill_breeds()")
 
-    # read the the v_breeds_species view in the "imported_from_cryoweb
+    # read the the v_breeds_species view in the "cryoweb
     # database"
     df_breeds_species = pd.read_sql_table(
             'v_breeds_species',
@@ -372,7 +372,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     # debug
     logger.info("called fill_animals()")
 
-    # read the v_animal view in the "imported_from_cryoweb" db
+    # read the v_animal view in the "cryoweb" db
     df_animals = pd.read_sql_table(
             'v_animal',
             con=engine_from_cryoweb,
@@ -533,7 +533,7 @@ def get_protocols(engine_from_cryoweb):
     # debug
     logger.info("called get_protocols()")
 
-    # read view in "imported_from_cryoweb" db
+    # read view in "cryoweb" db
     df_protocols = pd.read_sql_table(
             'v_protocols',
             con=engine_from_cryoweb,
@@ -572,7 +572,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     # debug
     logger.info("called fill_samples()")
 
-    # read view in "imported_from_cryoweb" db
+    # read view in "cryoweb" db
     df_samples = pd.read_sql_table(
             'v_vessels',
             con=engine_from_cryoweb,
@@ -751,7 +751,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
 def import_from_cryoweb(request):
     """Reformats data and write it into the image database
 
-    This fx reads the imported_from_cryoweb data,
+    This fx reads the cryoweb data,
     changes their format (i.e., changes field names and/or content) and
     writes data into the image database.
 
@@ -853,7 +853,7 @@ def truncate_cryoweb_tables(request):
 
     call_command('truncate_cryoweb_tables')
 
-    messages.success(request, 'imported_from_cryoweb database was truncated '
+    messages.success(request, 'cryoweb database was truncated '
                               'with success')
 
     return redirect('admin:index')

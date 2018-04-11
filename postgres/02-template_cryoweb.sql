@@ -14,14 +14,18 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET row_security = off;
 
--- Already create by 01-init-user-db.sh
--- CREATE DATABASE imported_from_cryoweb WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.utf8' LC_CTYPE = 'en_US.utf8';
+-- create a database template
+CREATE DATABASE template_cryoweb WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.utf8' LC_CTYPE = 'en_US.utf8';
+
+-- set this database as a template
+-- https://colinnewell.wordpress.com/2011/01/07/creating-a-new-postgres-template-database/
+UPDATE pg_database SET datistemplate=true WHERE datname='template_cryoweb';
 
 -- change ownerships
-ALTER DATABASE imported_from_cryoweb OWNER TO apiis_admin;
+ALTER DATABASE template_cryoweb OWNER TO apiis_admin;
 
--- connect to imported_from_cryoweb
-\connect imported_from_cryoweb
+-- connect to template_cryoweb
+\connect template_cryoweb
 
 --
 -- Name: apiis_admin; Type: SCHEMA; Schema: -; Owner: apiis_admin

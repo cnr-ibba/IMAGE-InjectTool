@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = """Truncate all tables in the imported_from_cryoweb db"""
+    help = """Truncate all tables in the cryoweb db"""
 
     def handle(self, *args, **options):
         # get a cryoweb helper instance
@@ -19,7 +19,7 @@ class Command(BaseCommand):
         # get a connection object
         conn = cryowebdb.get_connection(search_path='apiis_admin')
 
-        logger.info("Truncating imported_from_cryoweb tables...")
+        logger.info("Truncating cryoweb tables...")
 
         statement = """
                 TRUNCATE animal,

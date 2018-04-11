@@ -88,13 +88,17 @@ DATABASES = {
     # https://docs.djangoproject.com/en/1.11/topics/db/multi-db/
     'cryoweb': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'imported_from_cryoweb',
+        'NAME': 'cryoweb',
         'USER': config('IMAGE_USER'),
         'PASSWORD': config('IMAGE_PASSWORD'),
         'HOST': 'db',
         'PORT': 5432,
         'OPTIONS': {
             'options': '-c search_path=apiis_admin'
+        },
+        'TEST': {
+            # https://docs.djangoproject.com/en/1.11/ref/settings/#template
+            'TEMPLATE': 'cryoweb'
         }
     }
 }

@@ -83,7 +83,7 @@ def truncate_databases(request):
 
     call_command('truncate_cryoweb_tables')
 
-    messages.success(request, 'imported_from_cryoweb database was truncated '
+    messages.success(request, 'cryoweb database was truncated '
                               'with success')
 
     call_command('truncate_image_tables')

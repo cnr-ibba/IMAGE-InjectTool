@@ -74,8 +74,7 @@ class CryowebDB(Database):
         super().__init__()
 
         self.engine_uri = (
-                'postgresql://{user}:{password}@db:5432/imported_'
-                'from_cryoweb'.format(
+                'postgresql://{user}:{password}@db:5432/cryoweb'.format(
                         user=config('IMAGE_USER'),
                         password=config('IMAGE_PASSWORD')))
 

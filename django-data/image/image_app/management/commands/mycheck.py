@@ -29,7 +29,7 @@ class TestDB(unittest.TestCase):
         self.conn = self.cryowebdb.get_connection(search_path='apiis_admin')
 
     def test_db1_animal_table_is_not_empty(self):
-        """Tests that imported_from_cryoweb.animal table is not empty"""
+        """Tests that cryoweb.animal table is not empty"""
 
         df_count = pd.read_sql_query(
                 'select count(*) as n_rows from animal',
