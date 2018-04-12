@@ -179,7 +179,13 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+# The PostgreSQL backend stores datetimes as timestamp with time zone.
+# In practice, this means it converts datetimes from the connection’s time
+# zone to UTC on storage, and from UTC to the connection’s time zone on
+# retrieval.
+# As a consequence, if you’re using PostgreSQL, you can switch between
+# USE_TZ = False and USE_TZ = True freely
+USE_TZ = False
 
 # https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-LOGIN_URL
 LOGIN_URL = '/image/admin/login/'

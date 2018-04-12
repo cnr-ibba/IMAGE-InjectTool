@@ -6,16 +6,19 @@ Created on Mon Apr  9 16:58:01 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
-from django.test import TestCase, Client, RequestFactory
-from django.urls import reverse
+import pandas as pd
 from django.contrib.messages import get_messages
+from django.test import Client, RequestFactory, TestCase
+from django.urls import reverse
 
-from image_app.models import User
+from image_app import helper
+from image_app.models import User, DictSpecie
+from image_app.views.cryoweb import get_a_datasource
 
 
-class FillUIDTestClass(TestCase):
+class BaseTestCase(TestCase):
     # import this file and populate database once
-    fixtures = ["cryoweb.json", "datasource.json"]
+    fixtures = []
 
     # By default, fixtures are only loaded into the default database. If you
     # are using multiple databases and set multi_db=True, fixtures will be
@@ -32,6 +35,33 @@ class FillUIDTestClass(TestCase):
 
         self.client = Client()
         self.client.login(username='test', password='test')
+
+
+class FillUIDTestClass(BaseTestCase):
+    # import this file and populate database once
+    fixtures = ["cryoweb.json", "datasource.json", "dictsex.json"]
+
+    def setUp(self):
+        """Setting up"""
+
+        # calling my base class setup
+        super().setUp()
+
+        # define helper database objects
+        cryowebdb = helper.CryowebDB()
+
+        # set those values using a function from helper objects
+        self.engine_from_cryoweb = cryowebdb.get_engine()
+
+        # TODO: get datasource to load from link or admin
+        self.datasource = get_a_datasource()
+
+        self.context = {
+                # get username from request.
+                'username': self.user.username,
+                'loaded': {},
+                'warnings': {},
+                'has_warnings': False}
 
     def test_cryoweb_already_imported(self):
         # Create an instance of a GET request.
@@ -58,3 +88,25 @@ class FillUIDTestClass(TestCase):
             self.assertEqual(
                     message.message,
                     "cryoweb mirror database has data. Ignoring data load")
+
+    def test_import_into_UID(self):
+        """Import loaded cryoweb data into UID"""
+
+        response = self.client.get(
+                reverse('image_app:import_from_cryoweb'))
+
+        self.assertFalse("error" in response.context)
+
+    def test_load_species(self):
+        """Testing load species function"""
+
+        # read the the v_breeds_species view in the "cryoweb database"
+        df_breeds_species = pd.read_sql_table(
+                'v_breeds_species',
+                con=self.engine_from_cryoweb,
+                schema="apiis_admin")
+
+        # create manually two species in UID table
+        DictSpecie.objects.create()
+
+        print(df_breeds_species)

@@ -27,6 +27,14 @@ from image_app.models import (Animal, DataSource, DictBreed, DictSex, Name,
 logger = logging.getLogger(__name__)
 
 
+# helper function
+def get_a_datasource():
+    """Get the first not uploaded datasource"""
+
+    return DataSource.objects.filter(
+            loaded=False).order_by("-uploaded_at").first()
+
+
 @login_required
 def upload_cryoweb(request):
     """Imports backup into the cryoweb db
@@ -57,7 +65,7 @@ def upload_cryoweb(request):
     context = {'username': username}
 
     # TODO: get datasource to load from link or admin
-    datasource = DataSource.objects.order_by("-uploaded_at").first()
+    datasource = get_a_datasource()
 
     logger.debug("Got DataSource %s" % (datasource))
 
@@ -122,6 +130,16 @@ def add_warnings(context, section, msg):
         context['warnings'][section] = [msg]
 
 
+def fill_species(df_breeds_species, context):
+    """Fill species into database"""
+    pass
+
+
+def fill_countries(df_breeds_species, context):
+    """Fill countries into database"""
+    pass
+
+
 def fill_breeds(engine_from_cryoweb, context):
     """Helper function to upload breeds data in image database"""
 
@@ -138,12 +156,14 @@ def fill_breeds(engine_from_cryoweb, context):
     logger.debug("Read %s records from v_breeds_species" % (
             df_breeds_species.shape[0]))
 
+    # TODO: fill DictSpecie and DictCountry tables
+    species = fill_species(df_breeds_species, context)
+    countries = fill_countries(df_breeds_species, context)
+
     # keep only interesting columns and rename them
     df_breeds_fin = df_breeds_species[
         ['db_breed',
-         'efabis_mcname',
-         'efabis_species',
-         'efabis_country']]
+         'efabis_mcname']]
 
     # set index to dataframe. Index will be internal cryoweb id
     df_breeds_fin.index = df_breeds_fin["db_breed"]
@@ -154,10 +174,12 @@ def fill_breeds(engine_from_cryoweb, context):
     df_breeds_fin = df_breeds_fin.rename(
         columns={
             'efabis_mcname': 'supplied_breed',
-            'efabis_species': 'species',
-            'efabis_country': 'country',
         }
     )
+
+    # add species and countries
+    df_breeds_fin["specie"] = species
+    df_breeds_fin["country"] = countries
 
     # if we don't truncate any data, I can't put all breeds as they
     # are in database, but I need to check and add only new breeds
@@ -168,7 +190,7 @@ def fill_breeds(engine_from_cryoweb, context):
     # get list of breeds present in database
     queryset = DictBreed.objects.filter()
 
-    # BUG: need to be supplied_breed, species as a key
+    # BUG: need to be supplied_breed, specie as a key
     in_table_breeds = [breed.supplied_breed for breed in queryset]
 
     # debug
@@ -177,7 +199,7 @@ def fill_breeds(engine_from_cryoweb, context):
     # insert dataframe as table into the UID database
     for row in df_breeds_fin.itertuples():
         # skip duplicates (in the same bulk insert)
-        # BUG: need to be supplied_breed, species as a key
+        # BUG: need to be supplied_breed, specie as a key
         if row.supplied_breed in to_create:
             logger.warn("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.supplied_breed])))
@@ -189,7 +211,7 @@ def fill_breeds(engine_from_cryoweb, context):
 
         # get or create objects: check for existance if not create an
         # object for a bulk_insert
-        # BUG: need to be supplied_breed, species as a key
+        # BUG: need to be supplied_breed, specie as a key
         elif row.supplied_breed in in_table_breeds:
             msg = "%s: already present in database" % (str(row))
             logger.warn(msg)
@@ -202,11 +224,11 @@ def fill_breeds(engine_from_cryoweb, context):
             # create a new object
             obj = DictBreed(
                     supplied_breed=row.supplied_breed,
-                    species=row.species,
+                    species=row.specie,
                     country=row.country)
 
             # append object to to_create list
-            # BUG: need to be supplied_breed, species as a key
+            # BUG: need to be supplied_breed, specie as a key
             to_create[row.supplied_breed] = obj
 
     # Now eval to_create list; if necessary, bulk_insert
@@ -333,7 +355,7 @@ def fill_transfer(engine_from_cryoweb, datasource, context):
 
 
 # define a function to get the row from a dictionary of
-# {(species, description: dictbreed.id} starting from dataframe
+# {(specie, description: dictbreed.id} starting from dataframe
 def getDictBreedId(row, df_breeds_fin, breed_to_id):
     """Returns DictBreed.id from a row from df_animals and df_breed"""
 
@@ -344,7 +366,7 @@ def getDictBreedId(row, df_breeds_fin, breed_to_id):
     data = df_breeds_fin.loc[db_breed].to_dict()
 
     # ok get dictbreed.id from dictionary
-    key = (data['supplied_breed'], data['species'])
+    key = (data['supplied_breed'], data['specie'])
     return breed_to_id[key]
 
 
@@ -384,10 +406,10 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     # now get breeds and their ids from database
     breed_to_id = {}
 
-    # map breed name and species to its id
+    # map breed name and specie to its id
     for dictbreed in DictBreed.objects.all():
         breed_to_id[
-            (dictbreed.supplied_breed, dictbreed.species)] = dictbreed.id
+            (dictbreed.supplied_breed, dictbreed.specie)] = dictbreed.id
 
     logger.debug("read %s breeds" % (DictBreed.objects.count()))
 
@@ -774,8 +796,9 @@ def import_from_cryoweb(request):
     engine_from_cryoweb = cryowebdb.get_engine()
 
     # TODO: get datasource to load from link or admin
-    datasource = DataSource.objects.order_by("-uploaded_at").first()
+    datasource = get_a_datasource()
 
+    # TODO: check this
     if datasource.loaded is True:
         logger.warn("datasource %s was already uploaded" % datasource)
         messages.warning(
@@ -786,10 +809,9 @@ def import_from_cryoweb(request):
 
     logger.debug("Got DataSource %s" % (datasource))
 
-    # get username from context.
-    username = request.user.username
     context = {
-            'username': username,
+            # get username from request.
+            'username': request.user.username,
             'loaded': {},
             'warnings': {},
             'has_warnings': False}
@@ -829,8 +851,9 @@ def import_from_cryoweb(request):
         datasource.loaded = True
         datasource.save()
 
+    # TODO: remove this: is not informative
     except Exception as e:
-        context['error'] = "ERROR!: %s" % (e)
+        context['error'] = "ERROR!: %s: %s" % (type(e).__name__, e)
         logger.error(e)
 
     logger.info("import_from_cryoweb finished")
