@@ -211,6 +211,16 @@ $ docker-compose run --rm db psql -h db -U postgres
 # executing Unittest
 $ docker-compose run --rm uwsgi python manage.py test image_app.tests
 $ docker-compose run --rm uwsgi python manage.py test image_app.tests.test_models
+
+# executing test with pytest
+$ docker-compose run --rm uwsgi pytest
+
+# calculating coverage
+$ docker-compose run --rm uwsgi coverage run --source='.' manage.py test
+
+# generate coverage report
+$ docker-compose run --rm uwsgi coverage report
+$ docker-compose run --rm uwsgi coverage html
 ```
 
 Exporting data from cryoweb
