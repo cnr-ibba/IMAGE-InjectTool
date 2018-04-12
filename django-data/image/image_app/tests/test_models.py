@@ -11,42 +11,135 @@ import datetime
 from django.test import TestCase
 
 from image_app.models import (Animal, DataSource, DictBreed, DictSex, Name,
-                              Sample)
+                              Sample, DictSpecie, DictCountry)
 
 
 class DictSexTestCase(TestCase):
     """Testing DictSex class"""
 
     def setUp(self):
+        # my attributes
+        self.label = 'male'
+        self.short_form = 'PATO_0000384'
+
         DictSex.objects.create(
-                label='male', short_form='PATO_0000384')
+                label=self.label,
+                short_form=self.short_form)
 
     def test_to_biosample(self):
         """Testing sex to biosample json"""
 
         reference = {
-            "text": "male",
-            "ontologyTerms": "PATO_0000384"
+            "text": self.label,
+            "ontologyTerms": self.short_form
         }
 
-        male = DictSex.objects.get(label="male")
+        male = DictSex.objects.get(label=self.label)
         test = male.to_biosample()
 
         self.assertEqual(reference, test)
+
+    def test_str(self):
+        """Testing str representation"""
+
+        male = DictSex.objects.get(label=self.label)
+        self.assertEqual(
+                str(male),
+                "{label} ({short_form})".format(
+                        label=self.label,
+                        short_form=self.short_form))
+
+
+class DictSpecieTestCase(TestCase):
+    """Testing DictSpecie class"""
+
+    def setUp(self):
+        # my attributes
+        self.label = 'Sus scrofa'
+        self.short_form = 'NCBITaxon_9823'
+
+        DictSpecie.objects.create(
+                label=self.label,
+                short_form=self.short_form)
+
+    def test_to_biosample(self):
+        """Testing specie to biosample json"""
+
+        reference = {
+                "text": self.label,
+                "ontologyTerms": self.short_form
+        }
+
+        sus = DictSpecie.objects.get(label=self.label)
+        test = sus.to_biosample()
+
+        self.assertEqual(reference, test)
+
+    def test_str(self):
+        """Testing str representation"""
+
+        sus = DictSpecie.objects.get(label=self.label)
+        self.assertEqual(
+                str(sus),
+                "{label} ({short_form})".format(
+                        label=self.label,
+                        short_form=self.short_form))
+
+
+class DictCountryTestCase(TestCase):
+    """Testing DictCountry class"""
+
+    def setUp(self):
+        # my attributes
+        self.label = 'Germany'
+        self.short_form = 'NCIT_C16636'
+
+        DictCountry.objects.create(
+                label=self.label,
+                short_form=self.short_form)
+
+    def test_to_biosample(self):
+        """Testing specie to biosample json"""
+
+        reference = {
+                "text": self.label,
+                "ontologyTerms": self.short_form
+        }
+
+        germany = DictCountry.objects.get(label=self.label)
+        test = germany.to_biosample()
+
+        self.assertEqual(reference, test)
+
+    def test_str(self):
+        """Testing str representation"""
+
+        germany = DictCountry.objects.get(label=self.label)
+        self.assertEqual(
+                str(germany),
+                "{label} ({short_form})".format(
+                        label=self.label,
+                        short_form=self.short_form))
 
 
 class DictBreedTestCase(TestCase):
     """Testing DictBreed class"""
 
     def setUp(self):
+        specie = DictSpecie.objects.create(
+                label='Sus scrofa',
+                short_form='NCBITaxon_9823')
+
+        country = DictCountry.objects.create(
+                label='Germany',
+                short_form='NCIT_C16636')
+
         DictBreed.objects.create(
                 supplied_breed='Bunte Bentheimer',
                 mapped_breed='Bentheim Black Pied',
                 mapped_breed_ontology_accession='LBO_0000347',
-                country='Germany',
-                country_ontology_accession='NCIT_C16636',
-                species='Sus scrofa',
-                species_ontology_accession='NCBITaxon_9823')
+                country=country,
+                specie=specie)
 
     def test_to_biosample(self):
         """Testing breed to biosample json"""
@@ -81,14 +174,20 @@ class AnimalTestCase(TestCase):
                 name='ANIMAL:::ID:::132713',
                 datasource=ds)
 
+        specie = DictSpecie.objects.create(
+                label='Sus scrofa',
+                short_form='NCBITaxon_9823')
+
+        country = DictCountry.objects.create(
+                label='Germany',
+                short_form='NCIT_C16636')
+
         breed = DictBreed.objects.create(
                 supplied_breed='Bunte Bentheimer',
                 mapped_breed='Bentheim Black Pied',
                 mapped_breed_ontology_accession='LBO_0000347',
-                country='Germany',
-                country_ontology_accession='NCIT_C16636',
-                species='Sus scrofa',
-                species_ontology_accession='NCBITaxon_9823')
+                country=country,
+                specie=specie)
 
         sex = DictSex.objects.create(
                 label='male', short_form='PATO_0000384')
@@ -177,15 +276,20 @@ class SampleTestCase(TestCase):
                 name='Siems_0722_393449',
                 datasource=ds)
 
-        # create an animal first
+        specie = DictSpecie.objects.create(
+                label='Sus scrofa',
+                short_form='NCBITaxon_9823')
+
+        country = DictCountry.objects.create(
+                label='Germany',
+                short_form='NCIT_C16636')
+
         breed = DictBreed.objects.create(
                 supplied_breed='Bunte Bentheimer',
                 mapped_breed='Bentheim Black Pied',
                 mapped_breed_ontology_accession='LBO_0000347',
-                country='Germany',
-                country_ontology_accession='NCIT_C16636',
-                species='Sus scrofa',
-                species_ontology_accession='NCBITaxon_9823')
+                country=country,
+                specie=specie)
 
         sex = DictSex.objects.create(
                 label='male', short_form='PATO_0000384')

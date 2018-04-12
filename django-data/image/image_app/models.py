@@ -54,6 +54,9 @@ class DictCountry(models.Model):
                 label=self.label,
                 short_form=self.short_form)
 
+    def to_biosample(self):
+        return dict(text=self.label, ontologyTerms=self.short_form)
+
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "country"
@@ -83,6 +86,9 @@ class DictSpecie(models.Model):
                 label=self.label,
                 short_form=self.short_form)
 
+    def to_biosample(self):
+        return dict(text=self.label, ontologyTerms=self.short_form)
+
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "specie"
@@ -109,7 +115,7 @@ class DictBreed(models.Model):
     country = models.ForeignKey('DictCountry')
 
     # using a constraint for specie
-    species = models.ForeignKey('DictSpecie')
+    specie = models.ForeignKey('DictSpecie')
 
     def __str__(self):
         # return mapped breed if defined
@@ -126,9 +132,7 @@ class DictBreed(models.Model):
         result['mappedBreed'] = {
                 'text': self.mapped_breed,
                 'ontologyTerms': self.mapped_breed_ontology_accession}
-        result['country'] = {
-                'text': self.country,
-                'ontologyTerms': self.country_ontology_accession}
+        result['country'] = self.country.to_biosample()
         return result
 
     class Meta:
@@ -137,7 +141,7 @@ class DictBreed(models.Model):
         # HINT: would mapped_breed ba a better choice to define a unique key
         # using breed and species? in that case, mapped breed need to have a
         # default value, ex the descricption (supplied_breed)
-        unique_together = (("supplied_breed", "species"),)
+        unique_together = (("supplied_breed", "specie"),)
 
 
 class DictSex(models.Model):
@@ -279,10 +283,7 @@ class Animal(models.Model):
         result["dataSourceVersion"] = self.name.datasource.version
         result["dataSourceId"] = self.alternative_id
 
-        result["species"] = {
-                "text": self.breed.species,
-                "ontologyTerms": self.breed.species_ontology_accession
-        }
+        result["species"] = self.breed.specie.to_biosample()
 
         result["breed"] = self.breed.to_biosample()
 
