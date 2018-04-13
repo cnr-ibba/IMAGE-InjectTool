@@ -12,8 +12,9 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from image_app import helper
-from image_app.models import User, DictSpecie
-from image_app.views.cryoweb import get_a_datasource
+from image_app.models import User, DictSpecie, DictCountry
+from image_app.views.cryoweb import (
+        get_a_datasource, fill_species, fill_countries)
 
 
 class BaseTestCase(TestCase):
@@ -98,7 +99,7 @@ class FillUIDTestClass(BaseTestCase):
         self.assertFalse("error" in response.context)
 
     def test_load_species(self):
-        """Testing load species function"""
+        """Testing load_species function"""
 
         # read the the v_breeds_species view in the "cryoweb database"
         df_breeds_species = pd.read_sql_table(
@@ -106,7 +107,41 @@ class FillUIDTestClass(BaseTestCase):
                 con=self.engine_from_cryoweb,
                 schema="apiis_admin")
 
-        # create manually two species in UID table
-        DictSpecie.objects.create()
+        # concat dataframe two times
+        test_df = pd.concat([df_breeds_species, df_breeds_species])
 
-        print(df_breeds_species)
+        # read species from table
+        reference = []
+
+        for specie in test_df["efabis_species"]:
+            dictspecie, status = DictSpecie.objects.get_or_create(label=specie)
+            reference += [dictspecie.id]
+
+        # call function and get a list with primary keys
+        test = fill_species(test_df, self.context)
+
+        # testing equality
+        self.assertEqual(reference, test)
+
+    def test_load_countriess(self):
+        """Testing load_countries function"""
+
+        # read the the v_breeds_species view in the "cryoweb database"
+        df_breeds_species = pd.read_sql_table(
+                'v_breeds_species',
+                con=self.engine_from_cryoweb,
+                schema="apiis_admin")
+
+        # read species from table
+        reference = []
+
+        for country in df_breeds_species["efabis_country"]:
+            dictcountry, status = DictCountry.objects.get_or_create(
+                    label=country)
+            reference += [dictcountry.id]
+
+        # call function and get a list with primary keys
+        test = fill_countries(df_breeds_species, self.context)
+
+        # testing equality
+        self.assertEqual(reference, test)

@@ -43,8 +43,10 @@ class Command(BaseCommand):
                              image_app_database,
                              image_app_datasource,
                              image_app_dictbreed,
+                             image_app_dictcountry,
                              image_app_dictrole,
                              image_app_dictsex,
+                             image_app_dictspecie,
                              image_app_name,
                              image_app_ontology,
                              image_app_publication,
@@ -58,8 +60,10 @@ class Command(BaseCommand):
             statement = """
                     TRUNCATE image_app_animal,
                              image_app_dictbreed,
+                             image_app_dictcountry,
                              image_app_name,
                              image_app_sample,
+                             image_app_dictspecie,
                              image_app_submission RESTART IDENTITY
                         """
 
