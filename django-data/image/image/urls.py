@@ -18,6 +18,12 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic.base import RedirectView
 
+# renaming admin app (login, admin brand and page title)
+# https://books.agiliq.com/projects/django-admin-cookbook/en/latest/change_text.html
+admin.site.site_header = "IMAGE InjectTool Admin"
+admin.site.site_title = "IMAGE InjectTool Admin Portal"
+admin.site.index_title = "Welcome to IMAGE InjectTool Admin"
+
 urlpatterns = [
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
     url(r'^admin/', admin.site.urls),
