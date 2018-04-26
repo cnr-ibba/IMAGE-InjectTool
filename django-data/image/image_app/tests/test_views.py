@@ -6,7 +6,7 @@ Created on Wed Apr  4 16:11:23 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from image_app.models import User

@@ -10,8 +10,8 @@ import datetime
 
 from django.test import TestCase
 
-from image_app.models import (Animal, DataSource, DictBreed, DictSex, Name,
-                              Sample, DictSpecie, DictCountry)
+from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
+                              DictSex, DictSpecie, Name, Sample)
 
 
 class DictSexTestCase(TestCase):

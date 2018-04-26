@@ -16,7 +16,9 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from django.views.generic.base import RedirectView
+
+# importing image views
+from image_app.views import IndexView
 
 # renaming admin app (login, admin brand and page title)
 # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/change_text.html
@@ -27,7 +29,7 @@ admin.site.index_title = "Welcome to IMAGE InjectTool Admin"
 urlpatterns = [
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
     url(r'^admin/', admin.site.urls),
-    url(r'^$', RedirectView.as_view(pattern_name="admin:index"), name='index'),
+    url(r'^$', IndexView.as_view(), name='index'),
 ]
 
 # Activate django-debug-toolbar only when settings.DEBUG is True

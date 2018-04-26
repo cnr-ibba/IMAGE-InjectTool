@@ -9,8 +9,8 @@ In this module, all function useful to export data are defined
 
 """
 
-import os
 import logging
+import os
 
 import pandas as pd
 from django.conf import settings
@@ -18,10 +18,9 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_list_or_404, render
 
 from image_app import helper
-from image_app.models import (Animal, Database, Organization, Person,
-                              Publication, Submission, Ontology, Sample)
+from image_app.models import (Animal, Database, Ontology, Organization, Person,
+                              Publication, Sample, Submission)
 from image_app.views import custom
-
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

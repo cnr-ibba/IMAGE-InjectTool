@@ -11,9 +11,16 @@ from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
 from django.db import transaction
 from django.shortcuts import redirect, render, reverse
+from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from image_app.forms import DataSourceForm, PersonForm, UserForm
+
+
+class IndexView(TemplateView):
+    # Just set this Class Object Attribute to the template page.
+    # template_name = 'app_name/site.html'
+    template_name = 'image_app/index.html'
 
 
 class DataSourceView(FormView):

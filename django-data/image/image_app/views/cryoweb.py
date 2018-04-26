@@ -20,8 +20,8 @@ from django.core.management import call_command
 from django.shortcuts import redirect, render
 
 from image_app import helper
-from image_app.models import (Animal, DataSource, DictBreed, DictSex, Name,
-                              Sample, DictSpecie, DictCountry)
+from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
+                              DictSex, DictSpecie, Name, Sample)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
