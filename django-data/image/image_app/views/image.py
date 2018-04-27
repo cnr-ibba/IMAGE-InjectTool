@@ -23,6 +23,12 @@ class IndexView(TemplateView):
     template_name = 'image_app/index.html'
 
 
+class AboutView(TemplateView):
+    # Just set this Class Object Attribute to the template page.
+    # template_name = 'app_name/site.html'
+    template_name = 'image_app/about.html'
+
+
 class DataSourceView(FormView):
     """Handling DataSource forms with class based views"""
 

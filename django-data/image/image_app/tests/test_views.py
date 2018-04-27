@@ -33,7 +33,5 @@ class SiteTestCase(TestCase):
 
         response = self.client.get(reverse('index'))
 
-        # Check that the response is 302 OK. For the moment the home page
-        # under autentication is admin home page
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/")
+        # Check that the response is 200
+        self.assertEqual(response.status_code, 200)

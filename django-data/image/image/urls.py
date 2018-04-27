@@ -18,7 +18,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 # importing image views
-from image_app.views import IndexView
+from image_app.views import AboutView, IndexView
 
 # renaming admin app (login, admin brand and page title)
 # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/change_text.html
@@ -30,6 +30,9 @@ urlpatterns = [
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
     url(r'^admin/', admin.site.urls),
     url(r'^$', IndexView.as_view(), name='index'),
+    url(r'^about/$', AboutView.as_view(), name='about'),
+    # using auth CBV
+    url('^', include('django.contrib.auth.urls')),
 ]
 
 # Activate django-debug-toolbar only when settings.DEBUG is True

@@ -12,9 +12,9 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 from image_app import helper
-from image_app.models import User, DictSpecie, DictCountry
-from image_app.views.cryoweb import (
-        get_a_datasource, fill_species, fill_countries)
+from image_app.models import DictCountry, DictSpecie, User
+from image_app.views.cryoweb import (fill_countries, fill_species,
+                                     get_a_datasource)
 
 
 class BaseTestCase(TestCase):
