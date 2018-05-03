@@ -79,4 +79,8 @@ urlpatterns = [
     url(r'^animals/biosample/$',
         login_required(views.BioSampleListJSON.as_view()),
         name='animallist-biosample'),
+
+    url(r'^dashboard/$',
+        login_required(views.DashBoardView.as_view()),
+        name='dashboard'),
 ]

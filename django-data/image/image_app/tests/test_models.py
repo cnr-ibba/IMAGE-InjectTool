@@ -11,7 +11,87 @@ import datetime
 from django.test import TestCase
 
 from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
-                              DictSex, DictSpecie, Name, Sample)
+                              DictSex, DictSpecie, Name, Sample, uid_report)
+
+
+# a series of helper functions
+def create_dictsex(label='male', short_form='PATO_0000384'):
+    return DictSex.objects.create(
+                label=label,
+                short_form=short_form)
+
+
+def create_dictspecie(label='Sus scrofa', short_form='NCBITaxon_9823'):
+    return DictSpecie.objects.create(
+                label=label,
+                short_form=short_form)
+
+
+def create_dictcountry(label='Germany', short_form='NCIT_C16636'):
+    return DictCountry.objects.create(
+                label=label,
+                short_form=short_form)
+
+
+def create_dictbreed():
+    specie = create_dictspecie()
+
+    country = create_dictcountry()
+
+    return DictBreed.objects.create(
+                supplied_breed='Bunte Bentheimer',
+                mapped_breed='Bentheim Black Pied',
+                mapped_breed_ontology_accession='LBO_0000347',
+                country=country,
+                specie=specie)
+
+
+def create_animal():
+    ds = DataSource.objects.create(
+                name='CryoWeb DE',
+                version='23.01')
+
+    name = Name.objects.create(
+            name='ANIMAL:::ID:::132713',
+            datasource=ds)
+
+    breed = create_dictbreed()
+
+    sex = create_dictsex()
+
+    animal = Animal.objects.create(
+            name=name,
+            alternative_id=11,
+            description="a 4-year old pig organic fed",
+            breed=breed,
+            sex=sex)
+
+    # record id
+    return animal
+
+
+def create_sample(animal):
+    # get current datasource for a new name
+    ds = animal.name.datasource
+
+    name = Name.objects.create(
+            name='Siems_0722_393449',
+            datasource=ds)
+
+    # now create a sample object
+    return Sample.objects.create(
+            name=name,
+            alternative_id='Siems_0722_393449',
+            description="semen collected when the animal turns to 4",
+            animal=animal,
+            collection_date=datetime.date(2017, 3, 12),
+            collection_place="deutschland",
+            organism_part='semen',
+            organism_part_ontology_accession='UBERON_0001968',
+            developmental_stage='adult',
+            developmental_stage_ontology_accession='EFO_0001272',
+            animal_age_at_collection=4,
+            availability='mailto:peter@ebi.ac.uk')
 
 
 class DictSexTestCase(TestCase):
@@ -22,9 +102,8 @@ class DictSexTestCase(TestCase):
         self.label = 'male'
         self.short_form = 'PATO_0000384'
 
-        DictSex.objects.create(
-                label=self.label,
-                short_form=self.short_form)
+        # call an helper function
+        create_dictsex(label=self.label, short_form=self.short_form)
 
     def test_to_biosample(self):
         """Testing sex to biosample json"""
@@ -58,9 +137,8 @@ class DictSpecieTestCase(TestCase):
         self.label = 'Sus scrofa'
         self.short_form = 'NCBITaxon_9823'
 
-        DictSpecie.objects.create(
-                label=self.label,
-                short_form=self.short_form)
+        # call an helper function
+        create_dictspecie(label=self.label, short_form=self.short_form)
 
     def test_to_biosample(self):
         """Testing specie to biosample json"""
@@ -94,9 +172,8 @@ class DictCountryTestCase(TestCase):
         self.label = 'Germany'
         self.short_form = 'NCIT_C16636'
 
-        DictCountry.objects.create(
-                label=self.label,
-                short_form=self.short_form)
+        # call an helper function
+        create_dictcountry(label=self.label, short_form=self.short_form)
 
     def test_to_biosample(self):
         """Testing specie to biosample json"""
@@ -126,20 +203,8 @@ class DictBreedTestCase(TestCase):
     """Testing DictBreed class"""
 
     def setUp(self):
-        specie = DictSpecie.objects.create(
-                label='Sus scrofa',
-                short_form='NCBITaxon_9823')
-
-        country = DictCountry.objects.create(
-                label='Germany',
-                short_form='NCIT_C16636')
-
-        DictBreed.objects.create(
-                supplied_breed='Bunte Bentheimer',
-                mapped_breed='Bentheim Black Pied',
-                mapped_breed_ontology_accession='LBO_0000347',
-                country=country,
-                specie=specie)
+        # call an helper function
+        create_dictbreed()
 
     def test_to_biosample(self):
         """Testing breed to biosample json"""
@@ -166,38 +231,8 @@ class AnimalTestCase(TestCase):
     """Testing Animal Class"""
 
     def setUp(self):
-        ds = DataSource.objects.create(
-                name='CryoWeb DE',
-                version='23.01')
-
-        name = Name.objects.create(
-                name='ANIMAL:::ID:::132713',
-                datasource=ds)
-
-        specie = DictSpecie.objects.create(
-                label='Sus scrofa',
-                short_form='NCBITaxon_9823')
-
-        country = DictCountry.objects.create(
-                label='Germany',
-                short_form='NCIT_C16636')
-
-        breed = DictBreed.objects.create(
-                supplied_breed='Bunte Bentheimer',
-                mapped_breed='Bentheim Black Pied',
-                mapped_breed_ontology_accession='LBO_0000347',
-                country=country,
-                specie=specie)
-
-        sex = DictSex.objects.create(
-                label='male', short_form='PATO_0000384')
-
-        animal = Animal.objects.create(
-                name=name,
-                alternative_id=11,
-                description="a 4-year old pig organic fed",
-                breed=breed,
-                sex=sex)
+        # create animal
+        animal = create_animal()
 
         # record id
         self.animal_id = animal.id
@@ -268,56 +303,14 @@ class SampleTestCase(TestCase):
     """testing sample class"""
 
     def setUp(self):
-        ds = DataSource.objects.create(
-                name='CryoWeb DE',
-                version='23.01')
-
-        name = Name.objects.create(
-                name='Siems_0722_393449',
-                datasource=ds)
-
-        specie = DictSpecie.objects.create(
-                label='Sus scrofa',
-                short_form='NCBITaxon_9823')
-
-        country = DictCountry.objects.create(
-                label='Germany',
-                short_form='NCIT_C16636')
-
-        breed = DictBreed.objects.create(
-                supplied_breed='Bunte Bentheimer',
-                mapped_breed='Bentheim Black Pied',
-                mapped_breed_ontology_accession='LBO_0000347',
-                country=country,
-                specie=specie)
-
-        sex = DictSex.objects.create(
-                label='male', short_form='PATO_0000384')
-
-        animal = Animal.objects.create(
-                name=name,
-                alternative_id=11,
-                description="a 4-year old pig organic fed",
-                breed=breed,
-                sex=sex)
+        # create animal
+        animal = create_animal()
 
         # record id for the animal
         self.animal_id = animal.id
 
         # now create a sample object
-        sample = Sample.objects.create(
-                name=name,
-                alternative_id='Siems_0722_393449',
-                description="semen collected when the animal turns to 4",
-                animal=animal,
-                collection_date=datetime.date(2017, 3, 12),
-                collection_place="deutschland",
-                organism_part='semen',
-                organism_part_ontology_accession='UBERON_0001968',
-                developmental_stage='adult',
-                developmental_stage_ontology_accession='EFO_0001272',
-                animal_age_at_collection=4,
-                availability='mailto:peter@ebi.ac.uk')
+        sample = create_sample(animal)
 
         self.sample_id = sample.id
 
@@ -376,4 +369,19 @@ class SampleTestCase(TestCase):
         test = sample.to_biosample()
 
         self.maxDiff = None
+        self.assertEqual(reference, test)
+
+    def test_uid_report(self):
+        """testing uid report after a Sample and Animal insert"""
+
+        reference = {
+                'n_of_animals': 1,
+                'n_of_samples': 1,
+                'breeds_without_ontology': 0,
+                'countries_without_ontology': 0,
+                'species_without_ontology': 0,
+                }
+
+        test = uid_report()
+
         self.assertEqual(reference, test)

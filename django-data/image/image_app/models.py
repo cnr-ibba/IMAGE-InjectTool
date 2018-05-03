@@ -17,6 +17,7 @@ class DictRole(models.Model):
     short_form = models.CharField(
             max_length=255,
             blank=False,
+            null=True,
             help_text="Example: EFO_0001741")
 
     # TODO: fk with Ontology table
@@ -45,6 +46,7 @@ class DictCountry(models.Model):
     short_form = models.CharField(
             max_length=255,
             blank=False,
+            null=True,
             help_text="Example: GAZ_00002646")
 
     # TODO: fk with Ontology table
@@ -77,6 +79,7 @@ class DictSpecie(models.Model):
     short_form = models.CharField(
             max_length=255,
             blank=False,
+            null=True,
             help_text="Example: NCBITaxon_9823")
 
     # TODO: fk with Ontology table
@@ -97,8 +100,8 @@ class DictSpecie(models.Model):
 
 class DictBreed(models.Model):
     # this was the description field in cryoweb v_breeds_species tables
-    supplied_breed = models.CharField(max_length=255, blank=True)
-    mapped_breed = models.CharField(max_length=255, blank=True, null=True)
+    supplied_breed = models.CharField(max_length=255, blank=False)
+    mapped_breed = models.CharField(max_length=255, blank=False, null=True)
 
     # TODO add Mapped breed ontology library FK To Ontology
 #    mapped_breed_ontology_library = models.ForeignKey(
@@ -107,7 +110,7 @@ class DictBreed(models.Model):
 
     mapped_breed_ontology_accession = models.CharField(
             max_length=255,
-            blank=True,
+            blank=False,
             null=True,
             help_text="Example: LBO_0000347")
 
@@ -156,6 +159,7 @@ class DictSex(models.Model):
     short_form = models.CharField(
             max_length=255,
             blank=False,
+            null=True,
             help_text="Example: PATO_0000384")
 
     def __str__(self):
@@ -605,3 +609,30 @@ class DataSource(models.Model):
         # HINT: can I put two files for my cryoweb instance? May they have two
         # different version
         unique_together = (("name", "version"),)
+
+
+def uid_report():
+    """Performs a statistic on UID database to find issues"""
+
+    # TODO: act for a user
+    report = {}
+
+    # get n_of_animals
+    report['n_of_animals'] = Animal.objects.count()
+
+    # get n_of_samples
+    report['n_of_samples'] = Sample.objects.count()
+
+    # check breeds without ontologies
+    breed = DictBreed.objects.filter(mapped_breed_ontology_accession=None)
+    report['breeds_without_ontology'] = breed.count()
+
+    # check countries without ontology
+    country = DictCountry.objects.filter(short_form=None)
+    report['countries_without_ontology'] = country.count()
+
+    # check species without ontology
+    species = DictSpecie.objects.filter(short_form=None)
+    report['species_without_ontology'] = species.count()
+
+    return report

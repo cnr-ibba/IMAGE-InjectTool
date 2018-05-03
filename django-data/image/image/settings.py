@@ -191,7 +191,7 @@ USE_TZ = False
 LOGIN_URL = '/image/login/'
 
 # https://docs.djangoproject.com/en/1.11/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = '/image/'
+LOGIN_REDIRECT_URL = '/image/image_app/dashboard'
 
 # Static files (CSS, JavaScript, Images) and users' media
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -201,3 +201,9 @@ MEDIA_URL = '/image/media/'
 # collect all Django static files in the static folder
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+
+# This should be set to a list of strings that contain full paths to your
+# additional files directory(ies
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]

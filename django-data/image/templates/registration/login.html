@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
+{% load staticfiles%}
+
 {%  block custom-css %}
-  <link rel="stylesheet" href="/image/static/css/login.css">
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
 {% endblock %}
 
 {% block title_block %}

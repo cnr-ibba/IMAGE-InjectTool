@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title_block %}
+  Dashboard
+{% endblock %}
+
+{% block body_content %}
+  {% if user.is_authenticated %}
+    <h1>Welcome {{ user.get_username }}!</h1>
+  {% else %}
+    <h1>You should be not here</h1>
+  {% endif %}
+  <ul>
+    <li>You have {{datasource_count}} data sources loaded
+      ({{datasource_uploaded}} uploaded into UID)</li>
+    <li>
+      {% if cryoweb_hasdata %}
+        You have data in cryoweb staging area
+      {% else %}
+        Your cryoweb staging area is empty
+      {% endif %}
+    </li>
+    <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
+    <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
+    <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
+    <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
+    <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
+  </ul>
+  <a href="{% url 'image_app:update_profile' %}">Update user profile</a><br>
+  <a href="{% url 'image_app:data_upload' %}">Upload a datasource</a><br>
+  <a href="{% url 'image_app:upload_cryoweb' %}">Import cryoweb data into staging area</a><br>
+  <a href="{% url 'image_app:import_from_cryoweb' %}">Import cryoweb staging area into UID</a><br>
+  <a href="{% url 'image_app:animallist-biosample' %}">Download biosample data</a>
+{% endblock %}

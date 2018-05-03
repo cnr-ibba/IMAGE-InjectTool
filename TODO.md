@@ -46,10 +46,6 @@
   - Exporing data in IMAGE-metadata excel template, could be useful for data
     cleaning?
 
-* Suppose to fill up ontlogy terms in some way (or data useful to many Inject-Tool
-  installation). Common data need to be in a common database? Or the should be a copy
-  of them in each database?
-
 * Openrefine integration:
   - need to place Openrefine in docker compose?
   - can I place data directly in OpenRefine? I need to download data from Inject-Tool
@@ -115,10 +111,6 @@
     - high confidence: use it
     - good: ask to user?
 
-* One instance of UID and Inject-tool. (all hosted at PTP). Each user is isolated
-  from the others. Same UID? UID for each each user? Maybe UID centralized and isolate
-  user data.
-
 * Status code for submission
 
 * Error handling (API?/String messages?)
@@ -131,4 +123,11 @@
 
 * Move cryoweb views inside cryoweb application
 
-* rename image_app application?
+* rename image_app application into UID?
+
+* form-widgets to use bootstrap in django forms
+
+* Dashboard page: database status and links of all applications developed
+  - report and links for datasource (upload datasource, views datasources etc)
+  - report and links for cryoweb staging area
+    - check for duplicate breeds - names

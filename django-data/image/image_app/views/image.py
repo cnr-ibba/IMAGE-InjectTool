@@ -15,6 +15,8 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from image_app.forms import DataSourceForm, PersonForm, UserForm
+from image_app.helper import CryowebDB
+from image_app.models import DataSource, uid_report
 
 
 class IndexView(TemplateView):
@@ -27,6 +29,32 @@ class AboutView(TemplateView):
     # Just set this Class Object Attribute to the template page.
     # template_name = 'app_name/site.html'
     template_name = 'image_app/about.html'
+
+
+class DashBoardView(TemplateView):
+    template_name = "image_app/dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(DashBoardView, self).get_context_data(**kwargs)
+        # add content to context
+
+        # Add info for datasource
+        # TODO: count object for a certain user
+        context['datasource_count'] = DataSource.objects.count()
+        context['datasource_uploaded'] = DataSource.objects.filter(
+            loaded=True).count()
+
+        # add info for cryoweb db
+        context["cryoweb_hasdata"] = False
+        cryowebdb = CryowebDB()
+        if cryowebdb.has_data(search_path='apiis_admin'):
+            context["cryoweb_hasdata"] = True
+
+        # call report from UID model
+        context["uid_report"] = uid_report()
+
+        return context
 
 
 class DataSourceView(FormView):
