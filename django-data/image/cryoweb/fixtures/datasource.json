@@ -6,6 +6,8 @@
     "uploaded_file": "data_source/cryoweb_test_data_only.sql",
     "uploaded_at": "2018-04-11T13:44:31.988Z",
     "name": "Cryoweb",
+    "country": 1,
+    "type": 0,
     "version": "test",
     "loaded": false
   }

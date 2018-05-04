@@ -11,8 +11,9 @@ from image_app.models import (Animal, Database, DataSource, DictBreed,
 
 
 class DataSourceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'version', 'uploaded_file', 'uploaded_at',
-                    'loaded')
+    list_display = (
+        'name', 'country', 'type', 'version', 'uploaded_file', 'uploaded_at',
+        'loaded')
 
 
 class DictBreedAdmin(admin.ModelAdmin):

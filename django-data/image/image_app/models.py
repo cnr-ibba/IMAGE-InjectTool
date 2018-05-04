@@ -1,3 +1,6 @@
+
+from enum import Enum
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -283,8 +286,12 @@ class Animal(models.Model):
 
         result["name"] = self.name.name
 
-        result["dataSourceName"] = self.name.datasource.name
+        result["geneBankName"] = self.name.datasource.name
+        result["geneBankCountry"] = self.name.datasource.country.label
+        # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
+        result["dataSourceType"] = self.name.datasource.get_type_display()
         result["dataSourceVersion"] = self.name.datasource.version
+
         result["dataSourceId"] = self.alternative_id
 
         result["species"] = self.breed.specie.to_biosample()
@@ -391,8 +398,12 @@ class Sample(models.Model):
 
         result["name"] = self.name.name
 
-        result["dataSourceName"] = self.name.datasource.name
+        result["geneBankName"] = self.name.datasource.name
+        result["geneBankCountry"] = self.name.datasource.country.label
+        # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
+        result["dataSourceType"] = self.name.datasource.get_type_display()
         result["dataSourceVersion"] = self.name.datasource.version
+
         result["dataSourceId"] = self.alternative_id
 
         result["derivedFrom"] = self.animal.get_biosample_id()
@@ -588,27 +599,42 @@ class DataSource(models.Model):
             max_length=255,
             blank=False,
             null=False,
-            help_text='example: Cryoweb IBBA')
+            help_text='example: CryoWeb')
+
+    country = models.ForeignKey('DictCountry')
+
+    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+    class TYPES(Enum):
+        cryoweb = (0, 'CryoWeb')
+        template = (1, 'Template')
+        crb_anim = (2, 'CRB-Anim')
+
+        @classmethod
+        def get_value(cls, member):
+            return cls[member].value[0]
+
+    # type field
+    type = models.SmallIntegerField(
+            choices=[x.value for x in TYPES],
+            help_text='example: CryoWeb')
 
     # TODO: find a Biosample Key for this column
     version = models.CharField(
             max_length=255,
             blank=False,
             null=False,
-            help_text='examples: 2017-04, version 1.1')
+            help_text='examples: "2018-04-27", "version 1.5"')
 
     # internal column to check if data were uploaded in image db or not
     loaded = models.BooleanField(default=False)
 
-    # need I store country here?
-
-    def __str__(self):
-        return "%s, %s" % (self.name, self.version)
-
     class Meta:
         # HINT: can I put two files for my cryoweb instance? May they have two
         # different version
-        unique_together = (("name", "version"),)
+        unique_together = (("name", "country", "type", "version"),)
+
+    def __str__(self):
+        return "%s (%s, %s)" % (self.name, self.country.label, self.version)
 
 
 def uid_report():

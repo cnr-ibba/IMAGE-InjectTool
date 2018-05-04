@@ -1,0 +1,10 @@
+[
+{
+  "model": "image_app.dictcountry",
+  "pk": 1,
+  "fields": {
+    "label": "Germany",
+    "short_form": "GAZ_00002646"
+  }
+}
+]

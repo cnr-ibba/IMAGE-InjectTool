@@ -205,6 +205,16 @@ $ docker-compose stop
 # run a command (e.g., python manage.py check) in the python container from the host
 $ docker-compose run --rm uwsgi python manage.py check
 
+# makemigrations to all application or to specific application
+$ docker-compose run --rm uwsgi python manage.py makemigrations
+$ docker-compose run --rm uwsgi python manage.py makemigrations image_app
+
+# inspect a particoular migrations
+$ docker-compose run --rm uwsgi python manage.py sqlmigrate image_app 0005
+
+# apply migrations to database (all migrations made with makemigrations)
+docker-compose run --rm uwsgi python manage.py migrate
+
 # connect to the postgres database as administrator
 $ docker-compose run --rm db psql -h db -U postgres
 
@@ -214,6 +224,9 @@ $ docker-compose run --rm uwsgi python manage.py test image_app.tests.test_model
 
 # executing test with pytest
 $ docker-compose run --rm uwsgi pytest
+
+# executing test on a certain module
+$ docker-compose run --rm uwsgi pytest --verbosity=2 cryoweb/tests/test_cryoweb.py
 
 # calculating coverage
 $ docker-compose run --rm uwsgi coverage run --source='.' manage.py test

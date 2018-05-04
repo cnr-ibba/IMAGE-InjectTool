@@ -16,21 +16,27 @@ from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
 
 # a series of helper functions
 def create_dictsex(label='male', short_form='PATO_0000384'):
-    return DictSex.objects.create(
+    sex, created = DictSex.objects.get_or_create(
                 label=label,
                 short_form=short_form)
+
+    return sex
 
 
 def create_dictspecie(label='Sus scrofa', short_form='NCBITaxon_9823'):
-    return DictSpecie.objects.create(
+    specie, created = DictSpecie.objects.get_or_create(
                 label=label,
                 short_form=short_form)
+
+    return specie
 
 
 def create_dictcountry(label='Germany', short_form='NCIT_C16636'):
-    return DictCountry.objects.create(
+    country, created = DictCountry.objects.get_or_create(
                 label=label,
                 short_form=short_form)
+
+    return country
 
 
 def create_dictbreed():
@@ -38,20 +44,33 @@ def create_dictbreed():
 
     country = create_dictcountry()
 
-    return DictBreed.objects.create(
+    breed, created = DictBreed.objects.get_or_create(
                 supplied_breed='Bunte Bentheimer',
                 mapped_breed='Bentheim Black Pied',
                 mapped_breed_ontology_accession='LBO_0000347',
                 country=country,
                 specie=specie)
 
+    return breed
+
+
+def create_datasource():
+    # get dependencies
+    country = create_dictcountry()
+
+    ds, created = DataSource.objects.get_or_create(
+                name='CryoWeb',
+                version='23.01',
+                type=0,  # CryoWeb
+                country=country)
+
+    return ds
+
 
 def create_animal():
-    ds = DataSource.objects.create(
-                name='CryoWeb DE',
-                version='23.01')
+    ds = create_datasource()
 
-    name = Name.objects.create(
+    name, created = Name.objects.get_or_create(
             name='ANIMAL:::ID:::132713',
             datasource=ds)
 
@@ -59,7 +78,7 @@ def create_animal():
 
     sex = create_dictsex()
 
-    animal = Animal.objects.create(
+    animal, created = Animal.objects.get_or_create(
             name=name,
             alternative_id=11,
             description="a 4-year old pig organic fed",
@@ -72,14 +91,14 @@ def create_animal():
 
 def create_sample(animal):
     # get current datasource for a new name
-    ds = animal.name.datasource
+    ds = create_datasource()
 
-    name = Name.objects.create(
+    name, created = Name.objects.get_or_create(
             name='Siems_0722_393449',
             datasource=ds)
 
     # now create a sample object
-    return Sample.objects.create(
+    sample, created = Sample.objects.get_or_create(
             name=name,
             alternative_id='Siems_0722_393449',
             description="semen collected when the animal turns to 4",
@@ -92,6 +111,8 @@ def create_sample(animal):
             developmental_stage_ontology_accession='EFO_0001272',
             animal_age_at_collection=4,
             availability='mailto:peter@ebi.ac.uk')
+
+    return sample
 
 
 class DictSexTestCase(TestCase):
@@ -227,6 +248,20 @@ class DictBreedTestCase(TestCase):
         self.assertEqual(reference, test)
 
 
+class DataSourceTestCase(TestCase):
+    """Testing DataSource class"""
+
+    def setUp(self):
+        # call an helper function
+        self.datasource = create_datasource()
+
+    def test_str(self):
+        test = str(self.datasource)
+        reference = "CryoWeb (Germany, 23.01)"
+
+        self.assertEqual(reference, test)
+
+
 class AnimalTestCase(TestCase):
     """Testing Animal Class"""
 
@@ -266,7 +301,9 @@ class AnimalTestCase(TestCase):
                 "ontologyTerms": "OBI_0100026"
             },
             "name": "ANIMAL:::ID:::132713",
-            "dataSourceName": "CryoWeb DE",
+            "geneBankName": "CryoWeb",
+            "geneBankCountry": "Germany",
+            "dataSourceType": "CryoWeb",
             "dataSourceVersion": "23.01",
             "dataSourceId": "11",
             "species": {
@@ -340,7 +377,9 @@ class SampleTestCase(TestCase):
                 "text": "specimen from organism",
                 "ontologyTerms": "OBI_0001479"
             },
-            "dataSourceName": "CryoWeb DE",
+            "geneBankName": "CryoWeb",
+            "geneBankCountry": "Germany",
+            "dataSourceType": "CryoWeb",
             "dataSourceVersion": "23.01",
             "dataSourceId": "Siems_0722_393449",
             "derivedFrom": "animal_%s" % (self.animal_id),

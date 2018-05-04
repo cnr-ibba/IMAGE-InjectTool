@@ -40,7 +40,9 @@ class BaseTestCase(TestCase):
 
 class FillUIDTestClass(BaseTestCase):
     # import this file and populate database once
-    fixtures = ["cryoweb.json", "datasource.json", "dictsex.json"]
+    fixtures = [
+        "cryoweb.json", "dictcountry.json", "datasource.json", "dictsex.json",
+    ]
 
     def setUp(self):
         """Setting up"""
