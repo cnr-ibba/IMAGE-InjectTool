@@ -12,6 +12,8 @@ import re
 
 import requests
 
+from .constants import ZOOMA_URL, ONTOLOGIES
+
 
 def to_camel_case(input_str):
     """
@@ -39,13 +41,11 @@ def useZooma(term, category):
     # replacing spaces with +
     newTerm = term.replace(" ", "+")
 
-    # main production server
-    host = "https://www.ebi.ac.uk/spot/zooma/v2/api/services/annotate?propertyValue="+newTerm
-
-    # test zooma server
-    # host = "http://snarf.ebi.ac.uk:8480/spot/zooma/v2/api/services/annotate?propertyValue="+newTerm
-    # add filter: configure datasource and ols libraries
-    host += "&filter=required:[ena],ontologies:[efo,uberon,obi,NCBITaxon,lbo,pato,gaz]"  #according to IMAGE ruleset, only these ontology libraries are allowed in the ruleset, so not search others, gaz is for countries
+    # defining params
+    params = {
+        'propertyValue': newTerm,
+        'filter': "required:[ena],ontologies:[%s]" % (",".join(ONTOLOGIES))
+    }
 
     category = from_camel_case(category)
 
@@ -56,7 +56,7 @@ def useZooma(term, category):
     goodResult = {}
     result = {}
 
-    request = requests.get(host)
+    request = requests.get(ZOOMA_URL, params=params)
 
     # print (json.dumps(request.json(), indent=4, sort_keys=True))
 

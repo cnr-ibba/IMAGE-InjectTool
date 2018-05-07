@@ -43,38 +43,103 @@ class TestCamelCase(TestCase):
 
 
 class TestZooma(TestCase):
-    def testZooma():
+    """A class to test zooma tools"""
+
+    def test_use_zooma(self):
         """Testing zooma tools"""
 
         # organism in gxa datasource with high, disallow any datasource, good
-        # annotation = useZooma('mus musculus','species')
+        reference = {
+            'confidence': 'High',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/NCBITaxon_10090',
+            'text': 'Mus musculus',
+            'type': 'organism'
+        }
+        test = useZooma('mus musculus', 'species')
+        self.assertEqual(
+            reference,
+            test,
+            msg="Testing mus muscolus: species"
+        )
 
         # country type=null, two matches medium/low, so returned value is None
-        # annotation = useZooma('deutschland','country')
+        test = useZooma('deutschland', 'country')
+        self.assertIsNone(test, msg="Testing deutschland: country")
 
         # country type=null, while using ena datasource, high
-        # annotation = useZooma('norway','country')
+        # test = useZooma('norway', 'country')
+        # self.assertIsNone(test, msg="Testing norway: country")
 
         # breed LBO_0000347    type=null, good
-        # annotation = useZooma('bentheim black pied','breed')
+        reference = {
+            'confidence': 'Good',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347',
+            'text': 'Bentheim Black Pied',
+            'type': 'breed'
+        }
+        test = useZooma('bentheim black pied', 'breed')
+        self.assertEqual(
+            reference,
+            test,
+            msg="Testing bentheim black pied: breed")
 
         # breed LBO_0000436    type=null, good
         # annotation = useZooma('Bunte Bentheimer','breed')
 
         # Health status    type=disease
-        annotation = useZooma('normal','disease')
+        reference = {
+            'confidence': 'High',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/PATO_0000461',
+            'text': 'normal',
+            'type': 'disease'
+        }
+        test = useZooma('normal', 'disease')
+        self.assertEqual(
+            reference,
+            test,
+            msg="Testing normal: disease")
 
         # Organism part
-        # annotation = useZooma('spleen','organism part')
+        reference = {
+            'confidence': 'High',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/UBERON_0002106',
+            'text': 'spleen',
+            'type': 'organism part'
+        }
+        test = useZooma('spleen', 'organism part')
+        self.assertEqual(
+            reference,
+            test,
+            msg="Testing spleen: organism part")
 
         # Organism part UBERON_0001968 (semen) medium for default OLS setting,
         # good for specifying ontologies to search against
-        # annotation = useZooma('semen','organism part')
+        reference = {
+            'confidence': 'Good',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/UBERON_0001968',
+            'text': 'semen',
+            'type': 'organism part'
+        }
+        test = useZooma('semen', 'organism part')
+        self.assertEqual(
+            reference,
+            test,
+            msg="Testing semen: organism part")
 
         # Development stage type=developmental stage EFO_0001272 (adult)
-        # annotation = useZooma('adult','developmental stage')
+        reference = {
+            'confidence': 'High',
+            'ontologyTerms': 'http://www.ebi.ac.uk/efo/EFO_0001272',
+            'text': 'adult',
+            'type': 'developmental stage'
+        }
+        test = useZooma('adult', 'developmental stage')
+        self.assertEqual(
+            reference,
+            test,
+            msg="Testing adult: developmental stage")
 
         # Physiological stage several medium/low none of them related to
         # physiological stage PATO_0001701 (mature)
-        # annotation = useZooma('mature','physiological stage')
-        print(annotation)
+        test = useZooma('mature', 'physiological stage')
+        self.assertIsNone(test, msg="Testing mature: physiological stage")
