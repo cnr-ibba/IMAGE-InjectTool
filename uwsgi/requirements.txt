@@ -11,3 +11,4 @@ python-decouple
 coverage
 pytest-django
 django-widget-tweaks
+requests
