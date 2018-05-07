@@ -1,12 +1,16 @@
 
-{% extends 'admin/base_site.html' %}
+{% extends "base.html" %}
 
-{% block content %}
+{% block title_block %}
+  Upload a Datasource
+{% endblock title_block%}
+
+{% block body_content %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Upload</button>
+        {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
+        {% include 'includes/form.html' %}
+        <button type="submit" class="btn btn-success">Upload Datasource</button>
+        <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
     </form>
-
-    <p><a href="{% url 'index' %}">Return to home</a></p>
-{% endblock %}
+{% endblock body_content %}

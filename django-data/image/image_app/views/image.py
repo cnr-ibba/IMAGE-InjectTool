@@ -63,10 +63,22 @@ class DataSourceView(FormView):
     form_class = DataSourceForm
     template_name = "image_app/data_upload.html"
 
+    # add the request to the kwargs
+    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+    def get_form_kwargs(self):
+        kwargs = super(DataSourceView, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def get_success_url(self):
         """Override default function"""
 
-        return reverse("admin:index")
+        messages.success(
+            request=self.request,
+            message='Datasource added!',
+            extra_tags="alert alert-dismissible alert-success")
+
+        return reverse("image_app:dashboard")
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.

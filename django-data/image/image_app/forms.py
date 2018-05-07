@@ -2,13 +2,23 @@
 from django import forms
 from django.contrib.auth.models import User
 
-from image_app.models import DataSource, Person
+from image_app.models import DataSource, Person, DictCountry
 
 
 class DataSourceForm(forms.ModelForm):
+    name = forms.CharField(label="Gene bank Name")
+    country = forms.ModelChoiceField(
+        label="Gene bank country",
+        queryset=DictCountry.objects.all())
+
+    # the request is now available, add it to the instance data
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super(DataSourceForm, self).__init__(*args, **kwargs)
+
     class Meta:
         model = DataSource
-        fields = ('name', 'version', 'uploaded_file')
+        fields = ('name', 'country', 'type', 'version', 'uploaded_file')
 
 
 class UserForm(forms.ModelForm):

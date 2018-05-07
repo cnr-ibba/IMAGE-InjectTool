@@ -10,3 +10,4 @@ django-debug-toolbar==1.9.1
 python-decouple
 coverage
 pytest-django
+django-widget-tweaks

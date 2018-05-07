@@ -66,6 +66,22 @@
 
     {# padding top https://stackoverflow.com/a/26868098 #}
     <div class="container pt-5">
+      {# https://docs.djangoproject.com/en/1.11/ref/contrib/messages/#displaying-messages #}
+      {% block messages %}
+        {% if messages %}
+          {% for message in messages %}
+            {% if message.tags %}
+              <div class="{{ message.tags }}">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {% else %}
+              <div>
+            {% endif %}
+                {{ message }}
+              </div>
+          {% endfor %}
+        {% endif %}
+      {% endblock messages %}
+
       {% block body_content %}
         body content
       {% endblock %}
