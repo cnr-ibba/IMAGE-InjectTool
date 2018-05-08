@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'image_app.apps.ImageAppConfig',
     'cryoweb.apps.CryowebConfig',
+    'zooma.apps.ZoomaConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

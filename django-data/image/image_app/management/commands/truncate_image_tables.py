@@ -60,7 +60,6 @@ class Command(BaseCommand):
             statement = """
                     TRUNCATE image_app_animal,
                              image_app_dictbreed,
-                             image_app_dictcountry,
                              image_app_name,
                              image_app_sample,
                              image_app_dictspecie,

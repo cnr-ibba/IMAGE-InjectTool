@@ -9,10 +9,15 @@ Functions adapted from Jun Fan misc.py and use_zooma.py python scripts
 """
 
 import re
+import logging
 
 import requests
 
 from .constants import ZOOMA_URL, ONTOLOGIES
+
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 def to_camel_case(input_str):
@@ -42,6 +47,8 @@ def useZooma(term, category):
     newTerm = term.replace(" ", "+")
 
     # defining params
+    # TODO: can we focus the request to a specific endpoint (eg, why I need to
+    # search into EPO for countries?)
     params = {
         'propertyValue': newTerm,
         'filter': "required:[ena],ontologies:[%s]" % (",".join(ONTOLOGIES))
@@ -56,11 +63,25 @@ def useZooma(term, category):
     goodResult = {}
     result = {}
 
+    # debug
+    logger.debug("Calling zooma with %s" % (params))
+
     request = requests.get(ZOOMA_URL, params=params)
 
     # print (json.dumps(request.json(), indent=4, sort_keys=True))
+    logger.debug(request)
 
-    for elem in request.json():
+    # read results
+    results = request.json()
+
+    # a warn
+    if len(results) > 1:
+        logger.warn("Got %s results for %s" % (len(results), params))
+
+        for elem in results:
+            logger.warn(elem['annotatedProperty'])
+
+    for elem in results:
         detectedType = elem['annotatedProperty']['propertyType']
 
         # the type must match the given one or be null
@@ -73,15 +94,28 @@ def useZooma(term, category):
             # https://www.ebi.ac.uk/ols/api/terms?iri=http%3A%2F%2Fpurl.obolibrary.org%2Fobo%2FUBERON_0002106
             if (confidence == "high"):
                 highResult[propertyValue] = semanticTag
+                logger.debug(
+                    "got '%s' for '%s' with 'high' confidence" % (
+                            semanticTag, newTerm))
 
             elif (confidence == "good"):
                 goodResult[propertyValue] = semanticTag
+                logger.debug(
+                    "got '%s' for '%s' with 'good' confidence" % (
+                            semanticTag, newTerm))
+
+            else:
+                logger.debug(
+                    "Ignoring '%s' for '%s' since confidence is '%s'" % (
+                            semanticTag, newTerm, confidence))
 
             # if we have a low confidence, don't take the results
             # else: #  medium/low
 
     result['type'] = category
 
+    # TODO: is not clear if I have more than one result. For what I understand
+    # or I have a result or not
     if len(highResult) > 0:
         result['confidence'] = 'High'
         for value in highResult:
@@ -95,3 +129,6 @@ def useZooma(term, category):
             result['text'] = value
             result['ontologyTerms'] = goodResult[value]
             return result
+
+    # no results is returned with low or medium confidence
+    logger.warn("No result returned for %s" % (newTerm))
