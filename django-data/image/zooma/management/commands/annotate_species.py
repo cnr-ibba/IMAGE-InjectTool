@@ -33,7 +33,7 @@ class Command(BaseCommand):
         results = {}
 
         # get all species without a short_term
-        for specie in DictSpecie.objects.filter(short_form=None):
+        for specie in DictSpecie.objects.filter(term=None):
             results[specie.label] = useZooma(specie.label, "species")
 
         pprint.pprint(results)

@@ -15,26 +15,26 @@ from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
 
 
 # a series of helper functions
-def create_dictsex(label='male', short_form='PATO_0000384'):
+def create_dictsex(label='male', term='PATO_0000384'):
     sex, created = DictSex.objects.get_or_create(
                 label=label,
-                short_form=short_form)
+                term=term)
 
     return sex
 
 
-def create_dictspecie(label='Sus scrofa', short_form='NCBITaxon_9823'):
+def create_dictspecie(label='Sus scrofa', term='NCBITaxon_9823'):
     specie, created = DictSpecie.objects.get_or_create(
                 label=label,
-                short_form=short_form)
+                term=term)
 
     return specie
 
 
-def create_dictcountry(label='Germany', short_form='NCIT_C16636'):
+def create_dictcountry(label='Germany', term='NCIT_C16636'):
     country, created = DictCountry.objects.get_or_create(
                 label=label,
-                short_form=short_form)
+                term=term)
 
     return country
 
@@ -121,17 +121,17 @@ class DictSexTestCase(TestCase):
     def setUp(self):
         # my attributes
         self.label = 'male'
-        self.short_form = 'PATO_0000384'
+        self.term = 'PATO_0000384'
 
         # call an helper function
-        create_dictsex(label=self.label, short_form=self.short_form)
+        create_dictsex(label=self.label, term=self.term)
 
     def test_to_biosample(self):
         """Testing sex to biosample json"""
 
         reference = {
             "text": self.label,
-            "ontologyTerms": self.short_form
+            "ontologyTerms": self.term
         }
 
         male = DictSex.objects.get(label=self.label)
@@ -145,9 +145,9 @@ class DictSexTestCase(TestCase):
         male = DictSex.objects.get(label=self.label)
         self.assertEqual(
                 str(male),
-                "{label} ({short_form})".format(
+                "{label} ({term})".format(
                         label=self.label,
-                        short_form=self.short_form))
+                        term=self.term))
 
 
 class DictSpecieTestCase(TestCase):
@@ -156,17 +156,17 @@ class DictSpecieTestCase(TestCase):
     def setUp(self):
         # my attributes
         self.label = 'Sus scrofa'
-        self.short_form = 'NCBITaxon_9823'
+        self.term = 'NCBITaxon_9823'
 
         # call an helper function
-        create_dictspecie(label=self.label, short_form=self.short_form)
+        create_dictspecie(label=self.label, term=self.term)
 
     def test_to_biosample(self):
         """Testing specie to biosample json"""
 
         reference = {
                 "text": self.label,
-                "ontologyTerms": self.short_form
+                "ontologyTerms": self.term
         }
 
         sus = DictSpecie.objects.get(label=self.label)
@@ -180,9 +180,9 @@ class DictSpecieTestCase(TestCase):
         sus = DictSpecie.objects.get(label=self.label)
         self.assertEqual(
                 str(sus),
-                "{label} ({short_form})".format(
+                "{label} ({term})".format(
                         label=self.label,
-                        short_form=self.short_form))
+                        term=self.term))
 
 
 class DictCountryTestCase(TestCase):
@@ -191,17 +191,17 @@ class DictCountryTestCase(TestCase):
     def setUp(self):
         # my attributes
         self.label = 'Germany'
-        self.short_form = 'NCIT_C16636'
+        self.term = 'NCIT_C16636'
 
         # call an helper function
-        create_dictcountry(label=self.label, short_form=self.short_form)
+        create_dictcountry(label=self.label, term=self.term)
 
     def test_to_biosample(self):
         """Testing specie to biosample json"""
 
         reference = {
                 "text": self.label,
-                "ontologyTerms": self.short_form
+                "ontologyTerms": self.term
         }
 
         germany = DictCountry.objects.get(label=self.label)
@@ -215,9 +215,9 @@ class DictCountryTestCase(TestCase):
         germany = DictCountry.objects.get(label=self.label)
         self.assertEqual(
                 str(germany),
-                "{label} ({short_form})".format(
+                "{label} ({term})".format(
                         label=self.label,
-                        short_form=self.short_form))
+                        term=self.term))
 
 
 class DictBreedTestCase(TestCase):

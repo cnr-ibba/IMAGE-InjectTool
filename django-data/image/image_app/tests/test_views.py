@@ -47,7 +47,7 @@ class AddDataSourceTests(TestCase):
     def setUp(self):
         self.country = DictCountry.objects.create(
             label='Germany',
-            short_form='NCIT_C16636')
+            term='NCIT_C16636')
 
         self.user = User.objects.create_user(
             username='test',

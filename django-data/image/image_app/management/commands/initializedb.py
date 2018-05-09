@@ -54,13 +54,13 @@ GAZ;https://www.ebi.ac.uk/ols/ontologies/gaz;A gazetteer constructed on ontologi
 def fill_DictSex():
     # define two DictSex objects
     male, created = DictSex.objects.get_or_create(
-            label='male', short_form='PATO_0000384')
+            label='male', term='PATO_0000384')
 
     if created is True:
         logger.info("Created: %s" % (male))
 
     female, created = DictSex.objects.get_or_create(
-            label='female', short_form='PATO_0000383')
+            label='female', term='PATO_0000383')
 
     if created is True:
         logger.info("Created: %s" % (female))
@@ -70,7 +70,7 @@ def fill_DictSex():
 def fill_DictRoles():
     # define a submitter role
     role, created = DictRole.objects.get_or_create(
-            label='submitter', short_form='EFO_0001741')
+            label='submitter', term='EFO_0001741')
 
     if created is True:
         logger.info("Created: %s" % (role))

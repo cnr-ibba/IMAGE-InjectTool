@@ -17,7 +17,7 @@ class DictRole(models.Model):
             blank=False,
             help_text="Example: submitter")
 
-    short_form = models.CharField(
+    term = models.CharField(
             max_length=255,
             blank=False,
             null=True,
@@ -26,14 +26,14 @@ class DictRole(models.Model):
     # TODO: fk with Ontology table
 
     def __str__(self):
-        return "{label} ({short_form})".format(
+        return "{label} ({term})".format(
                 label=self.label,
-                short_form=self.short_form)
+                term=self.term)
 
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "role"
-        unique_together = (("label", "short_form"),)
+        unique_together = (("label", "term"),)
 
 
 class DictCountry(models.Model):
@@ -46,7 +46,7 @@ class DictCountry(models.Model):
             blank=False,
             help_text="Example: Germany")
 
-    short_form = models.CharField(
+    term = models.CharField(
             max_length=255,
             blank=False,
             null=True,
@@ -55,18 +55,18 @@ class DictCountry(models.Model):
     # TODO: fk with Ontology table
 
     def __str__(self):
-        return "{label} ({short_form})".format(
+        return "{label} ({term})".format(
                 label=self.label,
-                short_form=self.short_form)
+                term=self.term)
 
     def to_biosample(self):
-        return dict(text=self.label, ontologyTerms=self.short_form)
+        return dict(text=self.label, ontologyTerms=self.term)
 
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "country"
         verbose_name_plural = "countries"
-        unique_together = (("label", "short_form"),)
+        unique_together = (("label", "term"),)
 
 
 class DictSpecie(models.Model):
@@ -79,7 +79,7 @@ class DictSpecie(models.Model):
             blank=False,
             help_text="Example: Sus scrofa")
 
-    short_form = models.CharField(
+    term = models.CharField(
             max_length=255,
             blank=False,
             null=True,
@@ -88,17 +88,17 @@ class DictSpecie(models.Model):
     # TODO: fk with Ontology table
 
     def __str__(self):
-        return "{label} ({short_form})".format(
+        return "{label} ({term})".format(
                 label=self.label,
-                short_form=self.short_form)
+                term=self.term)
 
     def to_biosample(self):
-        return dict(text=self.label, ontologyTerms=self.short_form)
+        return dict(text=self.label, ontologyTerms=self.term)
 
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "specie"
-        unique_together = (("label", "short_form"),)
+        unique_together = (("label", "term"),)
 
 
 class DictBreed(models.Model):
@@ -159,19 +159,19 @@ class DictSex(models.Model):
             unique=True,
             help_text="Example: male")
 
-    short_form = models.CharField(
+    term = models.CharField(
             max_length=255,
             blank=False,
             null=True,
             help_text="Example: PATO_0000384")
 
     def __str__(self):
-        return "{label} ({short_form})".format(
+        return "{label} ({term})".format(
                 label=self.label,
-                short_form=self.short_form)
+                term=self.term)
 
     def to_biosample(self):
-        return dict(text=self.label, ontologyTerms=self.short_form)
+        return dict(text=self.label, ontologyTerms=self.term)
 
     class Meta:
         verbose_name = 'sex'
@@ -654,11 +654,11 @@ def uid_report():
     report['breeds_without_ontology'] = breed.count()
 
     # check countries without ontology
-    country = DictCountry.objects.filter(short_form=None)
+    country = DictCountry.objects.filter(term=None)
     report['countries_without_ontology'] = country.count()
 
     # check species without ontology
-    species = DictSpecie.objects.filter(short_form=None)
+    species = DictSpecie.objects.filter(term=None)
     report['species_without_ontology'] = species.count()
 
     return report

@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "label": "male",
-    "short_form": "PATO_0000384"
+    "term": "PATO_0000384"
   }
 },
 {
@@ -12,7 +12,7 @@
   "pk": 2,
   "fields": {
     "label": "female",
-    "short_form": "PATO_0000383"
+    "term": "PATO_0000383"
   }
 }
 ]
