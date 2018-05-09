@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue May  8 12:34:00 2018
+Created on Wed May  9 11:21:45 2018
 
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
@@ -10,7 +10,7 @@ import logging
 import pprint
 
 from django.core.management.base import BaseCommand
-from image_app.models import DictSpecie
+from image_app.models import DictCountry
 from zooma.helpers import useZooma
 
 
@@ -33,7 +33,7 @@ class Command(BaseCommand):
         results = {}
 
         # get all species without a short_term
-        for specie in DictSpecie.objects.filter(short_form=None):
-            results[specie.label] = useZooma(specie.label, "species")
+        for country in DictCountry.objects.filter(short_form=None):
+            results[country.label] = useZooma(country.label, "country")
 
         pprint.pprint(results)
