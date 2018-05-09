@@ -111,11 +111,29 @@ class DictBreed(models.Model):
 #            'Ontology',
 #            db_index=True)
 
-    mapped_breed_ontology_accession = models.CharField(
+    mapped_breed_term = models.CharField(
             max_length=255,
             blank=False,
             null=True,
             help_text="Example: LBO_0000347")
+
+    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+    class CONFIDENCE(Enum):
+        high = (0, 'High')
+        good = (1, 'Good')
+        medium = (2, 'Medium')
+        low = (3, 'Low')
+        curated = (4, 'Manually Curated')
+
+        @classmethod
+        def get_value(cls, member):
+            return cls[member].value[0]
+
+    # confidence field (enum)
+    confidence = models.SmallIntegerField(
+        choices=[x.value for x in CONFIDENCE],
+        help_text='example: Manually Curated',
+        null=True)
 
     # using a constraint for country.
     country = models.ForeignKey('DictCountry')
@@ -137,7 +155,7 @@ class DictBreed(models.Model):
         result['suppliedBreed'] = self.supplied_breed
         result['mappedBreed'] = {
                 'text': self.mapped_breed,
-                'ontologyTerms': self.mapped_breed_ontology_accession}
+                'ontologyTerms': self.mapped_breed_term}
         result['country'] = self.country.to_biosample()
         return result
 
@@ -650,7 +668,7 @@ def uid_report():
     report['n_of_samples'] = Sample.objects.count()
 
     # check breeds without ontologies
-    breed = DictBreed.objects.filter(mapped_breed_ontology_accession=None)
+    breed = DictBreed.objects.filter(mapped_breed_term=None)
     report['breeds_without_ontology'] = breed.count()
 
     # check countries without ontology

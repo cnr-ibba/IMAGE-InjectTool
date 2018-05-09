@@ -112,7 +112,10 @@ def useZooma(term, category):
             # if we have a low confidence, don't take the results
             # else: #  medium/low
 
+    # HINT: is useful?
     result['type'] = category
+
+    # TODO: check if the annotation is useful (eg throw away GAZ for a specie)
 
     # TODO: is not clear if I have more than one result. For what I understand
     # or I have a result or not

@@ -47,7 +47,7 @@ def create_dictbreed():
     breed, created = DictBreed.objects.get_or_create(
                 supplied_breed='Bunte Bentheimer',
                 mapped_breed='Bentheim Black Pied',
-                mapped_breed_ontology_accession='LBO_0000347',
+                mapped_breed_term='LBO_0000347',
                 country=country,
                 specie=specie)
 

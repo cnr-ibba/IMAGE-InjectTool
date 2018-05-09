@@ -19,8 +19,9 @@ class DataSourceAdmin(admin.ModelAdmin):
 class DictBreedAdmin(admin.ModelAdmin):
     search_fields = ['supplied_breed']
     list_per_page = 9
-    list_display = ('supplied_breed', 'mapped_breed',
-                    'mapped_breed_ontology_accession', 'country', 'specie')
+    list_display = (
+        'supplied_breed', 'mapped_breed', 'mapped_breed_term', 'confidence',
+        'country', 'specie')
 
 
 class NameAdmin(admin.ModelAdmin):
