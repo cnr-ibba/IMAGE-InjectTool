@@ -37,6 +37,7 @@ uwsgi:
   # define volumes
   volumes:
     - "./django-data/:/var/uwsgi/"
+    - "./.git/:/var/uwsgi/.git/:ro"
     - "/etc/localtime:/etc/localtime:ro"
 
   # Expose the default port
