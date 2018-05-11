@@ -139,6 +139,19 @@ class DictSexTestCase(TestCase):
 
         self.assertEqual(reference, test)
 
+    def test_to_biosample_with_none(self):
+        """Test to biosample conversion without term"""
+
+        male = DictSex.objects.get(label=self.label)
+        male.term = None
+        test = male.to_biosample()
+
+        reference = {
+            "text": self.label
+        }
+
+        self.assertEqual(reference, test)
+
     def test_str(self):
         """Testing str representation"""
 
@@ -174,6 +187,19 @@ class DictSpecieTestCase(TestCase):
 
         self.assertEqual(reference, test)
 
+    def test_to_biosample_with_none(self):
+        """Test to biosample conversion without term"""
+
+        sus = DictSpecie.objects.get(label=self.label)
+        sus.term = None
+        test = sus.to_biosample()
+
+        reference = {
+            "text": self.label
+        }
+
+        self.assertEqual(reference, test)
+
     def test_str(self):
         """Testing str representation"""
 
@@ -206,6 +232,19 @@ class DictCountryTestCase(TestCase):
 
         germany = DictCountry.objects.get(label=self.label)
         test = germany.to_biosample()
+
+        self.assertEqual(reference, test)
+
+    def test_to_biosample_with_none(self):
+        """Test to biosample conversion without term"""
+
+        germany = DictCountry.objects.get(label=self.label)
+        germany.term = None
+        test = germany.to_biosample()
+
+        reference = {
+            "text": self.label
+        }
 
         self.assertEqual(reference, test)
 
@@ -245,6 +284,28 @@ class DictBreedTestCase(TestCase):
         bunte = DictBreed.objects.get(supplied_breed='Bunte Bentheimer')
         test = bunte.to_biosample()
 
+        self.assertEqual(reference, test)
+
+    def test_to_biosample_with_none(self):
+        """Test to biosample conversion without mapped objects"""
+
+        # TODO: eval default mapped breed
+        bunte = DictBreed.objects.get(supplied_breed='Bunte Bentheimer')
+
+        # remove mapped_breed and mapped_breed_term
+        bunte.mapped_breed = None
+        bunte.mapped_breed_term = None
+
+        reference = {
+            "suppliedBreed": "Bunte Bentheimer",
+            "country": {
+                "text": "Germany",
+                "ontologyTerms": "NCIT_C16636"
+            },
+        }
+
+        # test biosample conversion
+        test = bunte.to_biosample()
         self.assertEqual(reference, test)
 
 
@@ -335,6 +396,55 @@ class AnimalTestCase(TestCase):
         self.maxDiff = None
         self.assertEqual(reference, test)
 
+    def test_to_biosample_with_none(self):
+        """Test to biosample conversion with null fields"""
+
+        # reference with no description
+        reference = {
+            "biosampleId": "animal_%s" % (self.animal_id),
+            "project": "IMAGE",
+            "material": {
+                "text": "organism",
+                "ontologyTerms": "OBI_0100026"
+            },
+            "name": "ANIMAL:::ID:::132713",
+            "geneBankName": "CryoWeb",
+            "geneBankCountry": "Germany",
+            "dataSourceType": "CryoWeb",
+            "dataSourceVersion": "23.01",
+            "dataSourceId": "11",
+            "species": {
+                "text": "Sus scrofa",
+                "ontologyTerms": "NCBITaxon_9823"
+            },
+            "breed": {
+                "suppliedBreed": "Bunte Bentheimer",
+                "country": {
+                    "text": "Germany",
+                    "ontologyTerms": "NCIT_C16636"
+                },
+                "mappedBreed": {
+                    "text": "Bentheim Black Pied",
+                    "ontologyTerms": "LBO_0000347"
+                }
+            },
+            "sex": {
+                "text": "male",
+                "ontologyTerms": "PATO_0000384"
+            }
+
+            # HINT: no consideration were made for father and mother
+        }
+
+        animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
+
+        # remove description and test
+        animal.description = None
+        test = animal.to_biosample()
+
+        self.maxDiff = None
+        self.assertEqual(reference, test)
+
 
 class SampleTestCase(TestCase):
     """testing sample class"""
@@ -405,6 +515,43 @@ class SampleTestCase(TestCase):
         }
 
         sample = Sample.objects.get(name__name='Siems_0722_393449')
+        test = sample.to_biosample()
+
+        self.maxDiff = None
+        self.assertEqual(reference, test)
+
+    def test_to_biosample_with_none(self):
+        """Test to biosample conversion with null fields"""
+
+        reference = {
+            "biosampleId": "sample_%s" % (self.sample_id),
+            "project": "IMAGE",
+            "description": "semen collected when the animal turns to 4",
+            "material": {
+                "text": "specimen from organism",
+                "ontologyTerms": "OBI_0001479"
+            },
+            "geneBankName": "CryoWeb",
+            "geneBankCountry": "Germany",
+            "dataSourceType": "CryoWeb",
+            "dataSourceVersion": "23.01",
+            "dataSourceId": "Siems_0722_393449",
+            "derivedFrom": "animal_%s" % (self.animal_id),
+            "name": "Siems_0722_393449",
+        }
+
+        sample = Sample.objects.get(name__name='Siems_0722_393449')
+
+        # set some attributes as NULL
+        sample.collection_date = None
+        sample.collection_place = None
+        sample.organism_part = None
+        sample.organism_part_ontology_accession = None
+        sample.developmental_stage = None
+        sample.developmental_stage_ontology_accession = None
+        sample.animal_age_at_collection = None
+        sample.availability = None
+
         test = sample.to_biosample()
 
         self.maxDiff = None

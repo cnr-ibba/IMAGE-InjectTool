@@ -7,7 +7,24 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
-class DictRole(models.Model):
+class BaseDict():
+    """Base class for dictionary tables"""
+
+    def __str__(self):
+        return "{label} ({term})".format(
+                label=self.label,
+                term=self.term)
+
+    def to_biosample(self):
+        biosample = dict(text=self.label)
+
+        if self.term:
+            biosample["ontologyTerms"] = self.term
+
+        return biosample
+
+
+class DictRole(BaseDict, models.Model):
     """A class to model roles defined as childs of
     http://www.ebi.ac.uk/efo/EFO_0002012"""
 
@@ -25,18 +42,13 @@ class DictRole(models.Model):
 
     # TODO: fk with Ontology table
 
-    def __str__(self):
-        return "{label} ({term})".format(
-                label=self.label,
-                term=self.term)
-
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "role"
         unique_together = (("label", "term"),)
 
 
-class DictCountry(models.Model):
+class DictCountry(BaseDict, models.Model):
     """A class to model contries defined by Gazetteer
     https://www.ebi.ac.uk/ols/ontologies/gaz"""
 
@@ -54,14 +66,6 @@ class DictCountry(models.Model):
 
     # TODO: fk with Ontology table
 
-    def __str__(self):
-        return "{label} ({term})".format(
-                label=self.label,
-                term=self.term)
-
-    def to_biosample(self):
-        return dict(text=self.label, ontologyTerms=self.term)
-
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "country"
@@ -69,7 +73,7 @@ class DictCountry(models.Model):
         unique_together = (("label", "term"),)
 
 
-class DictSpecie(models.Model):
+class DictSpecie(BaseDict, models.Model):
     """A class to model species defined by NCBI organismal classification
     http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
 
@@ -86,14 +90,6 @@ class DictSpecie(models.Model):
             help_text="Example: NCBITaxon_9823")
 
     # TODO: fk with Ontology table
-
-    def __str__(self):
-        return "{label} ({term})".format(
-                label=self.label,
-                term=self.term)
-
-    def to_biosample(self):
-        return dict(text=self.label, ontologyTerms=self.term)
 
     class Meta:
         # db_table will be <app_name>_<classname>
@@ -153,9 +149,13 @@ class DictBreed(models.Model):
         result = {}
 
         result['suppliedBreed'] = self.supplied_breed
-        result['mappedBreed'] = {
-                'text': self.mapped_breed,
-                'ontologyTerms': self.mapped_breed_term}
+
+        # Add mapped breed and its term if I have them
+        if self.mapped_breed and self.mapped_breed_term:
+            result['mappedBreed'] = {
+                    'text': self.mapped_breed,
+                    'ontologyTerms': self.mapped_breed_term}
+
         result['country'] = self.country.to_biosample()
         return result
 
@@ -168,7 +168,7 @@ class DictBreed(models.Model):
         unique_together = (("supplied_breed", "specie"),)
 
 
-class DictSex(models.Model):
+class DictSex(BaseDict, models.Model):
     """A class to model sex as defined in PATO"""
 
     label = models.CharField(
@@ -182,14 +182,6 @@ class DictSex(models.Model):
             blank=False,
             null=True,
             help_text="Example: PATO_0000384")
-
-    def __str__(self):
-        return "{label} ({term})".format(
-                label=self.label,
-                term=self.term)
-
-    def to_biosample(self):
-        return dict(text=self.label, ontologyTerms=self.term)
 
     class Meta:
         verbose_name = 'sex'
@@ -296,7 +288,10 @@ class Animal(models.Model):
         result["biosampleId"] = self.get_biosample_id()
 
         result["project"] = "IMAGE"
-        result["description"] = self.description
+
+        if self.description:
+            result["description"] = self.description
+
         result["material"] = {
                 "text": "organism",
                 "ontologyTerms": "OBI_0100026"
@@ -352,6 +347,7 @@ class Sample(models.Model):
     collection_place_longitude = models.FloatField(blank=True, null=True)
     collection_place = models.CharField(max_length=255, blank=True, null=True)
 
+    # TODO: move those fields to dictionary tables
     organism_part = models.CharField(max_length=255, blank=True, null=True)
 
     organism_part_ontology_accession = models.CharField(
@@ -426,29 +422,36 @@ class Sample(models.Model):
 
         result["derivedFrom"] = self.animal.get_biosample_id()
 
-        result["collectionDate"] = {
+        if self.collection_date:
+            result["collectionDate"] = {
                 "text": str(self.collection_date),
                 "unit": "YYYY-MM-DD"
-        }
+            }
 
-        result["collectionPlace"] = self.collection_place
+        if self.collection_place:
+            result["collectionPlace"] = self.collection_place
 
-        result["organismPart"] = {
+        # TODO: move the following two fields to Dictionary Table
+        if self.organism_part:
+            result["organismPart"] = {
                 "text": self.organism_part,
                 "ontologyTerms": self.organism_part_ontology_accession
-        }
+            }
 
-        result["developmentStage"] = {
+        if self.developmental_stage:
+            result["developmentStage"] = {
                 "text": self.developmental_stage,
                 "ontologyTerms": self.developmental_stage_ontology_accession
-        }
+            }
 
-        result["animalAgeAtCollection"] = {
+        if self.animal_age_at_collection:
+            result["animalAgeAtCollection"] = {
                 "text": self.animal_age_at_collection,
                 "unit": "years"
-        }
+            }
 
-        result["availability"] = self.availability
+        if self.availability:
+            result["availability"] = self.availability
 
         return result
 

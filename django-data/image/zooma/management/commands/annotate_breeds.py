@@ -36,7 +36,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # get all species without a short_term
-        for breed in DictBreed.objects.filter(mapped_breed_term=None):
+        for breed in DictBreed.objects.filter(mapped_breed_term__isnull=True):
             logger.debug("Processing %s" % (breed))
 
             result = useZooma(
@@ -45,6 +45,7 @@ class Command(BaseCommand):
             # update object (if possible)
             if result:
                 url = result['ontologyTerms']
+                # https://stackoverflow.com/a/7253830
                 term = url.rsplit('/', 1)[-1]
 
                 # check that term have a correct ontology
@@ -62,8 +63,7 @@ class Command(BaseCommand):
                 logger.info("Updating %s with %s" % (breed, result))
                 url = result['ontologyTerms']
 
-                # https://stackoverflow.com/a/7253830
-                breed.mapped_breed_term = url.rsplit('/', 1)[-1]
+                breed.mapped_breed_term = term
                 breed.mapped_breed = result['text']
 
                 # get an int object for such confidence

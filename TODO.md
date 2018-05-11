@@ -66,6 +66,8 @@
 
 * Those tables are empty at the moment:
   - Databases
+  - Publications
+  - Submission
 
 * Submission table is not referenced by any other table.
   - Should I retrieve information using a submission id? Is submission the first
@@ -110,6 +112,8 @@
   - zooma:
     - high confidence: use it
     - good: ask to user?
+    - Add a special confidence status when supplied breed is different from
+      mapped_breed (need revisions)
 
 * Status code for submission
 
@@ -125,8 +129,6 @@
 
 * rename image_app application into UID?
 
-* form-widgets to use bootstrap in django forms
-
 * Dashboard page: database status and links of all applications developed
   - report and links for datasource (upload datasource, views datasources etc)
   - report and links for cryoweb staging area
@@ -134,3 +136,9 @@
 
 * If I use a custom form for datasource, I need to load all countries or put
   a link to add a new country as admin does
+
+* Use full link when returning an ontology
+
+* return a default ontology for breed if non mapping occours
+
+* species and countries need to be validated against dictionary tables
