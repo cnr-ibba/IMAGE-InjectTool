@@ -10,8 +10,11 @@ import datetime
 
 from django.test import TestCase
 
-from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
-                              DictSex, DictSpecie, Name, Sample, uid_report)
+from image_app.models import (
+    Animal, DataSource, DictBreed, DictCountry, DictSex, DictSpecie, Name,
+    Sample, uid_report)
+
+from language.models import SpecieSynonim
 
 
 # a series of helper functions
@@ -27,6 +30,15 @@ def create_dictspecie(label='Sus scrofa', term='NCBITaxon_9823'):
     specie, created = DictSpecie.objects.get_or_create(
                 label=label,
                 term=term)
+
+    # get a country
+    country = create_dictcountry()
+
+    # create a synonim
+    synonim, created = SpecieSynonim.objects.get_or_create(
+        dictspecie=specie,
+        language=country,
+        word='Pig')
 
     return specie
 
@@ -209,6 +221,18 @@ class DictSpecieTestCase(TestCase):
                 "{label} ({term})".format(
                         label=self.label,
                         term=self.term))
+
+    def test_get_specie_by_synonim(self):
+        """Getting specie using synonim"""
+
+        sus = DictSpecie.get_by_synonim('Pig', 'Germany')
+
+        self.assertEqual(sus.label, self.label)
+        self.assertEqual(sus.term, self.term)
+
+        # using a word not registered returns no data
+        with self.assertRaises(DictSpecie.DoesNotExist):
+            DictSpecie.get_by_synonim('Foo', 'Germany')
 
 
 class DictCountryTestCase(TestCase):

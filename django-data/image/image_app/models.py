@@ -86,6 +86,7 @@ class DictSpecie(BaseDict, models.Model):
     term = models.CharField(
             max_length=255,
             null=True,
+            blank=True,
             help_text="Example: NCBITaxon_9823")
 
     # TODO: fk with Ontology table
@@ -94,6 +95,13 @@ class DictSpecie(BaseDict, models.Model):
         # db_table will be <app_name>_<classname>
         verbose_name = "specie"
         unique_together = (("label", "term"),)
+
+    @classmethod
+    def get_by_synonim(cls, synonim, language):
+        # return an object
+        return cls.objects.get(
+            speciesynonim__word=synonim,
+            speciesynonim__language__label=language)
 
 
 class DictBreed(models.Model):

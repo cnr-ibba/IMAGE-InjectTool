@@ -16,6 +16,8 @@ from image_app.models import DictCountry, DictSpecie, User
 from image_app.views.cryoweb import (fill_countries, fill_species,
                                      get_a_datasource)
 
+from language.models import SpecieSynonim
+
 
 class BaseTestCase(TestCase):
     # import this file and populate database once
@@ -42,6 +44,7 @@ class FillUIDTestClass(BaseTestCase):
     # import this file and populate database once
     fixtures = [
         "cryoweb.json", "dictcountry.json", "datasource.json", "dictsex.json",
+        "dictspecie.image.json", "speciesynonim.image.json"
     ]
 
     def setUp(self):
@@ -103,24 +106,22 @@ class FillUIDTestClass(BaseTestCase):
     def test_load_species(self):
         """Testing load_species function"""
 
-        # read the the v_breeds_species view in the "cryoweb database"
-        df_breeds_species = pd.read_sql_table(
-                'v_breeds_species',
-                con=self.engine_from_cryoweb,
-                schema="apiis_admin")
+        # define a custum df for species
+        test_df = pd.DataFrame({'efabis_species': ['Cattle', 'Sheep']})
 
         # concat dataframe two times
-        test_df = pd.concat([df_breeds_species, df_breeds_species])
+        test_df = pd.concat([test_df, test_df])
 
         # read species from table
         reference = []
 
-        for specie in test_df["efabis_species"]:
-            dictspecie, status = DictSpecie.objects.get_or_create(label=specie)
+        # get specie using synonyms (loaded using fixtures)
+        for synonim in test_df["efabis_species"]:
+            dictspecie = DictSpecie.get_by_synonim(synonim, "Germany")
             reference += [dictspecie.id]
 
         # call function and get a list with primary keys
-        test = fill_species(test_df, self.context)
+        test = fill_species(test_df, self.context, self.datasource)
 
         # testing equality
         self.assertEqual(reference, test)

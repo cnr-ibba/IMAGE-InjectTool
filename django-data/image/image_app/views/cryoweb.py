@@ -130,31 +130,36 @@ def add_warnings(context, section, msg):
         context['warnings'][section] = [msg]
 
 
-def fill_species(df_breeds_species, context):
+def fill_species(df_breeds_species, context, datasource):
     """Return a list of DictSpecie.id. Fill DictSpecies if necessary"""
+
+    # debug
+    logger.info("called fill_species()")
 
     # get all species
     species_set = set(df_breeds_species["efabis_species"])
 
+    # get datasource language
+    language = datasource.country.label
+
     # now a dictionary for label to ids
     species_dict = dict()
-    counter = 0
 
     # cicle over specie
-    for specie in species_set:
-        specie_obj, created = DictSpecie.objects.get_or_create(
-                label=specie)
+    for synonim in species_set:
+        specie_obj = DictSpecie.get_by_synonim(
+            synonim,
+            language)
 
         # get pk (or id)
-        species_dict[specie] = specie_obj.id
-
-        if created:
-            counter += 1
+        species_dict[synonim] = specie_obj.id
 
     # debug
-    if counter > 0:
-        logger.info("Added %s species" % (counter))
-        context['loaded']['specie'] = counter
+    logger.info("Found %s species" % (len(species_set)))
+    context['loaded']['specie'] = len(species_set)
+
+    logger.info("fill_species() completed")
+    logger.debug("returning: %s" % (species_dict))
 
     # now I have a dictionary of species to id, map columns to values
     return list(df_breeds_species.efabis_species.map(species_dict))
@@ -190,7 +195,7 @@ def fill_countries(df_breeds_species, context):
     return list(df_breeds_species.efabis_country.map(countries_dict))
 
 
-def fill_breeds(engine_from_cryoweb, context):
+def fill_breeds(engine_from_cryoweb, context, datasource):
     """Helper function to upload breeds data in image database"""
 
     # debug
@@ -206,7 +211,7 @@ def fill_breeds(engine_from_cryoweb, context):
     logger.debug("Read %s records from v_breeds_species" % (
             df_breeds_species.shape[0]))
 
-    species_ids = fill_species(df_breeds_species, context)
+    species_ids = fill_species(df_breeds_species, context, datasource)
     countries_ids = fill_countries(df_breeds_species, context)
 
     # keep only interesting columns and rename them
@@ -409,7 +414,7 @@ def fill_transfer(engine_from_cryoweb, datasource, context):
 
 # define a function to get the row from a dictionary of
 # {(species, description: dictbreed.id} starting from dataframe
-def getDictBreedId(row, df_breeds_fin, breed_to_id):
+def getDictBreedId(row, df_breeds_fin, breed_to_id, datasource):
     """Returns DictBreed.id from a row from df_animals and df_breed"""
 
     # get db_breed index from row
@@ -418,8 +423,16 @@ def getDictBreedId(row, df_breeds_fin, breed_to_id):
     # get data from df_breeds_fin using dataframr indexes
     data = df_breeds_fin.loc[db_breed].to_dict()
 
+    # get datasource language
+    language = datasource.country.label
+
+    # convert cryoweb specie into UID specie
+    specie = DictSpecie.get_by_synonim(
+            synonim=data['species'],
+            language=language)
+
     # ok get dictbreed.id from dictionary
-    key = (data['supplied_breed'], data['species'])
+    key = (data['supplied_breed'], specie.label)
     return breed_to_id[key]
 
 
@@ -470,7 +483,10 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     # breed id foreign key in animals table
     df_animals['breed_id'] = df_animals.apply(
             lambda row: getDictBreedId(
-                    row, df_breeds_fin, breed_to_id),
+                    row,
+                    df_breeds_fin,
+                    breed_to_id,
+                    datasource),
             axis=1)
 
     # get name to id relation
@@ -874,7 +890,8 @@ def import_from_cryoweb(request):
         # BREEDS
         df_breeds_fin = fill_breeds(
                 engine_from_cryoweb,
-                context)
+                context,
+                datasource)
 
         # TRANSFER
         df_transfer_fin = fill_transfer(
