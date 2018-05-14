@@ -85,7 +85,6 @@ class DictSpecie(BaseDict, models.Model):
 
     term = models.CharField(
             max_length=255,
-            blank=False,
             null=True,
             help_text="Example: NCBITaxon_9823")
 

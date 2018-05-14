@@ -51,7 +51,8 @@ class Command(BaseCommand):
                              image_app_ontology,
                              image_app_publication,
                              image_app_sample,
-                             image_app_submission RESTART IDENTITY
+                             image_app_submission,
+                             language_speciesynonim RESTART IDENTITY
                         """
 
         else:
@@ -63,7 +64,8 @@ class Command(BaseCommand):
                              image_app_name,
                              image_app_sample,
                              image_app_dictspecie,
-                             image_app_submission RESTART IDENTITY
+                             image_app_submission,
+                             language_speciesynonim RESTART IDENTITY
                         """
 
         # debug

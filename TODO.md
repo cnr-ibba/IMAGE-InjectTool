@@ -142,3 +142,14 @@
 * return a default ontology for breed if non mapping occours
 
 * species and countries need to be validated against dictionary tables
+  - check for synonim before cryoweb insert into dictspecie table.
+
+* cryoweb tabled need to be filled using django ORM:
+  - can test using correct test database: now functions and pandas function use
+    hardcoded cryoweb database even in tests.
+  - implement views in cryoweb models (ex https://blog.rescale.com/using-database-views-in-django-orm/)
+  - no more config and helper module
+  - remove pandas
+  - fixtures and pre calculate data in test database are recordered in transactions:
+    I need to see object using the same connection (see loaded fixtures with
+    the same connection)

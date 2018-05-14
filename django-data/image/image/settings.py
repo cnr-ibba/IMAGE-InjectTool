@@ -30,9 +30,10 @@ ALLOWED_HOSTS = ['*']
 
 # Application definition
 INSTALLED_APPS = [
-    'image_app.apps.ImageAppConfig',
-    'cryoweb.apps.CryowebConfig',
-    'zooma.apps.ZoomaConfig',
+    'image_app',
+    'cryoweb',
+    'zooma',
+    'language',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
