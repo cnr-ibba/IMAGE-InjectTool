@@ -11,7 +11,12 @@ from django.contrib.messages import get_messages
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
-from image_app import helper
+import cryoweb.helpers
+from cryoweb.models import BreedsSpecies
+
+# TODO: rename this module
+import image_app.helper
+
 from image_app.models import DictCountry, DictSpecie, User
 from image_app.views.cryoweb import (fill_countries, fill_species,
                                      get_a_datasource)
@@ -54,7 +59,7 @@ class FillUIDTestClass(BaseTestCase):
         super().setUp()
 
         # define helper database objects
-        cryowebdb = helper.CryowebDB()
+        cryowebdb = image_app.helper.CryowebDB()
 
         # set those values using a function from helper objects
         self.engine_from_cryoweb = cryowebdb.get_engine()
@@ -99,9 +104,33 @@ class FillUIDTestClass(BaseTestCase):
         """Import loaded cryoweb data into UID"""
 
         response = self.client.get(
-                reverse('image_app:import_from_cryoweb'))
+            reverse('image_app:import_from_cryoweb'))
 
         self.assertFalse("error" in response.context)
+
+    def test_import_into_UID_no_specie_synomims(self):
+        """testing importing into UID without sysnonims"""
+
+        # now delete a synonim
+        synonim = SpecieSynonim.objects.get(
+            language__label='Germany',
+            word='Cattle')
+        synonim.delete()
+
+        response = self.client.get(
+            reverse('image_app:import_from_cryoweb'))
+
+        # each element is an instance
+        # of django.contrib.messages.storage.base.Message
+        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+
+        self.assertTrue(len(all_messages) > 0)
+
+        for message in all_messages:
+            self.assertEqual(message.tags, "error")
+            self.assertEqual(
+                message.message,
+                "Some species haven't a synonim!")
 
     def test_load_species(self):
         """Testing load_species function"""
@@ -125,6 +154,19 @@ class FillUIDTestClass(BaseTestCase):
 
         # testing equality
         self.assertEqual(reference, test)
+
+    def test_check_species(self):
+        """Testing species and synonims"""
+
+        self.assertTrue(cryoweb.helpers.check_species("Germany"))
+
+        # now delete a synonim
+        synonim = SpecieSynonim.objects.get(
+            language__label='Germany',
+            word='Cattle')
+        synonim.delete()
+
+        self.assertFalse(cryoweb.helpers.check_species("Germany"))
 
     def test_load_countriess(self):
         """Testing load_countries function"""

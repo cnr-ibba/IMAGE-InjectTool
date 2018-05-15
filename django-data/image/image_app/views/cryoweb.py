@@ -23,6 +23,8 @@ from image_app import helper
 from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
                               DictSex, DictSpecie, Name, Sample)
 
+import cryoweb.helpers
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -877,6 +879,14 @@ def import_from_cryoweb(request):
         return redirect('index')
 
     logger.debug("Got DataSource %s" % (datasource))
+
+    # check for specie synonim
+    if not cryoweb.helpers.check_species(datasource.country.label):
+        messages.error(
+                request,
+                "Some species haven't a synonim!")
+
+        return redirect('index')
 
     context = {
             # get username from request.

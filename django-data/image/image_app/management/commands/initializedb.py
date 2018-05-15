@@ -66,7 +66,7 @@ def fill_DictSex():
         logger.info("Created: %s" % (female))
 
 
-# TODO: define a function to fill up DictRoles
+# a function to fill up DictRoles
 def fill_DictRoles():
     # define a submitter role
     role, created = DictRole.objects.get_or_create(
@@ -74,6 +74,11 @@ def fill_DictRoles():
 
     if created is True:
         logger.info("Created: %s" % (role))
+
+
+# a function to fill up dictspecie and speciesynonim
+def fill_Species():
+    pass
 
 
 class Command(BaseCommand):

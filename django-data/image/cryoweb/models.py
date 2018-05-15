@@ -817,3 +817,43 @@ class VesselsStorage(models.Model):
         managed = False
         db_table = 'vessels_storage'
         unique_together = (('db_vessel', 'storage_id', 'db_status'),)
+
+
+# Useful views
+# https://blog.rescale.com/using-database-views-in-django-orm/
+class VBreedSpecies(models.Model):
+    v_guid = models.BigIntegerField(primary_key=True)
+    breed_id = models.IntegerField(unique=True, blank=True, null=True)
+    db_breed = models.IntegerField(blank=True, null=True)
+    ext_breed = models.TextField(blank=True, null=True)
+    db_species = models.IntegerField(blank=True, null=True)
+    ext_species = models.TextField(blank=True, null=True)
+    efabis_mcname = models.TextField(blank=True, null=True)
+    efabis_species = models.TextField(blank=True, null=True)
+    efabis_country = models.TextField(blank=True, null=True)
+    efabis_lang = models.TextField(blank=True, null=True)
+    chk_lvl = models.SmallIntegerField(blank=True, null=True)
+    dirty = models.NullBooleanField()
+    guid = models.BigIntegerField(primary_key=True)
+    last_change_dt = models.DateTimeField(blank=True, null=True)
+    last_change_user = models.TextField(blank=True, null=True)
+    owner = models.TextField(blank=True, null=True)
+    synch = models.NullBooleanField()
+    version = models.SmallIntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'v_breeds_species'
+
+    def __str__(self):
+        return "{breed} ({specie})".format(
+                breed=self.ext_breed,
+                specie=self.ext_species)
+
+    @classmethod
+    def get_all_species(cls):
+        # get all distinct objects
+        queryset = cls.objects.order_by(
+            'efabis_species').distinct('efabis_species')
+
+        return [entry.efabis_species for entry in queryset]
