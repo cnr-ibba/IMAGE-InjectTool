@@ -59,9 +59,11 @@ def upload_cryoweb(request):
     if cryowebdb.has_data(search_path='apiis_admin'):
         # give an error message
         logger.warn("cryoweb mirror database has data. Ignoring data load")
-        messages.warning(request, "cryoweb mirror database has data. Ignoring"
-                                  " data load")
-        return redirect('admin:index')
+        messages.warning(
+            request,
+            message="cryoweb mirror database has data. Ignoring data load",
+            extra_tags="alert alert-dismissible alert-warning")
+        return redirect('image_app:dashboard')
 
     username = request.user.username
     context = {'username': username}
@@ -111,8 +113,11 @@ def upload_cryoweb(request):
         context['output'] = result.stderr.split("\n")
         n_of_statements = len(result.stdout.split("\n"))
 
-        messages.success(request, '%s statement executed' % (n_of_statements))
         logger.debug("%s statement executed" % n_of_statements)
+        messages.success(
+            request,
+            message='%s statement executed' % (n_of_statements),
+            extra_tags="alert alert-dismissible alert-success")
 
     logger.info("upload_cryoweb finished")
 
@@ -873,8 +878,8 @@ def import_from_cryoweb(request):
     if datasource.loaded is True:
         logger.warn("datasource %s was already uploaded" % datasource)
         messages.warning(
-                request,
-                "datasource %s was already uploaded" % datasource)
+            request,
+            "datasource %s was already uploaded" % datasource)
 
         return redirect('index')
 
@@ -883,10 +888,11 @@ def import_from_cryoweb(request):
     # check for specie synonim
     if not cryoweb.helpers.check_species(datasource.country.label):
         messages.error(
-                request,
-                "Some species haven't a synonim!")
+            request,
+            "Some species haven't a synonim!",
+            extra_tags="alert alert-dismissible alert-danger")
 
-        return redirect('index')
+        return redirect('image_app:dashboard')
 
     context = {
             # get username from request.
@@ -956,7 +962,9 @@ def truncate_cryoweb_tables(request):
 
     call_command('truncate_cryoweb_tables')
 
-    messages.success(request, 'cryoweb database was truncated '
-                              'with success')
+    messages.success(
+        request,
+        message="cryoweb database was truncated with success",
+        extra_tags="alert alert-dismissible alert-success")
 
-    return redirect('admin:index')
+    return redirect('image_app:dashboard')

@@ -5,30 +5,61 @@
 {% endblock %}
 
 {% block body_content %}
-  {% if user.is_authenticated %}
-    <h1>Welcome {{ user.get_username }}!</h1>
-  {% else %}
-    <h1>You should be not here</h1>
-  {% endif %}
-  <ul>
-    <li>You have {{datasource_count}} data sources loaded
-      ({{datasource_uploaded}} uploaded into UID)</li>
-    <li>
-      {% if cryoweb_hasdata %}
-        You have data in cryoweb staging area
+
+  <div class="card border-info mb-3" style="">
+    <div class="card-header">
+      {% if user.is_authenticated %}
+        <h1>Welcome {{ user.get_username }}!</h1>
       {% else %}
-        Your cryoweb staging area is empty
+        <h1>You should be not here</h1>
       {% endif %}
-    </li>
-    <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
-    <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
-    <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
-    <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
-    <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
-  </ul>
-  <a href="{% url 'image_app:update_profile' %}">Update user profile</a><br>
-  <a href="{% url 'image_app:data_upload' %}">Upload a datasource</a><br>
-  <a href="{% url 'image_app:upload_cryoweb' %}">Import cryoweb data into staging area</a><br>
-  <a href="{% url 'image_app:import_from_cryoweb' %}">Import cryoweb staging area into UID</a><br>
-  <a href="{% url 'image_app:animallist-biosample' %}">Download biosample data</a>
+    </div>
+    <div class="card-body">
+      <h4 class="card-title">InjectTool Summary</h4>
+      {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
+      <ul class="card-text">
+        <li>You have {{datasource_count}} data sources loaded
+          ({{datasource_uploaded}} uploaded into UID)</li>
+        <li>
+          {% if cryoweb_hasdata %}
+            You have data in cryoweb staging area
+          {% else %}
+            Your cryoweb staging area is empty
+          {% endif %}
+        </li>
+        <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
+        <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
+        <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
+        <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
+        <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card-deck">
+    <div class="card border-light mb-3" style="">
+      <div class="card-header">Data upload</div>
+      <div class="card-body">
+        <h4 class="card-title">Upload data into UID</h4>
+        {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
+        <a href="{% url 'image_app:update_profile' %}">Update user profile</a><br>
+        <a href="{% url 'image_app:data_upload' %}">Upload a datasource</a><br>
+        <a href="{% url 'image_app:upload_cryoweb' %}">Import cryoweb data into staging area</a><br>
+        <a href="{% url 'image_app:import_from_cryoweb' %}">Import cryoweb staging area into UID</a><br>
+        <a href="{% url 'image_app:animallist-biosample' %}">Download biosample data</a>
+      </div>
+    </div>
+    <div class="card border-danger mb-3" style="">
+      <div class="card-header text-white bg-danger"><strong>Danger Zone</strong></div>
+      <div class="card-body">
+        <h4 class="card-title">Delete data from UID</h4>
+        {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
+        <a href="{% url 'image_app:truncate_cryoweb_tables' %}">Truncate cryoweb stage database</a><br>
+        <a href="{% url 'image_app:truncate_image_tables' %}">Truncate UID</a><br>
+        <a href="{% url 'image_app:truncate_databases' %}"><strong>Truncate Both Databases!!!</strong></a><br>
+      </div>
+    </div>
+  </div>
+
+
 {% endblock %}

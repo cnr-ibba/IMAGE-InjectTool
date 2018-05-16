@@ -1,16 +1,23 @@
+{% extends "base.html" %}
 
-{% extends 'admin/base_site.html' %}
-
-{% block content %}
-
-{% if returncode != 0 %}
-  <p><strong>{{ stderr }}</strong></p>
-{% else %}
-  {{ fullpath }} imported for user {{ username }} (step 1)
-{% endif %}
-
-{% for line in output %}
-  {{ line }}<br>
-{% endfor %}
-
+{% block title_block %}
+  Cryoweb Import
 {% endblock %}
+
+{% block body_content %}
+
+  {% if returncode != 0 %}
+    <p><strong>{{ stderr }}</strong></p>
+  {% else %}
+    <p>{{ fullpath }} imported for user {{ username }} (step 1)</p>
+  {% endif %}
+
+  {% for line in output %}
+    {{ line }}<br>
+  {% endfor %}
+
+  <p class="lead">
+    <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+  </p>
+
+{% endblock body_content %}

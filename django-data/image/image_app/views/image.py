@@ -6,6 +6,8 @@ Created on Tue Feb  6 15:04:07 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
@@ -17,6 +19,10 @@ from django.views.generic.edit import FormView
 from image_app.forms import DataSourceForm, PersonForm, UserForm
 from image_app.helper import CryowebDB
 from image_app.models import DataSource, uid_report
+
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class IndexView(TemplateView):
@@ -49,6 +55,7 @@ class DashBoardView(TemplateView):
         context["cryoweb_hasdata"] = False
         cryowebdb = CryowebDB()
         if cryowebdb.has_data(search_path='apiis_admin'):
+            logger.debug("Cryoweb has data!")
             context["cryoweb_hasdata"] = True
 
         # call report from UID model
@@ -136,14 +143,19 @@ def truncate_databases(request):
 
     call_command('truncate_cryoweb_tables')
 
-    messages.success(request, 'cryoweb database was truncated '
-                              'with success')
+    messages.success(
+        request,
+        message="cryoweb database was truncated with success",
+        extra_tags="alert alert-dismissible alert-success")
 
     call_command('truncate_image_tables')
 
-    messages.success(request, 'image database was truncated with success')
+    messages.success(
+        request,
+        message="image database was truncated with success",
+        extra_tags="alert alert-dismissible alert-success")
 
-    return redirect('admin:index')
+    return redirect('image_app:dashboard')
 
 
 # TODO: this will be removed in production
@@ -163,6 +175,9 @@ def truncate_image_tables(request):
     # TODO: move commands to a function
     call_command('truncate_image_tables')
 
-    messages.success(request, 'image database was truncated with success')
+    messages.success(
+        request,
+        message="image database was truncated with success",
+        extra_tags="alert alert-dismissible alert-success")
 
-    return redirect('admin:index')
+    return redirect('image_app:dashboard')
