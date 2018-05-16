@@ -1,12 +1,16 @@
+{% extends "base.html" %}
 
-{% extends 'admin/base_site.html' %}
+{% block title_block %}
+  Cryoweb Import
+{% endblock title_block %}
 
-{% block content %}
+{% block body_content %}
 
 {% if error %}
   <p><strong>{{ error }}</strong></p>
 {% else %}
-  Cryoweb data imported into image database for user {{ username }} (step 2)
+
+  <p>Cryoweb data imported into image database for user {{ username }} (step 2)</p>
 
   <ul>
     {% for k, v in loaded.items %}
@@ -31,6 +35,8 @@
   </ol>
 {% endif%}
 
-<p><a href="{% url 'index' %}">Return to home</a></p>
+<p class="lead">
+  <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+</p>
 
-{% endblock %}
+{% endblock body_content %}

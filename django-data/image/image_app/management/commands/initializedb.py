@@ -17,7 +17,10 @@ import logging
 
 from django.core.management import BaseCommand
 
-from image_app.models import DictRole, DictSex, Ontology
+from image_app.models import (
+    DictRole, DictSex, Ontology, DictCountry, DictSpecie)
+
+from language.models import SpecieSynonim
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -78,7 +81,52 @@ def fill_DictRoles():
 
 # a function to fill up dictspecie and speciesynonim
 def fill_Species():
-    pass
+    """Populate cryoweb dictionary tables"""
+
+    # insert country
+    language = fill_Countries()
+
+    # those are cryoweb DE species an synonims
+    cryoweb = {
+        'Cattle': 'Bos taurus',
+        'Chicken': 'Gallus gallus',
+        'Deer': 'Cervidae',
+        'Duck (domestic)': 'Anas platyrhynchos',
+        'Goat': 'Capra hircus',
+        'Goose (domestic)': 'Anser anser',
+        'Horse': 'Equus caballus',
+        'Pig': 'Sus scrofa',
+        'Rabbit': 'Oryctolagus cuniculus',
+        'Sheep': 'Ovis aries',
+        'Turkey': 'Meleagris gallopavo'
+    }
+
+    for word, specie in cryoweb.items():
+        dictspecie, created = DictSpecie.objects.get_or_create(
+            label=specie)
+
+        if created is True:
+            logger.info("Created: %s" % (specie))
+
+        synonim, created = SpecieSynonim.objects.get_or_create(
+            dictspecie=dictspecie,
+            language=language,
+            word=word)
+
+        if created is True:
+            logger.info("Created: %s" % (synonim))
+
+
+def fill_Countries():
+    # define germany
+    country, created = DictCountry.objects.get_or_create(
+        label='Germany',
+        term='GAZ_00002646')
+
+    if created is True:
+        logger.info("Created: %s" % (country))
+
+    return country
 
 
 class Command(BaseCommand):
@@ -93,3 +141,6 @@ class Command(BaseCommand):
 
         # fill DictRoles table
         fill_DictRoles()
+
+        # import synonims
+        fill_Species()
