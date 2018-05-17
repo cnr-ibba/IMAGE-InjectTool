@@ -164,6 +164,18 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console'],
         },
+        'cryoweb': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'zooma': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'language': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
     },
 }
 
@@ -208,5 +220,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 # This should be set to a list of strings that contain full paths to your
 # additional files directory(ies
 # STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, 'static'),
+#     STATIC_ROOT,
 # ]

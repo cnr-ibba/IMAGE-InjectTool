@@ -249,10 +249,16 @@ class OntologyAdmin(admin.ModelAdmin):
     )
 
 
+class DictTermAdmin(admin.ModelAdmin):
+    list_display = ('label', 'term', 'confidence')
+
+
+### registering applications
+
 # default admin class
 admin.site.register(DictRole, admin.ModelAdmin)
-admin.site.register(DictSpecie, admin.ModelAdmin)
-admin.site.register(DictCountry, admin.ModelAdmin)
+admin.site.register(DictSpecie, DictTermAdmin)
+admin.site.register(DictCountry, DictTermAdmin)
 
 # Custom admin class
 admin.site.register(Animal, AnimalAdmin)

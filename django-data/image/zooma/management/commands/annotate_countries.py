@@ -13,16 +13,8 @@ from django.core.management.base import BaseCommand
 from image_app.models import DictCountry
 from zooma.helpers import useZooma
 
-
-# Get an instance of a logger and set a debug level
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-console.setFormatter(
-    logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-logger.addHandler(console)
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):

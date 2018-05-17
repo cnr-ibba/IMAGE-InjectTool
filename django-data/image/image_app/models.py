@@ -7,6 +7,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
+# helper classes
 class BaseDict():
     """Base class for dictionary tables"""
 
@@ -64,6 +65,24 @@ class DictCountry(BaseDict, models.Model):
             null=True,
             help_text="Example: GAZ_00002646")
 
+    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+    class CONFIDENCE(Enum):
+        high = (0, 'High')
+        good = (1, 'Good')
+        medium = (2, 'Medium')
+        low = (3, 'Low')
+        curated = (4, 'Manually Curated')
+
+        @classmethod
+        def get_value(cls, member):
+            return cls[member].value[0]
+
+    # confidence field (enum)
+    confidence = models.SmallIntegerField(
+        choices=[x.value for x in CONFIDENCE],
+        help_text='example: Manually Curated',
+        null=True)
+
     # TODO: fk with Ontology table
 
     class Meta:
@@ -88,6 +107,24 @@ class DictSpecie(BaseDict, models.Model):
             null=True,
             blank=True,
             help_text="Example: NCBITaxon_9823")
+
+    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+    class CONFIDENCE(Enum):
+        high = (0, 'High')
+        good = (1, 'Good')
+        medium = (2, 'Medium')
+        low = (3, 'Low')
+        curated = (4, 'Manually Curated')
+
+        @classmethod
+        def get_value(cls, member):
+            return cls[member].value[0]
+
+    # confidence field (enum)
+    confidence = models.SmallIntegerField(
+        choices=[x.value for x in CONFIDENCE],
+        help_text='example: Manually Curated',
+        null=True)
 
     # TODO: fk with Ontology table
 

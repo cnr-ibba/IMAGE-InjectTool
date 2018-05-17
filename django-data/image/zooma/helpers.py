@@ -46,9 +46,7 @@ def useZooma(term, category):
     # replacing spaces with +
     newTerm = term.replace(" ", "+")
 
-    # defining params
-    # TODO: can we focus the request to a specific endpoint (eg, why I need to
-    # search into EPO for countries?)
+    # defining params with default filters
     params = {
         'propertyValue': newTerm,
         'filter': "required:[ena],ontologies:[%s]" % (",".join(ONTOLOGIES))
@@ -56,8 +54,24 @@ def useZooma(term, category):
 
     category = from_camel_case(category)
 
-    if category == "species":  # necessary if
+    if (category == "species"):  # necessary if
+        # renaming species categories
         category = "organism"
+
+        # species, only search NCBI taxonomy ontology
+        params["filter"] = "required:[ena],ontologies:[NCBITaxon]"
+
+    elif (category == "breed"):
+        # breed, only search Livestock Breed Ontology
+        params["filter"] = "required:[ena],ontologies:[lbo]"
+
+    elif (category == "country"):
+        # country, only search GAZ Ontology
+        params["filter"] = "required:[ena],ontologies:[gaz]"
+    else:
+        # according to IMAGE ruleset, only these ontology libraries are
+        # allowed in the ruleset, so not search others, gaz is for countries
+        params["filter"] = "required:[ena],ontologies:[efo,uberon,obi,pato]"
 
     highResult = {}
     goodResult = {}

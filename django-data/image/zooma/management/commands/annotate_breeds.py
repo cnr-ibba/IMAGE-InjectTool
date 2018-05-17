@@ -12,23 +12,8 @@ from django.core.management.base import BaseCommand
 from image_app.models import DictBreed
 from zooma.helpers import useZooma
 
-
-# Get an instance of a logger and set a debug level
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-
-# get a logger for myself
+# Get an instance of a logger
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Create a handler with a formatter
-console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
-console.setFormatter(
-    logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-
-# Add handler to root logger
-root_logger.addHandler(console)
 
 
 class Command(BaseCommand):
