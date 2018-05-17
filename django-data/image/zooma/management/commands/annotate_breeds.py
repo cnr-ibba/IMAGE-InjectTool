@@ -20,7 +20,7 @@ class Command(BaseCommand):
     help = 'Call zooma for dictbreed object. Fill table if possible'
 
     def handle(self, *args, **options):
-        # get all species without a short_term
+        # get all species without a term
         for breed in DictBreed.objects.filter(mapped_breed_term__isnull=True):
             logger.debug("Processing %s" % (breed))
 

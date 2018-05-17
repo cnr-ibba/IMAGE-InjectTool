@@ -20,7 +20,7 @@ class Command(BaseCommand):
     help = 'Call zooma for species object'
 
     def handle(self, *args, **options):
-        # get all species without a short_term
+        # get all species without a term
         for specie in DictSpecie.objects.filter(term__isnull=True):
             logger.debug("Processing %s" % (specie))
 
