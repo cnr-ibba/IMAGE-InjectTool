@@ -108,13 +108,17 @@ def update_profile(request):
             person_form.save()
 
             messages.success(
-                    request, 'Your profile was successfully updated!')
+                request,
+                message="Your profile was successfully updated!",
+                extra_tags="alert alert-dismissible alert-success")
 
-            return redirect('admin:index')
+            return redirect('image_app:dashboard')
 
         else:
             messages.error(
-                    request, 'Please correct the error below.')
+                request,
+                message="Please correct the errors below",
+                extra_tags="alert alert-dismissible alert-danger")
     else:
         user_form = UserForm(instance=request.user)
         person_form = PersonForm(instance=request.user.person)

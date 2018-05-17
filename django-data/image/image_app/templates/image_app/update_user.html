@@ -1,13 +1,16 @@
+{% extends "base.html" %}
 
-{% extends 'admin/base_site.html' %}
+{% block title_block %}
+  Update User Profile
+{% endblock title_block %}
 
-{% block content %}
+{% block body_content %}
 
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
-  {{ user_form.as_p }}
-  {{ person_form.as_p }}
-  <button type="submit">Save changes</button>
+  {% include 'includes/update_user.html' %}
+  <button type="submit" class="btn btn-success">Save changes</button>
+  <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
 </form>
 
-{% endblock %}
+{% endblock body_content %}

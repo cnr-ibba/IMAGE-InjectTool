@@ -24,12 +24,12 @@
       {# Title Extensions go inside the block #}
       {% block title_block %}
         Base Template Title
-      {% endblock %}
+      {% endblock title_block %}
     </title>
   </head>
 
   {% block body %}
-  <body class="pt-5">
+  <body class="pt-5 pb-5">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
       <a class="navbar-brand" href="{% url 'index' %}">IMAGE-InjectTool</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">

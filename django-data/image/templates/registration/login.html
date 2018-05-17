@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-
-{% load staticfiles%}
+{% load staticfiles %}
 
 {%  block custom-css %}
+  {# You need to load staticfiles in order to call static templatetag #}
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
 {% endblock %}
 
 {% block title_block %}
   Please Sign-In
-{% endblock %}
+{% endblock title_block %}
 
 {% block body %}
 

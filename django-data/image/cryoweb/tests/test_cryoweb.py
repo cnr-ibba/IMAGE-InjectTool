@@ -95,7 +95,7 @@ class FillUIDTestClass(BaseTestCase):
         all_messages = [msg for msg in get_messages(response.wsgi_request)]
 
         for message in all_messages:
-            self.assertEqual(message.tags, "warning")
+            self.assertTrue("warning" in message.tags)
             self.assertEqual(
                     message.message,
                     "cryoweb mirror database has data. Ignoring data load")
@@ -127,7 +127,7 @@ class FillUIDTestClass(BaseTestCase):
         self.assertTrue(len(all_messages) > 0)
 
         for message in all_messages:
-            self.assertEqual(message.tags, "error")
+            self.assertTrue("error" in message.tags)
             self.assertEqual(
                 message.message,
                 "Some species haven't a synonim!")

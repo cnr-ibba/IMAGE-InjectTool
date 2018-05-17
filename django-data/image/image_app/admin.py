@@ -173,14 +173,20 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 class PersonAdmin(admin.ModelAdmin):
     list_display = (
-        'user_name', 'initials', 'affiliation', 'role', 'get_organizations'
+        'user_name', 'full_name', 'initials', 'affiliation', 'role',
+        'get_organizations'
     )
 
     def user_name(self, obj):
-        return "%s %s" % (obj.user.first_name, obj.user.last_name)
+        return obj.user.username
 
     # rename column in admin
-    user_name.short_description = "User"
+    user_name.short_description = "User Name"
+
+    def full_name(self, obj):
+        return "%s %s" % (obj.user.first_name, obj.user.last_name)
+
+    full_name.short_description = "Full Name"
 
     def get_organizations(self, obj):
         return obj.get_organizations()

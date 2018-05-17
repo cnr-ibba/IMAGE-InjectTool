@@ -8,7 +8,24 @@
   </div>
 {% endif %}
 
-{% for field in form %}
+{% for field in user_form %}
+  <div class="form-group">
+    {{ field.label_tag }}
+    {% render_field field class=field|input_class %}
+    {% for error in field.errors %}
+      <div class="invalid-feedback">
+        {{ error }}
+      </div>
+    {% endfor %}
+    {% if field.help_text %}
+      <small class="form-text text-muted">
+        {{ field.help_text|safe }}
+      </small>
+    {% endif %}
+  </div>
+{% endfor %}
+
+{% for field in person_form %}
   <div class="form-group">
     {{ field.label_tag }}
     {% render_field field class=field|input_class %}
