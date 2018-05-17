@@ -49,6 +49,10 @@ urlpatterns = [
         views.truncate_databases,
         name='truncate_databases'),
 
+    url(r'^initializedb/$',
+        views.initializedb,
+        name='initializedb'),
+
     url(r'^update_user/$',
         views.update_profile,
         name='update_profile'),

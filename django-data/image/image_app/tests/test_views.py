@@ -12,7 +12,7 @@ from django.test import Client, TestCase
 from django.urls import reverse, resolve
 
 from ..models import User, DictCountry, DataSource
-from ..views import DataSourceView
+from ..views import DataSourceView, initializedb
 from ..forms import DataSourceForm
 
 import cryoweb.tests
@@ -131,3 +131,25 @@ class AddDataSourceTests(TestCase):
         response = self.client.get(url)
         form = response.context.get('form')
         self.assertIsInstance(form, DataSourceForm)
+
+
+class TestInitializeDB(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='test',
+            email="test@test.com")
+
+        # login to upload data
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+    def test_new_ds_view_success_status_code(self):
+        url = reverse('image_app:initializedb')
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 302)
+
+    def test_url_resolves_view(self):
+        url = reverse('image_app:initializedb')
+        view = resolve(url)
+        self.assertEqual(view.func, initializedb)

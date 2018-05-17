@@ -185,3 +185,19 @@ def truncate_image_tables(request):
         extra_tags="alert alert-dismissible alert-success")
 
     return redirect('image_app:dashboard')
+
+
+# TODO: this will be removed in production
+@login_required
+def initializedb(request):
+    """initialize UID database after truncating image tables"""
+
+    # TODO: move commands to a function
+    call_command('initializedb')
+
+    messages.success(
+        request,
+        message="image database correctly initialized",
+        extra_tags="alert alert-dismissible alert-success")
+
+    return redirect('image_app:dashboard')

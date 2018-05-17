@@ -14,7 +14,7 @@ from .cryoweb import (
 
 from .image import (
     DataSourceView, truncate_databases, truncate_image_tables,
-    update_profile, IndexView, AboutView, DashBoardView)
+    update_profile, IndexView, AboutView, DashBoardView, initializedb)
 
 from .export import (
     SampleJSON, SampleListJSON, AnimalJSON, AnimalListJSON, BioSampleJSON,
@@ -25,4 +25,4 @@ __all__ = [
     'DataSourceView', 'truncate_databases', 'truncate_image_tables',
     'update_profile', 'SampleJSON', 'SampleListJSON', 'AnimalJSON',
     'AnimalListJSON', 'BioSampleJSON', 'BioSampleListJSON', 'IndexView',
-    'AboutView', 'DashBoardView']
+    'AboutView', 'DashBoardView', 'initializedb']
