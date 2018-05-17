@@ -5,7 +5,7 @@ import pandas as pd
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from image_app import helper
+from image_app import helpers
 from image_app.models import Animal, DataSource
 
 
@@ -23,7 +23,7 @@ class TestDB(unittest.TestCase):
 
     def setUp(self):
         # get a cryoweb helper instance
-        self.cryowebdb = helper.CryowebDB()
+        self.cryowebdb = helpers.CryowebDB()
 
         # get a connection object
         self.conn = self.cryowebdb.get_connection(search_path='apiis_admin')

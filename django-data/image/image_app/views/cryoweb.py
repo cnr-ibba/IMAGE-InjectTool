@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
 from django.shortcuts import redirect, render
 
-from image_app import helper
+import image_app.helpers
 from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
                               DictSex, DictSpecie, Name, Sample)
 
@@ -53,7 +53,7 @@ def upload_cryoweb(request):
     logger.info("called upload_cryoweb with request: %s" % (request))
 
     # get a cryoweb helper instance
-    cryowebdb = helper.CryowebDB()
+    cryowebdb = image_app.helpers.CryowebDB()
 
     # test if cryoweb has data or not
     if cryowebdb.has_data(search_path='apiis_admin'):
@@ -98,7 +98,8 @@ def upload_cryoweb(request):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             check=True,
-            env={'PGPASSWORD': helper.config('CRYOWEB_INSERT_ONLY_PW')},
+            env={'PGPASSWORD': image_app.helpers.config(
+                    'CRYOWEB_INSERT_ONLY_PW')},
             encoding='utf8'
             )
 
@@ -866,7 +867,7 @@ def import_from_cryoweb(request):
         raise Exception("You have to upload DictSex data")
 
     # define helper database objects
-    cryowebdb = helper.CryowebDB()
+    cryowebdb = image_app.helpers.CryowebDB()
 
     # set those values using a function from helper objects
     engine_from_cryoweb = cryowebdb.get_engine()

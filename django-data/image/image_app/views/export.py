@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_list_or_404, render
 
-from image_app import helper
+from image_app import helpers
 from image_app.models import (Animal, Database, Ontology, Organization, Person,
                               Publication, Sample, Submission)
 from image_app.views import custom
@@ -124,7 +124,7 @@ def sampletab2(request):
     context = {'username': username, 'fileurl': fileurl}
 
     # connect to image database and get engine object
-    imagedb = helper.ImageDB()
+    imagedb = helpers.ImageDB()
     engine = imagedb.get_engine()
 
     # HEADER

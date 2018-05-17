@@ -17,7 +17,7 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
 from image_app.forms import DataSourceForm, PersonForm, UserForm
-from image_app.helper import CryowebDB
+from image_app.helpers import CryowebDB
 from image_app.models import DataSource, uid_report
 
 

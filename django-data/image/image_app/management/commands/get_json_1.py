@@ -22,7 +22,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 from pandas import Timestamp
 
-from image_app import helper
+from image_app import helpers
 # image models
 from image_app.models import Animal, DictBreed, DictSex
 
@@ -120,7 +120,7 @@ class Command(BaseCommand):
             return a_dict
 
         # open a connection
-        imagedb = helper.ImageDB()
+        imagedb = helpers.ImageDB()
 
         # estabilishing a connection
         conn = imagedb.get_connection()

@@ -3,7 +3,7 @@ import logging
 
 from django.core.management import BaseCommand
 
-from image_app import helper
+from image_app import helpers
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # get a cryoweb helper instance
-        cryowebdb = helper.CryowebDB()
+        cryowebdb = helpers.CryowebDB()
 
         # get a connection object
         conn = cryowebdb.get_connection(search_path='apiis_admin')

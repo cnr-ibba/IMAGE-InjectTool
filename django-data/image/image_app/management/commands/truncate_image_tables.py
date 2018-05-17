@@ -3,7 +3,7 @@ import logging
 
 from django.core.management import BaseCommand
 
-from image_app import helper
+from image_app import helpers
 from image_app.models import DataSource
 
 # Get an instance of a logger
@@ -23,7 +23,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        imagedb = helper.ImageDB()
+        imagedb = helpers.ImageDB()
 
         # estabilishing a connection
         conn = imagedb.get_connection()

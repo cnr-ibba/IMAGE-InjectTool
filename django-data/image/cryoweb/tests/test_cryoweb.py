@@ -14,8 +14,7 @@ from django.urls import reverse
 import cryoweb.helpers
 from cryoweb.models import BreedsSpecies
 
-# TODO: rename this module
-import image_app.helper
+import image_app.helpers
 
 from image_app.models import DictCountry, DictSpecie, User
 from image_app.views.cryoweb import (fill_countries, fill_species,
@@ -59,7 +58,7 @@ class FillUIDTestClass(BaseTestCase):
         super().setUp()
 
         # define helper database objects
-        cryowebdb = image_app.helper.CryowebDB()
+        cryowebdb = image_app.helpers.CryowebDB()
 
         # set those values using a function from helper objects
         self.engine_from_cryoweb = cryowebdb.get_engine()

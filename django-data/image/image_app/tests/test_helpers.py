@@ -11,7 +11,7 @@ import json
 
 from django.test import TestCase
 
-from image_app.helper import DateDecoder, DateEncoder
+from image_app.helpers import DateDecoder, DateEncoder
 
 
 class JsonTestCase(TestCase):
