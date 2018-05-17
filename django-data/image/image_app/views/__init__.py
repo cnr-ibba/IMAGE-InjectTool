@@ -17,13 +17,12 @@ from .image import (
     update_profile, IndexView, AboutView, DashBoardView)
 
 from .export import (
-    check_metadata, sampletab1, sampletab2, SampleJSON, SampleListJSON,
-    AnimalJSON, AnimalListJSON, BioSampleJSON, BioSampleListJSON)
+    SampleJSON, SampleListJSON, AnimalJSON, AnimalListJSON, BioSampleJSON,
+    BioSampleListJSON)
 
 __all__ = [
     'upload_cryoweb', 'import_from_cryoweb', 'truncate_cryoweb_tables',
     'DataSourceView', 'truncate_databases', 'truncate_image_tables',
-    'check_metadata', 'sampletab1', 'sampletab2', 'update_profile',
-    'SampleJSON', 'SampleListJSON', 'AnimalJSON', 'AnimalListJSON',
-    'BioSampleJSON', 'BioSampleListJSON', 'IndexView', 'AboutView',
-    'DashBoardView']
+    'update_profile', 'SampleJSON', 'SampleListJSON', 'AnimalJSON',
+    'AnimalListJSON', 'BioSampleJSON', 'BioSampleListJSON', 'IndexView',
+    'AboutView', 'DashBoardView']

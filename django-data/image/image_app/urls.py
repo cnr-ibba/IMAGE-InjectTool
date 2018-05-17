@@ -31,9 +31,6 @@ urlpatterns = [
         login_required(views.DataSourceView.as_view()),
         name='data_upload'),
 
-    url(r'^sampletab1/$', views.sampletab1, name='sampletab1'),
-    url(r'^sampletab2/$', views.sampletab2, name='sampletab2'),
-    url(r'^check_metadata/$', views.check_metadata, name='check_metadata'),
     url(r'^upload_cryoweb/$', views.upload_cryoweb, name='upload_cryoweb'),
 
     url(r'^import_from_cryoweb/$',
