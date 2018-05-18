@@ -122,9 +122,9 @@ def create_sample(animal):
             collection_date=datetime.date(2017, 3, 12),
             collection_place="deutschland",
             organism_part='semen',
-            organism_part_ontology_accession='UBERON_0001968',
+            organism_part_term='UBERON_0001968',
             developmental_stage='adult',
-            developmental_stage_ontology_accession='EFO_0001272',
+            developmental_stage_term='EFO_0001272',
             animal_age_at_collection=4,
             availability='mailto:peter@ebi.ac.uk')
 
@@ -634,9 +634,9 @@ class SampleTestCase(TestCase):
         sample.collection_date = None
         sample.collection_place = None
         sample.organism_part = None
-        sample.organism_part_ontology_accession = None
+        sample.organism_part_term = None
         sample.developmental_stage = None
-        sample.developmental_stage_ontology_accession = None
+        sample.developmental_stage_term = None
         sample.animal_age_at_collection = None
         sample.availability = None
 

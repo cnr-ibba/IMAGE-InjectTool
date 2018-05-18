@@ -408,7 +408,7 @@ class Sample(models.Model):
     # TODO: move those fields to dictionary tables
     organism_part = models.CharField(max_length=255, blank=True, null=True)
 
-    organism_part_ontology_accession = models.CharField(
+    organism_part_term = models.CharField(
             max_length=255,
             blank=False,
             null=True,
@@ -419,7 +419,7 @@ class Sample(models.Model):
             blank=True,
             null=True)
 
-    developmental_stage_ontology_accession = models.CharField(
+    developmental_stage_term = models.CharField(
             max_length=255,
             blank=False,
             null=True,
@@ -493,21 +493,21 @@ class Sample(models.Model):
             result["collectionPlace"] = self.collection_place
 
         # TODO: move the following two fields to Dictionary Table
-        if self.organism_part:
+        if self.organism_part and self.organism_part_term:
             result["organismPart"] = {
                 "text": self.organism_part,
                 "ontologyTerms": "/".join([
                     OBO_URL,
-                    self.organism_part_ontology_accession]
+                    self.organism_part_term]
                 ),
             }
 
-        if self.developmental_stage:
+        if self.developmental_stage and self.developmental_stage_term:
             result["developmentStage"] = {
                 "text": self.developmental_stage,
                 "ontologyTerms": "/".join([
                     OBO_URL,
-                    self.developmental_stage_ontology_accession]
+                    self.developmental_stage_term]
                 ),
             }
 
