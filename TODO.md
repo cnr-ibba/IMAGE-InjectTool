@@ -11,26 +11,6 @@
 * Django was updated to 2.0. Urls changed!!! Need to test if we can migrate to newer
   django release? - This version However is a LTS version - not so important a the moment
 
-* get_json_1 need to be modified
-  - The json extracted from database is different from exampleJSONfromUIDafterEnhancement.json
-    need to add the following sections:
-    * person
-    * organization
-    * species
-  - check that attrib in sample, breed animals correspond (doesn't seem)
-    * fix into tables? fix in json dumps? (table seems better)
-  - ontologies need to be already present in JSON
-  - [validate json](https://jsonlint.com/) output
-    * NaN is not a valid Json value
-    * NaT is not a valid Json value
-  - submission:
-    * Does Inject-Tool manage more than one submission at time?
-    * I need to get data relying on submission? is submission a foreign key?
-
-* Sampletab need to be modified
-  - Sampletab columns have to reflect IMAGE-metadata?
-  - Sampletab need to be removed: biosample is planning to import only JSON
-
 * [Django REST framework](http://www.django-rest-framework.org/) to get json data?
   to work with OpenRefine client?
   - This module is strictly related to models. If I want to get a JSON object like
@@ -41,8 +21,7 @@
 * Data export: How data needs to be exported? how IMAGE-metadata works?
   - IMAGE-metadata define fields in .xls used for import. There is a correspondance
     between IMAGE-metadata columns and UID database columns
-  - Data will be exported using JSON (preferably). Sampletab could be useful
-    for testing purpose.
+  - Data will be exported using JSON (preferably).
   - Exporing data in IMAGE-metadata excel template, could be useful for data
     cleaning?
 
@@ -70,22 +49,13 @@
   - Submission
 
 * Submission table is not referenced by any other table.
-  - Should I retrieve information using a submission id? Is submission the first
-    requirement to fill up when importing data?
-  - Suppose I want to do two separate submission. I have to wipe every time? if
-    yes, were data will be placed? If I do a submission, then I want to change something,
-    need I to modify the submission in my database? need I modify data downloaded
-    from biosample?
-
-* Where Submission takes place? could be a one to many Samples or Animals?
+  - Submission table need to track the batch biosample upload
 
 * ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
   Using google refine? For the moment, no duplicate can be inserted into database,
   the second occurrence will not be included in database.
 
 * NGINX media folder can serve media files (jpg, etc). Deal with dump files (permissions?)
-
-* add a message when uploading data source
 
 * deal with timeout when uploading data sources
 
@@ -95,6 +65,7 @@
 * Filter out the admin person (add the admin role? - not in EF0)
 
 * What happens if two user load data in the same time? deal with concurrency
+  - Data need to be isolated from a user POV
 
 * record need to have a column in which the status is recorded (need revisions,
   submitted, ...)
@@ -136,8 +107,6 @@
 
 * If I use a custom form for datasource, I need to load all countries or put
   a link to add a new country as admin does
-
-* Use full link when returning an ontology
 
 * return a default ontology for breed if non mapping occours
 

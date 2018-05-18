@@ -17,6 +17,10 @@ from image_app.models import (
 from language.models import SpecieSynonim
 
 
+# a constant for this module
+OBO_URL = "http://purl.obolibrary.org/obo"
+
+
 # a series of helper functions
 def create_dictsex(label='male', term='PATO_0000384'):
     sex, created = DictSex.objects.get_or_create(
@@ -143,7 +147,10 @@ class DictSexTestCase(TestCase):
 
         reference = {
             "text": self.label,
-            "ontologyTerms": self.term
+            "ontologyTerms": "/".join([
+                OBO_URL,
+                self.term]
+            ),
         }
 
         male = DictSex.objects.get(label=self.label)
@@ -190,8 +197,11 @@ class DictSpecieTestCase(TestCase):
         """Testing specie to biosample json"""
 
         reference = {
-                "text": self.label,
-                "ontologyTerms": self.term
+            "text": self.label,
+            "ontologyTerms": "/".join([
+                OBO_URL,
+                self.term]
+            ),
         }
 
         sus = DictSpecie.objects.get(label=self.label)
@@ -250,8 +260,11 @@ class DictCountryTestCase(TestCase):
         """Testing specie to biosample json"""
 
         reference = {
-                "text": self.label,
-                "ontologyTerms": self.term
+            "text": self.label,
+            "ontologyTerms": "/".join([
+                OBO_URL,
+                self.term]
+            ),
         }
 
         germany = DictCountry.objects.get(label=self.label)
@@ -297,11 +310,17 @@ class DictBreedTestCase(TestCase):
             "suppliedBreed": "Bunte Bentheimer",
             "country": {
                 "text": "Germany",
-                "ontologyTerms": "NCIT_C16636"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "NCIT_C16636"]
+                ),
             },
             "mappedBreed": {
                 "text": "Bentheim Black Pied",
-                "ontologyTerms": "LBO_0000347"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "LBO_0000347"]
+                ),
             }
         }
 
@@ -324,7 +343,10 @@ class DictBreedTestCase(TestCase):
             "suppliedBreed": "Bunte Bentheimer",
             "country": {
                 "text": "Germany",
-                "ontologyTerms": "NCIT_C16636"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "NCIT_C16636"]
+                ),
             },
         }
 
@@ -383,7 +405,10 @@ class AnimalTestCase(TestCase):
             "description": "a 4-year old pig organic fed",
             "material": {
                 "text": "organism",
-                "ontologyTerms": "OBI_0100026"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "OBI_0100026"]
+                ),
             },
             "name": "ANIMAL:::ID:::132713",
             "geneBankName": "CryoWeb",
@@ -393,22 +418,34 @@ class AnimalTestCase(TestCase):
             "dataSourceId": "11",
             "species": {
                 "text": "Sus scrofa",
-                "ontologyTerms": "NCBITaxon_9823"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "NCBITaxon_9823"]
+                ),
             },
             "breed": {
                 "suppliedBreed": "Bunte Bentheimer",
                 "country": {
                     "text": "Germany",
-                    "ontologyTerms": "NCIT_C16636"
+                    "ontologyTerms": "/".join([
+                        OBO_URL,
+                        "NCIT_C16636"]
+                    ),
                 },
                 "mappedBreed": {
                     "text": "Bentheim Black Pied",
-                    "ontologyTerms": "LBO_0000347"
+                    "ontologyTerms": "/".join([
+                        OBO_URL,
+                        "LBO_0000347"]
+                    ),
                 }
             },
             "sex": {
                 "text": "male",
-                "ontologyTerms": "PATO_0000384"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "PATO_0000384"]
+                ),
             }
 
             # HINT: no consideration were made for father and mother
@@ -429,7 +466,10 @@ class AnimalTestCase(TestCase):
             "project": "IMAGE",
             "material": {
                 "text": "organism",
-                "ontologyTerms": "OBI_0100026"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "OBI_0100026"]
+                ),
             },
             "name": "ANIMAL:::ID:::132713",
             "geneBankName": "CryoWeb",
@@ -439,22 +479,34 @@ class AnimalTestCase(TestCase):
             "dataSourceId": "11",
             "species": {
                 "text": "Sus scrofa",
-                "ontologyTerms": "NCBITaxon_9823"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "NCBITaxon_9823"]
+                ),
             },
             "breed": {
                 "suppliedBreed": "Bunte Bentheimer",
                 "country": {
                     "text": "Germany",
-                    "ontologyTerms": "NCIT_C16636"
+                    "ontologyTerms": "/".join([
+                        OBO_URL,
+                        "NCIT_C16636"]
+                    ),
                 },
                 "mappedBreed": {
                     "text": "Bentheim Black Pied",
-                    "ontologyTerms": "LBO_0000347"
+                    "ontologyTerms": "/".join([
+                        OBO_URL,
+                        "LBO_0000347"]
+                    ),
                 }
             },
             "sex": {
                 "text": "male",
-                "ontologyTerms": "PATO_0000384"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "PATO_0000384"]
+                ),
             }
 
             # HINT: no consideration were made for father and mother
@@ -509,7 +561,10 @@ class SampleTestCase(TestCase):
             "description": "semen collected when the animal turns to 4",
             "material": {
                 "text": "specimen from organism",
-                "ontologyTerms": "OBI_0001479"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "OBI_0001479"]
+                ),
             },
             "geneBankName": "CryoWeb",
             "geneBankCountry": "Germany",
@@ -525,11 +580,17 @@ class SampleTestCase(TestCase):
             "collectionPlace": "deutschland",
             "organismPart": {
                 "text": "semen",
-                "ontologyTerms": "UBERON_0001968"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "UBERON_0001968"]
+                ),
             },
             "developmentStage": {
                 "text": "adult",
-                "ontologyTerms": "EFO_0001272"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "EFO_0001272"]
+                ),
             },
             "animalAgeAtCollection": {
                 "text": 4,
@@ -553,7 +614,10 @@ class SampleTestCase(TestCase):
             "description": "semen collected when the animal turns to 4",
             "material": {
                 "text": "specimen from organism",
-                "ontologyTerms": "OBI_0001479"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "OBI_0001479"]
+                ),
             },
             "geneBankName": "CryoWeb",
             "geneBankCountry": "Germany",

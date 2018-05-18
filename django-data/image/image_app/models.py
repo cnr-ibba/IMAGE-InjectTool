@@ -7,6 +7,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
+# a constant for this module
+OBO_URL = "http://purl.obolibrary.org/obo"
+
+
 # helper classes
 class BaseDict():
     """Base class for dictionary tables"""
@@ -20,7 +24,10 @@ class BaseDict():
         biosample = dict(text=self.label)
 
         if self.term:
-            biosample["ontologyTerms"] = self.term
+            biosample["ontologyTerms"] = "/".join([
+                OBO_URL,
+                self.term]
+            )
 
         return biosample
 
@@ -198,7 +205,11 @@ class DictBreed(models.Model):
         if self.mapped_breed and self.mapped_breed_term:
             result['mappedBreed'] = {
                     'text': self.mapped_breed,
-                    'ontologyTerms': self.mapped_breed_term}
+                    'ontologyTerms': "/".join([
+                        OBO_URL,
+                        self.mapped_breed_term]
+                    ),
+            }
 
         result['country'] = self.country.to_biosample()
         return result
@@ -338,7 +349,10 @@ class Animal(models.Model):
 
         result["material"] = {
                 "text": "organism",
-                "ontologyTerms": "OBI_0100026"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "OBI_0100026"]
+                ),
         }
 
         result["name"] = self.name.name
@@ -451,7 +465,10 @@ class Sample(models.Model):
         result["description"] = self.description
         result["material"] = {
                 "text": "specimen from organism",
-                "ontologyTerms": "OBI_0001479"
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    "OBI_0001479"]
+                ),
         }
 
         result["name"] = self.name.name
@@ -479,13 +496,19 @@ class Sample(models.Model):
         if self.organism_part:
             result["organismPart"] = {
                 "text": self.organism_part,
-                "ontologyTerms": self.organism_part_ontology_accession
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    self.organism_part_ontology_accession]
+                ),
             }
 
         if self.developmental_stage:
             result["developmentStage"] = {
                 "text": self.developmental_stage,
-                "ontologyTerms": self.developmental_stage_ontology_accession
+                "ontologyTerms": "/".join([
+                    OBO_URL,
+                    self.developmental_stage_ontology_accession]
+                ),
             }
 
         if self.animal_age_at_collection:
