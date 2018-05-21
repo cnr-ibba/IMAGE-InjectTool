@@ -119,13 +119,17 @@ def update_profile(request):
                 request,
                 message="Please correct the errors below",
                 extra_tags="alert alert-dismissible alert-danger")
+
+    # method GET
     else:
         user_form = UserForm(instance=request.user)
         person_form = PersonForm(instance=request.user.person)
 
+        # pass only a object in context
+        form_list = [user_form, person_form]
+
     return render(request, 'image_app/update_user.html', {
-        'user_form': user_form,
-        'person_form': person_form
+        'form_list': form_list
     })
 
 
