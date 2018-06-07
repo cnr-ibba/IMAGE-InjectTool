@@ -30,7 +30,7 @@ class SampleJSON(custom.BioSampleDetailView):
 
         # add a new object to context wich is rendered using
         # BioSampleDetailView and its method
-        context["biosample"] = self.object.to_biosample()
+        context["biosample"] = self.object.to_validation()
 
         return context
 
@@ -51,7 +51,7 @@ class SampleListJSON(custom.BioSampleListView):
         # BioSampleDetailView and its method. self.object_list has all
         # queryset objects
         context["biosample"] = [
-                sample.to_biosample() for sample in self.object_list]
+                sample.to_validation() for sample in self.object_list]
 
         # return a new context object
         return context
@@ -68,7 +68,7 @@ class AnimalJSON(custom.BioSampleDetailView):
 
         # add a new object to context wich is rendered using
         # BioSampleDetailView and its method
-        context["biosample"] = self.object.to_biosample()
+        context["biosample"] = self.object.to_validation()
 
         # return a new context object
         return context
@@ -90,7 +90,7 @@ class AnimalListJSON(custom.BioSampleListView):
         # BioSampleDetailView and its method. self.object_list has all
         # queryset objects
         context["biosample"] = [
-                animal.to_biosample() for animal in self.object_list]
+                animal.to_validation() for animal in self.object_list]
 
         # return a new context object
         return context
@@ -106,14 +106,14 @@ class BioSampleJSON(custom.BioSampleDetailView):
         context = super(BioSampleJSON, self).get_context_data(**kwargs)
 
         # collect all json data for this animal
-        animal_json = self.object.to_biosample()
+        animal_json = self.object.to_validation()
 
         # then get all sample for such animal
         samples_json = []
 
         # collect each json for a sample
         for sample in self.object.sample_set.all():
-            samples_json += [sample.to_biosample()]
+            samples_json += [sample.to_validation()]
 
         # now define biosample context with a sample key having a list
         # of all biosample data
@@ -141,11 +141,11 @@ class BioSampleListJSON(custom.BioSampleListView):
 
         # get animal data and add to a list
         for animal in self.object_list:
-            animals_json += [animal.to_biosample()]
+            animals_json += [animal.to_validation()]
 
             # get samples data and add to a list
             for sample in animal.sample_set.all():
-                samples_json += [sample.to_biosample()]
+                samples_json += [sample.to_validation()]
 
         # now define biosample context with a sample key having a list
         # of all biosample data

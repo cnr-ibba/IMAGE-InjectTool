@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Fill database tables like roles, sex, etc'
+    help = 'Get a JSON for validation'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -40,11 +40,11 @@ class Command(BaseCommand):
 
         # get animal data and add to a list
         for animal in Animal.objects.all():
-            animals_json += [animal.to_biosample()]
+            animals_json += [animal.to_validation()]
 
             # get samples data and add to a list
             for sample in animal.sample_set.all():
-                samples_json += [sample.to_biosample()]
+                samples_json += [sample.to_validation()]
 
         # collect all data in a dictionary
         biosamples = {'sample': animals_json + samples_json}

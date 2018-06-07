@@ -142,7 +142,7 @@ class DictSexTestCase(TestCase):
         # call an helper function
         create_dictsex(label=self.label, term=self.term)
 
-    def test_to_biosample(self):
+    def test_to_validation(self):
         """Testing sex to biosample json"""
 
         reference = {
@@ -154,16 +154,16 @@ class DictSexTestCase(TestCase):
         }
 
         male = DictSex.objects.get(label=self.label)
-        test = male.to_biosample()
+        test = male.to_validation()
 
         self.assertEqual(reference, test)
 
-    def test_to_biosample_with_none(self):
+    def test_to_validation_with_none(self):
         """Test to biosample conversion without term"""
 
         male = DictSex.objects.get(label=self.label)
         male.term = None
-        test = male.to_biosample()
+        test = male.to_validation()
 
         reference = {
             "text": self.label
@@ -193,7 +193,7 @@ class DictSpecieTestCase(TestCase):
         # call an helper function
         create_dictspecie(label=self.label, term=self.term)
 
-    def test_to_biosample(self):
+    def test_to_validation(self):
         """Testing specie to biosample json"""
 
         reference = {
@@ -205,16 +205,16 @@ class DictSpecieTestCase(TestCase):
         }
 
         sus = DictSpecie.objects.get(label=self.label)
-        test = sus.to_biosample()
+        test = sus.to_validation()
 
         self.assertEqual(reference, test)
 
-    def test_to_biosample_with_none(self):
+    def test_to_validation_with_none(self):
         """Test to biosample conversion without term"""
 
         sus = DictSpecie.objects.get(label=self.label)
         sus.term = None
-        test = sus.to_biosample()
+        test = sus.to_validation()
 
         reference = {
             "text": self.label
@@ -256,7 +256,7 @@ class DictCountryTestCase(TestCase):
         # call an helper function
         create_dictcountry(label=self.label, term=self.term)
 
-    def test_to_biosample(self):
+    def test_to_validation(self):
         """Testing specie to biosample json"""
 
         reference = {
@@ -268,16 +268,16 @@ class DictCountryTestCase(TestCase):
         }
 
         germany = DictCountry.objects.get(label=self.label)
-        test = germany.to_biosample()
+        test = germany.to_validation()
 
         self.assertEqual(reference, test)
 
-    def test_to_biosample_with_none(self):
+    def test_to_validation_with_none(self):
         """Test to biosample conversion without term"""
 
         germany = DictCountry.objects.get(label=self.label)
         germany.term = None
-        test = germany.to_biosample()
+        test = germany.to_validation()
 
         reference = {
             "text": self.label
@@ -303,7 +303,7 @@ class DictBreedTestCase(TestCase):
         # call an helper function
         create_dictbreed()
 
-    def test_to_biosample(self):
+    def test_to_validation(self):
         """Testing breed to biosample json"""
 
         reference = {
@@ -325,11 +325,11 @@ class DictBreedTestCase(TestCase):
         }
 
         bunte = DictBreed.objects.get(supplied_breed='Bunte Bentheimer')
-        test = bunte.to_biosample()
+        test = bunte.to_validation()
 
         self.assertEqual(reference, test)
 
-    def test_to_biosample_with_none(self):
+    def test_to_validation_with_none(self):
         """Test to biosample conversion without mapped objects"""
 
         # TODO: eval default mapped breed
@@ -351,7 +351,7 @@ class DictBreedTestCase(TestCase):
         }
 
         # test biosample conversion
-        test = bunte.to_biosample()
+        test = bunte.to_validation()
         self.assertEqual(reference, test)
 
 
@@ -396,7 +396,7 @@ class AnimalTestCase(TestCase):
         test = animal.get_biosample_id()
         self.assertEqual(reference, test)
 
-    def test_to_biosample(self):
+    def test_to_validation(self):
         """Testing JSON conversion"""
 
         reference = {
@@ -452,12 +452,12 @@ class AnimalTestCase(TestCase):
         }
 
         animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
-        test = animal.to_biosample()
+        test = animal.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
 
-    def test_to_biosample_with_none(self):
+    def test_to_validation_with_none(self):
         """Test to biosample conversion with null fields"""
 
         # reference with no description
@@ -516,7 +516,7 @@ class AnimalTestCase(TestCase):
 
         # remove description and test
         animal.description = None
-        test = animal.to_biosample()
+        test = animal.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
@@ -554,7 +554,7 @@ class SampleTestCase(TestCase):
         test = sample.get_biosample_id()
         self.assertEqual(reference, test)
 
-    def test_to_biosample(self):
+    def test_to_validation(self):
         reference = {
             "biosampleId": "sample_%s" % (self.sample_id),
             "project": "IMAGE",
@@ -600,12 +600,12 @@ class SampleTestCase(TestCase):
         }
 
         sample = Sample.objects.get(name__name='Siems_0722_393449')
-        test = sample.to_biosample()
+        test = sample.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
 
-    def test_to_biosample_with_none(self):
+    def test_to_validation_with_none(self):
         """Test to biosample conversion with null fields"""
 
         reference = {
@@ -640,7 +640,7 @@ class SampleTestCase(TestCase):
         sample.animal_age_at_collection = None
         sample.availability = None
 
-        test = sample.to_biosample()
+        test = sample.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)

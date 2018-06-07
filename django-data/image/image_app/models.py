@@ -20,7 +20,7 @@ class BaseDict():
                 label=self.label,
                 term=self.term)
 
-    def to_biosample(self):
+    def to_validation(self):
         biosample = dict(text=self.label)
 
         if self.term:
@@ -196,7 +196,7 @@ class DictBreed(models.Model):
         else:
             return str(self.supplied_breed)
 
-    def to_biosample(self):
+    def to_validation(self):
         result = {}
 
         result['suppliedBreed'] = self.supplied_breed
@@ -211,7 +211,7 @@ class DictBreed(models.Model):
                     ),
             }
 
-        result['country'] = self.country.to_biosample()
+        result['country'] = self.country.to_validation()
         return result
 
     class Meta:
@@ -334,7 +334,7 @@ class Animal(models.Model):
         return self.name.biosample_id or "animal_%s" % (
                 self.id)
 
-    def to_biosample(self):
+    def to_validation(self):
         """Get a biosample representation of animal"""
 
         result = {}
@@ -365,11 +365,11 @@ class Animal(models.Model):
 
         result["dataSourceId"] = self.alternative_id
 
-        result["species"] = self.breed.specie.to_biosample()
+        result["species"] = self.breed.specie.to_validation()
 
-        result["breed"] = self.breed.to_biosample()
+        result["breed"] = self.breed.to_validation()
 
-        result["sex"] = self.sex.to_biosample()
+        result["sex"] = self.sex.to_validation()
 
         # TODO: were are father and mother? Should unknown return no fields?
 
@@ -452,7 +452,7 @@ class Sample(models.Model):
         return self.name.biosample_id or "sample_%s" % (
                 self.id)
 
-    def to_biosample(self):
+    def to_validation(self):
         """Get a biosample representation of animal"""
 
         # define value tu return

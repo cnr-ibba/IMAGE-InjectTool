@@ -38,6 +38,7 @@
 
 * Usability: remove unuseful or danger links from home page (ie: truncate database):
   define a more friendly interface to users.
+  - check for the admin user
 
 * Add messages when views are called or code executed
 
@@ -66,6 +67,7 @@
 
 * What happens if two user load data in the same time? deal with concurrency
   - Data need to be isolated from a user POV
+  - isolation with an asyncronous queue system?
 
 * record need to have a column in which the status is recorded (need revisions,
   submitted, ...)
@@ -122,3 +124,25 @@
   - fixtures and pre calculate data in test database are recordered in transactions:
     I need to see object using the same connection (see loaded fixtures with
     the same connection)
+
+* check out the django [validators][https://docs.djangoproject.com/en/1.11/ref/validators/]
+  documentation
+
+* BiosampleJSON views need to be renamed to ValidationJSON or something similar
+
+* create to_biosample() python dictionary like biosample need
+  - check for mandatory fields in IMAGE-metadata rules
+
+* using python_ebi_aap.git (moving this library with a new name)
+
+* Recording submission ids in submission table
+  - did I need also the sample ids?
+  - how the submission table will reflect users submissions?
+
+* How I can update an already loaded biosample using a different submission from
+  the first one?
+
+* taxon (= specie) is a mandatory fields for biosample, taxonId not but is better
+  to map it into the specie table
+  - check mandatory fields for biosample. Other fields are attributes
+  - check status for submission.
