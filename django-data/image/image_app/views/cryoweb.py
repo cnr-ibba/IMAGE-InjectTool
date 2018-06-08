@@ -875,6 +875,15 @@ def import_from_cryoweb(request):
     # TODO: get datasource to load from link or admin
     datasource = get_a_datasource()
 
+    if not datasource:
+        # give an error message
+        logger.warn("cryoweb mirror database has data. Ignoring data load")
+        messages.warning(
+            request,
+            message="all datasources were loaded",
+            extra_tags="alert alert-dismissible alert-warning")
+        return redirect('image_app:dashboard')
+
     # TODO: check this
     if datasource.loaded is True:
         logger.warn("datasource %s was already uploaded" % datasource)

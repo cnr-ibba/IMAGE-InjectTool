@@ -53,7 +53,7 @@ variables:
 
 ```
 PGPASSWORD=<postgres password>
-IMAGE_USER=***REMOVED***
+IMAGE_USER=image_user
 IMAGE_PASSWORD=<user password>
 CRYOWEB_INSERT_ONLY_PW=<user_password>
 ```
@@ -132,7 +132,7 @@ Copy the resulting key and then paste into a new `.env` file like this:
 ```
 SECRET_KEY=<your SECRET_KEY>
 DEBUG=False
-IMAGE_USER=***REMOVED***
+IMAGE_USER=image_user
 IMAGE_PASSWORD=<user password>
 CRYOWEB_INSERT_ONLY_PW=<user_password>
 ```

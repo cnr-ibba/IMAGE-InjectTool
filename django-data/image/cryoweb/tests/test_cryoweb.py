@@ -12,7 +12,6 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
 import cryoweb.helpers
-from cryoweb.models import BreedsSpecies
 
 import image_app.helpers
 
@@ -43,6 +42,19 @@ class BaseTestCase(TestCase):
         self.client = Client()
         self.client.login(username='test', password='test')
 
+    def check_messages(self, response, tag, message_text):
+        """Check that a response has warnings"""
+
+        # each element is an instance
+        # of django.contrib.messages.storage.base.Message
+        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+
+        for message in all_messages:
+            self.assertTrue(tag in message.tags)
+            self.assertEqual(
+                message.message,
+                message_text)
+
 
 class FillUIDTestClass(BaseTestCase):
     # import this file and populate database once
@@ -67,11 +79,11 @@ class FillUIDTestClass(BaseTestCase):
         self.datasource = get_a_datasource()
 
         self.context = {
-                # get username from request.
-                'username': self.user.username,
-                'loaded': {},
-                'warnings': {},
-                'has_warnings': False}
+            # get username from request.
+            'username': self.user.username,
+            'loaded': {},
+            'warnings': {},
+            'has_warnings': False}
 
     def test_cryoweb_already_imported(self):
         # Create an instance of a GET request.
@@ -87,17 +99,12 @@ class FillUIDTestClass(BaseTestCase):
 
         # same thing, but with a client request
         response = self.client.get(
-                reverse('image_app:upload_cryoweb'))
+            reverse('image_app:upload_cryoweb'))
 
-        # each element is an instance
-        # of django.contrib.messages.storage.base.Message
-        all_messages = [msg for msg in get_messages(response.wsgi_request)]
-
-        for message in all_messages:
-            self.assertTrue("warning" in message.tags)
-            self.assertEqual(
-                    message.message,
-                    "cryoweb mirror database has data. Ignoring data load")
+        self.check_messages(
+            response,
+            "warning",
+            "cryoweb mirror database has data. Ignoring data load")
 
     def test_import_into_UID(self):
         """Import loaded cryoweb data into UID"""
@@ -106,6 +113,30 @@ class FillUIDTestClass(BaseTestCase):
             reverse('image_app:import_from_cryoweb'))
 
         self.assertFalse("error" in response.context)
+
+    def test_all_ds_imported(self):
+        """No datasources left to import"""
+
+        response = self.client.get(
+            reverse('image_app:import_from_cryoweb'))
+
+        # TODO: after data import into UID , cryoweb stage area need to be
+        # truncated. chech that this condition is true
+#        response = self.client.get(
+#            reverse('image_app:upload_cryoweb'))
+#
+#        self.check_messages(
+#            response,
+#            "warning",
+#            "all datasources were loaded")
+
+        response = self.client.get(
+            reverse('image_app:import_from_cryoweb'))
+
+        self.check_messages(
+            response,
+            "warning",
+            "all datasources were loaded")
 
     def test_import_into_UID_no_specie_synomims(self):
         """testing importing into UID without sysnonims"""
@@ -119,17 +150,10 @@ class FillUIDTestClass(BaseTestCase):
         response = self.client.get(
             reverse('image_app:import_from_cryoweb'))
 
-        # each element is an instance
-        # of django.contrib.messages.storage.base.Message
-        all_messages = [msg for msg in get_messages(response.wsgi_request)]
-
-        self.assertTrue(len(all_messages) > 0)
-
-        for message in all_messages:
-            self.assertTrue("error" in message.tags)
-            self.assertEqual(
-                message.message,
-                "Some species haven't a synonim!")
+        self.check_messages(
+            response,
+            "error",
+            "Some species haven't a synonim!")
 
     def test_load_species(self):
         """Testing load_species function"""
