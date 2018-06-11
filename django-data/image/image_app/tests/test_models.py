@@ -16,9 +16,7 @@ from image_app.models import (
 
 from language.models import SpecieSynonim
 
-
-# a constant for this module
-OBO_URL = "http://purl.obolibrary.org/obo"
+from ..constants import OBO_URL
 
 
 # a series of helper functions
@@ -534,6 +532,23 @@ class AnimalTestCase(TestCase):
             'sampleRelationships': []
         }
 
+        # define attributes
+        attributes = {
+            "material": [{
+                "value": "organism",
+                "terms": [{
+                    "url": "/".join([
+                        OBO_URL,
+                        "OBI_0100026"])
+                }]
+            }],
+            "project": [{
+                "value": "IMAGE"
+            }],
+        }
+
+        reference['attributes'] = attributes
+
         animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
         test = animal.to_biosample()
 
@@ -681,6 +696,23 @@ class SampleTestCase(TestCase):
                 "relationshipNature": "derived from"
             }]
         }
+
+        # define attributes
+        attributes = {
+            "material": [{
+                "value": "specimen from organism",
+                "terms": [{
+                    "url": "/".join([
+                        OBO_URL,
+                        "OBI_0001479"])
+                }]
+            }],
+            "project": [{
+                "value": "IMAGE"
+            }],
+        }
+
+        reference['attributes'] = attributes
 
         sample = Sample.objects.get(name__name='Siems_0722_393449')
         test = sample.to_biosample()

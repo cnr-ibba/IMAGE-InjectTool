@@ -20,7 +20,7 @@ from sqlalchemy import create_engine
 
 from decouple import AutoConfig
 
-from .models import Animal
+from .constants import OBO_URL
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -76,11 +76,12 @@ class CryowebDB(Database):
         logger.debug("Connect to database: %s" % (database))
 
         self.engine_uri = (
-                'postgresql://{user}:{password}@db:5432/{database}'.format(
-                    database=database,
-                    user=config('IMAGE_USER'),
-                    password=config('IMAGE_PASSWORD')))
+            'postgresql://{user}:{password}@db:5432/{database}'.format(
+                database=database,
+                user=config('IMAGE_USER'),
+                password=config('IMAGE_PASSWORD')))
 
+    # TODO: remove this: check using django ORM
     def has_data(self, search_path=None):
         """A method to test if database is filled or not. Returns True/False"""
 
@@ -88,8 +89,8 @@ class CryowebDB(Database):
         conn = self.get_connection(search_path=search_path)
 
         num_animals = pd.read_sql_query(
-                'select count(*) as num from animal',
-                con=conn)
+            'select count(*) as num from animal',
+            con=conn)
 
         num_animals = num_animals['num'].values[0]
 
@@ -107,15 +108,22 @@ class ImageDB(Database):
         super().__init__()
 
         self.engine_uri = (
-                'postgresql://{user}:{password}@db:5432/image'.format(
-                        user=config('IMAGE_USER'),
-                        password=config('IMAGE_PASSWORD')))
+            'postgresql://{user}:{password}@db:5432/image'.format(
+                user=config('IMAGE_USER'),
+                password=config('IMAGE_PASSWORD')))
 
+    # TODO: remove this: check using django ORM
     def has_data(self, search_path=None):
         """A method to test if database is filled or not. Returns True/False"""
 
         # get a connection
-        num_animals = Animal.objects.count()
+        conn = self.get_connection(search_path=search_path)
+
+        num_animals = pd.read_sql_query(
+            'select count(*) as num from image_app_animal',
+            con=conn)
+
+        num_animals = num_animals['num'].values[0]
 
         if num_animals > 0:
             return True
@@ -166,3 +174,25 @@ class DateDecoder(json.JSONDecoder):
         # if not, raise esception
         except Exception:
             return d
+
+
+def format_attribute(value, terms=None, units=None):
+    """Format a generic attribute into biosample dictionary"""
+
+    # HINT: need I deal with multiple values?
+
+    result = {}
+    result["value"] = value
+
+    if terms:
+        result["terms"] = [{
+            "url": "/".join([
+                OBO_URL,
+                terms])
+        }]
+
+    if units:
+        result["units"] = units
+
+    # return a list of dictionaries
+    return [result]

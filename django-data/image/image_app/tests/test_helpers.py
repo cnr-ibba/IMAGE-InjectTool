@@ -11,7 +11,7 @@ import json
 
 from django.test import TestCase
 
-from image_app.helpers import DateDecoder, DateEncoder
+from image_app.helpers import DateDecoder, DateEncoder, format_attribute
 
 
 class JsonTestCase(TestCase):
@@ -71,3 +71,32 @@ class JsonTestCase(TestCase):
 
         fake_str = json.dumps(fake_obj, cls=DateEncoder)
         self.assertEqual(fake_str, str_)
+
+
+class TestAttributes(TestCase):
+
+    def test_format_attribute(self):
+        reference = [{
+            "value": "54.20944444444445",
+            "units": "Decimal degrees"
+        }]
+
+        test = format_attribute(
+            value="54.20944444444445",
+            units="Decimal degrees")
+
+        self.assertEqual(reference, test, msg="testing units")
+
+        # another test
+        reference = [{
+            "value": "organism",
+            "terms": [{
+                "url": "http://purl.obolibrary.org/obo/OBI_0100026"
+            }]
+        }]
+
+        test = format_attribute(
+            value="organism",
+            terms="OBI_0100026")
+
+        self.assertEqual(reference, test, msg="testing terms")

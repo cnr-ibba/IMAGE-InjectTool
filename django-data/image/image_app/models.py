@@ -7,9 +7,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-
-# a constant for this module
-OBO_URL = "http://purl.obolibrary.org/obo"
+from .constants import OBO_URL
+from .helpers import format_attribute
 
 
 # helper classes
@@ -386,7 +385,15 @@ class Animal(models.Model):
     def get_attributes(self):
         """Return attributes like biosample needs"""
 
-        pass
+        attributes = {}
+
+        attributes["material"] = format_attribute(
+            value="organism", terms="OBI_0100026")
+
+        attributes["project"] = format_attribute(
+            value="IMAGE")
+
+        return attributes
 
     def to_biosample(self, release_date=None):
         """get a json from animal for biosample submission"""
@@ -409,8 +416,8 @@ class Animal(models.Model):
         if self.description:
             result['description'] = self.description
 
-        # TODO: define attributes
-        result['attributes'] = {}
+        # define attributes
+        result['attributes'] = self.get_attributes()
 
         # TODO: define relationship
         result['sampleRelationships'] = []
@@ -564,6 +571,19 @@ class Sample(models.Model):
 
         return result
 
+    def get_attributes(self):
+        """Return attributes like biosample needs"""
+
+        attributes = {}
+
+        attributes["material"] = format_attribute(
+            value="specimen from organism", terms="OBI_0001479")
+
+        attributes["project"] = format_attribute(
+            value="IMAGE")
+
+        return attributes
+
     def to_biosample(self, release_date=None):
         """get a json from sample for biosample submission"""
 
@@ -585,8 +605,8 @@ class Sample(models.Model):
         if self.description:
             result['description'] = self.description
 
-        # TODO: define attributes
-        result['attributes'] = {}
+        # define attributes
+        result['attributes'] = self.get_attributes()
 
         # define relationship
         result['sampleRelationships'] = [{
