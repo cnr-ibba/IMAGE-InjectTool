@@ -70,8 +70,8 @@ class SampleInLineFormSet(forms.BaseInlineFormSet):
         # and the relation between table Name. In order to have all sample
         # names for each animal, I need a join with three tables
         self.queryset = Sample.objects.select_related(
-                'animal').select_related(
-                        'name').filter(animal=animal)
+            'animal').select_related(
+                'name').filter(animal=animal)
 
 
 class SampleInline(admin.StackedInline):

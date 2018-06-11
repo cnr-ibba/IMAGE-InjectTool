@@ -109,10 +109,12 @@ class DictSpecie(BaseDict, models.Model):
         blank=False,
         help_text="Example: Sus scrofa")
 
-    taxon_id = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        help_text="Taxon ID")
+    @property
+    def taxon_id(self):
+        if not self.term or self.term == '':
+            return None
+
+        return int(self.term.split("_")[-1])
 
     term = models.CharField(
         max_length=255,

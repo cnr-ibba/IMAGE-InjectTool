@@ -10,7 +10,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 from image_app.models import DictSpecie
-from zooma.helpers import useZooma, get_taxonID_by_scientific_name
+from zooma.helpers import useZooma
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -54,15 +54,4 @@ class Command(BaseCommand):
                     result["confidence"].lower())
 
                 specie.confidence = confidence
-                specie.save()
-
-        for specie in DictSpecie.objects.filter(taxon_id__isnull=True):
-            logger.debug("getting taxonId term for %s" % (specie))
-
-            # try to get taxonomy Id
-            taxonId = get_taxonID_by_scientific_name(specie.label)
-
-            # update object (if possible)
-            if taxonId:
-                specie.taxon_id = taxonId
                 specie.save()
