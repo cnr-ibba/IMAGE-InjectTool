@@ -458,7 +458,7 @@ class AnimalTestCase(TestCase):
         self.assertEqual(reference, test)
 
     def test_to_validation_with_none(self):
-        """Test to biosample conversion with null fields"""
+        """Test to json conversion with null fields"""
 
         # reference with no description
         reference = {
@@ -521,6 +521,27 @@ class AnimalTestCase(TestCase):
         self.maxDiff = None
         self.assertEqual(reference, test)
 
+    def test_to_biosample(self):
+        """Testing JSON conversion for biosample submission"""
+
+        reference = {
+            'alias': "animal_%s" % (self.animal_id),
+            'title': 'ANIMAL:::ID:::132713',
+            'releaseDate': str(datetime.datetime.now().date()),
+            'taxonId': 9823,
+            'description': "a 4-year old pig organic fed",
+            'attributes': {},
+            'sampleRelationships': []
+        }
+
+        animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
+        test = animal.to_biosample()
+
+        self.maxDiff = None
+        self.assertEqual(reference, test)
+
+    # TODO: test None rendering
+
 
 class SampleTestCase(TestCase):
     """testing sample class"""
@@ -566,13 +587,13 @@ class SampleTestCase(TestCase):
                     "OBI_0001479"]
                 ),
             },
+            "name": "Siems_0722_393449",
             "geneBankName": "CryoWeb",
             "geneBankCountry": "Germany",
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "23.01",
             "dataSourceId": "Siems_0722_393449",
             "derivedFrom": "animal_%s" % (self.animal_id),
-            "name": "Siems_0722_393449",
             "collectionDate": {
                 "text": "2017-03-12",
                 "unit": "YYYY-MM-DD"
@@ -619,13 +640,13 @@ class SampleTestCase(TestCase):
                     "OBI_0001479"]
                 ),
             },
+            "name": "Siems_0722_393449",
             "geneBankName": "CryoWeb",
             "geneBankCountry": "Germany",
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "23.01",
             "dataSourceId": "Siems_0722_393449",
             "derivedFrom": "animal_%s" % (self.animal_id),
-            "name": "Siems_0722_393449",
         }
 
         sample = Sample.objects.get(name__name='Siems_0722_393449')
@@ -644,6 +665,30 @@ class SampleTestCase(TestCase):
 
         self.maxDiff = None
         self.assertEqual(reference, test)
+
+    def test_to_biosample(self):
+        """Testing JSON conversion for biosample submission"""
+
+        reference = {
+            'alias': "sample_%s" % (self.sample_id),
+            'title': 'Siems_0722_393449',
+            'releaseDate': str(datetime.datetime.now().date()),
+            'taxonId': 9823,
+            'description': "semen collected when the animal turns to 4",
+            'attributes': {},
+            'sampleRelationships': [{
+                "alias": "animal_%s" % (self.animal_id),
+                "relationshipNature": "derived from"
+            }]
+        }
+
+        sample = Sample.objects.get(name__name='Siems_0722_393449')
+        test = sample.to_biosample()
+
+        self.maxDiff = None
+        self.assertEqual(reference, test)
+
+    # TODO: test None rendering
 
     def test_uid_report(self):
         """testing uid report after a Sample and Animal insert"""

@@ -1,5 +1,6 @@
 
 from enum import Enum
+import datetime
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -342,7 +343,7 @@ class Animal(models.Model):
                 self.id)
 
     def to_validation(self):
-        """Get a biosample representation of animal"""
+        """Get a json representation of animal"""
 
         result = {}
 
@@ -379,6 +380,40 @@ class Animal(models.Model):
         result["sex"] = self.sex.to_validation()
 
         # TODO: were are father and mother? Should unknown return no fields?
+
+        return result
+
+    def get_attributes(self):
+        """Return attributes like biosample needs"""
+
+        pass
+
+    def to_biosample(self, release_date=None):
+        """get a json from animal for biosample submission"""
+
+        result = {}
+
+        # define mandatory fields
+        result['alias'] = self.get_biosample_id()
+        result['title'] = self.name.name
+
+        if release_date:
+            result['releaseDate'] = None
+        else:
+            now = datetime.datetime.now()
+            result['releaseDate'] = str(now.date())
+
+        result['taxonId'] = self.breed.specie.taxon_id
+
+        # define optinal fields
+        if self.description:
+            result['description'] = self.description
+
+        # TODO: define attributes
+        result['attributes'] = {}
+
+        # TODO: define relationship
+        result['sampleRelationships'] = []
 
         return result
 
@@ -526,6 +561,38 @@ class Sample(models.Model):
 
         if self.availability:
             result["availability"] = self.availability
+
+        return result
+
+    def to_biosample(self, release_date=None):
+        """get a json from sample for biosample submission"""
+
+        result = {}
+
+        # define mandatory fields
+        result['alias'] = self.get_biosample_id()
+        result['title'] = self.name.name
+
+        if release_date:
+            result['releaseDate'] = None
+        else:
+            now = datetime.datetime.now()
+            result['releaseDate'] = str(now.date())
+
+        result['taxonId'] = self.animal.breed.specie.taxon_id
+
+        # define optinal fields
+        if self.description:
+            result['description'] = self.description
+
+        # TODO: define attributes
+        result['attributes'] = {}
+
+        # define relationship
+        result['sampleRelationships'] = [{
+            "alias": self.animal.get_biosample_id(),
+            "relationshipNature": "derived from",
+        }]
 
         return result
 
