@@ -10,7 +10,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 from image_app.models import DictSpecie
-from zooma.helpers import useZooma
+from zooma.helpers import useZooma, get_taxonID_by_scientific_name
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # get all species without a term
         for specie in DictSpecie.objects.filter(term__isnull=True):
-            logger.debug("Processing %s" % (specie))
+            logger.debug("getting ontology term for %s" % (specie))
 
             result = useZooma(specie.label, "species")
 
@@ -54,4 +54,15 @@ class Command(BaseCommand):
                     result["confidence"].lower())
 
                 specie.confidence = confidence
+                specie.save()
+
+        for specie in DictSpecie.objects.filter(taxon_id__isnull=True):
+            logger.debug("getting taxonId term for %s" % (specie))
+
+            # try to get taxonomy Id
+            taxonId = get_taxonID_by_scientific_name(specie.label)
+
+            # update object (if possible)
+            if taxonId:
+                specie.taxon_id = taxonId
                 specie.save()

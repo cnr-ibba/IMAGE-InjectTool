@@ -21,3 +21,6 @@ ZOOMA_TEST = "http://snarf.ebi.ac.uk:8480/spot/zooma/v2/api/services/annotate"
 # according to IMAGE ruleset, only these ontology libraries are allowed in the
 # ruleset, so not search others. gaz is for countries
 ONTOLOGIES = ['efo', 'uberon', 'obi', 'NCBITaxon', 'lbo', 'pato', 'gaz']
+
+# taxonomy service
+TAXONOMY_URL = "https://www.ebi.ac.uk/ena/data/taxonomy/v1/taxon/"

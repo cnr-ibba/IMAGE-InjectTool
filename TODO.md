@@ -146,3 +146,6 @@
   to map it into the specie table
   - check mandatory fields for biosample. Other fields are attributes
   - check status for submission.
+
+* read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
+  - automate [clearsession](https://docs.djangoproject.com/en/1.11/topics/http/sessions/#clearing-the-session-store)

@@ -105,15 +105,20 @@ class DictSpecie(BaseDict, models.Model):
 
     # if not defined, this table will have an own primary key
     label = models.CharField(
-            max_length=255,
-            blank=False,
-            help_text="Example: Sus scrofa")
+        max_length=255,
+        blank=False,
+        help_text="Example: Sus scrofa")
+
+    taxon_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Taxon ID")
 
     term = models.CharField(
-            max_length=255,
-            null=True,
-            blank=True,
-            help_text="Example: NCBITaxon_9823")
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Example: NCBITaxon_9823")
 
     # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
     class CONFIDENCE(Enum):

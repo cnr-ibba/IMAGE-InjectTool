@@ -10,10 +10,11 @@ Functions adapted from Jun Fan misc.py and use_zooma.py python scripts
 
 import re
 import logging
+import urllib
 
 import requests
 
-from .constants import ZOOMA_URL, ONTOLOGIES
+from .constants import ZOOMA_URL, ONTOLOGIES, TAXONOMY_URL
 
 
 # Get an instance of a logger
@@ -149,3 +150,34 @@ def useZooma(term, category):
 
     # no results is returned with low or medium confidence
     logger.warn("No result returned for %s" % (newTerm))
+
+
+def get_taxonID_by_scientific_name(scientific_name):
+    # define URL
+    url = urllib.parse.urljoin(
+        TAXONOMY_URL,
+        urllib.parse.quote("scientific-name/%s" % (scientific_name)))
+
+    # debug
+    logger.debug("Searching %s" % (url))
+
+    response = requests.get(url)
+
+    logger.debug(response)
+
+    if response.status_code != 200:
+        logger.error("No data retrieved for %s" % (scientific_name))
+        return None
+
+    # read results
+    results = response.json()
+
+    if len(results) > 1:
+        logger.warn(
+            "%s results found for %s" % (len(results), scientific_name))
+
+    taxonId = int(results[0]['taxId'])
+
+    logger.debug("Got taxonId %s for %s" % (taxonId, scientific_name))
+
+    return taxonId

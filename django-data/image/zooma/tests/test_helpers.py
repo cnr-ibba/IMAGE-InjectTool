@@ -8,7 +8,8 @@ Created on Mon May  7 16:23:17 2018
 
 from django.test import TestCase
 
-from ..helpers import to_camel_case, from_camel_case, useZooma
+from ..helpers import (
+    to_camel_case, from_camel_case, useZooma, get_taxonID_by_scientific_name)
 
 
 # Create your tests here.
@@ -147,3 +148,18 @@ class TestZooma(TestCase):
         # physiological stage PATO_0001701 (mature)
         test = useZooma('mature', 'physiological stage')
         self.assertIsNone(test, msg="Testing mature: physiological stage")
+
+
+class TestTaxon(TestCase):
+    """A class to test taxon services"""
+
+    def test_get_by_scientific_name(self):
+        """Testing taxonomy service by scientific name"""
+
+        # testing a invalid data
+        test = get_taxonID_by_scientific_name("foo")
+        self.assertIsNone(test)
+
+        # testing a valid name
+        test = get_taxonID_by_scientific_name("Homo sapiens")
+        self.assertEqual(test, 9606)
