@@ -49,6 +49,15 @@
         <a href="{% url 'image_app:animallist-biosample' %}">Download biosample data</a>
       </div>
     </div>
+    <div class="card border-light mb-3" style="">
+      <div class="card-header">Biosample</div>
+      <div class="card-body">
+        <h4 class="card-title">Biosample submission</h4>
+        {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
+        <a href="{% url 'biosample:token-generation' %}">Generate token</a><br>
+        <a href="{% url 'biosample:token' %}">Token info</a><br>
+      </div>
+    </div>
     <div class="card border-danger mb-3" style="">
       <div class="card-header text-white bg-danger"><strong>Danger Zone</strong></div>
       <div class="card-body">

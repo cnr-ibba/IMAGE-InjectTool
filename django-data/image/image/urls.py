@@ -28,6 +28,7 @@ admin.site.index_title = "Welcome to IMAGE InjectTool Admin"
 
 urlpatterns = [
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
+    url(r'^biosample/', include('biosample.urls', namespace="biosample")),
     url(r'^admin/', admin.site.urls),
     url(r'^$', IndexView.as_view(), name='index'),
     url(r'^about/$', AboutView.as_view(), name='about'),

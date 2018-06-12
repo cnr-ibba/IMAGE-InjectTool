@@ -12,3 +12,4 @@ coverage
 pytest-django
 django-widget-tweaks
 requests
+https://codeload.github.com/bunop/pyEBIrest/zip/master

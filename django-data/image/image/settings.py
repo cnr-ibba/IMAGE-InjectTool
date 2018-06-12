@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'cryoweb',
     'zooma',
     'language',
+    'biosample',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -173,6 +174,10 @@ LOGGING = {
             'handlers': ['console'],
         },
         'language': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'biosample': {
             'level': 'DEBUG',
             'handlers': ['console'],
         },

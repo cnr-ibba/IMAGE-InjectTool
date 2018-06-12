@@ -106,7 +106,10 @@ def upload_cryoweb(request):
     except Exception as exc:
         context['returncode'] = -1
         context['stderr'] = str(exc)
-        messages.error(request, "error in calling upload_cryoweb")
+        messages.error(
+            request,
+            "error in calling upload_cryoweb",
+            extra_tags="alert alert-dismissible alert-danger")
         logger.error("error in calling upload_cryoweb: %s" % (exc))
 
     else:

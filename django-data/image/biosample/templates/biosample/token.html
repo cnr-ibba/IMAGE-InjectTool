@@ -1,0 +1,16 @@
+
+{% extends "base.html" %}
+
+{% block title_block %}
+  Token info
+{% endblock title_block%}
+
+{% block body_content %}
+  <p>{{ auth }}</p>
+  <p>{{ auth.claims }}</p>
+  <p>
+    <a href="{% url 'biosample:token-generation' %}" class="btn btn-success" role="button">Generate a new token</a>
+    <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+  </p>
+
+{% endblock body_content %}
