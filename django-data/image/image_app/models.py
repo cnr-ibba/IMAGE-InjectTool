@@ -618,51 +618,44 @@ class Sample(models.Model):
 
 
 class Submission(models.Model):
-    project = models.CharField(
-            max_length=25,
-            default="IMAGE",
-            editable=False)
+    name = models.CharField(max_length=255, unique=True)
 
-    title = models.CharField(
-            max_length=255,
-            help_text='Example: Roslin Sheep Atlas')
+    # are those fields editable by admin?
+    submitter = models.EmailField()
 
-    # Assigned by BioSample. Not specified in ruleset
-    identifier = models.CharField(
-            max_length=255, blank=True, null=True,
-            help_text='Must be blank if not assigned ' +
-                      'by BioSamples Database')
+    team = models.CharField(max_length=255)
 
-    description = models.CharField(
-            max_length=255,
-            help_text='Example: The Roslin Institute ' +
-                      'Sheep Gene Expression Atlas Project')
+    created = models.DateTimeField()
 
-    # Not specified in ruleset
-    version = models.CharField(
-            max_length=255, blank=True, null=True,
-            default=1.2)
+    last_modified = models.DateTimeField()
 
-    # the following three attributes are related to Biosample submission
-    # in general. Not in ruleset
-    reference_layer = models.CharField(
-            max_length=255, blank=True, null=True,
-            help_text=('If this submission is part of the reference layer, '
-                       'this will be "true". Otherwise it will be "false"'))
+    status = models.CharField(max_length=255)
 
-    # Not in ruleset
-    update_date = models.DateField(
-            blank=True, null=True,
-            help_text="Date this submission was last modified")
-
-    # Not in ruleset
-    release_date = models.DateField(
-            blank=True, null=True,
-            help_text=("Date to be made public on. If blank, it will be "
-                       "public immediately"))
+    link = models.URLField()
 
     def __str__(self):
-        return str(str(self.id) + ", " + str(self.title))
+        return ",".join([self.submitter, self.link])
+
+    @classmethod
+    def parse(cls, submission):
+        # get object
+        try:
+            obj = cls.objects.get(name=submission.name)
+        except cls.DoesNotExist:
+            obj = cls(name=submission.name)
+
+        # update values with data
+        obj.submitter = submission.submitter
+        obj.team = submission.team
+        obj.created = datetime.datetime.strptime(
+            submission.createdDate, "%Y-%m-%dT%H:%M:%S.%f%z")
+        obj.last_modified = datetime.datetime.strptime(
+            submission.lastModifiedDate, "%Y-%m-%dT%H:%M:%S.%f%z")
+        obj.status = submission.submissionStatus
+        obj.link = submission._links["self"]["href"]
+        obj.save()
+
+        return obj
 
 
 class Person(models.Model):

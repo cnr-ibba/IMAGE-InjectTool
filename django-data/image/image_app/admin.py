@@ -163,10 +163,8 @@ class AnimalAdmin(admin.ModelAdmin):
 
 
 class SubmissionAdmin(admin.ModelAdmin):
-    search_fields = ['title']
     list_display = (
-        'title', 'project', 'description', 'version', 'reference_layer',
-        'update_date', 'release_date',
+        'name', 'submitter', 'team', 'created', 'last_modified', 'status'
     )
 
 

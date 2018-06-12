@@ -76,15 +76,24 @@ class AuthView(TemplateView):
         # Call the base implementation first to get a context
         context = super(AuthView, self).get_context_data(**kwargs)
 
-        # add content to context
-        auth = Auth(token=self.request.session['token'])
+        try:
+            # add content to context
+            auth = Auth(token=self.request.session['token'])
 
-        if auth.is_expired():
+            if auth.is_expired():
+                messages.error(
+                    self.request,
+                    "Your token is expired",
+                    extra_tags="alert alert-dismissible alert-danger")
+
+            context["auth"] = auth
+
+        except KeyError as e:
+            logger.error(repr(e))
+
             messages.error(
                 self.request,
-                "Your token is expired",
+                "You haven't generated any token yet",
                 extra_tags="alert alert-dismissible alert-danger")
-
-        context["auth"] = auth
 
         return context
