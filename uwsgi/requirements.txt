@@ -1,7 +1,7 @@
 uwsgi
 mysqlclient
 psycopg2-binary
-Django==1.11.12
+Django==1.11.13
 pandas
 SQLAlchemy
 pymongo
@@ -12,4 +12,4 @@ coverage
 pytest-django
 django-widget-tweaks
 requests
-https://codeload.github.com/bunop/pyEBIrest/zip/master
+git+https://github.com/bunop/pyEBIrest.git@471f186b57d8886dd5355f2dada5231f410f6503

@@ -12,7 +12,7 @@
 # The official django image is deprecated in favor of the standard python image
 FROM python:3.6
 
-MAINTAINER Paolo Cozzi <paolo.cozzi@ptp.it>
+MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

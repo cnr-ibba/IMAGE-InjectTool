@@ -137,7 +137,13 @@ IMAGE_PASSWORD=<user password>
 CRYOWEB_INSERT_ONLY_PW=<user_password>
 ```
 
-Database passwords have to be the same of the previous `.env` file.
+Database passwords have to be the same of the previous `.env` file. You need to
+add also the `imagemanager` credentials to this file:
+
+```
+USI_MANAGER=imagemanager
+USI_MANAGER_PASSWORD=<usi_manager_password>
+```
 
 ### Start composed image
 
@@ -245,4 +251,22 @@ only data from an existing cryoweb instance. Execute a dump from a cryoweb like 
 
 ```
 $ pg_dump -U <user> -h <host> --column-inserts --data-only --schema apiis_admin <cryoweb_database> > cryoweb_data_only.sql
+```
+
+Biosample submission
+--------------------
+
+Generate a new user using django management command, it will prompt for a new
+password:
+
+```
+$ docker-compose run --rm uwsgi python manage.py create_usi_user -u <username> --email <email> --full_name <name> <surname>
+```
+
+> *TODO*: Move this functionality to a django user authentication app
+
+Submit UID data to biosample
+
+```
+$ docker-compose run --rm uwsgi python manage.py biosample_submission -u <username>
 ```

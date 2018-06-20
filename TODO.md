@@ -149,3 +149,28 @@
 
 * read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - automate [clearsession](https://docs.djangoproject.com/en/1.11/topics/http/sessions/#clearing-the-session-store)
+
+* Need to create a biosample user from InjectTools:
+  - add environment variables for imagemanager in order to create users
+  - create a biosample user and a biosample team dedicated to this user: mind username
+    and team (eg. there could be a user 'paolo' in biosample system)
+  - track team and username for the InjectTools user. Don't store passwords!!!
+    can't restore biosample passwords
+  - user can modify things only in the team he belongs to
+
+* Remove empty sampleRelationships from biosample json
+
+* Biosample manager user should do:
+  - Monitor biosample submission to see if sample are validated or not (by team/user)
+  - finalize submission after validation occours
+  - ask for user intervention / notify success
+  - create team and add user which can add sample. Submission will be done for
+    each user indipendently
+  - fetch biosample id when submission is finalized and completed
+
+* proposed change for `Name` table (that can become a summary table a user will see)
+  - all columns: name, biosampleid, status, last_change, last_submitted.
+  - track status: need to known if a sample has been submitted or need to be submitted
+    or updated
+  - track time for changes and submission: if I change one sample after submission,
+    i need to patch
