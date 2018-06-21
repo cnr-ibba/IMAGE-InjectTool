@@ -20,6 +20,9 @@ from django.contrib import admin
 # importing image views
 from image_app.views import AboutView, IndexView
 
+# importing accounts views
+from accounts import views as accounts_views
+
 # renaming admin app (login, admin brand and page title)
 # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/change_text.html
 admin.site.site_header = "IMAGE InjectTool Admin"
@@ -27,12 +30,13 @@ admin.site.site_title = "IMAGE InjectTool Admin Portal"
 admin.site.index_title = "Welcome to IMAGE InjectTool Admin"
 
 urlpatterns = [
+    url(r'^$', IndexView.as_view(), name='index'),
+    url(r'^signup/$', accounts_views.signup, name='signup'),
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
     url(r'^biosample/', include('biosample.urls', namespace="biosample")),
     url(r'^admin/', admin.site.urls),
-    url(r'^$', IndexView.as_view(), name='index'),
     url(r'^about/$', AboutView.as_view(), name='about'),
-    # using auth CBV
+    # using django.contrib.auth CBV for login
     url('^', include('django.contrib.auth.urls')),
 ]
 

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'zooma',
     'language',
     'biosample',
+    'accounts',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -178,6 +179,10 @@ LOGGING = {
             'handlers': ['console'],
         },
         'biosample': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'accounts': {
             'level': 'DEBUG',
             'handlers': ['console'],
         },
