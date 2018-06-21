@@ -1,8 +1,18 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title_block %}Sign up to Django Boards{% endblock title_block %}
 
-{% block body_content %}
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock custom-css %}
+
+{% block body %}
+<div class="container">
+  <h1 class="text-center logo my-4">
+    <a href="{% url 'index' %}">IMAGE-InjectTool</a>
+  </h1>
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10 col-sm-12">
       <div class="card">
@@ -20,4 +30,5 @@
       </div>
     </div>
   </div>
-{% endblock body_content %}
+</div>
+{% endblock body %}

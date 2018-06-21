@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'^signup/$', accounts_views.signup, name='signup'),
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
     url(r'^biosample/', include('biosample.urls', namespace="biosample")),
+    url(r'^accounts/', include('accounts.urls', namespace="accounts")),
     url(r'^admin/', admin.site.urls),
     url(r'^about/$', AboutView.as_view(), name='about'),
     # using django.contrib.auth CBV for login
