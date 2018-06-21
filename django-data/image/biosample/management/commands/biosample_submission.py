@@ -20,6 +20,25 @@ from image_app.models import Animal
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+# change the default level for pyEBIrest logging
+logging.getLogger('pyEBIrest.auth').setLevel(logging.INFO)
+logging.getLogger('pyEBIrest.client').setLevel(logging.INFO)
+
+
+# helper function to check for errors
+def check_submission_status(submission):
+    try:
+        statuses = submission.get_status()
+
+    except AttributeError as e:
+        logger.warn(e)
+        # add a fake statuses
+        logger.info("Sleep for a while...")
+        time.sleep(10)
+        statuses = {'Pending': -1}
+
+    return statuses
+
 
 class Command(BaseCommand):
     help = 'Submit to biosample'
@@ -57,31 +76,53 @@ class Command(BaseCommand):
         # TODO: check if provide team belongs to user in auth.claims
 
         # get root object
+        logger.debug("getting biosample root")
         root = pyEBIrest.Root(auth=auth)
 
         # get an example team
-        team = root.get_team_by_name('subs.test-team-3')
+        team_name = 'subs.test-team-1'
+        logger.debug("getting team %s" % (team_name))
+        team = root.get_team_by_name(team_name)
 
         # create a submission
+        logger.info("Creating a new submission for %s" % (team.name))
         submission = team.create_submission()
 
         # get all animal data
+        logger.info("Fetching data and add to submission")
         for animal in Animal.objects.filter(
-                sample__name__isnull=False).distinct()[:30]:
-            logging.info("Appending animal %s to submission" % (animal))
+                sample__name__isnull=False).distinct()[:10]:
+            logger.info("Appending animal %s to submission" % (animal))
             submission.create_sample(animal.to_biosample())
 
             # Add their specimen
             for sample in animal.sample_set.all():
-                logging.info("Appending sample %s to submission" % (sample))
+                logger.info("Appending sample %s to submission" % (sample))
                 submission.create_sample(sample.to_biosample())
 
-        # TODO: check that validations happens and that is OK
-        # validation could take time
-        logger.info("Sleep for a while...")
-        time.sleep(10)
+        logger.info("Submission completed!")
 
-        # finalize submission
+        # check that validations happens and that is OK
+        # validation could take time and the process could generate
+        # transitory problems
+        statuses = check_submission_status(submission)
+
+        while 'Complete' not in statuses and len(statuses) == 1:
+            logger.info("Submission %s: %s" % (submission, statuses))
+            logger.info("Sleep for a while...")
+            time.sleep(10)
+            statuses = check_submission_status(submission)
+
+        logger.info("Submission processed: %s" % (statuses))
+
+        errors = submission.has_errors()
+
+        if True in errors:
+            logger.error("Errors for submission: %s" % (errors))
+            raise Exception("Submission has error exiting")
+
+        # finalize submission if there are not errors
+        logger.info("Finalizing submission")
         submission.finalize()
 
         # completed
