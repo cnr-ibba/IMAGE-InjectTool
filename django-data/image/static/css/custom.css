@@ -1,3 +1,12 @@
+
+@font-face {
+  font-family: 'Peralta';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/Peralta-Regular.ttf')  format("truetype"),
+       local('Peralta'), local('Peralta-Regular');
+}
+
 .navbar-brand {
   font-family: 'Peralta', cursive;
 }

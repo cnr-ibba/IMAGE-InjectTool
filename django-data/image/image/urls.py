@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 
 # importing image views
 from image_app.views import AboutView, IndexView
@@ -32,13 +33,19 @@ admin.site.index_title = "Welcome to IMAGE InjectTool Admin"
 urlpatterns = [
     url(r'^$', IndexView.as_view(), name='index'),
     url(r'^signup/$', accounts_views.signup, name='signup'),
+    url(r'^login/$',
+        auth_views.LoginView.as_view(
+            template_name='accounts/login.html'),
+        name='login'),
+    url(r'^logout/$',
+        auth_views.LogoutView.as_view(
+            template_name='accounts/logged_out.html'),
+        name='logout'),
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
     url(r'^biosample/', include('biosample.urls', namespace="biosample")),
     url(r'^accounts/', include('accounts.urls', namespace="accounts")),
     url(r'^admin/', admin.site.urls),
     url(r'^about/$', AboutView.as_view(), name='about'),
-    # using django.contrib.auth CBV for login
-    url('^', include('django.contrib.auth.urls')),
 ]
 
 # Activate django-debug-toolbar only when settings.DEBUG is True
