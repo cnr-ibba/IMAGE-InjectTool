@@ -1,6 +1,6 @@
 
-from enum import Enum
 import datetime
+from enum import Enum
 
 from django.contrib.auth.models import User
 from django.db import models

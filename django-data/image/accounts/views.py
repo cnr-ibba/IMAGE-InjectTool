@@ -11,16 +11,13 @@ https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-gui
 
 """
 
-
+from django.contrib import messages
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-from django.shortcuts import render, redirect
-from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.views.generic import UpdateView
+from django.db import transaction
+from django.shortcuts import redirect, render
 
-from .forms import SignUpForm
+from .forms import PersonForm, SignUpForm, UserForm
 
 
 # Create your views here.
@@ -38,12 +35,38 @@ def signup(request):
     return render(request, 'accounts/signup.html', {'form': form})
 
 
-@method_decorator(login_required, name='dispatch')
-class UserUpdateView(UpdateView):
-    model = User
-    fields = ('first_name', 'last_name', 'email', )
-    template_name = 'accounts/my_account.html'
-    success_url = reverse_lazy('accounts:my_account')
+@login_required
+@transaction.atomic
+def update_profile(request):
+    if request.method == 'POST':
+        user_form = UserForm(request.POST, instance=request.user)
+        person_form = PersonForm(request.POST, instance=request.user.person)
 
-    def get_object(self):
-        return self.request.user
+        if user_form.is_valid() and person_form.is_valid():
+            user_form.save()
+            person_form.save()
+
+            messages.success(
+                request,
+                message="Your profile was successfully updated!",
+                extra_tags="alert alert-dismissible alert-success")
+
+            return redirect('image_app:dashboard')
+
+        else:
+            messages.error(
+                request,
+                message="Please correct the errors below",
+                extra_tags="alert alert-dismissible alert-danger")
+
+    # method GET
+    else:
+        user_form = UserForm(instance=request.user)
+        person_form = PersonForm(instance=request.user.person)
+
+        # pass only a object in context
+        form_list = [user_form, person_form]
+
+    return render(request, 'accounts/update_user.html', {
+        'form_list': form_list
+    })

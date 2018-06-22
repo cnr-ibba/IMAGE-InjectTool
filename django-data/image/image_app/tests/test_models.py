@@ -10,10 +10,8 @@ import datetime
 
 from django.test import TestCase
 
-from image_app.models import (
-    Animal, DataSource, DictBreed, DictCountry, DictSex, DictSpecie, Name,
-    Sample, uid_report)
-
+from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
+                              DictSex, DictSpecie, Name, Sample, uid_report)
 from language.models import SpecieSynonim
 
 from ..constants import OBO_URL

@@ -1,11 +1,11 @@
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.urls import resolve
 from django.test import TestCase
+from django.urls import resolve
 
-from ..views import signup
 from ..forms import SignUpForm
+from ..views import signup
 
 
 # Create your tests here.

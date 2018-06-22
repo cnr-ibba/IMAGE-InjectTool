@@ -6,9 +6,9 @@ Created on Thu Jun 21 16:54:00 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from django.urls import reverse_lazy
 from django.conf.urls import url
 from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
 
 from . import views
 
@@ -53,10 +53,9 @@ urlpatterns = [
             template_name='accounts/password_reset_complete.html'),
         name='password_reset_complete'),
 
-    # TODO: change with update user
     url(
         r'^my_account/$',
-        views.UserUpdateView.as_view(),
+        views.update_profile,
         name='my_account'
     ),
 ]

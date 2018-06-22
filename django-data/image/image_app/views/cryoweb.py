@@ -19,11 +19,10 @@ from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
 from django.shortcuts import redirect, render
 
+import cryoweb.helpers
 import image_app.helpers
 from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
                               DictSex, DictSpecie, Name, Sample)
-
-import cryoweb.helpers
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

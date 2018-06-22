@@ -9,13 +9,13 @@ Created on Wed Apr  4 16:11:23 2018
 import os
 
 from django.test import Client, TestCase
-from django.urls import reverse, resolve
-
-from ..models import User, DictCountry, DataSource
-from ..views import DataSourceView, initializedb
-from ..forms import DataSourceForm
+from django.urls import resolve, reverse
 
 import cryoweb.tests
+
+from ..forms import DataSourceForm
+from ..models import DataSource, DictCountry, User
+from ..views import DataSourceView, initializedb
 
 
 class SiteTestCase(TestCase):

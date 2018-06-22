@@ -11,15 +11,13 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.management import call_command
-from django.db import transaction
-from django.shortcuts import redirect, render, reverse
+from django.shortcuts import redirect, reverse
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
-from image_app.forms import DataSourceForm, PersonForm, UserForm
+from image_app.forms import DataSourceForm
 from image_app.helpers import CryowebDB
 from image_app.models import DataSource, uid_report
-
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -94,43 +92,6 @@ class DataSourceView(FormView):
         form.save()
 
         return super(DataSourceView, self).form_valid(form)
-
-
-@login_required
-@transaction.atomic
-def update_profile(request):
-    if request.method == 'POST':
-        user_form = UserForm(request.POST, instance=request.user)
-        person_form = PersonForm(request.POST, instance=request.user.person)
-
-        if user_form.is_valid() and person_form.is_valid():
-            user_form.save()
-            person_form.save()
-
-            messages.success(
-                request,
-                message="Your profile was successfully updated!",
-                extra_tags="alert alert-dismissible alert-success")
-
-            return redirect('image_app:dashboard')
-
-        else:
-            messages.error(
-                request,
-                message="Please correct the errors below",
-                extra_tags="alert alert-dismissible alert-danger")
-
-    # method GET
-    else:
-        user_form = UserForm(instance=request.user)
-        person_form = PersonForm(instance=request.user.person)
-
-        # pass only a object in context
-        form_list = [user_form, person_form]
-
-    return render(request, 'image_app/update_user.html', {
-        'form_list': form_list
-    })
 
 
 @login_required

@@ -52,9 +52,11 @@
             <a class="nav-link" href="{% url 'about' %}">About</a>
           </li>
           {% if user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
-            </li>
+            {% if user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
+              </li>
+            {% endif %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'image_app:dashboard' %}">Dashboard</a>
             </li>

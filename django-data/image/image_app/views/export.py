@@ -11,9 +11,8 @@ In this module, all function useful to export data are defined
 
 import logging
 
-from image_app.models import Sample, Animal
+from image_app.models import Animal, Sample
 from image_app.views import custom
-
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
