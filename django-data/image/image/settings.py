@@ -213,7 +213,7 @@ USE_L10N = True
 USE_TZ = False
 
 # https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-LOGIN_URL
-LOGIN_URL = '/image/login/'
+LOGIN_URL = '/login/'
 
 # https://docs.djangoproject.com/en/1.11/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = '/image/image_app/dashboard'

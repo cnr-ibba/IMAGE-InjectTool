@@ -1,8 +1,7 @@
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.contrib.auth import views as auth_views
-from django.core.urlresolvers import reverse
-from django.urls import resolve
+from django.urls import resolve, reverse
 from django.test import TestCase
 
 
@@ -43,7 +42,7 @@ class PasswordChangeTests(TestCase):
 
 class LoginRequiredPasswordChangeTests(TestCase):
     def test_redirection(self):
-        url = reverse('password_change')
+        url = reverse('accounts:password_change')
         login_url = reverse('login')
         response = self.client.get(url)
         self.assertRedirects(response, f'{login_url}?next={url}')
@@ -55,8 +54,9 @@ class PasswordChangeTestCase(TestCase):
     accepts a `data` dict to POST to the view.
     '''
     def setUp(self, data={}):
-        self.user = User.objects.create_user(username='john', email='john@doe.com', password='old_password')
-        self.url = reverse('password_change')
+        self.user = User.objects.create_user(
+            username='john', email='john@doe.com', password='old_password')
+        self.url = reverse('accounts:password_change')
         self.client.login(username='john', password='old_password')
         self.response = self.client.post(self.url, data)
 
@@ -73,7 +73,8 @@ class SuccessfulPasswordChangeTests(PasswordChangeTestCase):
         '''
         A valid form submission should redirect the user
         '''
-        self.assertRedirects(self.response, reverse('password_change_done'))
+        self.assertRedirects(
+            self.response, reverse('accounts:password_change_done'))
 
     def test_password_changed(self):
         '''
