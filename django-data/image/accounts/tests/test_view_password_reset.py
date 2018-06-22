@@ -40,13 +40,15 @@ class PasswordResetTests(TestCase):
 class SuccessfulPasswordResetTests(TestCase):
     def setUp(self):
         email = 'john@doe.com'
-        User.objects.create_user(username='john', email=email, password='123abcdef')
+        User.objects.create_user(
+            username='john', email=email, password='123abcdef')
         url = reverse('password_reset')
         self.response = self.client.post(url, {'email': email})
 
     def test_redirection(self):
         '''
-        A valid form submission should redirect the user to `password_reset_done` view
+        A valid form submission should redirect the user to
+        `password_reset_done` view
         '''
         url = reverse('password_reset_done')
         self.assertRedirects(self.response, url)
@@ -58,7 +60,8 @@ class SuccessfulPasswordResetTests(TestCase):
 class InvalidPasswordResetTests(TestCase):
     def setUp(self):
         url = reverse('password_reset')
-        self.response = self.client.post(url, {'email': 'donotexist@email.com'})
+        self.response = self.client.post(
+            url, {'email': 'donotexist@email.com'})
 
     def test_redirection(self):
         '''
@@ -82,7 +85,8 @@ class PasswordResetDoneTests(TestCase):
 
     def test_view_function(self):
         view = resolve('/reset/done/')
-        self.assertEquals(view.func.view_class, auth_views.PasswordResetDoneView)
+        self.assertEquals(
+            view.func.view_class, auth_views.PasswordResetDoneView)
 
 
 class PasswordResetConfirmTests(TestCase):
@@ -156,4 +160,5 @@ class PasswordResetCompleteTests(TestCase):
 
     def test_view_function(self):
         view = resolve('/reset/complete/')
-        self.assertEquals(view.func.view_class, auth_views.PasswordResetCompleteView)
+        self.assertEquals(
+            view.func.view_class, auth_views.PasswordResetCompleteView)

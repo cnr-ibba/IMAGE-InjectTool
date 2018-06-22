@@ -3,6 +3,7 @@
 
 {%  block custom-css %}
   {# You need to load staticfiles in order to call static templatetag #}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
 {% endblock %}
 
@@ -62,6 +63,14 @@
       </div>
       -->
       <button class="btn btn-lg btn-primary btn-block" type="submit" value="login">Sign in</button>
+      <div class="card-footer text-muted text-center">
+        New to IMAGE-InjectTool? <a href="{% url 'signup' %}">Sign up</a>
+      </div>
+      <div class="text-center py-2">
+        <small>
+          <a href="{% url 'accounts:password_reset' %}" class="text-muted">Forgot your password?</a>
+        </small>
+      </div>
       <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p>
       <input type="hidden" name="next" value="{{ next }}" />
     </form>
