@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import redirect, render
 
-from .forms import PersonForm, SignUpForm, UserForm
+from .forms import SignUpPersonForm, PersonForm, SignUpUserForm, UserForm
 
 
 # Create your views here.
@@ -25,8 +25,8 @@ from .forms import PersonForm, SignUpForm, UserForm
 def signup(request):
     if request.method == 'POST':
         # SignUpForm has also passwords
-        user_form = SignUpForm(request.POST)
-        person_form = PersonForm(request.POST)
+        user_form = SignUpUserForm(request.POST)
+        person_form = SignUpPersonForm(request.POST)
 
         # Two is valid: i need to ensure that both forms are valid
         if user_form.is_valid() and person_form.is_valid():
@@ -34,7 +34,7 @@ def signup(request):
             user = user_form.save()
 
             # reload person_form using user.person as a instance
-            person_form = PersonForm(request.POST, instance=user.person)
+            person_form = SignUpPersonForm(request.POST, instance=user.person)
 
             # then update person data
             person_form.save()
@@ -43,8 +43,8 @@ def signup(request):
             auth_login(request, user)
             return redirect('index')
     else:
-        user_form = SignUpForm()
-        person_form = PersonForm()
+        user_form = SignUpUserForm()
+        person_form = SignUpPersonForm()
 
     # pass only a object in context
     form_list = [user_form, person_form]

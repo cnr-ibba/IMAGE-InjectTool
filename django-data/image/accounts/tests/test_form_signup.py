@@ -1,16 +1,25 @@
 
 from django.test import TestCase
 
-from ..forms import SignUpForm, UserForm, PersonForm
+from ..forms import SignUpUserForm, SignUpPersonForm, UserForm, PersonForm
 
 
 # test FormClass itself, not a view
-class SignUpFormTest(TestCase):
+class SignUpUserFormTest(TestCase):
     def test_form_has_fields(self):
-        form = SignUpForm()
+        form = SignUpUserForm()
         expected = [
             'username', 'first_name', 'last_name', 'email', 'password1',
             'password2']
+        actual = list(form.fields)
+        self.assertSequenceEqual(expected, actual)
+
+
+class SignUpPersonFormTest(TestCase):
+    def test_form_has_fields(self):
+        form = SignUpPersonForm()
+        expected = [
+            'initials', 'affiliation', 'role', 'organization', 'agree_gdpr']
         actual = list(form.fields)
         self.assertSequenceEqual(expected, actual)
 

@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.urls import resolve
 
-from ..forms import SignUpForm, PersonForm
+from ..forms import SignUpUserForm, SignUpPersonForm
 from ..views import signup
 
 
@@ -28,8 +28,8 @@ class SignUpTests(TestCase):
         form_list = self.response.context.get('form_list')
 
         self.assertEqual(len(form_list), 2)
-        self.assertIsInstance(form_list[0], SignUpForm)
-        self.assertIsInstance(form_list[1], PersonForm)
+        self.assertIsInstance(form_list[0], SignUpUserForm)
+        self.assertIsInstance(form_list[1], SignUpPersonForm)
 
     def test_form_inputs(self):
         '''
@@ -37,7 +37,7 @@ class SignUpTests(TestCase):
         password1, password2
         '''
 
-        self.assertContains(self.response, '<input', 9)
+        self.assertContains(self.response, '<input', 10)
         self.assertContains(self.response, 'type="text"', 5)
         self.assertContains(self.response, 'type="email"', 1)
         self.assertContains(self.response, 'type="password"', 2)
@@ -59,7 +59,8 @@ class SuccessfulSignUpTests(TestCase):
             'password2': 'abcdef123456',
             'affiliation': 'IBBA',
             'role': '1',
-            'organization': '1'
+            'organization': '1',
+            'agree_gdpr': True
         }
         self.response = self.client.post(url, data)
         print(self.response)

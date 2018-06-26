@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 from image_app.models import Person
 
 
-class SignUpForm(UserCreationForm):
+class SignUpUserForm(UserCreationForm):
     email = forms.CharField(
         max_length=254, required=True, widget=forms.EmailInput())
 
@@ -30,6 +30,17 @@ class SignUpForm(UserCreationForm):
             'password2')
 
 
+class SignUpPersonForm(forms.ModelForm):
+    # custom attributes
+    agree_gdpr = forms.BooleanField(
+        label="I accept IMAGE-InjectTool terms and conditions",
+        help_text="You have to agree in order to use IMAGE-InjectTool")
+
+    class Meta:
+        model = Person
+        fields = ('initials', 'affiliation', 'role', 'organization')
+
+
 class UserForm(forms.ModelForm):
 
     class Meta:
@@ -38,8 +49,6 @@ class UserForm(forms.ModelForm):
 
 
 class PersonForm(forms.ModelForm):
-    agree_gdpr = forms.BooleanField(
-        label="I accept IMAGE-InjectTool terms and conditions")
 
     class Meta:
         model = Person

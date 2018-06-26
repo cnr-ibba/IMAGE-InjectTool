@@ -13,39 +13,32 @@
 
   {% for field in form %}
 
-    {% if field|widget_type == 'checkboxinput' %}
-      <div class="form.group form-check form-check-inline">
-        {% render_field field class="form-check-input" %}
-        <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
-        {% for error in field.errors %}
-          <div class="invalid-feedback">
-            {{ error }}
-          </div>
-        {% endfor %}
-        {% if field.help_text %}
-          <small class="form-text text-muted">
-            {{ field.help_text|safe }}
-          </small>
-        {% endif %}
-      </div>
-      
-    {% else %}
-      <div class="form-group">
+    <div class="form-group">
+      {# check field types #}
+      {% if field|widget_type == 'checkboxinput' %}
+        <div class="form-check">
+          {% render_field field class="form-check-input" %}
+          <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
+        </div>
+      {% else %}
         {{ field.label_tag }}
         {% render_field field class=field|input_class %}
-        {% for error in field.errors %}
-          <div class="invalid-feedback">
-            {{ error }}
-          </div>
-        {% endfor %}
-        {% if field.help_text %}
-          <small class="form-text text-muted">
-            {{ field.help_text|safe }}
-          </small>
-        {% endif %}
-      </div>
-    {% endif %}
+      {% endif %}
 
+      {# Render errors and help text #}
+      {% for error in field.errors %}
+        <div class="invalid-feedback">
+          {{ error }}
+        </div>
+      {% endfor %}
+      {% if field.help_text %}
+        <small class="form-text text-muted">
+          {{ field.help_text|safe }}
+        </small>
+      {% endif %}
+    </div>
+
+  {# endfor for field #}
   {% endfor %}
 
 {# endfor for form_list #}
