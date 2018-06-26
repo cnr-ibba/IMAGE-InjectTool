@@ -661,19 +661,25 @@ class Submission(models.Model):
 class Person(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     initials = models.CharField(max_length=255, blank=True, null=True)
-    affiliation = models.CharField(max_length=255, blank=True, null=True)
+    affiliation = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text="The institution you belong to"
+    )
 
     # last_name, first_name and email comes from User model
 
     role = models.ForeignKey(
-            'DictRole',
-            on_delete=models.PROTECT,
-            null=True)
+        'DictRole',
+        on_delete=models.PROTECT,
+        null=True)
 
-    organizations = models.ManyToManyField('Organization')
-
-    def get_organizations(self):
-        return ", ".join([p.name for p in self.organizations.all()])
+    organization = models.OneToOneField(
+        'Organization',
+        null=True,
+        on_delete=models.CASCADE,
+        help_text="The institution which owns data")
 
     def __str__(self):
         return "{name} {surname} ({affiliation})".format(
@@ -703,11 +709,15 @@ def save_user_person(sender, instance, **kwargs):
 class Organization(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255, blank=True, null=True,
-                               help_text='One line, comma separated')
-    country = models.CharField(max_length=255, blank=True, null=True)
-    URI = models.URLField(max_length=500, blank=True, null=True,
-                          help_text='Web site')
+    address = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text='One line, comma separated')
+
+    country = models.ForeignKey('DictCountry')
+
+    URI = models.URLField(
+        max_length=500, blank=True, null=True,
+        help_text='Web site')
 
     role = models.ForeignKey(
             'DictRole',

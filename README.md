@@ -166,8 +166,8 @@ the django tables need to be defined:
 
 ```
 $ docker-compose run --rm uwsgi python manage.py check
+$ docker-compose run --rm uwsgi python manage.py migrate
 $ docker-compose run --rm uwsgi python manage.py makemigrations
-$ docker-compose run --rm uwsgi python manage.py makemigrations language
 $ docker-compose run --rm uwsgi python manage.py migrate
 $ docker-compose run --rm uwsgi python manage.py createsuperuser
 ```

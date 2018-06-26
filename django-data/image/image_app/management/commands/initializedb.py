@@ -14,12 +14,12 @@ import collections
 import csv
 import io
 import logging
+import os
 
 from django.core.management import BaseCommand
 
-from image_app.models import (
-    DictRole, DictSex, Ontology, DictCountry, DictSpecie)
-
+from image_app.models import (DictCountry, DictRole, DictSex, DictSpecie,
+                              Ontology, Organization)
 from language.models import SpecieSynonim
 
 # Get an instance of a logger
@@ -57,13 +57,13 @@ GAZ;https://www.ebi.ac.uk/ols/ontologies/gaz;A gazetteer constructed on ontologi
 def fill_DictSex():
     # define two DictSex objects
     male, created = DictSex.objects.get_or_create(
-            label='male', term='PATO_0000384')
+        label='male', term='PATO_0000384')
 
     if created is True:
         logger.info("Created: %s" % (male))
 
     female, created = DictSex.objects.get_or_create(
-            label='female', term='PATO_0000383')
+        label='female', term='PATO_0000383')
 
     if created is True:
         logger.info("Created: %s" % (female))
@@ -73,10 +73,12 @@ def fill_DictSex():
 def fill_DictRoles():
     # define a submitter role
     role, created = DictRole.objects.get_or_create(
-            label='submitter', term='EFO_0001741')
+        label='submitter', term='EFO_0001741')
 
     if created is True:
         logger.info("Created: %s" % (role))
+
+    return role
 
 
 # a function to fill up dictspecie and speciesynonim
@@ -129,6 +131,37 @@ def fill_Countries():
     return country
 
 
+def fill_Organization():
+    """Fill organization table"""
+
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    filename = os.path.join(base_dir, "commands/organization_list.csv")
+
+    # open data file
+    handle = open(filename)
+    reader = csv.reader(handle, delimiter=";")
+    Data = collections.namedtuple('Data', "id name country")
+
+    # get a role
+    role = fill_DictRoles()
+
+    for row in map(Data._make, reader):
+        # get a country object
+        country, created = DictCountry.objects.get_or_create(
+            label=row.country)
+
+        if created is True:
+            logger.info("Created: %s" % (country))
+
+        organization, created = Organization.objects.get_or_create(
+            name=row.name, role=role, country=country)
+
+        if created is True:
+            logger.info("Created: %s" % (organization))
+
+    handle.close()
+
+
 class Command(BaseCommand):
     help = 'Fill database tables like roles, sex, etc'
 
@@ -144,3 +177,6 @@ class Command(BaseCommand):
 
         # import synonims
         fill_Species()
+
+        # import organizations
+        fill_Organization()

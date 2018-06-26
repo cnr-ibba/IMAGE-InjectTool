@@ -24,15 +24,32 @@ from .forms import PersonForm, SignUpForm, UserForm
 # Using Django creation form
 def signup(request):
     if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+        # SignUpForm has also passwords
+        user_form = SignUpForm(request.POST)
+        person_form = PersonForm(request.POST)
+
+        # Two is valid: i need to ensure that both forms are valid
+        if user_form.is_valid() and person_form.is_valid():
+            # this will save user and default person data
+            user = user_form.save()
+
+            # reload person_form using user.person as a instance
+            person_form = PersonForm(request.POST, instance=user.person)
+
+            # then update person data
+            person_form.save()
+
+            # Auto connect after registration
             auth_login(request, user)
             return redirect('index')
     else:
-        form = SignUpForm()
+        user_form = SignUpForm()
+        person_form = PersonForm()
 
-    return render(request, 'accounts/signup.html', {'form': form})
+    # pass only a object in context
+    form_list = [user_form, person_form]
+
+    return render(request, 'accounts/signup.html', {'form_list': form_list})
 
 
 @login_required

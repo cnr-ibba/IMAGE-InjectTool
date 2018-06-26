@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.urls import resolve
 
-from ..forms import SignUpForm
+from ..forms import SignUpForm, PersonForm
 from ..views import signup
 
 
@@ -25,8 +25,11 @@ class SignUpTests(TestCase):
         self.assertContains(self.response, 'csrfmiddlewaretoken')
 
     def test_contains_form(self):
-        form = self.response.context.get('form')
-        self.assertIsInstance(form, SignUpForm)
+        form_list = self.response.context.get('form_list')
+
+        self.assertEqual(len(form_list), 2)
+        self.assertIsInstance(form_list[0], SignUpForm)
+        self.assertIsInstance(form_list[1], PersonForm)
 
     def test_form_inputs(self):
         '''
@@ -34,22 +37,33 @@ class SignUpTests(TestCase):
         password1, password2
         '''
 
-        self.assertContains(self.response, '<input', 5)
-        self.assertContains(self.response, 'type="text"', 1)
+        self.assertContains(self.response, '<input', 9)
+        self.assertContains(self.response, 'type="text"', 5)
         self.assertContains(self.response, 'type="email"', 1)
         self.assertContains(self.response, 'type="password"', 2)
 
 
 class SuccessfulSignUpTests(TestCase):
+    fixtures = [
+        "dictcountry.json", "dictrole.json", "organization.json"
+    ]
+
     def setUp(self):
         url = reverse('signup')
         data = {
             'username': 'john',
+            'first_name': 'John',
+            'last_name': 'Doe',
             'email': 'john@doe.com',
             'password1': 'abcdef123456',
-            'password2': 'abcdef123456'
+            'password2': 'abcdef123456',
+            'affiliation': 'IBBA',
+            'role': '1',
+            'organization': '1'
         }
         self.response = self.client.post(url, data)
+        print(self.response)
+        print(self.response.content.decode("utf-8"))
         self.home_url = reverse('index')
 
     def test_redirection(self):
@@ -84,8 +98,9 @@ class InvalidSignUpTests(TestCase):
         self.assertEquals(self.response.status_code, 200)
 
     def test_form_errors(self):
-        form = self.response.context.get('form')
-        self.assertTrue(form.errors)
+        form_list = self.response.context.get('form_list')
+        for form in form_list:
+            self.assertTrue(form.errors)
 
     def test_dont_create_user(self):
         self.assertFalse(User.objects.exists())

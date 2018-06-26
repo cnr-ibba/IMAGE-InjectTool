@@ -9,9 +9,9 @@ Dump all data into biosample format
 
 """
 
-import sys
 import json
 import logging
+import sys
 
 from django.core.management import BaseCommand
 

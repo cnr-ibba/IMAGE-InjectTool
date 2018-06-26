@@ -25,16 +25,22 @@ class SignUpForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = (
+            'username', 'first_name', 'last_name', 'email', 'password1',
+            'password2')
 
 
 class UserForm(forms.ModelForm):
+
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')
 
 
 class PersonForm(forms.ModelForm):
+    agree_gdpr = forms.BooleanField(
+        label="I accept IMAGE-InjectTool terms and conditions")
+
     class Meta:
         model = Person
-        fields = ('initials', 'affiliation', 'role', 'organizations')
+        fields = ('initials', 'affiliation', 'role', 'organization')

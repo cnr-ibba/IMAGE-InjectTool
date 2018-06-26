@@ -171,7 +171,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     list_display = (
         'user_name', 'full_name', 'initials', 'affiliation', 'role',
-        'get_organizations'
+        'organization'
     )
 
     def user_name(self, obj):
@@ -184,12 +184,6 @@ class PersonAdmin(admin.ModelAdmin):
         return "%s %s" % (obj.user.first_name, obj.user.last_name)
 
     full_name.short_description = "Full Name"
-
-    def get_organizations(self, obj):
-        return obj.get_organizations()
-
-    # rename column in admin
-    get_organizations.short_description = 'Organizations'
 
 
 # https://simpleisbetterthancomplex.com/tutorial/2016/11/23/how-to-add-user-profile-to-django-admin.html

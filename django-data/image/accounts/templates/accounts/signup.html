@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title_block %}Sign up to Django Boards{% endblock title_block %}
+{% block title_block %}Sign up to IMAGE-InjectTool{% endblock title_block %}
 
 {% block custom-css %}
   <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
@@ -20,7 +20,7 @@
           <h3 class="card-title">Sign up</h3>
           <form method="post" novalidate>
             {% csrf_token %}
-            {% include 'includes/form.html' %}
+            {% include 'includes/form_list.html' %}
             <button type="submit" class="btn btn-primary btn-block">Create an account</button>
           </form>
         </div>
