@@ -212,11 +212,14 @@ USE_L10N = True
 # USE_TZ = False and USE_TZ = True freely
 USE_TZ = False
 
+# django can accept named URL patterns
+# https://stackoverflow.com/a/1519675
+
 # https://docs.djangoproject.com/en/1.11/ref/settings/#std:setting-LOGIN_URL
-LOGIN_URL = '/login/'
+LOGIN_URL = 'login'
 
 # https://docs.djangoproject.com/en/1.11/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = '/image/image_app/dashboard'
+LOGIN_REDIRECT_URL = 'image_app:dashboard'
 
 # Static files (CSS, JavaScript, Images) and users' media
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
