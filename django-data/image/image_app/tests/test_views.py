@@ -18,7 +18,9 @@ from ..models import DataSource, DictCountry, User
 from ..views import DataSourceView, initializedb
 
 
-class SiteTestCase(TestCase):
+class Initialize(TestCase):
+    """Does the common stuff when testing cases are run"""
+
     def setUp(self):
         # create a testuser
         User.objects.create_user(
@@ -29,10 +31,11 @@ class SiteTestCase(TestCase):
         self.client = Client()
         self.client.login(username='test', password='test')
 
-    def tearDown(self):
-        # remove user
-        u = User.objects.get(username='test')
-        u.delete()
+
+class SiteTestCase(Initialize):
+    def setUp(self):
+        # create a test user
+        super().setUp()
 
     def test_homepage(self):
         """Testing home"""
@@ -43,20 +46,36 @@ class SiteTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class AddDataSourceTests(TestCase):
+class DashBoardViewTest(Initialize):
     def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get the url for dashboard
+        self.url = reverse('image_app:dashboard')
+
+    def test_redirection(self):
+        '''Non Authenticated user are directed to login page'''
+
+        login_url = reverse("login")
+        client = Client()
+        response = client.get(self.url)
+
+        self.assertRedirects(
+            response, '{login_url}?next={url}'.format(
+                login_url=login_url, url=self.url)
+        )
+
+
+class AddDataSourceTests(Initialize):
+    def setUp(self):
+        # create test user
+        super().setUp()
+
+        # and now create a country object
         self.country = DictCountry.objects.create(
             label='Germany',
             term='NCIT_C16636')
-
-        self.user = User.objects.create_user(
-            username='test',
-            password='test',
-            email="test@test.com")
-
-        # login to upload data
-        self.client = Client()
-        self.client.login(username='test', password='test')
 
     def test_new_ds_view_success_status_code(self):
         url = reverse('image_app:data_upload')
@@ -133,16 +152,10 @@ class AddDataSourceTests(TestCase):
         self.assertIsInstance(form, DataSourceForm)
 
 
-class TestInitializeDB(TestCase):
+class TestInitializeDB(Initialize):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='test',
-            password='test',
-            email="test@test.com")
-
-        # login to upload data
-        self.client = Client()
-        self.client.login(username='test', password='test')
+        # create test user
+        super().setUp()
 
     def test_new_ds_view_success_status_code(self):
         url = reverse('image_app:initializedb')

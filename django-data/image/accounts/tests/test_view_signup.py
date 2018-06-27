@@ -63,8 +63,6 @@ class SuccessfulSignUpTests(TestCase):
             'agree_gdpr': True
         }
         self.response = self.client.post(url, data)
-        print(self.response)
-        print(self.response.content.decode("utf-8"))
         self.home_url = reverse('index')
 
     def test_redirection(self):
