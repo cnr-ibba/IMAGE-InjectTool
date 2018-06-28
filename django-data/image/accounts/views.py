@@ -16,8 +16,11 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import redirect, render
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
 
-from .forms import SignUpPersonForm, PersonForm, SignUpUserForm, UserForm
+from .forms import (
+    SignUpPersonForm, PersonForm, SignUpUserForm, UserForm, SignUpForm)
 
 
 # Create your views here.
@@ -50,6 +53,31 @@ def signup(request):
     form_list = [user_form, person_form]
 
     return render(request, 'accounts/signup.html', {'form_list': form_list})
+
+
+class UserSignUpView(CreateView):
+    form_class = SignUpForm
+    success_url = reverse_lazy('index')
+    template_name = 'accounts/signup2.html'
+
+    def form_valid(self, form):
+        # Save the user first, because the profile needs a user before it
+        # can be saved.
+        user = form['user'].save()
+
+        form = SignUpForm(
+            self.request.POST,
+            instance={
+                'user': user,
+                'person': user.person,
+            }
+        )
+        form.save()
+
+        # Auto connect after registration
+        auth_login(self.request, user)
+
+        return redirect(self.success_url)
 
 
 @login_required

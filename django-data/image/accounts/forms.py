@@ -16,6 +16,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
+from betterforms.multiform import MultiModelForm
+
 from image_app.models import Person
 
 
@@ -39,6 +41,13 @@ class SignUpPersonForm(forms.ModelForm):
     class Meta:
         model = Person
         fields = ('initials', 'affiliation', 'role', 'organization')
+
+
+class SignUpForm(MultiModelForm):
+    form_classes = {
+        'user': SignUpUserForm,
+        'person': SignUpPersonForm,
+    }
 
 
 class UserForm(forms.ModelForm):
