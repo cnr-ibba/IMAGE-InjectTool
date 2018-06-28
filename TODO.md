@@ -174,3 +174,6 @@
     or updated
   - track time for changes and submission: if I change one sample after submission,
     i need to patch
+
+* add migrations in git repository, as suggested from official django documentation
+  [cit needed] and [here][https://stackoverflow.com/questions/28035119/should-i-be-adding-the-django-migration-files-in-the-gitignore-file]

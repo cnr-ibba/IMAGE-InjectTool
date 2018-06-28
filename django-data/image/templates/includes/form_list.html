@@ -12,7 +12,7 @@
   {% endif %}
 
   {% for field in form %}
-
+    {# render form group #}
     <div class="form-group">
       {# check field types #}
       {% if field|widget_type == 'checkboxinput' %}

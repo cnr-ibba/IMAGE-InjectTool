@@ -10,9 +10,20 @@
 {% endif %}
 
 {% for field in form %}
+  {# render form group #}
   <div class="form-group">
-    {{ field.label_tag }}
-    {% render_field field class=field|input_class %}
+    {# check field types #}
+    {% if field|widget_type == 'checkboxinput' %}
+      <div class="form-check">
+        {% render_field field class="form-check-input" %}
+        <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
+      </div>
+    {% else %}
+      {{ field.label_tag }}
+      {% render_field field class=field|input_class %}
+    {% endif %}
+
+    {# Render errors and help text #}
     {% for error in field.errors %}
       <div class="invalid-feedback">
         {{ error }}
