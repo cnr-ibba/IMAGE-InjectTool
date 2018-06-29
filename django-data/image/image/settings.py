@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'language',
     'biosample',
     'accounts',
+    'registration',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -239,3 +240,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 # simply displaying them in the console
 # https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-guide-to-django-part-4.html#console-email-backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Django registration redux
+ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window;
+
+# TODO: fix these email parameters
+DEFAULT_FROM_EMAIL = 'testing@example.com'
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = False
+EMAIL_PORT = 1025

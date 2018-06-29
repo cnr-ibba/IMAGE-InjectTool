@@ -177,3 +177,7 @@
 
 * add migrations in git repository, as suggested from official django documentation
   [cit needed] and [here][https://stackoverflow.com/questions/28035119/should-i-be-adding-the-django-migration-files-in-the-gitignore-file]
+
+* rename `body_content` block into `content` block
+
+* More user can belong to same organization?

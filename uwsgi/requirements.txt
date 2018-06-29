@@ -13,4 +13,5 @@ pytest-django
 django-widget-tweaks
 requests
 django-betterforms
+django-registration-redux
 git+https://github.com/bunop/pyEBIrest.git@6b969f9d66b2c32341ae218d7e9125a6e2f4853c
