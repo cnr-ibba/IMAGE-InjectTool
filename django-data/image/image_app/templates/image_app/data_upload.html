@@ -5,7 +5,7 @@
   Upload a Datasource
 {% endblock title_block%}
 
-{% block body_content %}
+{% block content %}
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
@@ -13,4 +13,4 @@
         <button type="submit" class="btn btn-success">Upload Datasource</button>
         <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
     </form>
-{% endblock body_content %}
+{% endblock content %}

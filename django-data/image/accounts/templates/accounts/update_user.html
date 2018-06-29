@@ -4,7 +4,7 @@
   Update User Profile
 {% endblock title_block %}
 
-{% block body_content %}
+{% block content %}
 
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
@@ -13,4 +13,4 @@
   <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
 </form>
 
-{% endblock body_content %}
+{% endblock content %}

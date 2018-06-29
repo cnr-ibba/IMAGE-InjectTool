@@ -4,7 +4,7 @@
   Cryoweb Import
 {% endblock title_block %}
 
-{% block body_content %}
+{% block content %}
 
   {% if returncode != 0 %}
     <p><strong>{{ stderr }}</strong></p>
@@ -20,4 +20,4 @@
     <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
   </p>
 
-{% endblock body_content %}
+{% endblock content %}
