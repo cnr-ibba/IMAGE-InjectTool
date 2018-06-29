@@ -675,7 +675,9 @@ class Person(models.Model):
         on_delete=models.PROTECT,
         null=True)
 
-    organization = models.OneToOneField(
+    # HINT: with a OneToOneField relation, there will be only one user for
+    # each organization
+    organization = models.ForeignKey(
         'Organization',
         null=True,
         on_delete=models.CASCADE,
