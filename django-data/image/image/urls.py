@@ -32,7 +32,7 @@ admin.site.index_title = "Welcome to IMAGE InjectTool Admin"
 
 urlpatterns = [
     url(r'^$', IndexView.as_view(), name='index'),
-    url(r'^signup/$', accounts_views.UserSignUpView.as_view(), name='signup'),
+    url(r'^signup/$', accounts_views.SignUpView.as_view(), name='signup'),
     url(r'^login/$',
         auth_views.LoginView.as_view(
             template_name='accounts/login.html'),

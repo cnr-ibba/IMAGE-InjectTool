@@ -1,11 +1,10 @@
 
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.urls import resolve
+from django.urls import resolve, reverse
 
-from ..forms import SignUpUserForm, SignUpPersonForm
-from ..views import signup
+from ..forms import SignUpForm
+from ..views import SignUpView
 
 
 # Create your tests here.
@@ -19,17 +18,15 @@ class SignUpTests(TestCase):
 
     def test_signup_url_resolves_signup_view(self):
         view = resolve('/signup/')
-        self.assertEquals(view.func, signup)
+        self.assertIsInstance(view.func.view_class(), SignUpView)
 
     def test_csrf(self):
         self.assertContains(self.response, 'csrfmiddlewaretoken')
 
     def test_contains_form(self):
-        form_list = self.response.context.get('form_list')
+        form = self.response.context.get('form')
 
-        self.assertEqual(len(form_list), 2)
-        self.assertIsInstance(form_list[0], SignUpUserForm)
-        self.assertIsInstance(form_list[1], SignUpPersonForm)
+        self.assertIsInstance(form, SignUpForm)
 
     def test_form_inputs(self):
         '''
@@ -50,17 +47,19 @@ class SuccessfulSignUpTests(TestCase):
 
     def setUp(self):
         url = reverse('signup')
+        # SignUpView is a multiform object, so input type name has the name of
+        # the base form and the name of the input type
         data = {
-            'username': 'john',
-            'first_name': 'John',
-            'last_name': 'Doe',
-            'email': 'john@doe.com',
-            'password1': 'abcdef123456',
-            'password2': 'abcdef123456',
-            'affiliation': 'IBBA',
-            'role': '1',
-            'organization': '1',
-            'agree_gdpr': True
+            'user-username': 'john',
+            'user-first_name': 'John',
+            'user-last_name': 'Doe',
+            'user-email': 'john@doe.com',
+            'user-password1': 'abcdef123456',
+            'user-password2': 'abcdef123456',
+            'person-affiliation': 'IBBA',
+            'person-role': '1',
+            'person-organization': '1',
+            'person-agree_gdpr': True
         }
         self.response = self.client.post(url, data)
         self.home_url = reverse('index')
@@ -97,9 +96,9 @@ class InvalidSignUpTests(TestCase):
         self.assertEquals(self.response.status_code, 200)
 
     def test_form_errors(self):
-        form_list = self.response.context.get('form_list')
-        for form in form_list:
-            self.assertTrue(form.errors)
+        multi_form = self.response.context.get('form')
+        for form in multi_form.forms.values():
+            self.assertGreater(len(form.errors), 0)
 
     def test_dont_create_user(self):
         self.assertFalse(User.objects.exists())

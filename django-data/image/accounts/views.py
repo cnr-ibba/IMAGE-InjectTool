@@ -20,51 +20,23 @@ from django.views.generic import CreateView
 from django.urls import reverse_lazy
 
 from .forms import (
-    SignUpPersonForm, PersonForm, SignUpUserForm, UserForm, SignUpForm)
+    PersonForm, UserForm, SignUpForm)
 
 
-# Create your views here.
-# Using Django creation form
-def signup(request):
-    if request.method == 'POST':
-        # SignUpForm has also passwords
-        user_form = SignUpUserForm(request.POST)
-        person_form = SignUpPersonForm(request.POST)
-
-        # Two is valid: i need to ensure that both forms are valid
-        if user_form.is_valid() and person_form.is_valid():
-            # this will save user and default person data
-            user = user_form.save()
-
-            # reload person_form using user.person as a instance
-            person_form = SignUpPersonForm(request.POST, instance=user.person)
-
-            # then update person data
-            person_form.save()
-
-            # Auto connect after registration
-            auth_login(request, user)
-            return redirect('index')
-    else:
-        user_form = SignUpUserForm()
-        person_form = SignUpPersonForm()
-
-    # pass only a object in context
-    form_list = [user_form, person_form]
-
-    return render(request, 'accounts/signup.html', {'form_list': form_list})
-
-
-class UserSignUpView(CreateView):
+class SignUpView(CreateView):
+    # import a multiform object
     form_class = SignUpForm
     success_url = reverse_lazy('index')
-    template_name = 'accounts/signup2.html'
+    template_name = 'accounts/signup.html'
 
     def form_valid(self, form):
         # Save the user first, because the profile needs a user before it
-        # can be saved.
+        # can be saved. When I save user, I save also person since is related
+        # to user
         user = form['user'].save()
 
+        # I re-initialize the form with user.username (from database)
+        # maybe I can use get_or_create to get a person object then update it
         form = SignUpForm(
             self.request.POST,
             instance={
