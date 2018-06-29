@@ -29,6 +29,13 @@ class SignUpView(CreateView):
     success_url = reverse_lazy('index')
     template_name = 'accounts/signup.html'
 
+    # add the request to the kwargs
+    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+    def get_form_kwargs(self):
+        kwargs = super(SignUpView, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
         # Save the user first, because the profile needs a user before it
         # can be saved. When I save user, I save also person since is related
@@ -50,6 +57,14 @@ class SignUpView(CreateView):
         auth_login(self.request, user)
 
         return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            message="Please correct the errors below",
+            extra_tags="alert alert-dismissible alert-danger")
+
+        return super(SignUpView, self).form_invalid(form)
 
 
 @login_required

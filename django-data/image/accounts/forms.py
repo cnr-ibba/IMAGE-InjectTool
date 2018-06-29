@@ -49,6 +49,13 @@ class SignUpForm(MultiModelForm):
         'person': SignUpPersonForm,
     }
 
+    # the request is now available, add it to the instance data
+    def __init__(self, *args, **kwargs):
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
+
+        super(SignUpForm, self).__init__(*args, **kwargs)
+
 
 class UserForm(forms.ModelForm):
 

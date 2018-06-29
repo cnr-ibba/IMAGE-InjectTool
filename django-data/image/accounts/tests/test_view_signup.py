@@ -1,4 +1,5 @@
 
+from django.contrib.messages import get_messages
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import resolve, reverse
@@ -85,6 +86,19 @@ class SuccessfulSignUpTests(TestCase):
 
 
 class InvalidSignUpTests(TestCase):
+    def check_messages(self, response, tag, message_text):
+        """Check that a response has warnings"""
+
+        # each element is an instance
+        # of django.contrib.messages.storage.base.Message
+        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+
+        for message in all_messages:
+            self.assertTrue(tag in message.tags)
+            self.assertEqual(
+                message.message,
+                message_text)
+
     def setUp(self):
         url = reverse('signup')
         self.response = self.client.post(url, {})  # submit an empty dictionary
@@ -99,6 +113,12 @@ class InvalidSignUpTests(TestCase):
         multi_form = self.response.context.get('form')
         for form in multi_form.forms.values():
             self.assertGreater(len(form.errors), 0)
+
+    def test_form_messages(self):
+        self.check_messages(
+            self.response,
+            "error",
+            "Please correct the errors below")
 
     def test_dont_create_user(self):
         self.assertFalse(User.objects.exists())
