@@ -31,8 +31,9 @@ class SignUpTests(TestCase):
 
     def test_form_inputs(self):
         '''
-        The view must contain five inputs: csrf, username, email,
-        password1, password2
+        The view must contain eleven inputs: csrf, username, first_name,
+        last_name, email, password1, password2, affiliation, role,
+        organization and agree_gdpr checkbox
         '''
 
         self.assertContains(self.response, '<input', 10)
