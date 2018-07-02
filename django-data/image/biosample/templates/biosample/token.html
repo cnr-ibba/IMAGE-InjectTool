@@ -5,7 +5,7 @@
   Token info
 {% endblock title_block%}
 
-{% block body_content %}
+{% block content %}
   <p>{{ auth }}</p>
   <p>{{ auth.claims }}</p>
   <p>
@@ -13,4 +13,4 @@
     <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
   </p>
 
-{% endblock body_content %}
+{% endblock content %}

@@ -12,7 +12,7 @@ https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-gui
 """
 
 from django.contrib import messages
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import login as auth_login, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.db import transaction
@@ -27,6 +27,13 @@ from registration.backends.default.views import (
 from .forms import (
     PersonForm, UserForm, SignUpForm)
 
+
+from django.utils.decorators import method_decorator
+from django.shortcuts import redirect
+from django.views.generic import CreateView, UpdateView
+from django.urls import reverse_lazy
+
+from .forms import SignUpForm, MyAccountForm
 
 class SignUpView(CreateView):
     # import a multiform object
@@ -173,31 +180,51 @@ def update_profile(request):
         user_form = UserForm(request.POST, instance=request.user)
         person_form = PersonForm(request.POST, instance=request.user.person)
 
-        if user_form.is_valid() and person_form.is_valid():
-            user_form.save()
-            person_form.save()
 
-            messages.success(
-                request,
-                message="Your profile was successfully updated!",
-                extra_tags="alert alert-dismissible alert-success")
+# dispatch is an internal method Django use (defined inside the View class)
+# transaction atomic allows us to create a block of code within which the
+# atomicity on the database is guaranteedIf the block of code is successfully
+# completed, the changes are committed to the database
+@method_decorator(login_required, name='dispatch')
+class MyAccountView(UpdateView):
+    # applying user model (that has relation with person model)
+    # I need a model instance to work with UpdateView
+    model = get_user_model()
+    # import a multiform object
+    form_class = MyAccountForm
+    success_url = reverse_lazy('image_app:dashboard')
+    template_name = 'accounts/update_user.html'
 
-            return redirect('image_app:dashboard')
+    def get_object(self):
+        return self.request.user
 
-        else:
-            messages.error(
-                request,
-                message="Please correct the errors below",
-                extra_tags="alert alert-dismissible alert-danger")
+    # https://django-betterforms.readthedocs.io/en/latest/multiform.html#working-with-updateview
+    def get_form_kwargs(self):
+        kwargs = super(MyAccountView, self).get_form_kwargs()
+        kwargs.update(instance={
+            'user': self.object,
+            'person': self.object.person,
+        })
 
-    # method GET
-    else:
-        user_form = UserForm(instance=request.user)
-        person_form = PersonForm(instance=request.user.person)
+        # add the request to the kwargs
+        # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+        kwargs['request'] = self.request
+        return kwargs
 
-        # pass only a object in context
-        form_list = [user_form, person_form]
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            message="Please correct the errors below",
+            extra_tags="alert alert-dismissible alert-danger")
 
-    return render(request, 'accounts/update_user.html', {
-        'form_list': form_list
-    })
+        return super(MyAccountView, self).form_invalid(form)
+
+    def get_success_url(self):
+        """Override default function"""
+
+        messages.success(
+            self.request,
+            message="Your profile was successfully updated!",
+            extra_tags="alert alert-dismissible alert-success")
+
+        return self.success_url

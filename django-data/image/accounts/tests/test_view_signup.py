@@ -31,8 +31,9 @@ class SignUpTests(TestCase):
 
     def test_form_inputs(self):
         '''
-        The view must contain five inputs: csrf, username, email,
-        password1, password2
+        The view must contain eleven inputs: csrf, username, first_name,
+        last_name, email, password1, password2, affiliation, role,
+        organization and agree_gdpr checkbox
         '''
 
         self.assertContains(self.response, '<input', 10)
@@ -48,7 +49,7 @@ class SuccessfulSignUpTests(TestCase):
 
     def setUp(self):
         url = reverse('signup')
-        # SignUpView is a multiform object, so input type name has the name of
+        # SignUpForm is a multiform object, so input type name has the name of
         # the base form and the name of the input type
         data = {
             'user-username': 'john',
@@ -58,8 +59,8 @@ class SuccessfulSignUpTests(TestCase):
             'user-password1': 'abcdef123456',
             'user-password2': 'abcdef123456',
             'person-affiliation': 'IBBA',
-            'person-role': '1',
-            'person-organization': '1',
+            'person-role': 1,
+            'person-organization': 1,
             'person-agree_gdpr': True
         }
         self.response = self.client.post(url, data)

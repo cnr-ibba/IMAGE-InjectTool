@@ -59,7 +59,7 @@ urlpatterns = [
 
     url(
         r'^my_account/$',
-        views.update_profile,
+        views.MyAccountView.as_view(),
         name='my_account'
     ),
     url(

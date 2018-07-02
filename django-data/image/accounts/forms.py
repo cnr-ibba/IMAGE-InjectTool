@@ -22,6 +22,14 @@ from image_app.models import Person
 
 
 class SignUpUserForm(UserCreationForm):
+    # first name and last name are required fields, even if they arent using
+    # django admin add user
+    first_name = forms.CharField(
+        max_length=254, required=True)
+
+    last_name = forms.CharField(
+        max_length=254, required=True)
+
     email = forms.CharField(
         max_length=254, required=True, widget=forms.EmailInput())
 
@@ -58,6 +66,14 @@ class SignUpForm(MultiModelForm):
 
 
 class UserForm(forms.ModelForm):
+    first_name = forms.CharField(
+        max_length=254, required=True)
+
+    last_name = forms.CharField(
+        max_length=254, required=True)
+
+    email = forms.CharField(
+        max_length=254, required=True, widget=forms.EmailInput())
 
     class Meta:
         model = User
@@ -69,3 +85,17 @@ class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
         fields = ('initials', 'affiliation', 'role', 'organization')
+
+
+class MyAccountForm(MultiModelForm):
+    form_classes = {
+        'user': UserForm,
+        'person': PersonForm,
+    }
+
+    # the request is now available, add it to the instance data
+    def __init__(self, *args, **kwargs):
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
+
+        super(MyAccountForm, self).__init__(*args, **kwargs)
