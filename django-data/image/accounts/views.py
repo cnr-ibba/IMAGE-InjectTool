@@ -12,13 +12,13 @@ https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-gui
 """
 
 from django.contrib import messages
-from django.contrib.auth import login as auth_login, get_user_model
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import UpdateView
 
 from registration import signals
 from registration.backends.default.views import \
