@@ -17,7 +17,6 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
 from betterforms.multiform import MultiModelForm
-
 from image_app.models import Person
 
 

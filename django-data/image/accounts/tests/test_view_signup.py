@@ -11,14 +11,14 @@ from ..views import SignUpView
 # Create your tests here.
 class SignUpTests(TestCase):
     def setUp(self):
-        url = reverse('signup')
+        url = reverse('accounts:registration_register')
         self.response = self.client.get(url)
 
     def test_signup_status_code(self):
         self.assertEquals(self.response.status_code, 200)
 
     def test_signup_url_resolves_signup_view(self):
-        view = resolve('/signup/')
+        view = resolve('/accounts/register/')
         self.assertIsInstance(view.func.view_class(), SignUpView)
 
     def test_csrf(self):
@@ -48,7 +48,8 @@ class SuccessfulSignUpTests(TestCase):
     ]
 
     def setUp(self):
-        url = reverse('signup')
+        url = reverse('accounts:registration_register')
+
         # SignUpForm is a multiform object, so input type name has the name of
         # the base form and the name of the input type
         data = {
@@ -64,13 +65,14 @@ class SuccessfulSignUpTests(TestCase):
             'person-agree_gdpr': True
         }
         self.response = self.client.post(url, data)
+        self.complete_url = reverse('accounts:registration_complete')
         self.home_url = reverse('index')
 
     def test_redirection(self):
         '''
         A valid form submission should redirect the user to the home page
         '''
-        self.assertRedirects(self.response, self.home_url)
+        self.assertRedirects(self.response, self.complete_url)
 
     def test_user_creation(self):
         self.assertTrue(User.objects.exists())
@@ -79,11 +81,11 @@ class SuccessfulSignUpTests(TestCase):
         '''
         Create a new request to an arbitrary page.
         The resulting response should now have a `user` to its context,
-        after a successful sign up.
+        but since there was no activation, the user can't login.
         '''
         response = self.client.get(self.home_url)
         user = response.context.get('user')
-        self.assertTrue(user.is_authenticated)
+        self.assertFalse(user.is_authenticated)
 
 
 class InvalidSignUpTests(TestCase):
@@ -101,7 +103,7 @@ class InvalidSignUpTests(TestCase):
                 message_text)
 
     def setUp(self):
-        url = reverse('signup')
+        url = reverse('accounts:registration_register')
         self.response = self.client.post(url, {})  # submit an empty dictionary
 
     def test_signup_status_code(self):

@@ -15,71 +15,20 @@ from django.contrib import messages
 from django.contrib.auth import login as auth_login, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
-from django.db import transaction
-from django.shortcuts import redirect, render
-from django.views.generic import CreateView
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.generic import CreateView, UpdateView
 
 from registration import signals
-from registration.backends.default.views import (
-    ActivationView as RegistrationActivationView, RegistrationView)
+from registration.backends.default.views import \
+    ActivationView as RegistrationActivationView
+from registration.backends.default.views import RegistrationView
 
-from .forms import (
-    PersonForm, UserForm, SignUpForm)
-
-
-from django.utils.decorators import method_decorator
-from django.shortcuts import redirect
-from django.views.generic import CreateView, UpdateView
-from django.urls import reverse_lazy
-
-from .forms import SignUpForm, MyAccountForm
-
-class SignUpView(CreateView):
-    # import a multiform object
-    form_class = SignUpForm
-    success_url = reverse_lazy('index')
-    template_name = 'accounts/signup.html'
-
-    # add the request to the kwargs
-    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
-    def get_form_kwargs(self):
-        kwargs = super(SignUpView, self).get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
-
-    def form_valid(self, form):
-        # Save the user first, because the profile needs a user before it
-        # can be saved. When I save user, I save also person since is related
-        # to user
-        user = form['user'].save()
-
-        # I re-initialize the form with user.username (from database)
-        # maybe I can use get_or_create to get a person object then update it
-        form = SignUpForm(
-            self.request.POST,
-            instance={
-                'user': user,
-                'person': user.person,
-            }
-        )
-        form.save()
-
-        # Auto connect after registration
-        auth_login(self.request, user)
-
-        return redirect(self.success_url)
-
-    def form_invalid(self, form):
-        messages.error(
-            self.request,
-            message="Please correct the errors below",
-            extra_tags="alert alert-dismissible alert-danger")
-
-        return super(SignUpView, self).form_invalid(form)
+from .forms import MyAccountForm, SignUpForm
 
 
-class SignUpView2(RegistrationView):
+class SignUpView(RegistrationView):
     form_class = SignUpForm
     template_name = 'accounts/signup.html'
     success_url = 'accounts:registration_complete'
@@ -87,7 +36,7 @@ class SignUpView2(RegistrationView):
     # add the request to the kwargs
     # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
     def get_form_kwargs(self):
-        kwargs = super(SignUpView2, self).get_form_kwargs()
+        kwargs = super(SignUpView, self).get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
 
@@ -126,7 +75,7 @@ class SignUpView2(RegistrationView):
             message="Please correct the errors below",
             extra_tags="alert alert-dismissible alert-danger")
 
-        return super(SignUpView2, self).form_invalid(form)
+        return super(SignUpView, self).form_invalid(form)
 
     def register(self, form):
         """
@@ -173,14 +122,6 @@ class ActivationView(RegistrationActivationView):
         return (self.success_url, (), {})
 
 
-@login_required
-@transaction.atomic
-def update_profile(request):
-    if request.method == 'POST':
-        user_form = UserForm(request.POST, instance=request.user)
-        person_form = PersonForm(request.POST, instance=request.user.person)
-
-
 # dispatch is an internal method Django use (defined inside the View class)
 # transaction atomic allows us to create a block of code within which the
 # atomicity on the database is guaranteedIf the block of code is successfully
@@ -190,6 +131,7 @@ class MyAccountView(UpdateView):
     # applying user model (that has relation with person model)
     # I need a model instance to work with UpdateView
     model = get_user_model()
+
     # import a multiform object
     form_class = MyAccountForm
     success_url = reverse_lazy('image_app:dashboard')

@@ -11,8 +11,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from django.views.generic.base import TemplateView
 
-from registration.backends.default.views import (
-    ResendActivationView)
+from registration.backends.default.views import ResendActivationView
 
 from . import views
 
@@ -64,7 +63,7 @@ urlpatterns = [
     ),
     url(
         r'^register/$',
-        views.SignUpView2.as_view(),
+        views.SignUpView.as_view(),
         name='registration_register'
     ),
     # Using registration redux urls
@@ -75,6 +74,7 @@ urlpatterns = [
     url(r'^activate/resend/$',
         ResendActivationView.as_view(),
         name='registration_resend_activation'),
+
     # Activation keys get matched by \w+ instead of the more specific
     # [a-fA-F0-9]{40} because a bad activation key should still get to the
     # view; that way it can return a sensible "invalid key" message instead
