@@ -13,6 +13,7 @@ https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-gui
 
 
 from django import forms
+from django.core import validators
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
@@ -44,6 +45,13 @@ class SignUpPersonForm(forms.ModelForm):
     agree_gdpr = forms.BooleanField(
         label="I accept IMAGE-InjectTool terms and conditions",
         help_text="You have to agree in order to use IMAGE-InjectTool")
+
+    # this will be empty. If a bot tries to fill this, I will raise a
+    # forms.ValidationError
+    botcatcher = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput,
+        validators=[validators.MaxLengthValidator(0)])
 
     class Meta:
         model = Person

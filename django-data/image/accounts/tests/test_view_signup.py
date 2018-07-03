@@ -36,7 +36,7 @@ class SignUpTests(TestCase):
         organization and agree_gdpr checkbox
         '''
 
-        self.assertContains(self.response, '<input', 10)
+        self.assertContains(self.response, '<input', 11)
         self.assertContains(self.response, 'type="text"', 5)
         self.assertContains(self.response, 'type="email"', 1)
         self.assertContains(self.response, 'type="password"', 2)
