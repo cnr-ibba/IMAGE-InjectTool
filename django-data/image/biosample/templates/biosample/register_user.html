@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 
 {% block title_block %}
-  Generate Token
+  Register User
 {% endblock title_block%}
 
 {% block content %}
@@ -10,7 +10,7 @@
         {% csrf_token %}
         {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
         {% include 'includes/form.html' %}
-        <button type="submit" class="btn btn-success">Generate Token</button>
+        <button type="submit" class="btn btn-success">Register User</button>
         <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
     </form>
 {% endblock content %}

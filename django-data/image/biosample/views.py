@@ -6,12 +6,12 @@ from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-from django.views.generic.edit import FormView
+from django.views.generic.edit import FormView, CreateView
 from django.contrib import messages
 
 from pyEBIrest import Auth
 
-from .forms import CreateAuthViewForm
+from .forms import CreateAuthViewForm, RegisterUserForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -48,10 +48,9 @@ class CreateAuthView(FormView):
             logger.error(repr(e))
 
             # parse error message
-            data = json.loads(str(e))
             messages.error(
                 self.request,
-                "Unable to generate token: %s" % data["message"],
+                "Unable to generate token: %s" % str(e),
                 extra_tags="alert alert-dismissible alert-danger")
 
             # return invalid form
@@ -97,3 +96,69 @@ class AuthView(TemplateView):
                 extra_tags="alert alert-dismissible alert-danger")
 
         return context
+
+
+@method_decorator(login_required, name='dispatch')
+class RegisterUserView(CreateView):
+    template_name = 'biosample/register_user.html'
+    form_class = RegisterUserForm
+    success_url = reverse_lazy('image_app:dashboard')
+
+    # add the request to the kwargs
+    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+    # this is needed to display messages (django.contrib) on pages
+    def get_form_kwargs(self):
+        kwargs = super(RegisterUserView, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_initial(self):
+        initial = super(RegisterUserView, self).get_initial()
+        initial['user_id'] = self.request.user.id
+        initial['user'] = self.request.user
+        return initial
+
+    def form_valid(self, form):
+        # This method is called when valid form data has been POSTed.
+        # It should return an HttpResponse.
+        name = form.cleaned_data['name']
+        password = form.cleaned_data['password']
+        team = form.cleaned_data['team']
+
+        try:
+            auth = Auth(user=name, password=password)
+
+            if team not in auth.claims['domains']:
+                messages.error(
+                    self.request,
+                    "You don't belong to team: %s" % team,
+                    extra_tags="alert alert-dismissible alert-danger")
+
+                # return invalid form
+                return self.form_invalid(form)
+
+            # record token in session
+            self.request.session['token'] = auth.token
+            return super(RegisterUserView, self).form_valid(form)
+
+        except ConnectionError as e:
+            # logger exception. With repr() the exception name is rendered
+            logger.error(repr(e))
+
+            messages.error(
+                self.request,
+                "Unable to generate token: %s" % str(e),
+                extra_tags="alert alert-dismissible alert-danger")
+
+            # return invalid form
+            return self.form_invalid(form)
+
+    def get_success_url(self):
+        """Override default function"""
+
+        messages.success(
+            request=self.request,
+            message='Account registered',
+            extra_tags="alert alert-dismissible alert-success")
+
+        return reverse_lazy("image_app:dashboard")

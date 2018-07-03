@@ -20,4 +20,9 @@ urlpatterns = [
         views.AuthView.as_view(),
         name='token'
     ),
+    url(
+        r'^register/$',
+        views.RegisterUserView.as_view(),
+        name='register'
+    ),
 ]
