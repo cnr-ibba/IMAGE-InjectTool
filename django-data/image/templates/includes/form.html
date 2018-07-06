@@ -9,7 +9,7 @@
   </div>
 {% endif %}
 
-{% for field in form %}
+{% for field in form.visible_fields %}
   {# render form group #}
   <div class="form-group">
     {# check field types #}
@@ -35,4 +35,8 @@
       </small>
     {% endif %}
   </div>
+{% endfor %}
+
+{% for field in form.hidden_fields %}
+  {{ field }}
 {% endfor %}
