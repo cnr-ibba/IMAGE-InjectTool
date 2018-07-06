@@ -12,8 +12,8 @@ https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-gui
 """
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model, login as auth_login
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -119,15 +119,14 @@ class ActivationView(RegistrationActivationView):
     success_url = 'accounts:registration_activation_complete'
 
     def get_success_url(self, user):
+        # authenticate the user using the provided key
+        auth_login(self.request, user)
         return (self.success_url, (), {})
 
 
-# dispatch is an internal method Django use (defined inside the View class)
-# transaction atomic allows us to create a block of code within which the
-# atomicity on the database is guaranteedIf the block of code is successfully
-# completed, the changes are committed to the database
-@method_decorator(login_required, name='dispatch')
-class MyAccountView(UpdateView):
+# LoginRequiredMixin as the letfmost inherited module. It will provide
+# authentication methods
+class MyAccountView(LoginRequiredMixin, UpdateView):
     # applying user model (that has relation with person model)
     # I need a model instance to work with UpdateView
     model = get_user_model()

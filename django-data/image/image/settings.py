@@ -237,16 +237,22 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 #     STATIC_ROOT,
 # ]
 
+# Django registration redux. One-week activation window;
+ACCOUNT_ACTIVATION_DAYS = 7
+
+# registration-redux email type
+REGISTRATION_EMAIL_HTML = False
+
 # simply displaying them in the console
 # https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-guide-to-django-part-4.html#console-email-backend
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend')
 
-# Django registration redux
-ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window;
-
-# TODO: fix these email parameters
-DEFAULT_FROM_EMAIL = 'testing@example.com'
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
-EMAIL_USE_TLS = False
-EMAIL_PORT = 1025
+# email backend parameters
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
+EMAIL_PORT = config('EMAIL_PORT', cast=int, default=1025)

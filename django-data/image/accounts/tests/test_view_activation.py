@@ -53,12 +53,9 @@ class ActivationTest(TestCase):
 
     def test_user_authentication(self):
         '''
-        Create a new request to an arbitrary page.
-        The resulting response should now have a `user` to its context,
+        After following activation link, I'm logged on the site
         '''
 
         # login user
-        self.client.login(username='john', password='abcdef123456')
-        response = self.client.get(self.home_url)
-        user = response.context.get('user')
+        user = self.response.context.get('user')
         self.assertTrue(user.is_authenticated)

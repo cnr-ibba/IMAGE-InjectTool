@@ -187,3 +187,5 @@
 * Use django-bootstrap4 to render forms
 
 * django-braces: what does it?
+
+* an already register biosample user need to set a team accepted by manager user
