@@ -1,12 +1,11 @@
 
-import json
 import logging
 
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
-from django.views.generic.edit import FormView, CreateView
+from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
 
 from pyEBIrest import Auth
@@ -112,12 +111,6 @@ class RegisterUserView(CreateView):
         kwargs['request'] = self.request
         return kwargs
 
-    def get_initial(self):
-        initial = super(RegisterUserView, self).get_initial()
-        initial['user_id'] = self.request.user.id
-        initial['user'] = self.request.user
-        return initial
-
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
@@ -139,7 +132,6 @@ class RegisterUserView(CreateView):
 
             # record token in session
             self.request.session['token'] = auth.token
-            return super(RegisterUserView, self).form_valid(form)
 
         except ConnectionError as e:
             # logger exception. With repr() the exception name is rendered
@@ -152,6 +144,15 @@ class RegisterUserView(CreateView):
 
             # return invalid form
             return self.form_invalid(form)
+
+        # add a user to object (comes from section not from form)
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user
+        self.object.save()
+
+        # call to a specific function (which does an HttpResponseRedirect
+        # to success_url)
+        return super(ModelFormMixin, self).form_valid(form)
 
     def get_success_url(self):
         """Override default function"""

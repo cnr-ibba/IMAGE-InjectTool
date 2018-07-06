@@ -180,4 +180,10 @@
 
 * More user can belong to same organization?
 
-* Install `django.contrib.sites`
+* Install `django.contrib.sites` (it is useful?)
+
+* Using LoginRequiredMixing for class based view authentication
+
+* Use django-bootstrap4 to render forms
+
+* django-braces: what does it?
