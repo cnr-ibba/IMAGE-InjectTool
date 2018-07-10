@@ -26,6 +26,10 @@ config = AutoConfig(search_path=settings_dir)
 
 
 class Basetest(TestCase):
+    fixtures = [
+        "managed.json"
+    ]
+
     def setUp(self):
         User = get_user_model()
 
@@ -49,11 +53,18 @@ class Basetest(TestCase):
         # of django.contrib.messages.storage.base.Message
         all_messages = [msg for msg in get_messages(response.wsgi_request)]
 
+        found = False
+
+        # I can have moltiple message, and maybe I need to find a specific one
         for message in all_messages:
-            self.assertTrue(tag in message.tags)
-            self.assertIn(
-                message_text,
-                message.message)
+            if tag in message.tags and message_text in message.message:
+                print(tag)
+                print(message.tags)
+                print(message_text)
+                print(message.message)
+                found = True
+
+        self.assertTrue(found)
 
 
 class RegisterUserViewTest(Basetest):
@@ -117,10 +128,21 @@ class SuccessfulRegisterUserViewTests(Basetest):
         '''
         A valid form submission should redirect the user to the home page
         '''
+
         self.assertRedirects(self.response, self.dashboard_url)
         self.check_messages(self.response, "success", "Account registered")
 
-    # TODO: check that a register user will get a redirect view
+    def test_registered_redirect(self):
+        """Test that an already registered user will get a redirect url"""
+
+        # get the registering page and check that is a redirect
+        response = self.client.get(self.url)
+        self.assertRedirects(response, self.dashboard_url)
+        self.check_messages(
+            response,
+            "warning",
+            "Your biosample account is already registered"
+        )
 
 
 class InvalidRegisterUserViewTests(Basetest):
@@ -174,15 +196,31 @@ class InvalidUsiDataTests(Basetest):
         self.check_messages(response, "error", "Unable to generate token")
 
     def test_invalid_team(self):
+        """User doesn't belong to a team"""
+
         self.data = {
             'name': config('USI_USER'),
             'password': config('USI_PASSWORD'),
-            'team': 'test',
+            'team': 'subs.test-team-7',
         }
 
         response = self.client.post(self.url, self.data)
         self.assertEquals(response.status_code, 200)
         self.check_messages(
-            response, "error", "You don't belong to team: test")
+            response, "error", "You don't belong to team:")
 
-    # TODO: check a test valid for a user but invalid for USI_MANAGER
+    def test_invalid_team2(self):
+        """biosample manager doesn't belong to team"""
+
+        self.data = {
+            'name': config('USI_USER'),
+            'password': config('USI_PASSWORD'),
+            'team': 'subs.test-team-3',
+        }
+
+        response = self.client.post(self.url, self.data)
+        self.assertEquals(response.status_code, 200)
+        self.check_messages(
+            response,
+            "error",
+            "team subs.test-team-3 is not managed by InjectTool")

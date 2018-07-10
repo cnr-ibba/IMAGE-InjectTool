@@ -32,7 +32,7 @@ config = AutoConfig(search_path=settings_dir)
 
 
 class Command(BaseCommand):
-    help = 'Submit to biosample'
+    help = 'Create a USI user'
 
     def add_arguments(self, parser):
         parser.add_argument(

@@ -1,0 +1,79 @@
+[
+{
+  "model": "biosample.managed",
+  "pk": 1,
+  "fields": {
+    "team_name": "subs.test-team-6"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 2,
+  "fields": {
+    "team_name": "subs.test-team-7"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 3,
+  "fields": {
+    "team_name": "subs.test-team-9"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 4,
+  "fields": {
+    "team_name": "subs.test-team-10"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 5,
+  "fields": {
+    "team_name": "subs.test-team-11"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 6,
+  "fields": {
+    "team_name": "subs.test-team-12"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 7,
+  "fields": {
+    "team_name": "subs.test-team-13"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 8,
+  "fields": {
+    "team_name": "subs.test-team-14"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 9,
+  "fields": {
+    "team_name": "subs.test-team-15"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 10,
+  "fields": {
+    "team_name": "subs.test-team-8"
+  }
+},
+{
+  "model": "biosample.managed",
+  "pk": 11,
+  "fields": {
+    "team_name": "subs.test-team-16"
+  }
+}
+]
