@@ -1,8 +1,8 @@
 
 #
 # VERSION 0.2
-# DOCKER-VERSION  1.9.1
-# AUTHOR:         Paolo Cozzi <paolo.cozzi@ptp.it>
+# DOCKER-VERSION  17.05.0-ce
+# AUTHOR:         Paolo Cozzi <cozzi@ibba.cnr.it>
 # DESCRIPTION:    A nginx container to work with django
 # TO_BUILD:       docker build --rm -t django_nginx .
 # TO_RUN:         docker run -d -P django_nginx
@@ -10,9 +10,9 @@
 #
 
 # Get the last stable nginx image
-FROM nginx:1.11
+FROM nginx:1.15
 
-MAINTAINER Paolo Cozzi <paolo.cozzi@ptp.it>
+MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
 
 # Copy nginx configuration file in conf.d directory
 COPY nginx.conf /etc/nginx/nginx.conf

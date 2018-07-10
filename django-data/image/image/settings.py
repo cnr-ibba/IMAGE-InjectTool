@@ -28,15 +28,12 @@ DEBUG = config('DEBUG', cast=bool, default=False)
 
 ALLOWED_HOSTS = ['*']
 
-# Application definition
+# Installed app order:
+# - django default applications
+# - downloaded applications
+# - custom application
 INSTALLED_APPS = [
-    'image_app',
-    'cryoweb',
-    'zooma',
-    'language',
-    'biosample',
-    'accounts',
-    'registration',
+    'registration',  # should be immediately above 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'widget_tweaks',
     'debug_toolbar',
+    'image_app',
+    'cryoweb',
+    'zooma',
+    'language',
+    'biosample',
+    'accounts',
 ]
 
 MIDDLEWARE = [

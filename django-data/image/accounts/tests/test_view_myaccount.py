@@ -140,7 +140,7 @@ class SuccessfulMyAccountViewTests(Basetest):
             self.assertEqual(reference, test, "Checking %s" % (attribute))
 
 
-class InvalidSignUpTests(Basetest):
+class InvalidMyAccountViewTests(Basetest):
     def setUp(self):
         # create a test user
         super().setUp()
