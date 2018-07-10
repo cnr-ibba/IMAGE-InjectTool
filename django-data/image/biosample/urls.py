@@ -25,4 +25,9 @@ urlpatterns = [
         views.RegisterUserView.as_view(),
         name='register'
     ),
+    url(
+        r'^create/$',
+        views.CreateUserView.as_view(),
+        name='create'
+    ),
 ]

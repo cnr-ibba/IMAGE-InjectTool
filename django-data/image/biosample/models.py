@@ -15,6 +15,7 @@ class Account(models.Model):
         return "%s (%s)" % (self.name, self.team)
 
 
+# TODO: is really necessary?
 class Managed(models.Model):
     team_name = models.CharField(max_length=255, unique=True)
 

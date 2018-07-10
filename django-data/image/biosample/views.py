@@ -2,27 +2,26 @@
 import logging
 
 from django.urls import reverse_lazy
+from django.utils.crypto import get_random_string
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
 
 from pyEBIrest import Auth
 
-from .forms import CreateAuthViewForm, RegisterUserForm
+from .forms import CreateAuthViewForm, RegisterUserForm, CreateUserForm
 from .models import Managed
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
-# dispatch is an internal method Django use (defined inside the View class)
-@method_decorator(login_required, name='dispatch')
-class CreateAuthView(FormView):
-
+class CreateAuthView(LoginRequiredMixin, FormView):
     template_name = 'biosample/generate_token.html'
     form_class = CreateAuthViewForm
 
@@ -69,8 +68,7 @@ class CreateAuthView(FormView):
         return reverse_lazy("image_app:dashboard")
 
 
-@method_decorator(login_required, name='dispatch')
-class AuthView(TemplateView):
+class AuthView(LoginRequiredMixin, TemplateView):
     template_name = 'biosample/token.html'
 
     def get_context_data(self, **kwargs):
@@ -104,7 +102,6 @@ class AuthView(TemplateView):
 class RegisterUserView(CreateView):
     template_name = 'biosample/register_user.html'
     form_class = RegisterUserForm
-    success_url = reverse_lazy('image_app:dashboard')
 
     # add the request to the kwargs
     # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
@@ -115,7 +112,9 @@ class RegisterUserView(CreateView):
         return kwargs
 
     def dispatch(self, request, *args, **kwargs):
-        # get user from request and user model
+        # get user from request and user model. This could be also Anonymous
+        # user:however with metod decorator a login is required before dispatch
+        # method is called
         User = get_user_model()
         user = self.request.user
 
@@ -201,6 +200,73 @@ class RegisterUserView(CreateView):
         messages.success(
             request=self.request,
             message='Account registered',
+            extra_tags="alert alert-dismissible alert-success")
+
+        return reverse_lazy("image_app:dashboard")
+
+
+class CreateUserView(LoginRequiredMixin, FormView):
+    template_name = 'biosample/create_user.html'
+    form_class = CreateUserForm
+
+    # add the request to the kwargs
+    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+    # this is needed to display messages (django.contrib) on pages
+    def get_form_kwargs(self):
+        kwargs = super(CreateUserView, self).get_form_kwargs()
+
+        # create a new biosample user
+        username = "image-%s" % (get_random_string(length=8))
+
+        # add username to instance
+        kwargs['username'] = username
+
+        # add the request to the kwargs
+        # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+        kwargs['request'] = self.request
+        return kwargs
+
+    def form_valid(self, form):
+        """Create a new team in with biosample manager user, then crete a new
+        user and register it"""
+
+        password = form.cleaned_data['password1']
+        confirmPwd = form.cleaned_data['password2']
+
+        # get user model associated with this session
+        user = self.request.user
+
+        first_name = user.first_name
+        last_name = user.last_name
+        email = user.email
+        organization = user.person.organization.name
+
+        # set full name as
+        full_name = " ".join([first_name, last_name])
+
+        # TODO: removing this when adding a user
+        logger.debug("This are your data:")
+        logger.debug(
+            (
+                form.username,
+                password,
+                confirmPwd,
+                email,
+                full_name,
+                organization
+            )
+        )
+
+        # call to a specific function (which does an HttpResponseRedirect
+        # to success_url)
+        return super(CreateUserView, self).form_valid(form)
+
+    def get_success_url(self):
+        """Override default function"""
+
+        messages.success(
+            request=self.request,
+            message='Account creted',
             extra_tags="alert alert-dismissible alert-success")
 
         return reverse_lazy("image_app:dashboard")
