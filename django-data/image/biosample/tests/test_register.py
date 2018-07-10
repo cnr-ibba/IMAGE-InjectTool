@@ -58,10 +58,6 @@ class Basetest(TestCase):
         # I can have moltiple message, and maybe I need to find a specific one
         for message in all_messages:
             if tag in message.tags and message_text in message.message:
-                print(tag)
-                print(message.tags)
-                print(message_text)
-                print(message.message)
                 found = True
 
         self.assertTrue(found)
