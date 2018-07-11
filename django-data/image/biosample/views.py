@@ -19,7 +19,7 @@ from pyEBIrest import Auth
 from pyEBIrest.client import User, Root
 
 from .forms import CreateAuthViewForm, RegisterUserForm, CreateUserForm
-from .models import Account, Managed
+from .models import Account, ManagedTeam
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -153,15 +153,6 @@ class RegisterUserView(LoginRequiredMixin, CreateView):
         password = form.cleaned_data['password']
         team = form.cleaned_data['team']
 
-        if team not in Managed.get_teams():
-            messages.error(
-                self.request,
-                "team %s is not managed by InjectTool" % team,
-                extra_tags="alert alert-dismissible alert-danger")
-
-            # return invalid form
-            return self.form_invalid(form)
-
         try:
             auth = Auth(user=name, password=password)
 
@@ -177,7 +168,7 @@ class RegisterUserView(LoginRequiredMixin, CreateView):
             # return invalid form
             return self.form_invalid(form)
 
-        if team not in auth.claims['domains']:
+        if team.name not in auth.claims['domains']:
             messages.error(
                 self.request,
                 "You don't belong to team: %s" % team,
@@ -337,8 +328,9 @@ class CreateUserView(LoginRequiredMixin, FormView):
 
         logger.info("Team %s generated" % (team.name))
 
-        # register team in Managed table
-        managed, created = Managed.objects.get_or_create(team_name=team.name)
+        # register team in ManagedTeam table
+        managed, created = ManagedTeam.objects.get_or_create(
+            name=team.name)
 
         if created is True:
             logger.info("Created: %s" % (managed))
@@ -372,7 +364,7 @@ class CreateUserView(LoginRequiredMixin, FormView):
         account = Account.objects.create(
             user=self.request.user,
             name=form.username,
-            team=team.name
+            team=managed
         )
 
         logger.info("%s created" % (account))

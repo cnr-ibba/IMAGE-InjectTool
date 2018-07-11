@@ -1,0 +1,16 @@
+[
+{
+  "model": "biosample.managedteam",
+  "pk": 1,
+  "fields": {
+    "name": "subs.test-team-6"
+  }
+},
+{
+  "model": "biosample.managedteam",
+  "pk": 2,
+  "fields": {
+    "name": "subs.test-team-7"
+  }
+}
+]

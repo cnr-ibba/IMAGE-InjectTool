@@ -35,9 +35,6 @@ class RegisterUserForm(forms.ModelForm):
         widget=forms.PasswordInput(),
         help_text="Your Biosample User password")
 
-    team = forms.CharField(
-        help_text="Your Biosample Team")
-
     # the request is now available, add it to the instance data
     def __init__(self, *args, **kwargs):
         if 'request' in kwargs:

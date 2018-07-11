@@ -16,7 +16,7 @@ from django.core.management import BaseCommand
 
 from pyEBIrest.auth import Auth
 
-from biosample.models import Managed
+from biosample.models import ManagedTeam
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -43,7 +43,8 @@ class Command(BaseCommand):
             password=config('USI_MANAGER_PASSWORD'))
 
         for domain in auth.claims['domains']:
-            managed, created = Managed.objects.get_or_create(team_name=domain)
+            managed, created = ManagedTeam.objects.get_or_create(
+                team_name=domain)
 
             if created is True:
                 logger.info("Created: %s" % (managed))

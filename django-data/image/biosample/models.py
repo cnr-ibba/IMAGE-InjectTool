@@ -9,25 +9,27 @@ class Account(models.Model):
         on_delete=models.CASCADE,
         related_name='biosample_account')
     name = models.SlugField()
-    team = models.CharField(max_length=255)
+    team = models.ForeignKey(
+        'ManagedTeam',
+        on_delete=models.CASCADE,
+        help_text="Your Biosample Team")
 
     def __str__(self):
         full_name = " ".join([self.user.first_name, self.user.last_name])
         return "%s (%s)" % (self.name, full_name)
 
 
-# TODO: is really necessary?
-class Managed(models.Model):
-    team_name = models.CharField(max_length=255, unique=True)
+class ManagedTeam(models.Model):
+    name = models.CharField(max_length=255, unique=True)
 
     @classmethod
     def get_teams(cls):
         teams = cls.objects.all()
 
-        return [team.team_name for team in teams]
+        return [team.name for team in teams]
 
     def __str__(self):
-        return self.team_name
+        return self.name
 
     class Meta:
         verbose_name = "managed team"

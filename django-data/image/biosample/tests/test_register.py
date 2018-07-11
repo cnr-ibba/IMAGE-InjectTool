@@ -18,6 +18,7 @@ from django.conf import settings
 
 from ..forms import RegisterUserForm
 from ..views import RegisterUserView
+from ..models import ManagedTeam
 
 
 # define a decouple config object
@@ -27,7 +28,7 @@ config = AutoConfig(search_path=settings_dir)
 
 class Basetest(TestCase):
     fixtures = [
-        "managed.json"
+        "managedteam.json"
     ]
 
     def setUp(self):
@@ -99,8 +100,9 @@ class RegisterUserViewTest(Basetest):
         '''
 
         # total input is n of form fields + (CSRF)
-        self.assertContains(self.response, '<input', 4)
-        self.assertContains(self.response, 'type="text"', 2)
+        self.assertContains(self.response, '<input', 3)
+        self.assertContains(self.response, '<select', 1)
+        self.assertContains(self.response, 'type="text"', 1)
         self.assertContains(self.response, 'type="password"', 1)
 
 
@@ -111,10 +113,13 @@ class SuccessfulRegisterUserViewTests(Basetest):
         # create a test user
         super().setUp()
 
+        # get a team
+        team6 = ManagedTeam.objects.get(name='subs.test-team-6')
+
         self.data = {
             'name': config('USI_USER'),
             'password': config('USI_PASSWORD'),
-            'team': 'subs.test-team-6',
+            'team': team6.id,
         }
 
         self.response = self.client.post(self.url, self.data)
@@ -169,11 +174,19 @@ class InvalidRegisterUserViewTests(Basetest):
 class InvalidUsiDataTests(Basetest):
     """Test the register class with invalid usi data"""
 
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get a team
+        self.team6 = ManagedTeam.objects.get(name='subs.test-team-6')
+        self.team7 = ManagedTeam.objects.get(name='subs.test-team-7')
+
     def test_invalid_name(self):
         self.data = {
             'name': 'test',
             'password': config('USI_PASSWORD'),
-            'team': 'subs.test-team-6',
+            'team': self.team6.id,
         }
 
         response = self.client.post(self.url, self.data)
@@ -184,7 +197,7 @@ class InvalidUsiDataTests(Basetest):
         self.data = {
             'name': config('USI_USER'),
             'password': 'test',
-            'team': 'subs.test-team-6',
+            'team': self.team6.id,
         }
 
         response = self.client.post(self.url, self.data)
@@ -197,26 +210,10 @@ class InvalidUsiDataTests(Basetest):
         self.data = {
             'name': config('USI_USER'),
             'password': config('USI_PASSWORD'),
-            'team': 'subs.test-team-7',
+            'team': self.team7.id,
         }
 
         response = self.client.post(self.url, self.data)
         self.assertEquals(response.status_code, 200)
         self.check_messages(
             response, "error", "You don't belong to team:")
-
-    def test_invalid_team2(self):
-        """biosample manager doesn't belong to team"""
-
-        self.data = {
-            'name': config('USI_USER'),
-            'password': config('USI_PASSWORD'),
-            'team': 'subs.test-team-3',
-        }
-
-        response = self.client.post(self.url, self.data)
-        self.assertEquals(response.status_code, 200)
-        self.check_messages(
-            response,
-            "error",
-            "team subs.test-team-3 is not managed by InjectTool")

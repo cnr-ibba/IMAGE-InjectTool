@@ -7,8 +7,8 @@ Created on Fri Jul  6 11:39:15 2018
 
 from django.contrib import admin
 
-from .models import Account, Managed
+from .models import Account, ManagedTeam
 
 # Register your models here.
 admin.site.register(Account)
-admin.site.register(Managed)
+admin.site.register(ManagedTeam)
