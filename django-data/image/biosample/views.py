@@ -278,20 +278,14 @@ class CreateUserView(LoginRequiredMixin, FormView):
         logger.debug("Creating user %s" % (form.username))
 
         try:
-#            user_id = User.create_user(
-#                user=form.username,
-#                password=password,
-#                confirmPwd=confirmPwd,
-#                email=email,
-#                full_name=full_name,
-#                organization=organization
-#            )
-            # get a fake user_id
-            user_auth = Auth(
-                user=config('USI_USER'),
-                password=config('USI_PASSWORD'))
-            user = User(user_auth)
-            user_id = user.get_my_id()
+            user_id = User.create_user(
+                user=form.username,
+                password=password,
+                confirmPwd=confirmPwd,
+                email=email,
+                full_name=full_name,
+                organization=organization
+            )
 
         except ConnectionError as e:
             logger.error("Problem in creating user %s" % (form.username))
@@ -320,11 +314,7 @@ class CreateUserView(LoginRequiredMixin, FormView):
 
         # now create a team
         logger.debug("Creating team for %s" % (full_name))
-        # team = admin.create_team(description=description)
-
-        # get a fake team
-        root = Root(user_auth)
-        team = root.get_team_by_name("subs.test-team-6")
+        team = admin.create_team(description=description)
 
         logger.info("Team %s generated" % (team.name))
 
@@ -343,7 +333,7 @@ class CreateUserView(LoginRequiredMixin, FormView):
             password=config('USI_MANAGER_PASSWORD'))
 
         # pass the new auth object to admin
-        admin.auth = auth
+        admin = User(auth)
 
         # list all domain for manager
         logger.debug("Listing all domains for %s" % (config('USI_MANAGER')))
@@ -357,8 +347,8 @@ class CreateUserView(LoginRequiredMixin, FormView):
         logger.debug(
             "Adding user %s to team %s" % (form.username, team.name))
 
-        # TODO: uncomment and add user to team
-        # admin.add_user_to_team(user_id=user_id, domain_id=domain_id)
+        # user to team
+        admin.add_user_to_team(user_id=user_id, domain_id=domain_id)
 
         # save objects in accounts table
         account = Account.objects.create(

@@ -38,9 +38,13 @@ EXPOSE 8000
 # This environment variable force stdin, stdout and stderr to be totally unbuffered
 ENV PYTHONUNBUFFERED 1
 
-# Install custom modules (uwsgi)
+# Install pypi modules (uwsgi)
 COPY requirements.txt /root/
 RUN pip install -r /root/requirements.txt
+
+# installing custom modules
+COPY requirements_git.txt /root/
+RUN pip install -r /root/requirements_git.txt
 
 # Execute a default command
 CMD ["/bin/bash"]
