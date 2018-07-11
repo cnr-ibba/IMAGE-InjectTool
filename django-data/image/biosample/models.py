@@ -12,7 +12,8 @@ class Account(models.Model):
     team = models.CharField(max_length=255)
 
     def __str__(self):
-        return "%s (%s)" % (self.name, self.team)
+        full_name = " ".join([self.user.first_name, self.user.last_name])
+        return "%s (%s)" % (self.name, full_name)
 
 
 # TODO: is really necessary?

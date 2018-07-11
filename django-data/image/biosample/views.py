@@ -1,24 +1,33 @@
 
+import os
+import json
 import logging
 
+from decouple import AutoConfig
+
+from django.conf import settings
 from django.urls import reverse_lazy
 from django.utils.crypto import get_random_string
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
 
 from pyEBIrest import Auth
+from pyEBIrest.client import User, Root
 
 from .forms import CreateAuthViewForm, RegisterUserForm, CreateUserForm
-from .models import Managed
+from .models import Account, Managed
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+# define a decouple config object
+settings_dir = os.path.join(settings.BASE_DIR, 'image')
+config = AutoConfig(search_path=settings_dir)
 
 
 class CreateAuthView(LoginRequiredMixin, FormView):
@@ -98,8 +107,7 @@ class AuthView(LoginRequiredMixin, TemplateView):
         return context
 
 
-@method_decorator(login_required, name='dispatch')
-class RegisterUserView(CreateView):
+class RegisterUserView(LoginRequiredMixin, CreateView):
     template_name = 'biosample/register_user.html'
     form_class = RegisterUserForm
 
@@ -112,6 +120,10 @@ class RegisterUserView(CreateView):
         return kwargs
 
     def dispatch(self, request, *args, **kwargs):
+        # this will ask to login to an un-logged user
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
         # get user from request and user model. This could be also Anonymous
         # user:however with metod decorator a login is required before dispatch
         # method is called
@@ -226,6 +238,33 @@ class CreateUserView(LoginRequiredMixin, FormView):
         kwargs['request'] = self.request
         return kwargs
 
+    def dispatch(self, request, *args, **kwargs):
+        # this will ask to login to an un-logged user
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        # get user from request and user model. This could be also Anonymous
+        # user:however with metod decorator a login is required before dispatch
+        # method is called
+        User = get_user_model()
+        user = self.request.user
+
+        try:
+            user.biosample_account
+
+        except User.biosample_account.RelatedObjectDoesNotExist:
+            # call the default get method
+            return super(
+                CreateUserView, self).dispatch(request, *args, **kwargs)
+
+        else:
+            messages.warning(
+                request=self.request,
+                message='Your biosample account is already registered',
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect('image_app:dashboard')
+
     def form_valid(self, form):
         """Create a new team in with biosample manager user, then crete a new
         user and register it"""
@@ -244,20 +283,107 @@ class CreateUserView(LoginRequiredMixin, FormView):
         # set full name as
         full_name = " ".join([first_name, last_name])
 
-        # TODO: removing this when adding a user
-        logger.debug("This are your data:")
+        # creating a user
+        logger.debug("Creating user %s" % (form.username))
+
+        try:
+#            user_id = User.create_user(
+#                user=form.username,
+#                password=password,
+#                confirmPwd=confirmPwd,
+#                email=email,
+#                full_name=full_name,
+#                organization=organization
+#            )
+            # get a fake user_id
+            user_auth = Auth(
+                user=config('USI_USER'),
+                password=config('USI_PASSWORD'))
+            user = User(user_auth)
+            user_id = user.get_my_id()
+
+        except ConnectionError as e:
+            logger.error("Problem in creating user %s" % (form.username))
+            logger.error("Message was: %s" % (json.loads(str(e))['message']))
+            messages.error(
+                self.request,
+                message="Problem in creating user %s",
+                extra_tags="alert alert-dismissible alert-danger")
+
+            messages.error(
+                self.request,
+                message="Message was: %s" % (json.loads(str(e))['message']),
+                extra_tags="alert alert-dismissible alert-danger")
+
+        # creating a new team. First create an user object
+        # create a new auth object
+        logger.debug("Generate a token for 'USI_MANAGER'")
+
+        auth = Auth(
+            user=config('USI_MANAGER'),
+            password=config('USI_MANAGER_PASSWORD'))
+
+        admin = User(auth)
+
+        description = "Team for %s" % (full_name)
+
+        # now create a team
+        logger.debug("Creating team for %s" % (full_name))
+        # team = admin.create_team(description=description)
+
+        # get a fake team
+        root = Root(user_auth)
+        team = root.get_team_by_name("subs.test-team-6")
+
+        logger.info("Team %s generated" % (team.name))
+
+        # register team in Managed table
+        managed, created = Managed.objects.get_or_create(team_name=team.name)
+
+        if created is True:
+            logger.info("Created: %s" % (managed))
+
+        # I need to generate a new token to see the new team
+        logger.debug("Generate a new token for 'USI_MANAGER'")
+
+        auth = Auth(
+            user=config('USI_MANAGER'),
+            password=config('USI_MANAGER_PASSWORD'))
+
+        # pass the new auth object to admin
+        admin.auth = auth
+
+        # list all domain for manager
+        logger.debug("Listing all domains for %s" % (config('USI_MANAGER')))
+        logger.debug(", ".join(auth.claims['domains']))
+
+        # get the domain for the new team, and then the domain_id
+        logger.debug("Getting domain info for team %s" % (team.name))
+        domain = admin.get_domain_by_name(team.name)
+        domain_id = domain.domainReference
+
         logger.debug(
-            (
-                form.username,
-                password,
-                confirmPwd,
-                email,
-                full_name,
-                organization
-            )
+            "Adding user %s to team %s" % (form.username, team.name))
+
+        # TODO: uncomment and add user to team
+        # admin.add_user_to_team(user_id=user_id, domain_id=domain_id)
+
+        # save objects in accounts table
+        account = Account.objects.create(
+            user=self.request.user,
+            name=form.username,
+            team=team.name
         )
 
-        # call to a specific function (which does an HttpResponseRedirect
+        logger.info("%s created" % (account))
+
+        # add message
+        messages.debug(
+            request=self.request,
+            message="User %s added to team %s" % (form.username, team.name),
+            extra_tags="alert alert-dismissible alert-light")
+
+        # call to a inherited function (which does an HttpResponseRedirect
         # to success_url)
         return super(CreateUserView, self).form_valid(form)
 
@@ -266,7 +392,7 @@ class CreateUserView(LoginRequiredMixin, FormView):
 
         messages.success(
             request=self.request,
-            message='Account creted',
+            message='Account created',
             extra_tags="alert alert-dismissible alert-success")
 
         return reverse_lazy("image_app:dashboard")
