@@ -6,6 +6,7 @@
 {% endblock title %}
 
 {% block content %}
+  <div class="container">
     <form method="post" novalidate>
         {% csrf_token %}
         {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
@@ -13,4 +14,5 @@
         <button type="submit" class="btn btn-success">Register User</button>
         <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
     </form>
+  </div>
 {% endblock content %}
