@@ -84,6 +84,10 @@ class AuthView(LoginRequiredMixin, TemplateView):
         # Call the base implementation first to get a context
         context = super(AuthView, self).get_context_data(**kwargs)
 
+        # get user and team object
+        context['name'] = self.request.user.biosample_account.name
+        context['team'] = self.request.user.biosample_account.team
+
         try:
             # add content to context
             auth = Auth(token=self.request.session['token'])
