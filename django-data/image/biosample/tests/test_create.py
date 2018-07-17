@@ -6,23 +6,17 @@ Created on Tue Jul 10 14:55:11 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import os
-
-from decouple import AutoConfig
+from unittest.mock import patch, Mock
 
 from django.test import Client, TestCase
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.urls import reverse, resolve
-from django.conf import settings
+
+from image_app.models import Organization
 
 from ..forms import CreateUserForm
 from ..views import CreateUserView
-
-
-# define a decouple config object
-settings_dir = os.path.join(settings.BASE_DIR, 'image')
-config = AutoConfig(search_path=settings_dir)
 
 
 class Basetest(TestCase):
@@ -99,7 +93,84 @@ class CreateUserViewTest(Basetest):
         self.assertContains(self.response, 'type="password"', 2)
 
 
-# TODO: test valid user creation, maybe with postman fake responses
+class SuccessfulCreateUserViewTest(Basetest):
+    fixtures = [
+        "dictcountry.json", "dictrole.json", "organization.json"
+    ]
+
+    @classmethod
+    def setup_class(cls):
+        cls.mock_get_patcher = patch('pyEBIrest.client.requests.get')
+        cls.mock_get = cls.mock_get_patcher.start()
+
+        cls.mock_post_patcher = patch('pyEBIrest.client.requests.post')
+        cls.mock_post = cls.mock_post_patcher.start()
+
+    @classmethod
+    def teardown_class(cls):
+        cls.mock_get_patcher.stop()
+        cls.mock_get_patcher.stop()
+
+    def setUp(self):
+        User = get_user_model()
+
+        # create a testuser
+        user = User.objects.create_user(
+            username='test',
+            password='test',
+            email="test@test.com")
+
+        # add organization to user
+        organization = Organization.objects.first()
+        user.person.organization = organization
+        user.save()
+
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        # get the url for dashboard
+        self.url = reverse('biosample:create')
+        self.response = self.client.get(self.url)
+
+    def mocked_get(*args, **kwargs):
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+                self.text = "Not implemented: %s" % (args[0])
+
+            def json(self):
+                return self.json_data
+
+        return MockResponse(None, 404)
+
+    def mocked_post(*args, **kwargs):
+        class MockResponse:
+            def __init__(self, json_data, status_code):
+                self.json_data = json_data
+                self.status_code = status_code
+                self.text = "Not implemented: %s" % (args[0])
+
+            def json(self):
+                return self.json_data
+
+        return MockResponse(None, 404)
+
+    @patch('requests.post', side_effect=mocked_post)
+    @patch('requests.get', side_effect=mocked_get)
+    def test_user_create(self, mock_get, mock_post):
+        """Testing create user"""
+
+        self.data = {
+            'password1': 'image-password',
+            'password2': 'image-password',
+        }
+
+        response = self.client.post(self.url, self.data)
+        dashboard_url = reverse('image_app:dashboard')
+
+        self.assertRedirects(response, dashboard_url)
+        self.check_messages(response, "success", "Account created")
 
 
 class InvalidCreateUserViewTests(Basetest):

@@ -365,7 +365,7 @@ class CreateUserView(LoginRequiredMixin, FormView):
 
         except ConnectionError as e:
             logger.error("Problem in creating user %s" % (form.username))
-            logger.error("Message was: %s" % (json.loads(str(e))['message']))
+            logger.error("Message was: %s" % (e))
             messages.error(
                 self.request,
                 message="Problem in creating user %s",
@@ -373,8 +373,11 @@ class CreateUserView(LoginRequiredMixin, FormView):
 
             messages.error(
                 self.request,
-                message="Message was: %s" % (json.loads(str(e))['message']),
+                message="Message was: %s" % (e),
                 extra_tags="alert alert-dismissible alert-danger")
+
+            # return invalid form
+            return self.form_invalid(form)
 
         # creating a new team. First create an user object
         # create a new auth object

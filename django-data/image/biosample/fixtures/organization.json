@@ -1,0 +1,11 @@
+[
+{
+  "model": "image_app.organization",
+  "pk": 1,
+  "fields": {
+    "name": "IBBA-CNR",
+    "country": 1,
+    "role": 1
+  }
+}
+]
