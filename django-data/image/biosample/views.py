@@ -42,6 +42,33 @@ class CreateAuthView(LoginRequiredMixin, FormView):
         kwargs['request'] = self.request
         return kwargs
 
+    def dispatch(self, request, *args, **kwargs):
+        # this will ask to login to an un-logged user
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        # get user from request and user model. This could be also Anonymous
+        # user:however with metod decorator a login is required before dispatch
+        # method is called
+        User = get_user_model()
+        user = self.request.user
+
+        try:
+            user.biosample_account
+
+        except User.biosample_account.RelatedObjectDoesNotExist:
+            messages.warning(
+                request=self.request,
+                message='You need to register a valid biosample account',
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect('accounts:registration_activation_complete')
+
+        else:
+            # call the default get method
+            return super(
+                CreateAuthView, self).dispatch(request, *args, **kwargs)
+
     def get_initial(self):
         """
         Returns the initial data to use for forms on this view.
@@ -75,6 +102,14 @@ class CreateAuthView(LoginRequiredMixin, FormView):
 
             # return invalid form
             return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            message="Please correct the errors below",
+            extra_tags="alert alert-dismissible alert-danger")
+
+        return super(CreateAuthView, self).form_invalid(form)
 
     def get_success_url(self):
         """Override default function"""

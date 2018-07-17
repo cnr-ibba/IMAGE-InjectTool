@@ -42,7 +42,11 @@
 
 * Add messages when views are called or code executed
 
-* Unittest?
+* Unittest:
+  - Testing biosample methods using `mock`
+    - Testing generate tocken
+    - Testing user register/creation
+  - Testing zooma methods using `mock`
 
 * Those tables are empty at the moment:
   - Databases
@@ -107,8 +111,7 @@
   - report and links for cryoweb staging area
     - check for duplicate breeds - names
 
-* If I use a custom form for datasource, I need to load all countries or put
-  a link to add a new country as admin does
+* Navbar: tocken generation/info need to be modeled in Navbar
 
 * return a default ontology for breed if non mapping occours
 
@@ -133,8 +136,6 @@
 * create to_biosample() python dictionary like biosample need
   - check for mandatory fields in IMAGE-metadata rules
 
-* using python_ebi_aap.git (moving this library with a new name)
-
 * Recording submission ids in submission table
   - did I need also the sample ids?
   - how the submission table will reflect users submissions?
@@ -149,14 +150,6 @@
 
 * read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - automate [clearsession](https://docs.djangoproject.com/en/1.11/topics/http/sessions/#clearing-the-session-store)
-
-* Need to create a biosample user from InjectTools:
-  - add environment variables for imagemanager in order to create users
-  - create a biosample user and a biosample team dedicated to this user: mind username
-    and team (eg. there could be a user 'paolo' in biosample system)
-  - track team and username for the InjectTools user. Don't store passwords!!!
-    can't restore biosample passwords
-  - user can modify things only in the team he belongs to
 
 * Remove empty sampleRelationships from biosample json
 

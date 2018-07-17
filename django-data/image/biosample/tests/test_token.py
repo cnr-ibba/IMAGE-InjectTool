@@ -102,11 +102,11 @@ class TestAuthView(SessionEnabledTestCase):
         view = resolve('/biosample/token/')
         self.assertIsInstance(view.func.view_class(), AuthView)
 
-    def test_board_topics_view_contains_navigation_links(self):
-        bashboard_url = reverse('image_app:dashboard')
+    def test_contains_navigation_links(self):
+        dashboard_url = reverse('image_app:dashboard')
         newtoken_url = reverse('biosample:token-generation')
 
-        self.assertContains(self.response, 'href="{0}"'.format(bashboard_url))
+        self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))
         self.assertContains(self.response, 'href="{0}"'.format(newtoken_url))
 
     def test_biosample_account(self):
@@ -145,7 +145,7 @@ class TestAuthView(SessionEnabledTestCase):
             "Your token is expired")
 
 
-class NewAuthView(TestCase):
+class NewAuthViewTest(TestCase):
     def setUp(self):
         User = get_user_model()
 
