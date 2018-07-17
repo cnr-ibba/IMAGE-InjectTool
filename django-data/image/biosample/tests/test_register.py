@@ -6,30 +6,33 @@ Created on Fri Jul  6 16:01:20 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import os
-
-from decouple import AutoConfig
+from unittest.mock import patch, Mock
 
 from django.test import Client, TestCase
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.urls import reverse, resolve
-from django.conf import settings
 
 from ..forms import RegisterUserForm
 from ..views import RegisterUserView
 from ..models import ManagedTeam
 
-
-# define a decouple config object
-settings_dir = os.path.join(settings.BASE_DIR, 'image')
-config = AutoConfig(search_path=settings_dir)
+from .test_token import generate_token
 
 
 class Basetest(TestCase):
     fixtures = [
         "managedteam.json"
     ]
+
+    @classmethod
+    def setup_class(cls):
+        cls.mock_get_patcher = patch('pyEBIrest.auth.requests.get')
+        cls.mock_get = cls.mock_get_patcher.start()
+
+    @classmethod
+    def teardown_class(cls):
+        cls.mock_get_patcher.stop()
 
     def setUp(self):
         User = get_user_model()
@@ -113,13 +116,18 @@ class SuccessfulRegisterUserViewTests(Basetest):
         # create a test user
         super().setUp()
 
+        # generate tocken
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.text = generate_token()
+        self.mock_get.return_value.status_code = 200
+
         # get a team
-        team6 = ManagedTeam.objects.get(name='subs.test-team-6')
+        team1 = ManagedTeam.objects.get(name='subs.test-team-1')
 
         self.data = {
-            'name': config('USI_USER'),
-            'password': config('USI_PASSWORD'),
-            'team': team6.id,
+            'name': 'image-test',
+            'password': 'image-password',
+            'team': team1.id,
         }
 
         self.response = self.client.post(self.url, self.data)
@@ -179,14 +187,24 @@ class InvalidUsiDataTests(Basetest):
         super().setUp()
 
         # get a team
-        self.team6 = ManagedTeam.objects.get(name='subs.test-team-6')
-        self.team7 = ManagedTeam.objects.get(name='subs.test-team-7')
+        self.team1 = ManagedTeam.objects.get(name='subs.test-team-1')
+        self.team2 = ManagedTeam.objects.get(name='subs.test-team-2')
+
+        # set invalid string
+        self.invalid_str = (
+            '{"timestamp":1531839735063,"status":401,"error":"Unauthorized",'
+            '"message":"Bad credentials","path":"/auth"}')
 
     def test_invalid_name(self):
+        # generate tocken
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.text = self.invalid_str
+        self.mock_get.return_value.status_code = 401
+
         self.data = {
-            'name': 'test',
-            'password': config('USI_PASSWORD'),
-            'team': self.team6.id,
+            'name': 'invalid-name',
+            'password': 'image-password',
+            'team': self.team1.id,
         }
 
         response = self.client.post(self.url, self.data)
@@ -194,10 +212,15 @@ class InvalidUsiDataTests(Basetest):
         self.check_messages(response, "error", "Unable to generate token")
 
     def test_invalid_pass(self):
+        # generate tocken
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.text = self.invalid_str
+        self.mock_get.return_value.status_code = 401
+
         self.data = {
-            'name': config('USI_USER'),
-            'password': 'test',
-            'team': self.team6.id,
+            'name': 'image-test',
+            'password': 'invalid-password',
+            'team': self.team1.id,
         }
 
         response = self.client.post(self.url, self.data)
@@ -207,10 +230,15 @@ class InvalidUsiDataTests(Basetest):
     def test_invalid_team(self):
         """User doesn't belong to a team"""
 
+        # generate tocken
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.text = generate_token()
+        self.mock_get.return_value.status_code = 200
+
         self.data = {
-            'name': config('USI_USER'),
-            'password': config('USI_PASSWORD'),
-            'team': self.team7.id,
+            'name': 'image-test',
+            'password': 'image-password',
+            'team': self.team2.id,
         }
 
         response = self.client.post(self.url, self.data)

@@ -56,7 +56,7 @@ class TestAuthView(SessionEnabledTestCase):
             password='test',
             email="test@test.com")
 
-        team = ManagedTeam.objects.get(name="subs.test-team-6")
+        team = ManagedTeam.objects.get(name="subs.test-team-1")
         Account.objects.create(
             user=user, team=team, name="image-test")
 
@@ -111,7 +111,7 @@ class TestAuthView(SessionEnabledTestCase):
 
     def test_biosample_account(self):
         self.assertContains(self.response, 'image-test')
-        self.assertContains(self.response, 'subs.test-team-6')
+        self.assertContains(self.response, 'subs.test-team-1')
 
     def test_any_token(self):
         self.check_messages(

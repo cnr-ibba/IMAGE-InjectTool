@@ -35,7 +35,7 @@ class BaseTest(SessionEnabledTestCase):
             password='test',
             email="test@test.com")
 
-        team = ManagedTeam.objects.get(name="subs.test-team-6")
+        team = ManagedTeam.objects.get(name="subs.test-team-1")
         Account.objects.create(
             user=user, team=team, name="image-test")
 

@@ -3,14 +3,14 @@
   "model": "biosample.managedteam",
   "pk": 1,
   "fields": {
-    "name": "subs.test-team-6"
+    "name": "subs.test-team-1"
   }
 },
 {
   "model": "biosample.managedteam",
   "pk": 2,
   "fields": {
-    "name": "subs.test-team-7"
+    "name": "subs.test-team-2"
   }
 }
 ]
