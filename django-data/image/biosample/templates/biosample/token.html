@@ -8,38 +8,35 @@
 {% endblock title %}
 
 {% block content %}
-  <div class="container">
-
-    <table class="table table-hover">
-      <tbody>
-        <tr class="table-info">
-          <th scope="row">Biosample User:</th>
-          <td>{{ name }}</td>
+  <table class="table table-hover">
+    <tbody>
+      <tr class="table-info">
+        <th scope="row">Biosample User:</th>
+        <td>{{ name }}</td>
+      </tr>
+      <tr class="table-default">
+        <th scope="row">Biosample Team:</th>
+        <td>{{ team }}</td>
+      </tr>
+      {% if auth %}
+        <tr class="table-success">
+          <th scope="row">Biosample Token</th>
+          <td id="claims">{{ auth }}</td>
         </tr>
-        <tr class="table-default">
-          <th scope="row">Biosample Team:</th>
-          <td>{{ team }}</td>
+      {% else %}
+        <tr class="table-warning">
+          <th scope="row">Biosample Token</th>
+          <td>No valid token</td>
         </tr>
-        {% if auth %}
-          <tr class="table-success">
-            <th scope="row">Biosample Token</th>
-            <td id="claims">{{ auth }}</td>
-          </tr>
-        {% else %}
-          <tr class="table-warning">
-            <th scope="row">Biosample Token</th>
-            <td>No valid token</td>
-          </tr>
-        {% endif %}
-      </tbody>
-    </table>
+      {% endif %}
+    </tbody>
+  </table>
 
-    <p>
-      <a href="{% url 'biosample:token-generation' %}" class="btn btn-success" role="button">Generate a new token</a>
-      <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
-    </p>
+  <p>
+    <a href="{% url 'biosample:token-generation' %}" class="btn btn-success" role="button">Generate a new token</a>
+    <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+  </p>
 
-  </div>
 {% endblock content %}
 
 {% block custom-js %}

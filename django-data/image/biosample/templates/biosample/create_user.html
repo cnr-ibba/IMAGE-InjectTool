@@ -6,17 +6,15 @@
 {% endblock title %}
 
 {% block content %}
-  <div class="container">
-    <p>
-      Please specify a password to generate your biosample credentials. This password
-      will <strong>never</strong> registered into InjectTool
-    </p>
+  <p>
+    Please specify a password to generate your biosample credentials. This password
+    will <strong>never</strong> registered into InjectTool
+  </p>
 
-    <form method="post" novalidate>
-        {% csrf_token %}
-        {% include 'includes/form.html' %}
-        <button type="submit" class="btn btn-success">Create User</button>
-        <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
-    </form>
-  </div>
+  <form method="post" novalidate>
+      {% csrf_token %}
+      {% include 'includes/form.html' %}
+      <button type="submit" class="btn btn-success">Create User</button>
+      <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+  </form>
 {% endblock content %}
