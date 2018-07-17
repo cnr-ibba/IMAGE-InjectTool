@@ -14,7 +14,8 @@ from .models import Account
 
 class CreateAuthViewForm(forms.Form):
     user = forms.CharField(
-        help_text="Your Biosample User id")
+        help_text="Your Biosample User id",
+        disabled=True)
 
     password = forms.CharField(
         widget=forms.PasswordInput(),

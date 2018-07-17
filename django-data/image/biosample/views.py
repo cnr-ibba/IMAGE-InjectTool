@@ -16,7 +16,7 @@ from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
 
 from pyEBIrest import Auth
-from pyEBIrest.client import User, Root
+from pyEBIrest.client import User
 
 from .forms import CreateAuthViewForm, RegisterUserForm, CreateUserForm
 from .models import Account, ManagedTeam
@@ -41,6 +41,16 @@ class CreateAuthView(LoginRequiredMixin, FormView):
         kwargs = super(CreateAuthView, self).get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
+
+    def get_initial(self):
+        """
+        Returns the initial data to use for forms on this view.
+        """
+
+        initial = super(CreateAuthView, self).get_initial()
+        initial['user'] = self.request.user.biosample_account.name
+
+        return initial
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
@@ -109,6 +119,33 @@ class AuthView(LoginRequiredMixin, TemplateView):
                 extra_tags="alert alert-dismissible alert-danger")
 
         return context
+
+    def dispatch(self, request, *args, **kwargs):
+        # this will ask to login to an un-logged user
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        # get user from request and user model. This could be also Anonymous
+        # user:however with metod decorator a login is required before dispatch
+        # method is called
+        User = get_user_model()
+        user = self.request.user
+
+        try:
+            user.biosample_account
+
+        except User.biosample_account.RelatedObjectDoesNotExist:
+            messages.warning(
+                request=self.request,
+                message='You need to register a valid biosample account',
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect('accounts:registration_activation_complete')
+
+        else:
+            # call the default get method
+            return super(
+                AuthView, self).dispatch(request, *args, **kwargs)
 
 
 class RegisterUserView(LoginRequiredMixin, CreateView):
