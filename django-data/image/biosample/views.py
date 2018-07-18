@@ -29,18 +29,11 @@ settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
 
 
-class CreateAuthView(LoginRequiredMixin, FormView):
-    template_name = 'biosample/generate_token.html'
-    form_class = CreateAuthViewForm
-
-    # add the request to the kwargs
-    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
-    # this is needed to display messages (django.contronb) on pages
-    def get_form_kwargs(self):
-        kwargs = super(CreateAuthView, self).get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
-
+# In programming, a mixin is a class that provides functionality to be
+# inherited, but isn’t meant for instantiation on its own. In programming
+# languages with multiple inheritance, mixins can be used to add enhanced
+# functionality and behavior to classes.
+class TokenMixin(object):
     def dispatch(self, request, *args, **kwargs):
         # this will ask to login to an un-logged user
         if not request.user.is_authenticated:
@@ -66,7 +59,72 @@ class CreateAuthView(LoginRequiredMixin, FormView):
         else:
             # call the default get method
             return super(
-                CreateAuthView, self).dispatch(request, *args, **kwargs)
+                TokenMixin, self).dispatch(request, *args, **kwargs)
+
+
+class RegisterMixin(object):
+    def dispatch(self, request, *args, **kwargs):
+        # this will ask to login to an un-logged user
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        # get user from request and user model. This could be also Anonymous
+        # user:however with metod decorator a login is required before dispatch
+        # method is called
+        User = get_user_model()
+        user = self.request.user
+
+        try:
+            user.biosample_account
+
+        except User.biosample_account.RelatedObjectDoesNotExist:
+            # call the default get method
+            return super(
+                RegisterMixin, self).dispatch(request, *args, **kwargs)
+
+        else:
+            messages.warning(
+                request=self.request,
+                message='Your biosample account is already registered',
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect('image_app:dashboard')
+
+
+class MyFormMixin(object):
+    success_url_message = "Please set this variable"
+
+    # add the request to the kwargs
+    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+    # this is needed to display messages (django.contronb) on pages
+    def get_form_kwargs(self):
+        kwargs = super(MyFormMixin, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def get_success_url(self):
+        """Override default function"""
+
+        messages.success(
+            request=self.request,
+            message=self.success_url_message,
+            extra_tags="alert alert-dismissible alert-success")
+
+        return reverse_lazy("image_app:dashboard")
+
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            message="Please correct the errors below",
+            extra_tags="alert alert-dismissible alert-danger")
+
+        return super(MyFormMixin, self).form_invalid(form)
+
+
+class CreateAuthView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
+    template_name = 'biosample/generate_token.html'
+    form_class = CreateAuthViewForm
+    success_url_message = 'Token generated!'
 
     def get_initial(self):
         """
@@ -102,26 +160,8 @@ class CreateAuthView(LoginRequiredMixin, FormView):
             # return invalid form
             return self.form_invalid(form)
 
-    def form_invalid(self, form):
-        messages.error(
-            self.request,
-            message="Please correct the errors below",
-            extra_tags="alert alert-dismissible alert-danger")
 
-        return super(CreateAuthView, self).form_invalid(form)
-
-    def get_success_url(self):
-        """Override default function"""
-
-        messages.success(
-            request=self.request,
-            message='Token generated!',
-            extra_tags="alert alert-dismissible alert-success")
-
-        return reverse_lazy("image_app:dashboard")
-
-
-class AuthView(LoginRequiredMixin, TemplateView):
+class AuthView(LoginRequiredMixin, TokenMixin, TemplateView):
     template_name = 'biosample/token.html'
 
     def get_context_data(self, **kwargs):
@@ -154,72 +194,12 @@ class AuthView(LoginRequiredMixin, TemplateView):
 
         return context
 
-    def dispatch(self, request, *args, **kwargs):
-        # this will ask to login to an un-logged user
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
 
-        # get user from request and user model. This could be also Anonymous
-        # user:however with metod decorator a login is required before dispatch
-        # method is called
-        User = get_user_model()
-        user = self.request.user
-
-        try:
-            user.biosample_account
-
-        except User.biosample_account.RelatedObjectDoesNotExist:
-            messages.warning(
-                request=self.request,
-                message='You need to register a valid biosample account',
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect('accounts:registration_activation_complete')
-
-        else:
-            # call the default get method
-            return super(
-                AuthView, self).dispatch(request, *args, **kwargs)
-
-
-class RegisterUserView(LoginRequiredMixin, CreateView):
+class RegisterUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin,
+                       CreateView):
     template_name = 'biosample/register_user.html'
     form_class = RegisterUserForm
-
-    # add the request to the kwargs
-    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
-    # this is needed to display messages (django.contrib) on pages
-    def get_form_kwargs(self):
-        kwargs = super(RegisterUserView, self).get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
-
-    def dispatch(self, request, *args, **kwargs):
-        # this will ask to login to an un-logged user
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-
-        # get user from request and user model. This could be also Anonymous
-        # user:however with metod decorator a login is required before dispatch
-        # method is called
-        User = get_user_model()
-        user = self.request.user
-
-        try:
-            user.biosample_account
-
-        except User.biosample_account.RelatedObjectDoesNotExist:
-            # call the default get method
-            return super(
-                RegisterUserView, self).dispatch(request, *args, **kwargs)
-
-        else:
-            messages.warning(
-                request=self.request,
-                message='Your biosample account is already registered',
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect('image_app:dashboard')
+    success_url_message = 'Account registered'
 
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
@@ -264,33 +244,15 @@ class RegisterUserView(LoginRequiredMixin, CreateView):
         # to success_url)
         return super(ModelFormMixin, self).form_valid(form)
 
-    def form_invalid(self, form):
-        messages.error(
-            self.request,
-            message="Please correct the errors below",
-            extra_tags="alert alert-dismissible alert-danger")
 
-        return super(RegisterUserView, self).form_invalid(form)
-
-    def get_success_url(self):
-        """Override default function"""
-
-        messages.success(
-            request=self.request,
-            message='Account registered',
-            extra_tags="alert alert-dismissible alert-success")
-
-        return reverse_lazy("image_app:dashboard")
-
-
-class CreateUserView(LoginRequiredMixin, FormView):
+class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
     template_name = 'biosample/create_user.html'
     form_class = CreateUserForm
+    success_url_message = "Account created"
 
-    # add the request to the kwargs
-    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
-    # this is needed to display messages (django.contrib) on pages
     def get_form_kwargs(self):
+        """Override get_form_kwargs"""
+
         kwargs = super(CreateUserView, self).get_form_kwargs()
 
         # create a new biosample user
@@ -299,37 +261,7 @@ class CreateUserView(LoginRequiredMixin, FormView):
         # add username to instance
         kwargs['username'] = username
 
-        # add the request to the kwargs
-        # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
-        kwargs['request'] = self.request
         return kwargs
-
-    def dispatch(self, request, *args, **kwargs):
-        # this will ask to login to an un-logged user
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-
-        # get user from request and user model. This could be also Anonymous
-        # user:however with metod decorator a login is required before dispatch
-        # method is called
-        User = get_user_model()
-        user = self.request.user
-
-        try:
-            user.biosample_account
-
-        except User.biosample_account.RelatedObjectDoesNotExist:
-            # call the default get method
-            return super(
-                CreateUserView, self).dispatch(request, *args, **kwargs)
-
-        else:
-            messages.warning(
-                request=self.request,
-                message='Your biosample account is already registered',
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect('image_app:dashboard')
 
     def form_valid(self, form):
         """Create a new team in with biosample manager user, then crete a new
@@ -446,13 +378,3 @@ class CreateUserView(LoginRequiredMixin, FormView):
         # call to a inherited function (which does an HttpResponseRedirect
         # to success_url)
         return super(CreateUserView, self).form_valid(form)
-
-    def get_success_url(self):
-        """Override default function"""
-
-        messages.success(
-            request=self.request,
-            message='Account created',
-            extra_tags="alert alert-dismissible alert-success")
-
-        return reverse_lazy("image_app:dashboard")
