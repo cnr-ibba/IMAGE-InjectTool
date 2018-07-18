@@ -248,7 +248,7 @@ $ docker-compose run --rm uwsgi pytest
 $ docker-compose run --rm uwsgi pytest --verbosity=2 cryoweb/tests/test_cryoweb.py
 
 # calculating coverage
-$ docker-compose run --rm uwsgi coverage run --source='.' manage.py test
+$ docker-compose run --rm uwsgi coverage run --source='.' -m py.test
 
 # generate coverage report
 $ docker-compose run --rm uwsgi coverage report

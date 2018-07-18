@@ -3,5 +3,8 @@
 omit =
     */migrations/*
     */tests/*
+    */urls.py
+    */settings/*
+    */wsgi.py
+    */apps.py
     manage.py
-    image/wsgi.py
