@@ -1,6 +1,5 @@
 
 import os
-import json
 import logging
 
 from decouple import AutoConfig

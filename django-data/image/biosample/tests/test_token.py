@@ -20,7 +20,7 @@ from ..models import Account, ManagedTeam
 from .session_enabled_test_case import SessionEnabledTestCase
 
 
-def generate_token(now=None):
+def generate_token(now=None, domains=['subs.test-team-1']):
     """A function to generate a 'fake' token"""
 
     if not now:
@@ -34,7 +34,7 @@ def generate_token(now=None):
         'email': 'foo.bar@email.com',
         'nickname': 'foo',
         'name': 'Foo Bar',
-        'domains': ['subs.test-team-1']
+        'domains': domains
     }
 
     return python_jwt.generate_jwt(

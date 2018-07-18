@@ -13,10 +13,14 @@ from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.urls import reverse, resolve
 
+from pyEBIrest.auth import Auth
+
 from image_app.models import Organization
 
 from ..forms import CreateUserForm
 from ..views import CreateUserView
+
+from .test_token import generate_token
 
 
 class Basetest(TestCase):
@@ -109,7 +113,7 @@ class SuccessfulCreateUserViewTest(Basetest):
     @classmethod
     def teardown_class(cls):
         cls.mock_get_patcher.stop()
-        cls.mock_get_patcher.stop()
+        cls.mock_post_patcher.stop()
 
     def setUp(self):
         User = get_user_model()
@@ -123,6 +127,12 @@ class SuccessfulCreateUserViewTest(Basetest):
         # add organization to user
         organization = Organization.objects.first()
         user.person.organization = organization
+
+        # add other infor to user
+        user.first_name = "Foo"
+        user.last_name = "Bar"
+
+        # saving updated object
         user.save()
 
         self.client = Client()
@@ -142,24 +152,28 @@ class SuccessfulCreateUserViewTest(Basetest):
             def json(self):
                 return self.json_data
 
-        return MockResponse(None, 404)
-
-    def mocked_post(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-                self.text = "Not implemented: %s" % (args[0])
-
-            def json(self):
-                return self.json_data
+        if args[0] == "https://explore.api.aai.ebi.ac.uk/auth":
+            response = MockResponse(None, 200)
+            response.text = generate_token(
+                    domains=['subs.test-team-1', 'subs.test-team-3'])
+            return response
 
         return MockResponse(None, 404)
 
-    @patch('requests.post', side_effect=mocked_post)
+    @patch('pyEBIrest.client.User.add_user_to_team')
+    @patch('pyEBIrest.client.User.get_domain_by_name')
+    @patch('pyEBIrest.client.User.create_team')
+    @patch('pyEBIrest.client.User.create_user',
+           return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
     @patch('requests.get', side_effect=mocked_get)
-    def test_user_create(self, mock_get, mock_post):
+    def test_user_create(self, mock_get, create_user, create_team,
+                         get_domain_by_name, add_user_to_team):
         """Testing create user"""
+
+        # setting mock objects
+        create_team.return_value.name = "subs.test-team-3"
+        get_domain_by_name.return_value.domainReference = (
+                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
 
         self.data = {
             'password1': 'image-password',
@@ -171,6 +185,11 @@ class SuccessfulCreateUserViewTest(Basetest):
 
         self.assertRedirects(response, dashboard_url)
         self.check_messages(response, "success", "Account created")
+
+        self.assertTrue(create_user.called)
+        self.assertTrue(create_team.called)
+        self.assertTrue(get_domain_by_name.called)
+        self.assertTrue(add_user_to_team.called)
 
 
 class InvalidCreateUserViewTests(Basetest):
