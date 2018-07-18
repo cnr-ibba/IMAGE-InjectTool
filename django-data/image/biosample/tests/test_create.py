@@ -6,7 +6,7 @@ Created on Tue Jul 10 14:55:11 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from django.test import Client, TestCase
 from django.contrib.auth import get_user_model
@@ -102,19 +102,6 @@ class SuccessfulCreateUserViewTest(Basetest):
         "dictcountry.json", "dictrole.json", "organization.json"
     ]
 
-    @classmethod
-    def setup_class(cls):
-        cls.mock_get_patcher = patch('pyEBIrest.client.requests.get')
-        cls.mock_get = cls.mock_get_patcher.start()
-
-        cls.mock_post_patcher = patch('pyEBIrest.client.requests.post')
-        cls.mock_post = cls.mock_post_patcher.start()
-
-    @classmethod
-    def teardown_class(cls):
-        cls.mock_get_patcher.stop()
-        cls.mock_post_patcher.stop()
-
     def setUp(self):
         User = get_user_model()
 
@@ -142,32 +129,19 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.url = reverse('biosample:create')
         self.response = self.client.get(self.url)
 
-    def mocked_get(*args, **kwargs):
-        class MockResponse:
-            def __init__(self, json_data, status_code):
-                self.json_data = json_data
-                self.status_code = status_code
-                self.text = "Not implemented: %s" % (args[0])
-
-            def json(self):
-                return self.json_data
-
-        if args[0] == "https://explore.api.aai.ebi.ac.uk/auth":
-            response = MockResponse(None, 200)
-            response.text = generate_token(
+    def mocked_auth(**kwargs):
+        token = generate_token(
                     domains=['subs.test-team-1', 'subs.test-team-3'])
-            return response
-
-        return MockResponse(None, 404)
+        return Auth(token=token)
 
     @patch('pyEBIrest.client.User.add_user_to_team')
     @patch('pyEBIrest.client.User.get_domain_by_name')
     @patch('pyEBIrest.client.User.create_team')
+    @patch('biosample.views.Auth', new=mocked_auth)
     @patch('pyEBIrest.client.User.create_user',
            return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
-    @patch('requests.get', side_effect=mocked_get)
-    def test_user_create(self, mock_get, create_user, create_team,
-                         get_domain_by_name, add_user_to_team):
+    def test_user_create(self, create_user, create_team, get_domain_by_name,
+                         add_user_to_team):
         """Testing create user"""
 
         # setting mock objects
