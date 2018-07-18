@@ -38,6 +38,7 @@ urlpatterns = [
             template_name='accounts/logged_out.html'),
         name='logout'),
     url(r'^image_app/', include('image_app.urls', namespace="image_app")),
+    url(r'^cryoweb/', include('cryoweb.urls', namespace="cryoweb")),
     url(r'^biosample/', include('biosample.urls', namespace="biosample")),
     url(r'^accounts/', include('accounts.urls', namespace="accounts")),
     url(r'^admin/', admin.site.urls),

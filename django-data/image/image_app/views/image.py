@@ -15,9 +15,9 @@ from django.shortcuts import redirect, reverse
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 
-from image_app.forms import DataSourceForm
-from image_app.helpers import CryowebDB
-from image_app.models import DataSource, uid_report
+from ..forms import DataSourceForm
+from ..helpers import CryowebDB
+from ..models import DataSource, uid_report
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

@@ -17,8 +17,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
 
-# TODO: remove old_views after migrating views in their apposite submodule
-from image_app import views
+from . import views
 
 # from django.conf.urls import include
 # from django.contrib import admin
@@ -31,19 +30,9 @@ urlpatterns = [
         login_required(views.DataSourceView.as_view()),
         name='data_upload'),
 
-    url(r'^upload_cryoweb/$', views.upload_cryoweb, name='upload_cryoweb'),
-
-    url(r'^import_from_cryoweb/$',
-        views.import_from_cryoweb,
-        name='import_from_cryoweb'),
-
     url(r'^truncate_image_tables/$',
         views.truncate_image_tables,
         name='truncate_image_tables'),
-
-    url(r'^truncate_cryoweb_tables/$',
-        views.truncate_cryoweb_tables,
-        name='truncate_cryoweb_tables'),
 
     url(r'^truncate_databases/$',
         views.truncate_databases,

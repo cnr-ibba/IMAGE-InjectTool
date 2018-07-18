@@ -96,8 +96,6 @@
   values for other data than cryoweb. When they are unknown, they shouldn't be
   exported.
 
-* Move cryoweb views inside cryoweb application
-
 * rename image_app application into UID?
 
 * Dashboard page: database status and links of all applications developed

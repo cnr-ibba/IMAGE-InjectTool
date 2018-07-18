@@ -16,8 +16,7 @@ import cryoweb.helpers
 import image_app.helpers
 
 from image_app.models import DictCountry, DictSpecie, User
-from image_app.views.cryoweb import (fill_countries, fill_species,
-                                     get_a_datasource)
+from ..views import (fill_countries, fill_species, get_a_datasource)
 
 from language.models import SpecieSynonim
 
@@ -87,19 +86,19 @@ class FillUIDTestClass(BaseTestCase):
 
     def test_cryoweb_already_imported(self):
         # Create an instance of a GET request.
-        # request = self.factory.get(reverse('image_app:upload_cryoweb'))
+        # request = self.factory.get(reverse('cryoweb:upload_cryoweb'))
 
         # Recall that middleware are not supported. You can simulate a
         # logged-in user by setting request.user manually.
         # request.user = self.user
 
         # Test upload_cryoweb() as if it were deployed at
-        # reverse('image_app:upload_cryoweb')
+        # reverse('cryoweb:upload_cryoweb')
         # response = upload_cryoweb(request)
 
         # same thing, but with a client request
         response = self.client.get(
-            reverse('image_app:upload_cryoweb'))
+            reverse('cryoweb:upload_cryoweb'))
 
         self.check_messages(
             response,
@@ -110,7 +109,7 @@ class FillUIDTestClass(BaseTestCase):
         """Import loaded cryoweb data into UID"""
 
         response = self.client.get(
-            reverse('image_app:import_from_cryoweb'))
+            reverse('cryoweb:import_from_cryoweb'))
 
         self.assertFalse("error" in response.context)
 
@@ -118,12 +117,12 @@ class FillUIDTestClass(BaseTestCase):
         """No datasources left to import"""
 
         response = self.client.get(
-            reverse('image_app:import_from_cryoweb'))
+            reverse('cryoweb:import_from_cryoweb'))
 
         # TODO: after data import into UID , cryoweb stage area need to be
         # truncated. chech that this condition is true
 #        response = self.client.get(
-#            reverse('image_app:upload_cryoweb'))
+#            reverse('cryoweb:upload_cryoweb'))
 #
 #        self.check_messages(
 #            response,
@@ -131,7 +130,7 @@ class FillUIDTestClass(BaseTestCase):
 #            "all datasources were loaded")
 
         response = self.client.get(
-            reverse('image_app:import_from_cryoweb'))
+            reverse('cryoweb:import_from_cryoweb'))
 
         self.check_messages(
             response,
@@ -148,7 +147,7 @@ class FillUIDTestClass(BaseTestCase):
         synonim.delete()
 
         response = self.client.get(
-            reverse('image_app:import_from_cryoweb'))
+            reverse('cryoweb:import_from_cryoweb'))
 
         self.check_messages(
             response,

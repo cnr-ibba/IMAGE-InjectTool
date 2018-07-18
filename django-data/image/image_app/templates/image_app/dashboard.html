@@ -43,8 +43,8 @@
         <h4 class="card-title">Upload data into UID</h4>
         {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
         <a href="{% url 'image_app:data_upload' %}">Upload a datasource</a><br>
-        <a href="{% url 'image_app:upload_cryoweb' %}">Import cryoweb data into staging area</a><br>
-        <a href="{% url 'image_app:import_from_cryoweb' %}">Import cryoweb staging area into UID</a><br>
+        <a href="{% url 'cryoweb:upload_cryoweb' %}">Import cryoweb data into staging area</a><br>
+        <a href="{% url 'cryoweb:import_from_cryoweb' %}">Import cryoweb staging area into UID</a><br>
         <a href="{% url 'image_app:animallist-biosample' %}">Download biosample data</a>
       </div>
     </div>
@@ -62,7 +62,7 @@
       <div class="card-body">
         <h4 class="card-title">Delete data from UID</h4>
         {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
-        <a href="{% url 'image_app:truncate_cryoweb_tables' %}">Truncate cryoweb stage database</a><br>
+        <a href="{% url 'cryoweb:truncate_cryoweb_tables' %}">Truncate cryoweb stage database</a><br>
         <a href="{% url 'image_app:truncate_image_tables' %}">Truncate UID</a><br>
         <a href="{% url 'image_app:truncate_databases' %}"><strong>Truncate Both Databases!!!</strong></a><br>
         <a href="{% url 'image_app:initializedb' %}">Initialize UID</a>
