@@ -42,12 +42,6 @@
 
 * Add messages when views are called or code executed
 
-* Unittest:
-  - Testing biosample methods using `mock`
-    - Testing generate tocken
-    - Testing user register/creation
-  - Testing zooma methods using `mock`
-
 * Those tables are empty at the moment:
   - Databases
   - Publications
@@ -110,8 +104,6 @@
   - report and links for datasource (upload datasource, views datasources etc)
   - report and links for cryoweb staging area
     - check for duplicate breeds - names
-
-* Navbar: tocken generation/info need to be modeled in Navbar
 
 * return a default ontology for breed if non mapping occours
 

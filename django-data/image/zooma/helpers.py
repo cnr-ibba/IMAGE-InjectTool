@@ -84,7 +84,7 @@ def useZooma(term, category):
     request = requests.get(ZOOMA_URL, params=params)
 
     # print (json.dumps(request.json(), indent=4, sort_keys=True))
-    logger.debug(request)
+    logger.debug(request.text)
 
     # read results
     results = request.json()
@@ -92,9 +92,6 @@ def useZooma(term, category):
     # a warn
     if len(results) > 1:
         logger.warn("Got %s results for %s" % (len(results), params))
-
-        for elem in results:
-            logger.warn(elem['annotatedProperty'])
 
     for elem in results:
         detectedType = elem['annotatedProperty']['propertyType']
@@ -126,6 +123,9 @@ def useZooma(term, category):
 
             # if we have a low confidence, don't take the results
             # else: #  medium/low
+
+        else:
+            logger.warn("Different type for %s" % elem['annotatedProperty'])
 
     # HINT: is useful?
     result['type'] = category
@@ -163,7 +163,7 @@ def get_taxonID_by_scientific_name(scientific_name):
 
     response = requests.get(url)
 
-    logger.debug(response)
+    logger.debug(response.text)
 
     if response.status_code != 200:
         logger.error("No data retrieved for %s" % (scientific_name))
