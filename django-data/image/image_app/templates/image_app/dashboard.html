@@ -6,69 +6,61 @@
 
 {% block content %}
 
-  <div class="card border-info mb-3" style="">
-    <div class="card-header">
-      {% if user.is_authenticated %}
-        <h1>Welcome {{ user.get_username }}!</h1>
-      {% else %}
-        <h1>You should be not here</h1>
-      {% endif %}
-    </div>
-    <div class="card-body">
-      <h4 class="card-title">InjectTool Summary</h4>
-      {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
-      <ul class="card-text">
-        <li>You have {{datasource_count}} data sources loaded
-          ({{datasource_uploaded}} uploaded into UID)</li>
-        <li>
-          {% if cryoweb_hasdata %}
-            You have data in cryoweb staging area
-          {% else %}
-            Your cryoweb staging area is empty
-          {% endif %}
-        </li>
-        <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
-        <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
-        <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
-        <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
-        <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
-      </ul>
-    </div>
-  </div>
+  <h1>Welcome {{ user.first_name|capfirst }}!</h1>
 
-  <div class="card-deck">
-    <div class="card border-light mb-3" style="">
-      <div class="card-header">Data upload</div>
+  <div class="card-deck pt-5">
+
+    <div class="card border-primary mb-3" style="">
+      <div class="card-header">Submit</div>
       <div class="card-body">
-        <h4 class="card-title">Upload data into UID</h4>
-        {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
-        <a href="{% url 'image_app:data_upload' %}">Upload a datasource</a><br>
-        <a href="{% url 'cryoweb:upload_cryoweb' %}">Import cryoweb data into staging area</a><br>
-        <a href="{% url 'cryoweb:import_from_cryoweb' %}">Import cryoweb staging area into UID</a><br>
-        <a href="{% url 'image_app:animallist-biosample' %}">Download biosample data</a>
+        <h4 class="card-title">Create New Submission</h4>
+        <p class="card-text">Upload your data into Inject-Tool database and start a new submission!</p>
+        <p class="lead text-center">
+          <a class="btn btn-primary btn-lg" href="{% url 'image_app:data_upload' %}" role="button">Upload</a>
+        </p>
+      </div>
+    </div> <!-- card submit -->
+
+    <div class="card border-secondary mb-3" style="">
+      <div class="card-header">Resume</div>
+      <div class="card-body">
+        <h4 class="card-title">Resume Your Submissions</h4>
+        <p class="card-text">Fix errors an validate your data in order to countinue submission</p>
+        <p class="lead text-center">
+          <a class="btn btn-secondary btn-lg disabled" href="#" role="button">Resume</a>
+        </p>
       </div>
     </div>
-    <div class="card border-light mb-3" style="">
-      <div class="card-header">Biosample</div>
+    <div class="card border-info mb-3" style="">
+      <div class="card-header">
+        Summary
+      </div>
       <div class="card-body">
-        <h4 class="card-title">Biosample submission</h4>
-        {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
-        <a href="{% url 'biosample:token-generation' %}">Generate token</a><br>
-        <a href="{% url 'biosample:token' %}">Token info</a><br>
+        <h4 class="card-title">Data status Summary</h4>
+        <p class="card-text">Get information about your data and submissions</p>
+        <p class="lead text-center">
+          <a class="btn btn-info btn-lg" href="{% url 'image_app:summary' %}" role="button">Info</a>
+        </p>
+         <!-- <ul class="card-text">
+          <li>You have {{datasource_count}} data sources loaded
+            ({{datasource_uploaded}} uploaded into UID)</li>
+          <li>
+            {% if cryoweb_hasdata %}
+              You have data in cryoweb staging area
+            {% else %}
+              Your cryoweb staging area is empty
+            {% endif %}
+          </li>
+          <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
+          <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
+          <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
+          <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
+          <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
+        </ul>
+        -->
       </div>
     </div>
-    <div class="card border-danger mb-3" style="">
-      <div class="card-header text-white bg-danger"><strong>Danger Zone</strong></div>
-      <div class="card-body">
-        <h4 class="card-title">Delete data from UID</h4>
-        {# <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> #}
-        <a href="{% url 'cryoweb:truncate_cryoweb_tables' %}">Truncate cryoweb stage database</a><br>
-        <a href="{% url 'image_app:truncate_image_tables' %}">Truncate UID</a><br>
-        <a href="{% url 'image_app:truncate_databases' %}"><strong>Truncate Both Databases!!!</strong></a><br>
-        <a href="{% url 'image_app:initializedb' %}">Initialize UID</a>
-      </div>
-    </div>
-  </div>
+  </div> <!-- card-deck -->
 
 
 {% endblock %}

@@ -24,10 +24,18 @@ from . import views
 
 
 urlpatterns = [
+    url(r'^dashboard/$',
+        views.DashBoardView.as_view(),
+        name='dashboard'),
+
+    url(r'^summary/$',
+        views.SummaryView.as_view(),
+        name='summary'),
+
     # to upload data in image database
     # TODO: deal with excel upload
     url(r'data_upload/$',
-        login_required(views.DataSourceView.as_view()),
+        views.DataSourceView.as_view(),
         name='data_upload'),
 
     url(r'^truncate_image_tables/$',
@@ -65,8 +73,4 @@ urlpatterns = [
     url(r'^animals/biosample/$',
         login_required(views.BioSampleListJSON.as_view()),
         name='animallist-biosample'),
-
-    url(r'^dashboard/$',
-        login_required(views.DashBoardView.as_view()),
-        name='dashboard'),
 ]

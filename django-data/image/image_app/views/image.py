@@ -10,6 +10,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.management import call_command
 from django.shortcuts import redirect, reverse
 from django.views.generic import TemplateView
@@ -35,12 +36,16 @@ class AboutView(TemplateView):
     template_name = 'image_app/about.html'
 
 
-class DashBoardView(TemplateView):
+class DashBoardView(LoginRequiredMixin, TemplateView):
     template_name = "image_app/dashboard.html"
+
+
+class SummaryView(LoginRequiredMixin, TemplateView):
+    template_name = "image_app/summary.html"
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super(DashBoardView, self).get_context_data(**kwargs)
+        context = super(SummaryView, self).get_context_data(**kwargs)
         # add content to context
 
         # Add info for datasource
@@ -62,7 +67,7 @@ class DashBoardView(TemplateView):
         return context
 
 
-class DataSourceView(FormView):
+class DataSourceView(LoginRequiredMixin, FormView):
     """Handling DataSource forms with class based views"""
 
     form_class = DataSourceForm

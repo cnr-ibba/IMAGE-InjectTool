@@ -170,6 +170,3 @@
 * Use django-bootstrap4 to render forms
 
 * django-braces: what does it?
-
-* `accounts` application: deal with resend activation email and its test views
-  - what happens if I lost the resend link?

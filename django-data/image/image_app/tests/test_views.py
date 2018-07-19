@@ -15,7 +15,7 @@ import cryoweb.tests
 
 from ..forms import DataSourceForm
 from ..models import DataSource, DictCountry, User
-from ..views import DataSourceView, initializedb
+from ..views import DataSourceView, initializedb, DashBoardView, SummaryView
 
 
 class Initialize(TestCase):
@@ -54,6 +54,9 @@ class DashBoardViewTest(Initialize):
         # get the url for dashboard
         self.url = reverse('image_app:dashboard')
 
+        # get a response
+        self.response = self.client.get(self.url)
+
     def test_redirection(self):
         '''Non Authenticated user are directed to login page'''
 
@@ -65,6 +68,57 @@ class DashBoardViewTest(Initialize):
             response, '{login_url}?next={url}'.format(
                 login_url=login_url, url=self.url)
         )
+
+    def test_status_code(self):
+        self.assertEquals(self.response.status_code, 200)
+
+    def test_url_resolves_view(self):
+        view = resolve('/image_app/dashboard/')
+        self.assertIsInstance(view.func.view_class(), DashBoardView)
+
+    def test_contains_navigation_links(self):
+        upload_url = reverse('image_app:data_upload')
+        summary_url = reverse('image_app:summary')
+
+        self.assertContains(self.response, 'href="{0}"'.format(upload_url))
+        self.assertContains(self.response, 'href="{0}"'.format(summary_url))
+
+        # TODO: test submission link
+
+    # TODO: test submission button inactive
+
+
+class SummaryViewTest(Initialize):
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get the url for dashboard
+        self.url = reverse('image_app:summary')
+
+        # get a response
+        self.response = self.client.get(self.url)
+
+    def test_redirection(self):
+        '''Non Authenticated user are directed to login page'''
+
+        login_url = reverse("login")
+        client = Client()
+        response = client.get(self.url)
+
+        self.assertRedirects(
+            response, '{login_url}?next={url}'.format(
+                login_url=login_url, url=self.url)
+        )
+
+    def test_status_code(self):
+        self.assertEquals(self.response.status_code, 200)
+
+    def test_url_resolves_view(self):
+        view = resolve('/image_app/summary/')
+        self.assertIsInstance(view.func.view_class(), SummaryView)
+
+    # TODO: test summary after data load
 
 
 class AddDataSourceTests(Initialize):
