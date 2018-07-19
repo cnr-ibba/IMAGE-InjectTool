@@ -48,11 +48,11 @@ class SuccessfulSignUpTests(TestCase):
     ]
 
     def setUp(self):
-        url = reverse('accounts:registration_register')
+        self.url = reverse('accounts:registration_register')
 
         # SignUpForm is a multiform object, so input type name has the name of
         # the base form and the name of the input type
-        data = {
+        self.data = {
             'user-username': 'john',
             'user-first_name': 'John',
             'user-last_name': 'Doe',
@@ -64,15 +64,28 @@ class SuccessfulSignUpTests(TestCase):
             'person-organization': 1,
             'person-agree_gdpr': True
         }
-        self.response = self.client.post(url, data)
+        self.response = self.client.post(self.url, self.data)
         self.complete_url = reverse('accounts:registration_complete')
         self.home_url = reverse('index')
 
     def test_redirection(self):
         '''
-        A valid form submission should redirect the user to the home page
+        A valid form submission should redirect the user registration complete
         '''
+
         self.assertRedirects(self.response, self.complete_url)
+
+    def test_resend_page(self):
+        """Follow the redirects and ensure that a resend link is present"""
+
+        # follow url
+        response = self.client.get(self.response.url)
+        response.render()
+        print(response.content)
+
+        # set the url for re-send activation
+        target_url = reverse("accounts:registration_resend_activation")
+        self.assertContains(response, 'href="{0}"'.format(target_url))
 
     def test_user_creation(self):
         self.assertTrue(User.objects.exists())

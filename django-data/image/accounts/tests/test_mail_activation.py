@@ -47,14 +47,40 @@ class ActivationTest(TestCase):
         # get context
         context = self.response.context
 
-        # ket keys from context
+        # get keys from context
         activation_key = context.get("activation_key")
         site = context.get('site')
 
+        # get activation url
         activation_url = "http://{site}/accounts/activate/{key}/".format(
             site=site, key=activation_key)
-
         self.assertIn(activation_url, self.email.body)
 
     def test_email_to(self):
         self.assertEqual(['john@doe.com'], self.email.to)
+
+    def test_email_resend(self):
+        """When clicking on resend activation button, a new mail is sent"""
+
+        url = reverse("accounts:registration_resend_activation")
+        data = {'email': 'john@doe.com'}
+        response = self.client.post(url, data)
+
+        self.assertContains(response, "We have sent an email to")
+
+        # get a new mail
+        self.assertEqual(len(mail.outbox), 2)
+        email = mail.outbox[-1]
+
+        # check activation key (different from the first one)
+        context = response.context
+
+        # get keys from context
+        activation_key = context.get("activation_key")
+        site = context.get('site')
+
+        # get activation url
+        activation_url = "http://{site}/accounts/activate/{key}/".format(
+            site=site, key=activation_key)
+
+        self.assertIn(activation_url, email.body)

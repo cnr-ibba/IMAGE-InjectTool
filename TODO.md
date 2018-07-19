@@ -165,8 +165,11 @@
 
 * Install `django.contrib.sites` (it is useful?)
 
-* Using LoginRequiredMixing for class based view authentication
+* Using LoginRequiredMixing for class based view authentication (update all classes)
 
 * Use django-bootstrap4 to render forms
 
 * django-braces: what does it?
+
+* `accounts` application: deal with resend activation email and its test views
+  - what happens if I lost the resend link?
