@@ -4,16 +4,19 @@
 Created on Mon Jul  2 13:13:16 2018
 
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
+
+Testing activation keys and views
+
 """
 
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse, resolve
 
-from ..views import ActivationView
+from ..views import ActivationView, ActivationComplete
 from ..models import create_key
 
 
-class ActivationTest(TestCase):
+class BaseTest(TestCase):
     fixtures = [
         "dictcountry.json", "dictrole.json", "organization.json"
     ]
@@ -53,6 +56,8 @@ class ActivationTest(TestCase):
         self.response = self.client.get(self.activation_url, follow=True)
         self.complete = reverse('accounts:registration_activation_complete')
 
+
+class ActivationTest(BaseTest):
     def test_redirect(self):
         self.assertRedirects(self.response, self.complete)
 
@@ -69,13 +74,6 @@ class ActivationTest(TestCase):
         view = resolve('/accounts/activate/%s/' % (self.activation_key))
         self.assertIsInstance(view.func.view_class(), ActivationView)
 
-    def test_contains_navigation_links(self):
-        register_url = reverse('biosample:register')
-        create_url = reverse('biosample:create')
-
-        self.assertContains(self.response, 'href="{0}"'.format(register_url))
-        self.assertContains(self.response, 'href="{0}"'.format(create_url))
-
     def test_reusing_keys(self):
         """a user use its old key for activation"""
 
@@ -91,3 +89,40 @@ class ActivationTest(TestCase):
 
         response = self.client.get(activation_url, follow=True)
         self.assertContains(response, "Account activation failed")
+
+
+class ActivationCompleteTest(BaseTest):
+    def setUp(self):
+        super(ActivationCompleteTest, self).setUp()
+
+        # get the url for registration_activation_complete
+        self.url = reverse('accounts:registration_activation_complete')
+
+        # get a response
+        self.response = self.client.get(self.url)
+
+    def test_redirection(self):
+        '''Non Authenticated user are directed to login page'''
+
+        login_url = reverse("login")
+        client = Client()
+        response = client.get(self.url)
+
+        self.assertRedirects(
+            response, '{login_url}?next={url}'.format(
+                login_url=login_url, url=self.url)
+        )
+
+    def test_status_code(self):
+        self.assertEquals(self.response.status_code, 200)
+
+    def test_url_resolves_view(self):
+        view = resolve('/accounts/activate/complete/')
+        self.assertIsInstance(view.func.view_class(), ActivationComplete)
+
+    def test_contains_navigation_links(self):
+        register_url = reverse('biosample:register')
+        create_url = reverse('biosample:create')
+
+        self.assertContains(self.response, 'href="{0}"'.format(register_url))
+        self.assertContains(self.response, 'href="{0}"'.format(create_url))

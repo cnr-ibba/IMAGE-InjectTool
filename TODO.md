@@ -176,5 +176,7 @@
     process is already done.
   - change the activation/resend message or submit the registration complete one
   - if the resend mails fail for any reason, track the error and inform the user
+  - the `registration_activation_complete` page, should redirect to `dashboard` if
+    a biosample accounts is already registered?
 
 * Use [pytest-django](https://pytest-django.readthedocs.io/en/latest/)

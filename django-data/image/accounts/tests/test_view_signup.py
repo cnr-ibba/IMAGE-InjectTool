@@ -64,7 +64,7 @@ class SuccessfulSignUpTests(TestCase):
             'person-organization': 1,
             'person-agree_gdpr': True
         }
-        self.response = self.client.post(self.url, self.data)
+        self.response = self.client.post(self.url, self.data, follow=True)
         self.complete_url = reverse('accounts:registration_complete')
         self.home_url = reverse('index')
 
@@ -78,12 +78,9 @@ class SuccessfulSignUpTests(TestCase):
     def test_resend_page(self):
         """Follow the redirects and ensure that a resend link is present"""
 
-        # follow url
-        response = self.client.get(self.response.url)
-
         # set the url for re-send activation
         target_url = reverse("accounts:registration_resend_activation")
-        self.assertContains(response, 'href="{0}"'.format(target_url))
+        self.assertContains(self.response, 'href="{0}"'.format(target_url))
 
     def test_user_creation(self):
         self.assertTrue(User.objects.exists())

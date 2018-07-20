@@ -17,9 +17,10 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login as auth_login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.shortcuts import get_current_site
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import UpdateView
+from django.views.generic.base import TemplateView
 
 from registration import signals
 from registration.backends.default.views import (
@@ -189,6 +190,19 @@ class ActivationView(RegistrationActivationView):
 # override redux activation view
 class ResendActivationView(BaseResendActivationView):
     registration_profile = MyRegistrationProfile
+
+    def render_form_submitted_template(self, form):
+        """
+        Renders resend activation complete template with the submitted email.
+
+        """
+
+        return render(self.request,
+                      'registration/resend_activation_complete.html')
+
+
+class ActivationComplete(LoginRequiredMixin, TemplateView):
+    template_name = 'registration/activation_complete.html'
 
 
 # LoginRequiredMixin as the letfmost inherited module. It will provide

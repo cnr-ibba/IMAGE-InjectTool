@@ -4,6 +4,9 @@
 Created on Mon Jul  2 13:13:16 2018
 
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
+
+Test sending mail with activation keys
+
 """
 
 import datetime
@@ -75,7 +78,8 @@ class ActivationTest(TestCase):
         data = {'email': 'john@doe.com'}
         response = self.client.post(url, data)
 
-        self.assertContains(response, "We have sent an email to")
+        self.assertContains(response, "A confirmation email has been sent "
+                                      "to the email used for registration.")
 
         # get a new mail
         self.assertEqual(len(mail.outbox), 2)
@@ -99,7 +103,8 @@ class ActivationTest(TestCase):
         data = {'email': 'john@doe.com'}
         response = self.client.post(url, data)
 
-        self.assertContains(response, "We have sent an email to")
+        self.assertContains(response, "A confirmation email has been sent "
+                                      "to the email used for registration.")
 
         # get a new mail
         self.assertEqual(len(mail.outbox), 2)

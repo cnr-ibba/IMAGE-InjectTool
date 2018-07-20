@@ -30,12 +30,17 @@ class MyRegistrationManager(RegistrationManager):
 
         try:
             profile = self.get(user__email__iexact=email)
+
         except ObjectDoesNotExist:
+            logger.error("%s not registered in database" % (email))
             return False
+
         except MultipleObjectsReturned:
+            logger.error("%s used more than once" % (email))
             return False
 
         if profile.activated:
+            logger.warn("%s already active" % (email))
             return False
 
         profile.create_new_activation_key()

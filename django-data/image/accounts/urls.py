@@ -84,8 +84,7 @@ urlpatterns = [
         name='registration_resend_activation'),
 
     url(r'^activate/complete/$',
-        TemplateView.as_view(
-            template_name='registration/activation_complete.html'),
+        views.ActivationComplete.as_view(),
         name='registration_activation_complete'),
 
     # Activation keys get matched by \w+ instead of the more specific

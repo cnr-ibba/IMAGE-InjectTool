@@ -1,0 +1,22 @@
+{% extends "registration/registration_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Account Activation Resent" %}{% endblock %}
+
+{% block content %}
+<p>
+  {% blocktrans %}
+    A confirmation email has been sent to the email used for registration.
+  {% endblocktrans %}
+</p>
+{% endblock %}
+
+
+{% comment %}
+**registration/resend_activation_complete.html**
+Used after form for resending account activation is submitted. By default has
+the following context:
+
+``email``
+    The email address submitted in the resend activation form.
+{% endcomment %}
