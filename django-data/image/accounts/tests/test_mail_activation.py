@@ -6,9 +6,14 @@ Created on Mon Jul  2 13:13:16 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import datetime
+
 from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
+
+from django.conf import settings
 
 
 class ActivationTest(TestCase):
@@ -38,23 +43,27 @@ class ActivationTest(TestCase):
         # read mail
         self.email = mail.outbox[0]
 
+        # detemine activation url
+        self.activation_url = self.get_activation_url(self.response.context)
+
+    def get_activation_url(self, context):
+        # get keys from context
+        activation_key = context.get("activation_key")
+        site = context.get('site')
+
+        # get activation url
+        return "http://{site}/accounts/activate/{key}/".format(
+            site=site, key=activation_key)
+
     def test_email_subject(self):
         self.assertEqual(
             '[IMAGE-InjectTool] Confirm registration',
             self.email.subject)
 
     def test_email_body(self):
-        # get context
-        context = self.response.context
+        """Test activation url in mail"""
 
-        # get keys from context
-        activation_key = context.get("activation_key")
-        site = context.get('site')
-
-        # get activation url
-        activation_url = "http://{site}/accounts/activate/{key}/".format(
-            site=site, key=activation_key)
-        self.assertIn(activation_url, self.email.body)
+        self.assertIn(self.activation_url, self.email.body)
 
     def test_email_to(self):
         self.assertEqual(['john@doe.com'], self.email.to)
@@ -72,15 +81,35 @@ class ActivationTest(TestCase):
         self.assertEqual(len(mail.outbox), 2)
         email = mail.outbox[-1]
 
-        # check activation key (different from the first one)
-        context = response.context
+        # assert activation key is the same
+        self.assertIn(self.activation_url, email.body)
 
-        # get keys from context
-        activation_key = context.get("activation_key")
-        site = context.get('site')
+    def test_email_resend_newkey(self):
+        """rensend a mail with a new key if it is expired"""
 
-        # get activation url
-        activation_url = "http://{site}/accounts/activate/{key}/".format(
-            site=site, key=activation_key)
+        # find user
+        user = User.objects.get(username='john')
 
+        # Set date_joined previous than now + ACTIVATION_DAYS
+        user.date_joined -= datetime.timedelta(
+            days=settings.ACCOUNT_ACTIVATION_DAYS + 1)
+        user.save()
+
+        url = reverse("accounts:registration_resend_activation")
+        data = {'email': 'john@doe.com'}
+        response = self.client.post(url, data)
+
+        self.assertContains(response, "We have sent an email to")
+
+        # get a new mail
+        self.assertEqual(len(mail.outbox), 2)
+        email = mail.outbox[-1]
+
+        # assert activation key different
+        self.assertNotIn(self.activation_url, email.body)
+
+        # determine a new key
+        activation_url = self.get_activation_url(response.context)
+
+        # assert activation key is the same
         self.assertIn(activation_url, email.body)

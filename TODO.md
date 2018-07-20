@@ -111,7 +111,7 @@
 * cryoweb tabled need to be filled using django ORM:
   - can test using correct test database: now functions and pandas function use
     hardcoded cryoweb database even in tests.
-  - implement [views](https://blog.rescale.com/using-database-views-in-django-orm/) in cryoweb models 
+  - implement [views](https://blog.rescale.com/using-database-views-in-django-orm/) in cryoweb models
   - no more config and helper module
   - remove pandas
   - fixtures and pre calculate data in test database are recordered in transactions:
@@ -175,7 +175,6 @@
   - track account activation failed in logs
   - if I key is activated with success, iform user that the activation
     process is already done.
-  - re-send the same activation key with email or check expiration time to send a new one
   - change the activation/resend message or submit the registration complete one
   - if the resend mail fail for any reason, track the error and inform the user
 

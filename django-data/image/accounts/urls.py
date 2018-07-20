@@ -11,8 +11,6 @@ from django.contrib.auth import views as auth_views
 from django.urls import reverse_lazy
 from django.views.generic.base import TemplateView
 
-from registration.backends.default.views import ResendActivationView
-
 from . import views
 
 urlpatterns = [
@@ -79,7 +77,7 @@ urlpatterns = [
         name='registration_disallowed'),
 
     url(r'^activate/resend/$',
-        ResendActivationView.as_view(),
+        views.ResendActivationView.as_view(),
         name='registration_resend_activation'),
 
     # Activation keys get matched by \w+ instead of the more specific

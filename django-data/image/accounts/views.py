@@ -20,11 +20,13 @@ from django.urls import reverse_lazy
 from django.views.generic import UpdateView
 
 from registration import signals
-from registration.backends.default.views import \
-    ActivationView as RegistrationActivationView
+from registration.backends.default.views import (
+    ActivationView as RegistrationActivationView,
+    ResendActivationView as BaseResendActivationView)
 from registration.backends.default.views import RegistrationView
 
 from .forms import MyAccountForm, SignUpForm
+from .models import MyRegistrationProfile
 
 
 class SignUpView(RegistrationView):
@@ -121,6 +123,11 @@ class ActivationView(RegistrationActivationView):
         # authenticate the user using the provided key
         auth_login(self.request, user)
         return (self.success_url, (), {})
+
+
+# override redux activation view
+class ResendActivationView(BaseResendActivationView):
+    registration_profile = MyRegistrationProfile
 
 
 # LoginRequiredMixin as the letfmost inherited module. It will provide
