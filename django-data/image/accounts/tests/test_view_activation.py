@@ -7,7 +7,10 @@ Created on Mon Jul  2 13:13:16 2018
 """
 
 from django.test import TestCase
-from django.urls import reverse
+from django.urls import reverse, resolve
+
+from ..views import ActivationView
+from ..models import create_key
 
 
 class ActivationTest(TestCase):
@@ -45,11 +48,13 @@ class ActivationTest(TestCase):
             "accounts:registration_activate",
             kwargs={'activation_key': self.activation_key})
 
+        # I don't need to login to see this page, since I need to activate
+        # my account to login
         self.response = self.client.get(self.activation_url, follow=True)
-        self.home_url = reverse('index')
+        self.complete = reverse('accounts:registration_activation_complete')
 
-    def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+    def test_redirect(self):
+        self.assertRedirects(self.response, self.complete)
 
     def test_user_authentication(self):
         '''
@@ -59,3 +64,30 @@ class ActivationTest(TestCase):
         # login user
         user = self.response.context.get('user')
         self.assertTrue(user.is_authenticated)
+
+    def test_url_resolves_view(self):
+        view = resolve('/accounts/activate/%s/' % (self.activation_key))
+        self.assertIsInstance(view.func.view_class(), ActivationView)
+
+    def test_contains_navigation_links(self):
+        register_url = reverse('biosample:register')
+        create_url = reverse('biosample:create')
+
+        self.assertContains(self.response, 'href="{0}"'.format(register_url))
+        self.assertContains(self.response, 'href="{0}"'.format(create_url))
+
+    def test_reusing_keys(self):
+        """a user use its old key for activation"""
+
+        response = self.client.get(self.activation_url, follow=True)
+        self.assertRedirects(response, self.complete)
+
+    def test_using_a_different_key(self):
+        """Use another key for activation"""
+
+        activation_url = reverse(
+            "accounts:registration_activate",
+            kwargs={'activation_key': create_key()})
+
+        response = self.client.get(activation_url, follow=True)
+        self.assertContains(response, "Account activation failed")

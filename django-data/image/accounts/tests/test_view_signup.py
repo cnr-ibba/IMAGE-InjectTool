@@ -80,8 +80,6 @@ class SuccessfulSignUpTests(TestCase):
 
         # follow url
         response = self.client.get(self.response.url)
-        response.render()
-        print(response.content)
 
         # set the url for re-send activation
         target_url = reverse("accounts:registration_resend_activation")

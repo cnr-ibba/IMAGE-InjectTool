@@ -44,6 +44,15 @@ class MyRegistrationManager(RegistrationManager):
         return True
 
 
+def create_key():
+    """Create a random key for activatings accounts"""
+
+    random_string = get_random_string(
+        length=32, allowed_chars=string.printable)
+    return hashlib.sha1(
+        random_string.encode('utf-8')).hexdigest()
+
+
 # Sometimes you only want to change the Python behavior of a model – perhaps to
 # change the default manager, or add a new method. This is what proxy model
 # inheritance is for: creating a proxy for the original model. You can create,
@@ -66,10 +75,7 @@ class MyRegistrationProfile(RegistrationProfile):
         if not self.activation_key or self.activation_key_expired():
             logger.debug("Generating a new activation key")
 
-            random_string = get_random_string(
-                length=32, allowed_chars=string.printable)
-            self.activation_key = hashlib.sha1(
-                random_string.encode('utf-8')).hexdigest()
+            self.activation_key = create_key()
 
             if save:
                 self.save()

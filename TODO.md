@@ -172,10 +172,9 @@
 * django-braces: what does it?
 
 * Accounts:
-  - track account activation failed in logs
-  - if I key is activated with success, iform user that the activation
+  - if I key is activated with success, inform user that the activation
     process is already done.
   - change the activation/resend message or submit the registration complete one
-  - if the resend mail fail for any reason, track the error and inform the user
+  - if the resend mails fail for any reason, track the error and inform the user
 
 * Use [pytest-django](https://pytest-django.readthedocs.io/en/latest/)

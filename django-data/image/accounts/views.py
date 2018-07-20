@@ -11,6 +11,8 @@ https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-gui
 
 """
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login as auth_login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -27,6 +29,10 @@ from registration.backends.default.views import RegistrationView
 
 from .forms import MyAccountForm, SignUpForm
 from .models import MyRegistrationProfile
+
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class SignUpView(RegistrationView):
@@ -57,6 +63,8 @@ class SignUpView(RegistrationView):
             }
         )
         form.save()
+
+        logger.debug("Updated user infos")
 
         success_url = self.get_success_url(user)
 
@@ -102,6 +110,8 @@ class SignUpView(RegistrationView):
 
         new_user_instance = form.save()
 
+        logger.info("registering user: %s" % (new_user_instance))
+
         new_user = self.registration_profile.objects.create_inactive_user(
             new_user=new_user_instance,
             site=site,
@@ -119,10 +129,61 @@ class SignUpView(RegistrationView):
 class ActivationView(RegistrationActivationView):
     success_url = 'accounts:registration_activation_complete'
 
+    # override template
+    template_name = 'registration/activation_failed.html'
+
+    # ovveride django redux get method
+    def get(self, request, *args, **kwargs):
+        activated_user = self.activate(*args, **kwargs)
+
+        if activated_user:
+            logger.info("%s activated" % activated_user)
+            success_url = self.get_success_url(activated_user)
+            try:
+                to, args, kwargs = success_url
+            except ValueError:
+                return redirect(success_url)
+            else:
+                return redirect(to, *args, **kwargs)
+
+        # if I arrive here, user is not activated. Maybe the keys is not more
+        # valid or there isn't such key in the database
+        logger.error("Error for key: %s" % kwargs.get('activation_key', ''))
+        return super(ActivationView, self).get(request, *args, **kwargs)
+
     def get_success_url(self, user):
         # authenticate the user using the provided key
         auth_login(self.request, user)
         return (self.success_url, (), {})
+
+    # Override activate function
+    def activate(self, *args, **kwargs):
+        """
+        Given an an activation key, look up and activate the user
+        account corresponding to that key (if possible).
+
+        After successful activation, the signal
+        ``registration.signals.user_activated`` will be sent, with the
+        newly activated ``User`` as the keyword argument ``user`` and
+        the class of this backend as the sender.
+
+        """
+        activation_key = kwargs.get('activation_key', '')
+        site = get_current_site(self.request)
+        user, activated = self.registration_profile.objects.activate_user(
+            activation_key, site)
+
+        if activated:
+            signals.user_activated.send(sender=self.__class__,
+                                        user=user,
+                                        request=self.request)
+
+        if user and not activated:
+            # this could be an activated user trying the same key used for
+            # activation
+            logger.warn("key %s already used by %s" % (activation_key, user))
+
+        return user
 
 
 # override redux activation view
