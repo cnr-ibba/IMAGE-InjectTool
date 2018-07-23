@@ -173,8 +173,7 @@
 
 * Accounts:
   - if I key is activated with success, inform user that the activation
-    process is already done.
-  - change the activation/resend message or submit the registration complete one
+    process is already done - test it
   - the `registration_activation_complete` page, should redirect to `dashboard` if
     a biosample accounts is already registered?
   - a user can't use an already register email for activation

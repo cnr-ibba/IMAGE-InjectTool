@@ -186,8 +186,14 @@ $ docker-compose run --rm uwsgi python manage.py createsuperuser
 
 The last commands will prompt for a user creation. This will be a new django
 admin user, not the database users described in `env` files. Track user credentials
-since those will be not stored in
-`.env` file of `IMAGE-InjectTool` directory.
+since those will be not stored in `.env` file of `IMAGE-InjectTool` directory.
+
+Next, you need to initialize the InjectTool database by filling up default accessory
+tables. You can do it by launching the following command:
+
+```
+$ docker-compose run --rm uwsgi python manage.py initializedb
+```
 
 ### Fixing django permissions
 
@@ -195,14 +201,8 @@ You will also to check file permissions in django data, expecially for `media`
 folder:
 
 ```
-$ docker-compose run --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media && chmod g+rwx media && chgrp -R www-data .'
-```
-
-Next, you need to initialize the InjectTool database by filling up default accessory
-tables. You can do it by launching the following command:
-
-```
-$ docker-compose run --rm uwsgi python manage.py initializedb
+$ docker-compose run --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media'
+$ docker-compose run --rm uwsgi sh -c 'chmod g+rwx media && chgrp -R www-data .'
 ```
 
 ### Other useful commands
@@ -237,15 +237,11 @@ docker-compose run --rm uwsgi python manage.py migrate
 # connect to the postgres database as administrator
 $ docker-compose run --rm db psql -h db -U postgres
 
-# executing Unittest
-$ docker-compose run --rm uwsgi python manage.py test image_app.tests
-$ docker-compose run --rm uwsgi python manage.py test image_app.tests.test_models
-
-# executing test with pytest
+# executing Unittest. Pytest ensure is the recommended way (since has mock objects)
 $ docker-compose run --rm uwsgi pytest
-
-# executing test on a certain module
-$ docker-compose run --rm uwsgi pytest --verbosity=2 cryoweb/tests/test_cryoweb.py
+$ docker-compose run --rm uwsgi pytest image_app/tests/
+$ docker-compose run --rm uwsgi pytest image_app/tests/test_views.py
+$ docker-compose run --rm uwsgi pytest --verbosity=2 image_app/tests/test_views.py::DashBoardViewTest::test_redirection
 
 # calculating coverage
 $ docker-compose run --rm uwsgi coverage run --source='.' -m py.test
