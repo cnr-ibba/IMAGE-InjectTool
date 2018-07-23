@@ -118,6 +118,7 @@ class InvalidSignUpTests(TestCase):
         '''
         An invalid form submission should return to the same page
         '''
+
         self.assertEquals(self.response.status_code, 200)
 
     def test_form_errors(self):

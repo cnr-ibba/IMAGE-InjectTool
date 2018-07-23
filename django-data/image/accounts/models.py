@@ -32,21 +32,24 @@ class MyRegistrationManager(RegistrationManager):
             profile = self.get(user__email__iexact=email)
 
         except ObjectDoesNotExist:
-            logger.error("%s not registered in database" % (email))
-            return False
+            message = "%s not registered in database" % (email)
+            logger.error(message)
+            return False, message
 
         except MultipleObjectsReturned:
-            logger.error("%s used more than once" % (email))
-            return False
+            message = "%s used more than once" % (email)
+            logger.error(message)
+            return False, "mail used more than once"
 
         if profile.activated:
-            logger.warn("%s already active" % (email))
-            return False
+            message = "%s already active" % (email)
+            logger.warn(message)
+            return False, "mail already active"
 
         profile.create_new_activation_key()
         profile.send_activation_email(site, request)
 
-        return True
+        return True, "Ok"
 
 
 def create_key():

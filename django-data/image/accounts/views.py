@@ -184,12 +184,33 @@ class ActivationView(RegistrationActivationView):
             # activation
             logger.warn("key %s already used by %s" % (activation_key, user))
 
+            messages.warning(
+                self.request,
+                message="Activation key already used",
+                extra_tags="alert alert-dismissible alert-warning")
+
         return user
 
 
 # override redux activation view
 class ResendActivationView(BaseResendActivationView):
     registration_profile = MyRegistrationProfile
+
+    def form_valid(self, form):
+        """
+        Regardless if resend_activation is successful, display the same
+        confirmation template.
+
+        """
+
+        success, reason = self.resend_activation(form)
+        if not success:
+            form.add_error(
+                'email',
+                reason)
+            return self.form_invalid(form)
+
+        return self.render_form_submitted_template(form)
 
     def render_form_submitted_template(self, form):
         """

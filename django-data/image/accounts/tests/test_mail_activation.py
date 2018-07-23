@@ -76,10 +76,7 @@ class ActivationTest(TestCase):
 
         url = reverse("accounts:registration_resend_activation")
         data = {'email': 'john@doe.com'}
-        response = self.client.post(url, data)
-
-        self.assertContains(response, "A confirmation email has been sent "
-                                      "to the email used for registration.")
+        self.client.post(url, data)
 
         # get a new mail
         self.assertEqual(len(mail.outbox), 2)
@@ -102,9 +99,6 @@ class ActivationTest(TestCase):
         url = reverse("accounts:registration_resend_activation")
         data = {'email': 'john@doe.com'}
         response = self.client.post(url, data)
-
-        self.assertContains(response, "A confirmation email has been sent "
-                                      "to the email used for registration.")
 
         # get a new mail
         self.assertEqual(len(mail.outbox), 2)
