@@ -10,7 +10,7 @@ import datetime
 
 from django.test import TestCase
 
-from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
+from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Name, Sample, uid_report)
 from language.models import SpecieSynonim
 
@@ -70,7 +70,7 @@ def create_datasource():
     # get dependencies
     country = create_dictcountry()
 
-    ds, created = DataSource.objects.get_or_create(
+    ds, created = Submission.objects.get_or_create(
                 name='CryoWeb',
                 version='23.01',
                 type=0,  # CryoWeb

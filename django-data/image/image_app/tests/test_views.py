@@ -14,7 +14,7 @@ from django.urls import resolve, reverse
 import cryoweb.tests
 
 from ..forms import DataSourceForm
-from ..models import DataSource, DictCountry, User
+from ..models import Submission, DictCountry, User
 from ..views import DataSourceView, initializedb, DashBoardView, SummaryView
 
 
@@ -167,7 +167,7 @@ class AddDataSourceTests(Initialize):
             'uploaded_file': open(ds_path),
         }
         self.client.post(url, data)
-        self.assertTrue(DataSource.objects.exists())
+        self.assertTrue(Submission.objects.exists())
 
     def test_new_ds_invalid_post_data(self):
         '''
@@ -197,7 +197,7 @@ class AddDataSourceTests(Initialize):
 
         response = self.client.post(url, data)
         self.assertEquals(response.status_code, 200)
-        self.assertFalse(DataSource.objects.exists())
+        self.assertFalse(Submission.objects.exists())
 
     def test_contains_form(self):
         url = reverse('image_app:data_upload')

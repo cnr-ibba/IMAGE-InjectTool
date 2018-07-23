@@ -261,8 +261,8 @@ class Name(models.Model):
             blank=False,
             null=False)
 
-    datasource = models.ForeignKey(
-            'DataSource',
+    submission = models.ForeignKey(
+            'Submission',
             db_index=True,
             related_name='name_set')
 
@@ -272,10 +272,10 @@ class Name(models.Model):
 
     def __str__(self):
         # HINT: shuold I return biosampleid if defined?
-        return "%s (DataSource: %s)" % (self.name, self.datasource_id)
+        return "%s (Submission: %s)" % (self.name, self.submission_id)
 
     class Meta:
-        unique_together = (("name", "datasource"),)
+        unique_together = (("name", "submission"),)
 
 
 class Animal(models.Model):
@@ -364,11 +364,11 @@ class Animal(models.Model):
 
         result["name"] = self.name.name
 
-        result["geneBankName"] = self.name.datasource.name
-        result["geneBankCountry"] = self.name.datasource.country.label
+        result["geneBankName"] = self.name.submission.name
+        result["geneBankCountry"] = self.name.submission.country.label
         # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
-        result["dataSourceType"] = self.name.datasource.get_type_display()
-        result["dataSourceVersion"] = self.name.datasource.version
+        result["dataSourceType"] = self.name.submission.get_type_display()
+        result["dataSourceVersion"] = self.name.submission.version
 
         result["dataSourceId"] = self.alternative_id
 
@@ -522,11 +522,11 @@ class Sample(models.Model):
 
         result["name"] = self.name.name
 
-        result["geneBankName"] = self.name.datasource.name
-        result["geneBankCountry"] = self.name.datasource.country.label
+        result["geneBankName"] = self.name.submission.name
+        result["geneBankCountry"] = self.name.submission.country.label
         # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
-        result["dataSourceType"] = self.name.datasource.get_type_display()
-        result["dataSourceVersion"] = self.name.datasource.version
+        result["dataSourceType"] = self.name.submission.get_type_display()
+        result["dataSourceVersion"] = self.name.submission.version
 
         result["dataSourceId"] = self.alternative_id
 
@@ -615,47 +615,6 @@ class Sample(models.Model):
         }]
 
         return result
-
-
-class Submission(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-
-    # are those fields editable by admin?
-    submitter = models.EmailField()
-
-    team = models.CharField(max_length=255)
-
-    created = models.DateTimeField()
-
-    last_modified = models.DateTimeField()
-
-    status = models.CharField(max_length=255)
-
-    link = models.URLField()
-
-    def __str__(self):
-        return ",".join([self.submitter, self.link])
-
-    @classmethod
-    def parse(cls, submission):
-        # get object
-        try:
-            obj = cls.objects.get(name=submission.name)
-        except cls.DoesNotExist:
-            obj = cls(name=submission.name)
-
-        # update values with data
-        obj.submitter = submission.submitter
-        obj.team = submission.team
-        obj.created = datetime.datetime.strptime(
-            submission.createdDate, "%Y-%m-%dT%H:%M:%S.%f%z")
-        obj.last_modified = datetime.datetime.strptime(
-            submission.lastModifiedDate, "%Y-%m-%dT%H:%M:%S.%f%z")
-        obj.status = submission.submissionStatus
-        obj.link = submission._links["self"]["href"]
-        obj.save()
-
-        return obj
 
 
 class Person(models.Model):
@@ -770,19 +729,29 @@ class Ontology(models.Model):
         verbose_name_plural = "ontologies"
 
 
-class DataSource(models.Model):
-    upload_dir = 'data_source/'
-    uploaded_file = models.FileField(upload_to=upload_dir)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
+class Submission(models.Model):
+    title = models.CharField(
+        max_length=255,
+        help_text='Example: Roslin Sheep Atlas')
 
-    # TODO: find a Biosample Key for this column
-    name = models.CharField(
+    project = models.CharField(
+        max_length=25,
+        default="IMAGE",
+        editable=False)
+
+    description = models.CharField(
+        max_length=255,
+        help_text='Example: The Roslin Institute ' +
+                  'Sheep Gene Expression Atlas Project')
+
+    # gene bank fields
+    gene_bank_name = models.CharField(
             max_length=255,
             blank=False,
             null=False,
             help_text='example: CryoWeb')
 
-    country = models.ForeignKey('DictCountry')
+    gene_bank_country = models.ForeignKey('DictCountry')
 
     # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
     class TYPES(Enum):
@@ -794,17 +763,21 @@ class DataSource(models.Model):
         def get_value(cls, member):
             return cls[member].value[0]
 
-    # type field
-    type = models.SmallIntegerField(
+    # datasource field
+    datasource_type = models.SmallIntegerField(
             choices=[x.value for x in TYPES],
             help_text='example: CryoWeb')
 
-    # TODO: find a Biosample Key for this column
-    version = models.CharField(
+    datasource_version = models.CharField(
             max_length=255,
             blank=False,
             null=False,
             help_text='examples: "2018-04-27", "version 1.5"')
+
+    # custom fields for datasource
+    upload_dir = 'data_source/'
+    uploaded_file = models.FileField(upload_to=upload_dir)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
     # internal column to check if data were uploaded in image db or not
     loaded = models.BooleanField(default=False)
@@ -812,10 +785,18 @@ class DataSource(models.Model):
     class Meta:
         # HINT: can I put two files for my cryoweb instance? May they have two
         # different version
-        unique_together = (("name", "country", "type", "version"),)
+        unique_together = ((
+            "gene_bank_name",
+            "gene_bank_country",
+            "datasource_type",
+            "datasource_version"),)
 
     def __str__(self):
-        return "%s (%s, %s)" % (self.name, self.country.label, self.version)
+        return "%s (%s, %s)" % (
+            self.gene_bank_name,
+            self.gene_bank_country.label,
+            self.datasource_version
+        )
 
 
 def uid_report():

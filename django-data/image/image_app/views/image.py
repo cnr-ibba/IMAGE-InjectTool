@@ -18,7 +18,7 @@ from django.views.generic.edit import FormView
 
 from ..forms import DataSourceForm
 from ..helpers import CryowebDB
-from ..models import DataSource, uid_report
+from ..models import Submission, uid_report
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -50,8 +50,8 @@ class SummaryView(LoginRequiredMixin, TemplateView):
 
         # Add info for datasource
         # TODO: count object for a certain user
-        context['datasource_count'] = DataSource.objects.count()
-        context['datasource_uploaded'] = DataSource.objects.filter(
+        context['datasource_count'] = Submission.objects.count()
+        context['datasource_uploaded'] = Submission.objects.filter(
             loaded=True).count()
 
         # add info for cryoweb db

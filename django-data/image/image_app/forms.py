@@ -1,7 +1,7 @@
 
 from django import forms
 
-from image_app.models import DataSource, DictCountry
+from image_app.models import Submission, DictCountry
 
 
 class DataSourceForm(forms.ModelForm):
@@ -16,5 +16,10 @@ class DataSourceForm(forms.ModelForm):
         super(DataSourceForm, self).__init__(*args, **kwargs)
 
     class Meta:
-        model = DataSource
-        fields = ('name', 'country', 'type', 'version', 'uploaded_file')
+        model = Submission
+        fields = (
+            'gene_bank_name',
+            'gene_bank_country',
+            'datasource_type',
+            'datasource_version',
+            'uploaded_file')

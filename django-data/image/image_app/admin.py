@@ -4,16 +4,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
-from image_app.models import (Animal, Database, DataSource, DictBreed,
-                              DictCountry, DictRole, DictSpecie, Name,
-                              Ontology, Organization, Person, Publication,
-                              Sample, Submission)
-
-
-class DataSourceAdmin(admin.ModelAdmin):
-    list_display = (
-        'name', 'country', 'type', 'version', 'uploaded_file', 'uploaded_at',
-        'loaded')
+from .models import (
+    Animal, Database, DictBreed, DictCountry, DictRole, DictSpecie, Name,
+    Ontology, Organization, Person, Publication, Sample, Submission)
 
 
 class DictBreedAdmin(admin.ModelAdmin):
@@ -29,7 +22,7 @@ class NameAdmin(admin.ModelAdmin):
 
     # join immediately name with DataSouce, in order to speed up name rendering
     list_select_related = (
-        'datasource',
+        'submission',
     )
 
     # remove this admin class from admin page, even if such class is registered
@@ -253,19 +246,18 @@ class DictSpecieAdmin(admin.ModelAdmin):
 admin.site.register(DictRole, admin.ModelAdmin)
 admin.site.register(DictSpecie, DictSpecieAdmin)
 admin.site.register(DictCountry, DictCountryAdmin)
+admin.site.register(Submission, admin.ModelAdmin)
 
 # Custom admin class
 admin.site.register(Animal, AnimalAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(Name, NameAdmin)
 admin.site.register(DictBreed, DictBreedAdmin)
-admin.site.register(Submission, SubmissionAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Publication, PublicationAdmin)
 admin.site.register(Database, DatabaseAdmin)
 admin.site.register(Ontology, OntologyAdmin)
-admin.site.register(DataSource, DataSourceAdmin)
 
 # Re-register UserAdmin
 admin.site.unregister(User)

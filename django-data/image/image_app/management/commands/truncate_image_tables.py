@@ -4,7 +4,7 @@ import logging
 from django.core.management import BaseCommand
 
 from image_app import helpers
-from image_app.models import DataSource
+from image_app.models import Submission
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -41,7 +41,6 @@ class Command(BaseCommand):
             statement = """
                     TRUNCATE image_app_animal,
                              image_app_database,
-                             image_app_datasource,
                              image_app_dictbreed,
                              image_app_dictcountry,
                              image_app_dictrole,
@@ -77,9 +76,9 @@ class Command(BaseCommand):
         trans.commit()
 
         # unset loaded flag from data source
-        for datasource in DataSource.objects.all():
-            datasource.loaded = False
-            datasource.save()
+        for submission in Submission.objects.all():
+            submission.loaded = False
+            submission.save()
 
         # debug
         logger.info("Done!")

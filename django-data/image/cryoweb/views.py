@@ -21,7 +21,7 @@ from django.shortcuts import redirect, render
 
 import cryoweb.helpers
 import image_app.helpers
-from image_app.models import (Animal, DataSource, DictBreed, DictCountry,
+from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Name, Sample)
 
 # Get an instance of a logger
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 def get_a_datasource():
     """Get the first not uploaded datasource"""
 
-    return DataSource.objects.filter(
+    return Submission.objects.filter(
             loaded=False).order_by("-uploaded_at").first()
 
 
@@ -322,7 +322,7 @@ def fill_names(dataframe, datasource, context):
     to_create = {}
 
     # get list of names of already inserted animals
-    queryset = Name.objects.filter(datasource=datasource)
+    queryset = Name.objects.filter(submission=submission)
     in_table_names = [name.name for name in queryset]
 
     # debug
@@ -352,7 +352,7 @@ def fill_names(dataframe, datasource, context):
         else:
             # create a new object
             obj = Name(name=row.name,
-                       datasource=datasource)
+                       submission=submission)
 
             # append object to to_create list
             to_create[row.name] = obj
@@ -503,11 +503,11 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     name_to_id = {}
 
     # get all names for this datasource
-    for name in Name.objects.filter(datasource=datasource):
+    for name in Name.objects.filter(submission=submission):
         name_to_id[name.name] = name.id
 
     logger.debug("read %s names" % (
-            Name.objects.filter(datasource=datasource).count()))
+            Name.objects.filter(submission=submission).count()))
 
     # get internal keys from name
     df_animals['name_id'] = df_animals.apply(
@@ -574,7 +574,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     # HINT: ANIMAL:::ID:::Ramon_142436 is present two times in database
     # with this, the second entry will not be inserted into Animal table
     # Same way of fill_transfer
-    queryset = Animal.objects.filter(name__datasource=datasource)
+    queryset = Animal.objects.filter(name__submission=submission)
     in_table_name_ids = [animal.name_id for animal in queryset]
 
     logger.debug("read %s animals" % (queryset.count()))
@@ -686,11 +686,11 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     name_to_id = {}
 
     # get all names for this datasource
-    for name in Name.objects.filter(datasource=datasource):
+    for name in Name.objects.filter(submission=submission):
         name_to_id[name.name] = name.id
 
     logger.debug("read %s names" % (
-            Name.objects.filter(datasource=datasource).count()))
+            Name.objects.filter(submission=submission).count()))
 
     # get name_id from name table, using db_animal from df_transfer_fin
     df_samples['name_id'] = df_samples.apply(
@@ -705,7 +705,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     animal_to_id = {}
 
     queryset = Animal.objects.select_related('name').filter(
-            name__datasource=datasource)
+            name__submission=submission)
 
     # get all names for this datasource
     for animal in queryset:
@@ -771,11 +771,11 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     name_to_id = {}
 
     # get all names for this datasource
-    for name in Name.objects.filter(datasource=datasource):
+    for name in Name.objects.filter(submission=submission):
         name_to_id[name.name] = name.id
 
     logger.debug("read %s names" % (
-            Name.objects.filter(datasource=datasource).count()))
+            Name.objects.filter(submission=submission).count()))
 
     df_samples_fin["name_id"] = df_samples_fin.apply(
             lambda row: name_to_id[row['name']],
@@ -788,7 +788,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     to_create = {}
 
     # get list of breeds present in database
-    queryset = Sample.objects.filter(name__datasource=datasource)
+    queryset = Sample.objects.filter(name__submission=submission)
     in_table_name_ids = [sample.name_id for sample in queryset]
 
     # debug
