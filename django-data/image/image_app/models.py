@@ -364,11 +364,12 @@ class Animal(models.Model):
 
         result["name"] = self.name.name
 
-        result["geneBankName"] = self.name.submission.name
-        result["geneBankCountry"] = self.name.submission.country.label
+        submission = self.name.submission
+        result["geneBankName"] = submission.gene_bank_name
+        result["geneBankCountry"] = submission.gene_bank_country.label
         # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
-        result["dataSourceType"] = self.name.submission.get_type_display()
-        result["dataSourceVersion"] = self.name.submission.version
+        result["dataSourceType"] = submission.get_datasource_type_display()
+        result["dataSourceVersion"] = submission.datasource_version
 
         result["dataSourceId"] = self.alternative_id
 
@@ -522,11 +523,12 @@ class Sample(models.Model):
 
         result["name"] = self.name.name
 
-        result["geneBankName"] = self.name.submission.name
-        result["geneBankCountry"] = self.name.submission.country.label
+        submission = self.name.submission
+        result["geneBankName"] = submission.gene_bank_name
+        result["geneBankCountry"] = submission.gene_bank_country.label
         # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
-        result["dataSourceType"] = self.name.submission.get_type_display()
-        result["dataSourceVersion"] = self.name.submission.version
+        result["dataSourceType"] = submission.get_datasource_type_display()
+        result["dataSourceVersion"] = submission.datasource_version
 
         result["dataSourceId"] = self.alternative_id
 

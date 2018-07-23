@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 # helper function
-def get_a_datasource():
-    """Get the first not uploaded datasource"""
+def get_a_submission():
+    """Get the first not uploaded submission"""
 
     return Submission.objects.filter(
             loaded=False).order_by("-uploaded_at").first()
@@ -42,7 +42,7 @@ def upload_cryoweb(request):
 
     This function uses the container's installation of psql to import a backup
     file into the "cryoweb" database. The imported backup file is
-    the last inserted into the image's table image_app_datasource.
+    the last inserted into the image's table image_app_submission.
 
     :param request: HTTP request automatically sent by the framework
     :return: the resulting HTML page
@@ -67,14 +67,14 @@ def upload_cryoweb(request):
     username = request.user.username
     context = {'username': username}
 
-    # TODO: get datasource to load from link or admin
-    datasource = get_a_datasource()
+    # TODO: get submission to load from link or admin
+    submission = get_a_submission()
 
-    logger.debug("Got DataSource %s" % (datasource))
+    logger.debug("Got Submission %s" % (submission))
 
     # this is not only database value, but the full path in docker
     # container
-    fullpath = datasource.uploaded_file.file
+    fullpath = submission.uploaded_file.file
 
     # get a string and quote fullpath
     fullpath = shlex.quote(str(fullpath))
@@ -140,7 +140,7 @@ def add_warnings(context, section, msg):
         context['warnings'][section] = [msg]
 
 
-def fill_species(df_breeds_species, context, datasource):
+def fill_species(df_breeds_species, context, submission):
     """Return a list of DictSpecie.id. Fill DictSpecies if necessary"""
 
     # debug
@@ -149,8 +149,8 @@ def fill_species(df_breeds_species, context, datasource):
     # get all species
     species_set = set(df_breeds_species["efabis_species"])
 
-    # get datasource language
-    language = datasource.country.label
+    # get submission language
+    language = submission.gene_bank_country.label
 
     # now a dictionary for label to ids
     species_dict = dict()
@@ -205,7 +205,7 @@ def fill_countries(df_breeds_species, context):
     return list(df_breeds_species.efabis_country.map(countries_dict))
 
 
-def fill_breeds(engine_from_cryoweb, context, datasource):
+def fill_breeds(engine_from_cryoweb, context, submission):
     """Helper function to upload breeds data in image database"""
 
     # debug
@@ -221,7 +221,7 @@ def fill_breeds(engine_from_cryoweb, context, datasource):
     logger.debug("Read %s records from v_breeds_species" % (
             df_breeds_species.shape[0]))
 
-    species_ids = fill_species(df_breeds_species, context, datasource)
+    species_ids = fill_species(df_breeds_species, context, submission)
     countries_ids = fill_countries(df_breeds_species, context)
 
     # keep only interesting columns and rename them
@@ -311,9 +311,9 @@ def fill_breeds(engine_from_cryoweb, context, datasource):
     return df_breeds_fin
 
 
-def fill_names(dataframe, datasource, context):
+def fill_names(dataframe, submission, context):
     """A generic function to fill Name table starting from a dataframe and
-    datasource"""
+    submission"""
 
     # debug
     logger.info("called fill_names()")
@@ -373,7 +373,7 @@ def fill_names(dataframe, datasource, context):
     logger.info("fill_names() finished")
 
 
-def fill_transfer(engine_from_cryoweb, datasource, context):
+def fill_transfer(engine_from_cryoweb, submission, context):
     """Helper function to fill transfer data into image name table"""
 
     # debug
@@ -413,7 +413,7 @@ def fill_transfer(engine_from_cryoweb, datasource, context):
     del(df_transfer_fin["db_animal"])
 
     # call a function to fill name table
-    fill_names(df_transfer_fin, datasource, context)
+    fill_names(df_transfer_fin, submission, context)
 
     # debug
     logger.info("fill_transfer() finished")
@@ -424,7 +424,7 @@ def fill_transfer(engine_from_cryoweb, datasource, context):
 
 # define a function to get the row from a dictionary of
 # {(species, description: dictbreed.id} starting from dataframe
-def getDictBreedId(row, df_breeds_fin, breed_to_id, datasource):
+def getDictBreedId(row, df_breeds_fin, breed_to_id, submission):
     """Returns DictBreed.id from a row from df_animals and df_breed"""
 
     # get db_breed index from row
@@ -433,8 +433,8 @@ def getDictBreedId(row, df_breeds_fin, breed_to_id, datasource):
     # get data from df_breeds_fin using dataframr indexes
     data = df_breeds_fin.loc[db_breed].to_dict()
 
-    # get datasource language
-    language = datasource.country.label
+    # get submission language
+    language = submission.gene_bank_country.label
 
     # convert cryoweb specie into UID specie
     specie = DictSpecie.get_by_synonim(
@@ -456,7 +456,7 @@ def getNameId(row, df_transfer_fin, tag, name_to_id):
     # get index from tag name (now is a row index)
     index = getattr(row, tag)
 
-    # get data for index (using supplied datasource)
+    # get data for index (using supplied submission)
     data = df_transfer_fin.loc[index].to_dict()
 
     # get name.id from dictionary
@@ -464,7 +464,7 @@ def getNameId(row, df_transfer_fin, tag, name_to_id):
 
 
 def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
-                 datasource, context):
+                 submission, context):
     """Helper function to fill animal data in image animal table"""
 
     # debug
@@ -496,13 +496,13 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                     row,
                     df_breeds_fin,
                     breed_to_id,
-                    datasource),
+                    submission),
             axis=1)
 
     # get name to id relation
     name_to_id = {}
 
-    # get all names for this datasource
+    # get all names for this submission
     for name in Name.objects.filter(submission=submission):
         name_to_id[name.name] = name.id
 
@@ -667,7 +667,7 @@ def get_protocols(engine_from_cryoweb):
     return df_protocols_fin
 
 
-def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
+def fill_samples(engine_from_cryoweb, df_transfer_fin, submission, context):
     """Helper function to fill image samples table"""
 
     # debug
@@ -685,7 +685,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     # get name to id relation
     name_to_id = {}
 
-    # get all names for this datasource
+    # get all names for this submission
     for name in Name.objects.filter(submission=submission):
         name_to_id[name.name] = name.id
 
@@ -707,7 +707,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
     queryset = Animal.objects.select_related('name').filter(
             name__submission=submission)
 
-    # get all names for this datasource
+    # get all names for this submission
     for animal in queryset:
         animal_to_id[animal.name_id] = animal.id
 
@@ -765,12 +765,12 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, datasource, context):
             '\s+', '_')
 
     # call a function to fill name table
-    fill_names(df_samples_fin, datasource, context)
+    fill_names(df_samples_fin, submission, context)
 
     # get name to id relation
     name_to_id = {}
 
-    # get all names for this datasource
+    # get all names for this submission
     for name in Name.objects.filter(submission=submission):
         name_to_id[name.name] = name.id
 
@@ -874,31 +874,31 @@ def import_from_cryoweb(request):
     # set those values using a function from helper objects
     engine_from_cryoweb = cryowebdb.get_engine()
 
-    # TODO: get datasource to load from link or admin
-    datasource = get_a_datasource()
+    # TODO: get submission to load from link or admin
+    submission = get_a_submission()
 
-    if not datasource:
+    if not submission:
         # give an error message
         logger.warn("cryoweb mirror database has data. Ignoring data load")
         messages.warning(
             request,
-            message="all datasources were loaded",
+            message="all submissions were loaded",
             extra_tags="alert alert-dismissible alert-warning")
         return redirect('image_app:dashboard')
 
     # TODO: check this
-    if datasource.loaded is True:
-        logger.warn("datasource %s was already uploaded" % datasource)
+    if submission.loaded is True:
+        logger.warn("submission %s was already uploaded" % submission)
         messages.warning(
             request,
-            "datasource %s was already uploaded" % datasource)
+            "submission %s was already uploaded" % submission)
 
         return redirect('index')
 
-    logger.debug("Got DataSource %s" % (datasource))
+    logger.debug("Got Submission %s" % (submission))
 
     # check for specie synonim
-    if not cryoweb.helpers.check_species(datasource.country.label):
+    if not cryoweb.helpers.check_species(submission.gene_bank_country.label):
         messages.error(
             request,
             "Some species haven't a synonim!",
@@ -919,12 +919,12 @@ def import_from_cryoweb(request):
         df_breeds_fin = fill_breeds(
                 engine_from_cryoweb,
                 context,
-                datasource)
+                submission)
 
         # TRANSFER
         df_transfer_fin = fill_transfer(
                 engine_from_cryoweb,
-                datasource,
+                submission,
                 context)
 
         # ANIMALS
@@ -932,22 +932,22 @@ def import_from_cryoweb(request):
                 engine_from_cryoweb,
                 df_breeds_fin,
                 df_transfer_fin,
-                datasource,
+                submission,
                 context)
 
         # SAMPLES
         fill_samples(
                 engine_from_cryoweb,
                 df_transfer_fin,
-                datasource,
+                submission,
                 context)
 
         # organization, persons are filled using
         # login information or template excel files
 
-        # update datasource.loaded field (I have alread loaded this data)
-        datasource.loaded = True
-        datasource.save()
+        # update submission.loaded field (I have alread loaded this data)
+        submission.loaded = True
+        submission.save()
 
     # TODO: remove this: is not informative
     except Exception as e:

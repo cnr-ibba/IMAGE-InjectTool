@@ -160,10 +160,10 @@ class AddDataSourceTests(Initialize):
         )
         url = reverse('image_app:data_upload')
         data = {
-            'name': 'test',
-            'country': self.country.id,
-            'type': 0,
-            'version': '0.1',
+            'gene_bank_name': 'test',
+            'gene_bank_country': self.country.id,
+            'datasource_type': 0,
+            'datasource_version': '0.1',
             'uploaded_file': open(ds_path),
         }
         self.client.post(url, data)

@@ -16,7 +16,7 @@ import cryoweb.helpers
 import image_app.helpers
 
 from image_app.models import DictCountry, DictSpecie, User
-from ..views import (fill_countries, fill_species, get_a_datasource)
+from ..views import (fill_countries, fill_species, get_a_submission)
 
 from language.models import SpecieSynonim
 
@@ -58,7 +58,7 @@ class BaseTestCase(TestCase):
 class FillUIDTestClass(BaseTestCase):
     # import this file and populate database once
     fixtures = [
-        "cryoweb.json", "dictcountry.json", "datasource.json", "dictsex.json",
+        "cryoweb.json", "dictcountry.json", "submission.json", "dictsex.json",
         "dictspecie.image.json", "speciesynonim.image.json"
     ]
 
@@ -74,8 +74,8 @@ class FillUIDTestClass(BaseTestCase):
         # set those values using a function from helper objects
         self.engine_from_cryoweb = cryowebdb.get_engine()
 
-        # TODO: get datasource to load from link or admin
-        self.datasource = get_a_datasource()
+        # TODO: get submission to load from link or admin
+        self.submission = get_a_submission()
 
         self.context = {
             # get username from request.
@@ -114,7 +114,7 @@ class FillUIDTestClass(BaseTestCase):
         self.assertFalse("error" in response.context)
 
     def test_all_ds_imported(self):
-        """No datasources left to import"""
+        """No submissions left to import"""
 
         response = self.client.get(
             reverse('cryoweb:import_from_cryoweb'))
@@ -127,7 +127,7 @@ class FillUIDTestClass(BaseTestCase):
 #        self.check_messages(
 #            response,
 #            "warning",
-#            "all datasources were loaded")
+#            "all submissions were loaded")
 
         response = self.client.get(
             reverse('cryoweb:import_from_cryoweb'))
@@ -135,7 +135,7 @@ class FillUIDTestClass(BaseTestCase):
         self.check_messages(
             response,
             "warning",
-            "all datasources were loaded")
+            "all submissions were loaded")
 
     def test_import_into_UID_no_specie_synomims(self):
         """testing importing into UID without sysnonims"""
@@ -172,7 +172,7 @@ class FillUIDTestClass(BaseTestCase):
             reference += [dictspecie.id]
 
         # call function and get a list with primary keys
-        test = fill_species(test_df, self.context, self.datasource)
+        test = fill_species(test_df, self.context, self.submission)
 
         # testing equality
         self.assertEqual(reference, test)

@@ -66,25 +66,25 @@ def create_dictbreed():
     return breed
 
 
-def create_datasource():
+def create_submission():
     # get dependencies
     country = create_dictcountry()
 
-    ds, created = Submission.objects.get_or_create(
-                name='CryoWeb',
-                version='23.01',
-                type=0,  # CryoWeb
-                country=country)
+    submission, created = Submission.objects.get_or_create(
+                gene_bank_name='CryoWeb',
+                datasource_version='23.01',
+                datasource_type=0,  # CryoWeb
+                gene_bank_country=country)
 
-    return ds
+    return submission
 
 
 def create_animal():
-    ds = create_datasource()
+    submission = create_submission()
 
     name, created = Name.objects.get_or_create(
             name='ANIMAL:::ID:::132713',
-            datasource=ds)
+            submission=submission)
 
     breed = create_dictbreed()
 
@@ -102,12 +102,12 @@ def create_animal():
 
 
 def create_sample(animal):
-    # get current datasource for a new name
-    ds = create_datasource()
+    # get current submission for a new name
+    submission = create_submission()
 
     name, created = Name.objects.get_or_create(
             name='Siems_0722_393449',
-            datasource=ds)
+            submission=submission)
 
     # now create a sample object
     sample, created = Sample.objects.get_or_create(
@@ -351,15 +351,15 @@ class DictBreedTestCase(TestCase):
         self.assertEqual(reference, test)
 
 
-class DataSourceTestCase(TestCase):
-    """Testing DataSource class"""
+class SubmissionTestCase(TestCase):
+    """Testing Submission class"""
 
     def setUp(self):
         # call an helper function
-        self.datasource = create_datasource()
+        self.submission = create_submission()
 
     def test_str(self):
-        test = str(self.datasource)
+        test = str(self.submission)
         reference = "CryoWeb (Germany, 23.01)"
 
         self.assertEqual(reference, test)
