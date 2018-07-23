@@ -19,7 +19,7 @@ class SignUpPersonFormTest(TestCase):
     def test_form_has_fields(self):
         form = SignUpPersonForm()
         expected = [
-            'initials', 'affiliation', 'role', 'organization', 'agree_gdpr',
+            'initials', 'affiliation', 'role', 'agree_gdpr',
             'botcatcher']
         actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)
@@ -30,7 +30,7 @@ class SignUpFormTest(TestCase):
         form = SignUpForm()
         expected = [
             'username', 'first_name', 'last_name', 'email', 'password1',
-            'password2', 'initials', 'affiliation', 'role', 'organization',
+            'password2', 'initials', 'affiliation', 'role',
             'agree_gdpr', 'botcatcher']
         actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)

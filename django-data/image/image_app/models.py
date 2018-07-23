@@ -661,12 +661,14 @@ class Submission(models.Model):
 class Person(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     initials = models.CharField(max_length=255, blank=True, null=True)
-    affiliation = models.CharField(
-        max_length=255,
-        blank=False,
-        null=False,
-        help_text="The institution you belong to"
-    )
+
+    # HINT: with a OneToOneField relation, there will be only one user for
+    # each organization
+    affiliation = models.ForeignKey(
+        'Organization',
+        null=True,
+        on_delete=models.CASCADE,
+        help_text="The institution you belong to")
 
     # last_name, first_name and email comes from User model
 
@@ -674,14 +676,6 @@ class Person(models.Model):
         'DictRole',
         on_delete=models.PROTECT,
         null=True)
-
-    # HINT: with a OneToOneField relation, there will be only one user for
-    # each organization
-    organization = models.ForeignKey(
-        'Organization',
-        null=True,
-        on_delete=models.CASCADE,
-        help_text="The institution which owns data")
 
     def __str__(self):
         return "{name} {surname} ({affiliation})".format(

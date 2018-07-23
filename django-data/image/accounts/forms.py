@@ -55,7 +55,7 @@ class SignUpPersonForm(forms.ModelForm):
 
     class Meta:
         model = Person
-        fields = ('initials', 'affiliation', 'role', 'organization')
+        fields = ('initials', 'affiliation', 'role')
 
 
 class SignUpForm(MultiModelForm):
@@ -91,7 +91,7 @@ class PersonForm(forms.ModelForm):
 
     class Meta:
         model = Person
-        fields = ('initials', 'affiliation', 'role', 'organization')
+        fields = ('initials', 'affiliation', 'role')
 
 
 class MyAccountForm(MultiModelForm):

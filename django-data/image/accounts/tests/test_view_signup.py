@@ -32,12 +32,12 @@ class SignUpTests(TestCase):
     def test_form_inputs(self):
         '''
         The view must contain eleven inputs: csrf, username, first_name,
-        last_name, email, password1, password2, affiliation, role,
-        organization and agree_gdpr checkbox
+        last_name, email, password1, password2, affiliation, role
+        and agree_gdpr checkbox
         '''
 
-        self.assertContains(self.response, '<input', 11)
-        self.assertContains(self.response, 'type="text"', 5)
+        self.assertContains(self.response, '<input', 10)
+        self.assertContains(self.response, 'type="text"', 4)
         self.assertContains(self.response, 'type="email"', 1)
         self.assertContains(self.response, 'type="password"', 2)
 
@@ -59,9 +59,8 @@ class SuccessfulSignUpTests(TestCase):
             'user-email': 'john@doe.com',
             'user-password1': 'abcdef123456',
             'user-password2': 'abcdef123456',
-            'person-affiliation': 'IBBA',
+            'person-affiliation': 1,
             'person-role': 1,
-            'person-organization': 1,
             'person-agree_gdpr': True
         }
         self.response = self.client.post(self.url, self.data, follow=True)

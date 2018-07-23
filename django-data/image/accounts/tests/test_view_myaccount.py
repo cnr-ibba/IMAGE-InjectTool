@@ -81,8 +81,8 @@ class MyAccountViewTest(Basetest):
         '''
 
         # total input is type=text + type=email + type=hidden (CSRF)
-        self.assertContains(self.response, '<input', 6)
-        self.assertContains(self.response, 'type="text"', 4)
+        self.assertContains(self.response, '<input', 5)
+        self.assertContains(self.response, 'type="text"', 3)
         self.assertContains(self.response, 'type="email"', 1)
 
 
@@ -101,9 +101,8 @@ class SuccessfulMyAccountViewTests(Basetest):
             'user-first_name': 'John',
             'user-last_name': 'Doe',
             'user-email': 'john@doe.com',
-            'person-affiliation': 'IBBA',
+            'person-affiliation': 1,
             'person-role': 1,
-            'person-organization': 1,
         }
 
         self.response = self.client.post(self.url, self.data)
@@ -126,14 +125,9 @@ class SuccessfulMyAccountViewTests(Basetest):
 
         # get person object
         person = user.person
-        attribute = "affiliation"
-        test = getattr(person, attribute)
-        key = "person-%s" % (attribute)
-        reference = self.data[key]
-        self.assertEqual(reference, test, "Checking %s" % (attribute))
 
         # checking person references
-        for attribute in ['role', 'organization']:
+        for attribute in ['role', 'affiliation']:
             test = getattr(person, "%s_id" % (attribute))
             key = "person-%s" % (attribute)
             reference = self.data[key]

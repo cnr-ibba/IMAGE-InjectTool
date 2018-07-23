@@ -33,9 +33,8 @@ class BaseTest(TestCase):
             'user-email': 'john@doe.com',
             'user-password1': 'abcdef123456',
             'user-password2': 'abcdef123456',
-            'person-affiliation': 'IBBA',
+            'person-affiliation': 1,
             'person-role': 1,
-            'person-organization': 1,
             'person-agree_gdpr': True
         }
 

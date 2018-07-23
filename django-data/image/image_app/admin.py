@@ -171,7 +171,6 @@ class SubmissionAdmin(admin.ModelAdmin):
 class PersonAdmin(admin.ModelAdmin):
     list_display = (
         'user_name', 'full_name', 'initials', 'affiliation', 'role',
-        'organization'
     )
 
     def user_name(self, obj):

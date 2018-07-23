@@ -111,9 +111,9 @@ class SuccessfulCreateUserViewTest(Basetest):
             password='test',
             email="test@test.com")
 
-        # add organization to user
-        organization = Organization.objects.first()
-        user.person.organization = organization
+        # add organization (affiliation) to user
+        affiliation = Organization.objects.first()
+        user.person.affiliation = affiliation
 
         # add other infor to user
         user.first_name = "Foo"

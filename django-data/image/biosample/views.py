@@ -276,7 +276,9 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         first_name = user.first_name
         last_name = user.last_name
         email = user.email
-        organization = user.person.organization.name
+
+        # Affiliation is the institution the user belong
+        affiliation = user.person.affiliation.name
 
         # set full name as
         full_name = " ".join([first_name, last_name])
@@ -291,7 +293,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
                 confirmPwd=confirmPwd,
                 email=email,
                 full_name=full_name,
-                organization=organization
+                organization=affiliation
             )
 
         except ConnectionError as e:
