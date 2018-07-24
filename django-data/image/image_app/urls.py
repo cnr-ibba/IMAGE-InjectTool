@@ -73,4 +73,16 @@ urlpatterns = [
     url(r'^animals/biosample/$',
         login_required(views.BioSampleListJSON.as_view()),
         name='animallist-biosample'),
+
+    url(r'^submission/new$',
+        views.CreateSubmissionView.as_view(),
+        name='submission-new'),
+
+    url(r'^submission/(?P<pk>[-\w]+)/$',
+        views.DetailSubmissionView.as_view(),
+        name='submission-detail'),
+
+    url(r'^submissions/$',
+        views.ListSubmissionsView.as_view(),
+        name='submission-list'),
 ]

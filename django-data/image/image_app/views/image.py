@@ -13,10 +13,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.management import call_command
 from django.shortcuts import redirect, reverse
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, CreateView, DetailView, ListView
 from django.views.generic.edit import FormView
 
-from ..forms import DataSourceForm
+from ..forms import DataSourceForm, SubmissionForm
 from ..helpers import CryowebDB
 from ..models import Submission, uid_report
 
@@ -97,6 +97,26 @@ class DataSourceView(LoginRequiredMixin, FormView):
         form.save()
 
         return super(DataSourceView, self).form_valid(form)
+
+
+class CreateSubmissionView(LoginRequiredMixin, CreateView):
+    form_class = SubmissionForm
+    model = Submission
+
+    # when a model is specified, the template_name is derived from it
+    # template_name will be 'submission_form.html'
+
+
+class DetailSubmissionView(LoginRequiredMixin, DetailView):
+    model = Submission
+
+    # template_name will be 'submission_detail.html'
+
+
+class ListSubmissionsView(LoginRequiredMixin, ListView):
+    model = Submission
+
+    # template_name will be 'submission_list.html'
 
 
 @login_required

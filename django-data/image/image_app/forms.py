@@ -23,3 +23,24 @@ class DataSourceForm(forms.ModelForm):
             'datasource_type',
             'datasource_version',
             'uploaded_file')
+
+
+class SubmissionForm(forms.ModelForm):
+    # the request is now available, add it to the instance data
+    def __init__(self, *args, **kwargs):
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
+
+        super(SubmissionForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Submission
+        fields = (
+            'title',
+            'description',
+            'gene_bank_name',
+            'gene_bank_country',
+            'datasource_type',
+            'datasource_version',
+            'uploaded_file'
+        )

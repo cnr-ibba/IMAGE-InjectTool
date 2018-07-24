@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.urls import reverse
 
 from .constants import OBO_URL
 from .helpers import format_attribute
@@ -733,6 +734,7 @@ class Ontology(models.Model):
 
 class Submission(models.Model):
     title = models.CharField(
+        "Submission title",
         max_length=255,
         help_text='Example: Roslin Sheep Atlas')
 
@@ -799,6 +801,9 @@ class Submission(models.Model):
             self.gene_bank_country.label,
             self.datasource_version
         )
+
+    def get_absolute_url(self):
+        return reverse("image_app:submission-detail", kwargs={"pk": self.pk})
 
 
 def uid_report():
