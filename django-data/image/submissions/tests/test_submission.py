@@ -10,12 +10,12 @@ import os
 
 from django.urls import resolve, reverse
 
-from image_app.forms import DataSourceForm
 from image_app.models import Submission, DictCountry
-from image_app.views import DataSourceView
-
 from image_app.tests.test_views import Initialize
 import cryoweb.tests
+
+from ..forms import SubmissionForm
+from ..views import CreateSubmissionView
 
 
 class SubmissionViewTest(Initialize):
@@ -36,7 +36,7 @@ class SubmissionViewTest(Initialize):
     def test_new_ds_url_resolves_new_ds_view(self):
         url = reverse('image_app:data_upload')
         view = resolve(url)
-        self.assertIsInstance(view.func.view_class(), DataSourceView)
+        self.assertIsInstance(view.func.view_class(), CreateSubmissionView)
 
     def test_new_ds_view_contains_link_back_to_dashboard_view(self):
         new_ds_url = reverse('image_app:data_upload')
@@ -100,4 +100,4 @@ class SubmissionViewTest(Initialize):
         url = reverse('image_app:data_upload')
         response = self.client.get(url)
         form = response.context.get('form')
-        self.assertIsInstance(form, DataSourceForm)
+        self.assertIsInstance(form, SubmissionForm)

@@ -32,12 +32,6 @@ urlpatterns = [
         views.SummaryView.as_view(),
         name='summary'),
 
-    # to upload data in image database
-    # TODO: deal with excel upload
-    url(r'data_upload/$',
-        views.DataSourceView.as_view(),
-        name='data_upload'),
-
     url(r'^truncate_image_tables/$',
         views.truncate_image_tables,
         name='truncate_image_tables'),

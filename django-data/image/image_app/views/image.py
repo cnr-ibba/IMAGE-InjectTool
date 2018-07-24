@@ -12,11 +12,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.management import call_command
-from django.shortcuts import redirect, reverse
+from django.shortcuts import redirect
 from django.views.generic import TemplateView
-from django.views.generic.edit import FormView
 
-from ..forms import DataSourceForm
 from ..helpers import CryowebDB
 from ..models import Submission, uid_report
 
@@ -65,38 +63,6 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         context["uid_report"] = uid_report()
 
         return context
-
-
-class DataSourceView(LoginRequiredMixin, FormView):
-    """Handling DataSource forms with class based views"""
-
-    form_class = DataSourceForm
-    template_name = "image_app/data_upload.html"
-
-    # add the request to the kwargs
-    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
-    def get_form_kwargs(self):
-        kwargs = super(DataSourceView, self).get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
-
-    def get_success_url(self):
-        """Override default function"""
-
-        messages.success(
-            request=self.request,
-            message='Datasource added!',
-            extra_tags="alert alert-dismissible alert-success")
-
-        return reverse("image_app:dashboard")
-
-    def form_valid(self, form):
-        # This method is called when valid form data has been POSTed.
-        # It should return an HttpResponse.
-        # save data
-        form.save()
-
-        return super(DataSourceView, self).form_valid(form)
 
 
 @login_required
