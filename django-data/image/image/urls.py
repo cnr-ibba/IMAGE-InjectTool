@@ -41,6 +41,8 @@ urlpatterns = [
     url(r'^cryoweb/', include('cryoweb.urls', namespace="cryoweb")),
     url(r'^biosample/', include('biosample.urls', namespace="biosample")),
     url(r'^accounts/', include('accounts.urls', namespace="accounts")),
+    url(r'^submissions/',
+        include('submissions.urls', namespace="submissions")),
     url(r'^admin/', admin.site.urls),
     url(r'^about/$', AboutView.as_view(), name='about'),
 ]

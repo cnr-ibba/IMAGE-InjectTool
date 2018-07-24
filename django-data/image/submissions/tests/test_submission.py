@@ -10,11 +10,11 @@ import os
 
 from django.urls import resolve, reverse
 
-from ..forms import DataSourceForm
-from ..models import Submission, DictCountry
-from ..views import DataSourceView
+from image_app.forms import DataSourceForm
+from image_app.models import Submission, DictCountry
+from image_app.views import DataSourceView
 
-from .test_views import Initialize
+from image_app.tests.test_views import Initialize
 import cryoweb.tests
 
 

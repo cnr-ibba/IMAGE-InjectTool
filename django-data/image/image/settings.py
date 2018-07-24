@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'language',
     'biosample',
     'accounts',
+    'submissions',
 ]
 
 MIDDLEWARE = [
@@ -187,6 +188,10 @@ LOGGING = {
             'handlers': ['console'],
         },
         'accounts': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'submissions': {
             'level': 'DEBUG',
             'handlers': ['console'],
         },

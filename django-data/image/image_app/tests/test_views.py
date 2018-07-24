@@ -72,13 +72,13 @@ class DashBoardViewTest(Initialize):
         self.assertIsInstance(view.func.view_class(), DashBoardView)
 
     def test_contains_navigation_links(self):
-        upload_url = reverse('image_app:data_upload')
+        create_url = reverse('submissions:submission-create')
         summary_url = reverse('image_app:summary')
 
-        self.assertContains(self.response, 'href="{0}"'.format(upload_url))
+        self.assertContains(self.response, 'href="{0}"'.format(create_url))
         self.assertContains(self.response, 'href="{0}"'.format(summary_url))
 
-        # TODO: test submission link
+        # TODO: test resume submission link
 
     # TODO: test submission button inactive
 
