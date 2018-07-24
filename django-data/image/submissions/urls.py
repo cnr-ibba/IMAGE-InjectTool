@@ -12,15 +12,15 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^submission/create$',
+    url(r'^create/$',
         views.CreateSubmissionView.as_view(),
-        name='submission-create'),
+        name='create'),
 
-    url(r'^submission/(?P<pk>[-\w]+)/$',
-        views.DetailSubmissionView.as_view(),
-        name='submission-detail'),
-
-    url(r'^submissions/$',
+    url(r'^list/$',
         views.ListSubmissionsView.as_view(),
-        name='submission-list'),
+        name='list'),
+
+    url(r'^(?P<pk>[-\w]+)/$',
+        views.DetailSubmissionView.as_view(),
+        name='detail'),
 ]

@@ -803,7 +803,7 @@ class Submission(models.Model):
         )
 
     def get_absolute_url(self):
-        return reverse("image_app:submission-detail", kwargs={"pk": self.pk})
+        return reverse("submissions:detail", kwargs={"pk": self.pk})
 
 
 def uid_report():

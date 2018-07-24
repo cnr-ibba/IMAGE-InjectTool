@@ -17,17 +17,17 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     form_class = SubmissionForm
     model = Submission
 
-    # when a model is specified, the template_name is derived from it
-    # template_name will be 'submission_form.html'
+    # template name is derived from model position and views type.
+    # in this case, ir will be 'image_app/submission_form.html' so
+    # i need to clearly specify it
+    template_name = "submissions/submission_form.html"
 
 
 class DetailSubmissionView(LoginRequiredMixin, DetailView):
     model = Submission
-
-    # template_name will be 'submission_detail.html'
+    template_name = "submissions/submission_detail.html"
 
 
 class ListSubmissionsView(LoginRequiredMixin, ListView):
     model = Submission
-
-    # template_name will be 'submission_list.html'
+    template_name = "submissions/submission_list.html"

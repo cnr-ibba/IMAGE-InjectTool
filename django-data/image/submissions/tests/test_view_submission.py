@@ -9,13 +9,27 @@ Created on Tue Jul 24 11:08:12 2018
 import os
 
 from django.urls import resolve, reverse
+from django.test import TestCase, Client
 
-from image_app.models import Submission, DictCountry
-from image_app.tests.test_views import Initialize
+from image_app.models import Submission, DictCountry, User
 import cryoweb.tests
 
 from ..forms import SubmissionForm
 from ..views import CreateSubmissionView
+
+
+class Initialize(TestCase):
+    """Does the common stuff when testing cases are run"""
+
+    def setUp(self):
+        # create a testuser
+        User.objects.create_user(
+            username='test',
+            password='test',
+            email="test@test.com")
+
+        self.client = Client()
+        self.client.login(username='test', password='test')
 
 
 class SubmissionViewTest(Initialize):

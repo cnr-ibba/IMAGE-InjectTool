@@ -7,7 +7,7 @@
 {% block content %}
  <ul>
    {% for submission in object_list %}
-     <li><a href="{% url 'image_app:submission-detail' pk=submission.pk %}">{{ submission.pk }}</a></li>
+     <li><a href="{% url 'submissions:detail' pk=submission.pk %}">{{ submission.pk }}</a></li>
    {% endfor %}
  </ul>
 
