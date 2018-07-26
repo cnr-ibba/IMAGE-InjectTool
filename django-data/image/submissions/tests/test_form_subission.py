@@ -10,7 +10,7 @@ from django.test import TestCase
 from ..forms import SubmissionForm
 
 
-class SignUpFormTest(TestCase):
+class SubmissionFormTest(TestCase):
     def test_form_has_fields(self):
         form = SubmissionForm()
         expected = [

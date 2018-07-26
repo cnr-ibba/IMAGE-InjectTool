@@ -6,10 +6,13 @@ Created on Tue Jul 24 16:58:41 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import os
+
 from django.urls import reverse, resolve
 from django.test import Client, TestCase
 
-from image_app.models import User
+from image_app.models import User, DictCountry, Submission
+import cryoweb.tests
 
 from ..views import CreateSubmissionView
 from ..forms import SubmissionForm
@@ -69,7 +72,48 @@ class CreateSubmissionViewTest(Initialize):
 
 
 class SuccessfulCreateSubmissionViewTest(Initialize):
-    pass
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get data source path
+        ds_path = os.path.join(
+            cryoweb.tests.__path__[0],
+            "cryoweb_test_data_only.sql"
+        )
+
+        # and now create a country object
+        self.country = DictCountry.objects.create(
+            label='Germany',
+            term='NCIT_C16636')
+
+        # define test data
+        data = {
+            'title': "Subission",
+            'description': "Test Submission",
+            'gene_bank_name': 'test',
+            'gene_bank_country': self.country.id,
+            'datasource_type': 0,
+            'datasource_version': '0.1',
+            'uploaded_file': open(ds_path),
+        }
+
+        # submit an empty dictionary
+        self.response = self.client.post(self.url, data)
+
+    def test_new_submission_obj(self):
+        self.assertTrue(Submission.objects.exists())
+
+    def test_new_success_status_code(self):
+        submission = Submission.objects.first()
+        url = reverse('submissions:detail', kwargs={'pk': submission.pk})
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 200)
+
+    def test_new_not_found_status_code(self):
+        url = reverse('submissions:detail', kwargs={'pk': 99})
+        response = self.client.get(url)
+        self.assertEquals(response.status_code, 404)
 
 
 class InvalidCreateSubmissionViewTest(Initialize):
@@ -80,12 +124,16 @@ class InvalidCreateSubmissionViewTest(Initialize):
         # submit an empty dictionary
         self.response = self.client.post(self.url, {})
 
-    def test_signup_status_code(self):
+    def test_status_code(self):
         '''
         An invalid form submission should return to the same page
         '''
+
         self.assertEquals(self.response.status_code, 200)
 
     def test_form_errors(self):
         form = self.response.context.get('form')
         self.assertGreater(len(form.errors), 0)
+
+    def test_no_new_obj(self):
+        self.assertFalse(Submission.objects.exists())
