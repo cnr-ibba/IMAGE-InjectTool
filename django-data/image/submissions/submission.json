@@ -1,0 +1,34 @@
+[
+{
+  "model": "image_app.submission",
+  "pk": 1,
+  "fields": {
+    "title": "Submission",
+    "project": "IMAGE",
+    "description": "Test Submission",
+    "gene_bank_name": "CryoWeb",
+    "gene_bank_country": 1,
+    "datasource_type": 0,
+    "datasource_version": "test",
+    "uploaded_file": "data_source/cryoweb_test_data_only.sql",
+    "uploaded_at": "2018-07-24T14:13:02.116",
+    "loaded": false
+  }
+},
+{
+  "model": "image_app.submission",
+  "pk": 2,
+  "fields": {
+    "title": "Submission",
+    "project": "IMAGE",
+    "description": "Test Submission",
+    "gene_bank_name": "CryoWeb",
+    "gene_bank_country": 1,
+    "datasource_type": 0,
+    "datasource_version": "test2",
+    "uploaded_file": "data_source/cryoweb_test_data_only.sql",
+    "uploaded_at": "2018-07-24T14:13:02.116",
+    "loaded": false
+  }
+}
+]

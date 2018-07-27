@@ -89,7 +89,7 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
 
         # define test data
         data = {
-            'title': "Subission",
+            'title': "Submission",
             'description': "Test Submission",
             'gene_bank_name': 'test',
             'gene_bank_country': self.country.id,
@@ -99,16 +99,15 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         }
 
         # submit an empty dictionary
-        self.response = self.client.post(self.url, data)
+        self.response = self.client.post(self.url, data, follow=True)
 
     def test_new_submission_obj(self):
         self.assertTrue(Submission.objects.exists())
 
-    def test_new_success_status_code(self):
+    def test_redirect(self):
         submission = Submission.objects.first()
         url = reverse('submissions:detail', kwargs={'pk': submission.pk})
-        response = self.client.get(url)
-        self.assertEquals(response.status_code, 200)
+        self.assertRedirects(self.response, url)
 
     def test_new_not_found_status_code(self):
         url = reverse('submissions:detail', kwargs={'pk': 99})
