@@ -14,6 +14,8 @@ from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Name, Sample, uid_report)
 from language.models import SpecieSynonim
 
+from validation.helpers.biosample import AnimalValidator, SampleValidator
+
 from ..constants import OBO_URL
 
 
@@ -92,7 +94,7 @@ def create_animal():
 
     animal, created = Animal.objects.get_or_create(
             name=name,
-            alternative_id=11,
+            alternative_id='11',
             description="a 4-year old pig organic fed",
             breed=breed,
             sex=sex)
@@ -370,26 +372,25 @@ class AnimalTestCase(TestCase):
 
     def setUp(self):
         # create animal
-        animal = create_animal()
+        self.animal = create_animal()
 
         # record id
-        self.animal_id = animal.id
+        self.animal_id = self.animal.id
 
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
 
-        animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
-        reference = "animal_%s" % (animal.id)
+        reference = "animal_%s" % (self.animal.id)
 
-        test = animal.get_biosample_id()
+        test = self.animal.get_biosample_id()
         self.assertEqual(reference, test)
 
         # assign a different biosample id
         reference = "SAMEA4450079"
-        animal.name.biosample_id = reference
-        animal.save()
+        self.animal.name.biosample_id = reference
+        self.animal.save()
 
-        test = animal.get_biosample_id()
+        test = self.animal.get_biosample_id()
         self.assertEqual(reference, test)
 
     def test_to_validation(self):
@@ -447,8 +448,7 @@ class AnimalTestCase(TestCase):
             # HINT: no consideration were made for father and mother
         }
 
-        animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
-        test = animal.to_validation()
+        test = self.animal.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
@@ -508,11 +508,10 @@ class AnimalTestCase(TestCase):
             # HINT: no consideration were made for father and mother
         }
 
-        animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
-
         # remove description and test
-        animal.description = None
-        test = animal.to_validation()
+        self.animal.description = None
+        self.animal.save()
+        test = self.animal.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
@@ -547,11 +546,23 @@ class AnimalTestCase(TestCase):
 
         reference['attributes'] = attributes
 
-        animal = Animal.objects.get(name__name='ANIMAL:::ID:::132713')
-        test = animal.to_biosample()
+        test = self.animal.to_biosample()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
+
+    # HINT: move to validation module?
+    def test_to_biosample_minimal(self):
+        """Test if biosample has biosample mininal fields"""
+
+        validator = AnimalValidator()
+        self.assertTrue(validator.check_minimal(self.animal.to_biosample()))
+
+    def test_to_biosample_mandatory(self):
+        """Test if biosample has metadata rules mandatory fields"""
+
+        validator = AnimalValidator()
+        self.assertTrue(validator.check_mandatory(self.animal.to_biosample()))
 
     # TODO: test None rendering
 
@@ -561,31 +572,30 @@ class SampleTestCase(TestCase):
 
     def setUp(self):
         # create animal
-        animal = create_animal()
+        self.animal = create_animal()
 
         # record id for the animal
-        self.animal_id = animal.id
+        self.animal_id = self.animal.id
 
         # now create a sample object
-        sample = create_sample(animal)
+        self.sample = create_sample(self.animal)
 
-        self.sample_id = sample.id
+        self.sample_id = self.sample.id
 
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
 
-        sample = Sample.objects.get(name__name="Siems_0722_393449")
-        reference = "sample_%s" % (sample.id)
+        reference = "sample_%s" % (self.sample.id)
 
-        test = sample.get_biosample_id()
+        test = self.sample.get_biosample_id()
         self.assertEqual(reference, test)
 
         # assign a different biosample id
         reference = "SAMEA4450075"
-        sample.name.biosample_id = reference
-        sample.save()
+        self.sample.name.biosample_id = reference
+        self.sample.save()
 
-        test = sample.get_biosample_id()
+        test = self.sample.get_biosample_id()
         self.assertEqual(reference, test)
 
     def test_to_validation(self):
@@ -633,8 +643,7 @@ class SampleTestCase(TestCase):
             "availability": "mailto:peter@ebi.ac.uk"
         }
 
-        sample = Sample.objects.get(name__name='Siems_0722_393449')
-        test = sample.to_validation()
+        test = self.sample.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
@@ -662,19 +671,17 @@ class SampleTestCase(TestCase):
             "derivedFrom": "animal_%s" % (self.animal_id),
         }
 
-        sample = Sample.objects.get(name__name='Siems_0722_393449')
-
         # set some attributes as NULL
-        sample.collection_date = None
-        sample.collection_place = None
-        sample.organism_part = None
-        sample.organism_part_term = None
-        sample.developmental_stage = None
-        sample.developmental_stage_term = None
-        sample.animal_age_at_collection = None
-        sample.availability = None
+        self.sample.collection_date = None
+        self.sample.collection_place = None
+        self.sample.organism_part = None
+        self.sample.organism_part_term = None
+        self.sample.developmental_stage = None
+        self.sample.developmental_stage_term = None
+        self.sample.animal_age_at_collection = None
+        self.sample.availability = None
 
-        test = sample.to_validation()
+        test = self.sample.to_validation()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
@@ -712,13 +719,25 @@ class SampleTestCase(TestCase):
 
         reference['attributes'] = attributes
 
-        sample = Sample.objects.get(name__name='Siems_0722_393449')
-        test = sample.to_biosample()
+        test = self.sample.to_biosample()
 
         self.maxDiff = None
         self.assertEqual(reference, test)
 
-    # TODO: test None rendering
+    # HINT: move to validation module?
+    def test_to_biosample_minimal(self):
+        """Test if biosample has biosample mininal fields"""
+
+        validator = SampleValidator()
+        self.assertTrue(validator.check_minimal(self.sample.to_biosample()))
+
+    def test_to_biosample_mandatory(self):
+        """Test if biosample has metadata rules mandatory fields"""
+
+        validator = SampleValidator()
+        self.assertTrue(validator.check_mandatory(self.sample.to_biosample()))
+
+    # TODO: test biosample with None rendering
 
     def test_uid_report(self):
         """testing uid report after a Sample and Animal insert"""

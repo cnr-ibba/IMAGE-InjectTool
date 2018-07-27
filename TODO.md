@@ -45,10 +45,11 @@
 * Those tables are empty at the moment:
   - Databases
   - Publications
-  - Submission
 
-* Submission table is not referenced by any other table.
+* Submission table
   - Submission table need to track the batch biosample upload
+  - Need to extend submission table in submission.models in order to model
+    additional fields (eg submission status)
 
 * ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
   Using google refine? For the moment, no duplicate can be inserted into database,
@@ -60,8 +61,6 @@
 
 * When google cache is active, two pages are loaded: deal with executing scripts in
   the same session
-
-* Filter out the admin person (add the admin role? - not in EF0)
 
 * What happens if two user load data in the same time? deal with concurrency
   - Data need to be isolated from a user POV
@@ -108,7 +107,7 @@
 * species and countries need to be validated against dictionary tables
   - check for synonim before cryoweb insert into dictspecie table.
 
-* cryoweb tabled need to be filled using django ORM:
+* cryoweb tables need to be filled using django ORM:
   - can test using correct test database: now functions and pandas function use
     hardcoded cryoweb database even in tests.
   - implement [views](https://blog.rescale.com/using-database-views-in-django-orm/) in cryoweb models
@@ -124,7 +123,9 @@
 * BiosampleJSON views need to be renamed to ValidationJSON or something similar
 
 * create to_biosample() python dictionary like biosample need
-  - check for mandatory fields in IMAGE-metadata rules
+  - check for mandatory fields in IMAGE-metadata rules: tests for mandatory
+    fields need to be moved into validation module
+  - use fixtures to upload data into UID for tests
 
 * Recording submission ids in submission table
   - did I need also the sample ids?

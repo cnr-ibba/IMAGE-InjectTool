@@ -22,7 +22,7 @@ def check_species(language):
 
     # get a queryset for each
     synonims = SpecieSynonim.objects.filter(
-        word__in=species, language__label="Germany")
+        word__in=species, language__label=language)
 
     # HINT: is this state useful?
     # check that numbers are equal
