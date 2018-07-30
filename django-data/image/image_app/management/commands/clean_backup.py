@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from django.core.management import BaseCommand, call_command
 
-from image_app.models import DataSource
+from image_app.models import Submission
 
 
 class Command(BaseCommand):
@@ -19,19 +19,19 @@ class Command(BaseCommand):
         # get the file list from the filesystem
         data_source_dir = os.path.join(
                 settings.MEDIA_ROOT,
-                DataSource.upload_dir)
+                Submission.upload_dir)
 
         data_source_files = os.listdir(data_source_dir)
 
         # prepend DataSource.upload_dir to file list
         data_source_files = [
                 os.path.join(
-                        DataSource.upload_dir,
+                        Submission.upload_dir,
                         uploaded_file)
                 for uploaded_file in data_source_files]
 
         # get the file list from the db
-        queryset = DataSource.objects.all()
+        queryset = Submission.objects.all()
         database_files = [
                 str(datasource.uploaded_file) for datasource in queryset]
 
