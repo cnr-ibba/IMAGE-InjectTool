@@ -7,9 +7,11 @@ Created on Mon Apr  9 16:58:01 2018
 """
 
 import pandas as pd
+
 from django.contrib.messages import get_messages
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
+from django.core.management import call_command
 
 import cryoweb.helpers
 
@@ -27,17 +29,16 @@ class BaseTestCase(TestCase):
 
     # By default, fixtures are only loaded into the default database. If you
     # are using multiple databases and set multi_db=True, fixtures will be
-    # loaded into all databases.
-    multi_db = True
+    # loaded into all databases. However, this will raise problems when
+    # managing extended user models
+    multi_db = False
 
     # https://docs.djangoproject.com/en/1.11/topics/testing/advanced/#example
     def setUp(self):
         """Connect to client"""
         # Every test needs access to the request factory.
         self.factory = RequestFactory()
-        self.user = User.objects.create_user(
-            username='test', email='test@test.com', password='test')
-
+        self.user = User.objects.get(username="test")
         self.client = Client()
         self.client.login(username='test', password='test')
 
@@ -58,9 +59,24 @@ class BaseTestCase(TestCase):
 class FillUIDTestClass(BaseTestCase):
     # import this file and populate database once
     fixtures = [
-        "cryoweb.json", "dictcountry.json", "submission.json", "dictsex.json",
-        "dictspecie.image.json", "speciesynonim.image.json"
+        "user", "dictcountry", "submission", "dictsex", "dictspecie",
+        "speciesynonim"
     ]
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # this fixture have to be loaded in a secondary (test) database,
+        # I can't upload it using names and fixture section, so it will
+        # be added manually using loaddata
+        call_command(
+            'loaddata',
+            'cryoweb.json',
+            app='cryoweb',
+            database='cryoweb',
+            verbosity=0)
 
     def setUp(self):
         """Setting up"""

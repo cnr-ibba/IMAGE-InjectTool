@@ -318,6 +318,9 @@ def fill_names(dataframe, submission, context):
     # debug
     logger.info("called fill_names()")
 
+    # get user from context
+    user = context['user']
+
     # A dictionary of object to create
     to_create = {}
 
@@ -352,7 +355,8 @@ def fill_names(dataframe, submission, context):
         else:
             # create a new object
             obj = Name(name=row.name,
-                       submission=submission)
+                       submission=submission,
+                       owner=user)
 
             # append object to to_create list
             to_create[row.name] = obj
@@ -469,6 +473,9 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
 
     # debug
     logger.info("called fill_animals()")
+
+    # get user from context
+    user = context['user']
 
     # read the v_animal view in the "cryoweb" db
     df_animals = pd.read_sql_table(
@@ -610,7 +617,8 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
                 mother_id=row.mother_id,
                 birth_location_latitude=row.birth_location_latitude,
                 birth_location_longitude=row.birth_location_longitude,
-                description=row.description)
+                description=row.description,
+                owner=user)
 
             # append object to to_create list
             to_create[row.name_id] = obj
@@ -672,6 +680,9 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, submission, context):
 
     # debug
     logger.info("called fill_samples()")
+
+    # get user from context
+    user = context['user']
 
     # read view in "cryoweb" db
     df_samples = pd.read_sql_table(
@@ -830,7 +841,8 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, submission, context):
                 protocol=row.protocol,
                 organism_part=row.organism_part,
                 animal_id=row.animal_id,
-                description=row.description)
+                description=row.description,
+                owner=user)
 
             # append object to to_create list
             to_create[row.name_id] = obj
@@ -909,6 +921,8 @@ def import_from_cryoweb(request):
     context = {
             # get username from request.
             'username': request.user.username,
+            # track user
+            'user': request.user,
             'loaded': {},
             'warnings': {},
             'has_warnings': False}

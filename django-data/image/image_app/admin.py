@@ -71,7 +71,7 @@ class SampleInline(admin.StackedInline):
     formset = SampleInLineFormSet
 
     fields = (
-        ('name', 'alternative_id', 'description'),
+        ('name', 'alternative_id', 'description', 'owner'),
         ('animal', 'protocol', 'organism_part'),
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
@@ -102,7 +102,7 @@ class SampleAdmin(admin.ModelAdmin):
         'organism_part_term', 'developmental_stage',
         'developmental_stage_term', 'physiological_stage',
         'animal_age_at_collection', 'availability', 'storage_processing',
-        'preparation_interval', 'description'
+        'preparation_interval', 'description', 'owner'
     )
 
     # To tell Django we want to perform a join instead of fetching the names of
@@ -110,7 +110,7 @@ class SampleAdmin(admin.ModelAdmin):
     list_select_related = ('name', 'animal__name')
 
     fields = (
-        ('name', 'alternative_id', 'description'),
+        ('name', 'alternative_id', 'description', 'owner'),
         ('animal', 'protocol', 'organism_part', 'organism_part_term'),
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
@@ -132,14 +132,14 @@ class AnimalAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'alternative_id', 'breed', 'sex',
         'father', 'mother', 'birth_location', 'birth_location_latitude',
-        'birth_location_longitude', 'description'
+        'birth_location_longitude', 'description', 'owner'
         )
 
     fields = (
         'name', 'alternative_id', 'breed', 'sex', 'father',
         'mother', ('birth_location', 'birth_location_latitude',
                    'birth_location_longitude'),
-        'description'
+        'description', 'owner'
         )
 
     # I can add manually an item if it is a readonly field
@@ -157,7 +157,8 @@ class AnimalAdmin(admin.ModelAdmin):
 
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'submitter', 'team', 'created', 'last_modified', 'status'
+        'name', 'submitter', 'team', 'created', 'last_modified', 'status',
+        'owner'
     )
 
 

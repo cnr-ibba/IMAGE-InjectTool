@@ -271,6 +271,9 @@ class Name(models.Model):
     # HINT: this column should be UNIQUE?
     biosample_id = models.CharField(max_length=255, blank=True, null=True)
 
+    # '+' instructs Django that we don’t need this reverse relationship
+    owner = models.ForeignKey(User, related_name='+')
+
     def __str__(self):
         # HINT: shuold I return biosampleid if defined?
         return "%s (Submission: %s)" % (self.name, self.submission_id)
@@ -332,6 +335,8 @@ class Animal(models.Model):
 
     birth_location_latitude = models.FloatField(blank=True, null=True)
     birth_location_longitude = models.FloatField(blank=True, null=True)
+
+    owner = models.ForeignKey(User, related_name='animals')
 
     def __str__(self):
         return str(self.name)
@@ -551,6 +556,8 @@ class Sample(models.Model):
             null=True)
 
     preparation_interval = models.IntegerField(blank=True, null=True)
+
+    owner = models.ForeignKey(User, related_name='samples')
 
     def __str__(self):
         return str(self.name)
@@ -831,6 +838,8 @@ class Submission(models.Model):
 
     # internal column to check if data were uploaded in image db or not
     loaded = models.BooleanField(default=False)
+
+    owner = models.ForeignKey(User, related_name='submissions')
 
     class Meta:
         # HINT: can I put two files for my cryoweb instance? May they have two
