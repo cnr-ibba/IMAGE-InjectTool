@@ -43,7 +43,6 @@
 * Add messages when views are called or code executed
 
 * Those tables are empty at the moment:
-  - Databases
   - Publications
 
 * Submission table

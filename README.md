@@ -27,7 +27,13 @@ Install the Inject-Tool code from GitHub
 -----------------------------------------
 
 The GitHub Inject-Tool repository is available at
-[https://github.com/bioinformatics-ptp/IMAGE-InjectTool](https://github.com/bioinformatics-ptp/IMAGE-InjectTool)
+[https://github.com/cnr-ibba/IMAGE-InjectTool.git](https://github.com/cnr-ibba/IMAGE-InjectTool.git)
+Clone it with:
+
+```
+$ git clone --recursive https://github.com/cnr-ibba/IMAGE-InjectTool.git
+```
+
 The directory created by the cloning contains the following content (can be slightly different):
 
 ```

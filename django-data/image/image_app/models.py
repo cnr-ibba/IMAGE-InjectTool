@@ -743,18 +743,6 @@ class Organization(models.Model):
         return self.name
 
 
-class Database(models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
-    name = models.CharField(max_length=255)
-    DB_ID = models.CharField(max_length=255)
-    URI = models.URLField(max_length=500, blank=True, null=True,
-                          help_text='Database URI for this entry, ' +
-                          'typically a web page.')
-
-    def __str__(self):
-        return str(str(self.id) + ", " + str(self.name))
-
-
 class Publication(models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     pubmed_id = models.CharField(max_length=255,

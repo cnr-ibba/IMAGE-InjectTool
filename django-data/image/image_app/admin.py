@@ -5,7 +5,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
 from .models import (
-    Animal, Database, DictBreed, DictCountry, DictRole, DictSpecie, Name,
+    Animal, DictBreed, DictCountry, DictRole, DictSpecie, Name,
     Ontology, Organization, Person, Publication, Sample, Submission)
 
 
@@ -218,13 +218,6 @@ class PublicationAdmin(admin.ModelAdmin):
     )
 
 
-class DatabaseAdmin(admin.ModelAdmin):
-    search_fields = ['name', 'DB_ID']
-    list_display = (
-        'name', 'DB_ID', 'URI',
-    )
-
-
 class OntologyAdmin(admin.ModelAdmin):
     search_fields = ['library_name']
     list_display = (
@@ -256,7 +249,6 @@ admin.site.register(DictBreed, DictBreedAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Publication, PublicationAdmin)
-admin.site.register(Database, DatabaseAdmin)
 admin.site.register(Ontology, OntologyAdmin)
 
 # Re-register UserAdmin
