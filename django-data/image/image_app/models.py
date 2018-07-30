@@ -395,6 +395,64 @@ class Animal(models.Model):
         attributes["project"] = format_attribute(
             value="IMAGE")
 
+        attributes['dataSourceId'] = format_attribute(
+            value=self.name.name)
+
+        attributes['alternativeId'] = format_attribute(
+            value=self.alternative_id)
+
+        attributes['submissionTitle'] = format_attribute(
+            value=self.name.submission.title)
+
+        attributes['personLastName'] = format_attribute(
+            value=None)
+
+        attributes['personEmail'] = format_attribute(
+            value=None)
+
+        attributes['personAffiliation'] = format_attribute(
+            value=None)
+
+        attributes['personRole'] = format_attribute(
+            value=None)
+
+        attributes['organizationName'] = format_attribute(
+            value=None)
+
+        attributes['organizationRole'] = format_attribute(
+            value=None)
+
+        attributes['geneBankName'] = format_attribute(
+            value=self.name.submission.gene_bank_name)
+
+        attributes['geneBankCountry'] = format_attribute(
+            value=self.name.submission.gene_bank_country.label,
+            terms=self.name.submission.gene_bank_country.term)
+
+        attributes['dataSourceType'] = format_attribute(
+            value=self.name.submission.get_datasource_type_display())
+
+        attributes['dataSourceVersion'] = format_attribute(
+            value=self.name.submission.datasource_version)
+
+        attributes['species'] = format_attribute(
+            value=self.breed.specie.label,
+            terms=self.breed.specie.term)
+
+        attributes['suppliedBreed'] = format_attribute(
+            value=self.breed.supplied_breed)
+
+        attributes['efabisBreedCountry'] = format_attribute(
+            value=self.breed.country.label,
+            terms=self.breed.country.term)
+
+        attributes['sex'] = format_attribute(
+            value=self.sex.label,
+            terms=self.sex.term)
+
+        # filter out empty values
+        attributes = {k: v for k, v in attributes.items() if v is not None}
+
         return attributes
 
     def to_biosample(self, release_date=None):

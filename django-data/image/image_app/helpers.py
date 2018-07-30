@@ -179,6 +179,9 @@ class DateDecoder(json.JSONDecoder):
 def format_attribute(value, terms=None, units=None):
     """Format a generic attribute into biosample dictionary"""
 
+    if value is None:
+        return None
+
     # HINT: need I deal with multiple values?
 
     result = {}

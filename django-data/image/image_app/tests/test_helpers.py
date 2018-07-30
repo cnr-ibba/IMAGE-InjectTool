@@ -100,3 +100,8 @@ class TestAttributes(TestCase):
             terms="OBI_0100026")
 
         self.assertEqual(reference, test, msg="testing terms")
+
+    def test_null(self):
+        test = format_attribute(value=None)
+
+        self.assertIsNone(test)
