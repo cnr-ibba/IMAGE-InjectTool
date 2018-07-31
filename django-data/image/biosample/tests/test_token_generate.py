@@ -23,7 +23,7 @@ from .test_token import generate_token
 
 class BaseTest(SessionEnabledTestCase):
     fixtures = [
-        "managedteam.json"
+        "biosample/managedteam.json"
     ]
 
     def setUp(self):

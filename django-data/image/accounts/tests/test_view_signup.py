@@ -44,7 +44,9 @@ class SignUpTests(TestCase):
 
 class SuccessfulSignUpTests(TestCase):
     fixtures = [
-        "dictcountry.json", "dictrole.json", "organization.json"
+        "accounts/dictcountry.json",
+        "accounts/dictrole.json",
+        "accounts/organization.json"
     ]
 
     def setUp(self):

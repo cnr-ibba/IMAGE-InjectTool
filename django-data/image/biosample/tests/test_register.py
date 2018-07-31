@@ -22,7 +22,7 @@ from .test_token import generate_token
 
 class Basetest(TestCase):
     fixtures = [
-        "managedteam.json"
+        "biosample/managedteam.json"
     ]
 
     @classmethod

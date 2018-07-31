@@ -88,7 +88,9 @@ class MyAccountViewTest(Basetest):
 
 class SuccessfulMyAccountViewTests(Basetest):
     fixtures = [
-        "dictcountry.json", "dictrole.json", "organization.json"
+        "accounts/dictcountry.json",
+        "accounts/dictrole.json",
+        "accounts/organization.json"
     ]
 
     def setUp(self):

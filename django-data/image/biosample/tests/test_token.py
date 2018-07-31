@@ -44,7 +44,7 @@ def generate_token(now=None, domains=['subs.test-team-1']):
 
 class TestAuthView(SessionEnabledTestCase):
     fixtures = [
-        "managedteam.json"
+        "biosample/managedteam.json"
     ]
 
     def setUp(self):

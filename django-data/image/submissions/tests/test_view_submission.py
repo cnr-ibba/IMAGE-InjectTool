@@ -9,8 +9,6 @@ Created on Tue Jul 24 11:08:12 2018
 from django.urls import resolve, reverse
 from django.test import TestCase, Client
 
-from image_app.models import User
-
 from ..views import DetailSubmissionView
 
 
@@ -18,16 +16,13 @@ class DeatilSubmissionViewTest(TestCase):
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "dictcountry.json", "submission.json"
+        "submissions/user",
+        "submissions/dictcountry",
+        "submissions/submission"
     ]
 
     def setUp(self):
-        # create a testuser
-        User.objects.create_user(
-            username='test',
-            password='test',
-            email="test@test.com")
-
+        # login a test user (defined in fixture)
         self.client = Client()
         self.client.login(username='test', password='test')
 

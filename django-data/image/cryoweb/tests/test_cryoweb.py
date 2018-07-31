@@ -59,8 +59,12 @@ class BaseTestCase(TestCase):
 class FillUIDTestClass(BaseTestCase):
     # import this file and populate database once
     fixtures = [
-        "user", "dictcountry", "submission", "dictsex", "dictspecie",
-        "speciesynonim"
+        "cryoweb/user",
+        "cryoweb/dictcountry",
+        "cryoweb/submission",
+        "cryoweb/dictsex",
+        "cryoweb/dictspecie",
+        "cryoweb/speciesynonim"
     ]
 
     @classmethod
@@ -73,7 +77,7 @@ class FillUIDTestClass(BaseTestCase):
         # be added manually using loaddata
         call_command(
             'loaddata',
-            'cryoweb.json',
+            'cryoweb/cryoweb.json',
             app='cryoweb',
             database='cryoweb',
             verbosity=0)

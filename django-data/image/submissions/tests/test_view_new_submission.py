@@ -11,7 +11,7 @@ import os
 from django.urls import reverse, resolve
 from django.test import Client, TestCase
 
-from image_app.models import User, DictCountry, Submission
+from image_app.models import DictCountry, Submission
 import cryoweb.tests
 
 from ..views import CreateSubmissionView
@@ -21,13 +21,13 @@ from ..forms import SubmissionForm
 class Initialize(TestCase):
     """Does the common stuff when testing cases are run"""
 
-    def setUp(self):
-        # create a testuser
-        User.objects.create_user(
-            username='test',
-            password='test',
-            email="test@test.com")
+    fixtures = [
+        "submissions/user",
+        "submissions/dictcountry",
+    ]
 
+    def setUp(self):
+        # login as a test user (defined in fixture)
         self.client = Client()
         self.client.login(username='test', password='test')
 
@@ -83,9 +83,7 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         )
 
         # and now create a country object
-        self.country = DictCountry.objects.create(
-            label='Germany',
-            term='NCIT_C16636')
+        self.country = DictCountry.objects.get(pk=1)
 
         # define test data
         data = {

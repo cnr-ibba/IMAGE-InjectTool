@@ -18,7 +18,9 @@ from ..models import create_key
 
 class BaseTest(TestCase):
     fixtures = [
-        "dictcountry.json", "dictrole.json", "organization.json"
+        "accounts/dictcountry.json",
+        "accounts/dictrole.json",
+        "accounts/organization.json"
     ]
 
     def setUp(self):
