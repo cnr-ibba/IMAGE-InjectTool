@@ -347,7 +347,8 @@ class BioSampleMixin(object):
             value=self.owner.person.affiliation.name)
 
         attributes['personRole'] = format_attribute(
-            value=self.owner.person.role.label)
+            value=self.owner.person.role.label,
+            terms=self.owner.person.role.term)
 
         attributes['organizationName'] = format_attribute(
             value=None)
@@ -661,14 +662,15 @@ class Sample(BioSampleMixin, models.Model):
             value=self.animal.name.name)
 
         attributes['collectionDate'] = format_attribute(
-            value=self.collection_date)
+            value=str(self.collection_date), units="YYYY-MM-DD")
 
         attributes['collectionPlace'] = format_attribute(
             value=self.collection_place)
 
         # TODO: this will point to a correct term dictionary table
         attributes['organismPart'] = format_attribute(
-            value=self.organism_part)
+            value=self.organism_part,
+            terms=self.organism_part_term)
 
         # filter out empty values
         attributes = {k: v for k, v in attributes.items() if v is not None}

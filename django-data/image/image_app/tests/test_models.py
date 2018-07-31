@@ -451,17 +451,58 @@ class AnimalTestCase(TestCase):
         }
 
         # define attributes
+        country = [{
+            'value': 'Germany',
+            'terms': [{
+                "url": "/".join([
+                    OBO_URL,
+                    "NCIT_C16636"])
+                }]
+        }]
+
         attributes = {
-            "material": [{
-                "value": "organism",
-                "terms": [{
+            'project': [{'value': 'IMAGE'}],
+            'dataSourceId': [{'value': 'ANIMAL:::ID:::132713'}],
+            'alternativeId': [{'value': '11'}],
+            'submissionTitle': [{'value': 'test'}],
+            'personLastName': [{'value': 'Bar'}],
+            'personEmail': [{'value': 'test@test.com'}],
+            'personAffiliation': [{'value': 'Test organization'}],
+            'personRole': [{
+                'value': 'submitter',
+                'terms': [{
                     "url": "/".join([
                         OBO_URL,
-                        "OBI_0100026"])
+                        "EFO_0001741"])
                 }]
             }],
-            "project": [{
-                "value": "IMAGE"
+            'geneBankName': [{'value': 'CryoWeb'}],
+            'geneBankCountry': country,
+            'dataSourceType': [{'value': 'CryoWeb'}],
+            'dataSourceVersion': [{'value': '23.01'}],
+            'material': [{
+                'value': 'organism',
+                'terms': [{'url': "/".join([
+                    OBO_URL,
+                    "OBI_0100026"])
+                }]
+            }],
+            'species': [{
+                'value': 'Sus scrofa',
+                'terms': [{
+                    "url": "/".join([
+                        OBO_URL,
+                        "NCBITaxon_9823"])
+                }]
+            }],
+            'suppliedBreed': [{'value': 'Bunte Bentheimer'}],
+            'efabisBreedCountry': country,
+            'sex': [{
+                'value': 'male',
+                'terms': [{'url': "/".join([
+                    OBO_URL,
+                    "PATO_0000384"])
+                }]
             }],
         }
 
@@ -644,8 +685,36 @@ class SampleTestCase(TestCase):
             }]
         }
 
-        # define attributes
+        country = [{
+            'value': 'Germany',
+            'terms': [{
+                "url": "/".join([
+                    OBO_URL,
+                    "NCIT_C16636"])
+                }]
+        }]
+
         attributes = {
+            'project': [{'value': 'IMAGE'}],
+            'dataSourceId': [{
+                'value': 'Siems_0722_393449'}],
+            'alternativeId': [{'value': 'Siems_0722_393449'}],
+            'submissionTitle': [{'value': 'test'}],
+            'personLastName': [{'value': 'Bar'}],
+            'personEmail': [{'value': 'test@test.com'}],
+            'personAffiliation': [{'value': 'Test organization'}],
+            'personRole': [{
+                'value': 'submitter',
+                'terms': [{
+                    "url": "/".join([
+                        OBO_URL,
+                        "EFO_0001741"])
+                }]
+            }],
+            'geneBankName': [{'value': 'CryoWeb'}],
+            'geneBankCountry': country,
+            'dataSourceType': [{'value': 'CryoWeb'}],
+            'dataSourceVersion': [{'value': '23.01'}],
             "material": [{
                 "value": "specimen from organism",
                 "terms": [{
@@ -654,9 +723,29 @@ class SampleTestCase(TestCase):
                         "OBI_0001479"])
                 }]
             }],
-            "project": [{
-                "value": "IMAGE"
+            'species': [{
+                'value': 'Sus scrofa',
+                'terms': [{
+                    "url": "/".join([
+                        OBO_URL,
+                        "NCBITaxon_9823"])
+                }]
             }],
+            'derivedFrom': [{'value': 'ANIMAL:::ID:::132713'}],
+            'collectionDate': [{
+                'value': "2017-03-12",
+                'units': 'YYYY-MM-DD'
+            }],
+            'collectionPlace': [{'value': "deutschland"}],
+
+            'organismPart': [{
+                'value': 'semen',
+                'terms': [{
+                    "url": "/".join([
+                        OBO_URL,
+                        "UBERON_0001968"])
+                }]
+            }]
         }
 
         reference['attributes'] = attributes
