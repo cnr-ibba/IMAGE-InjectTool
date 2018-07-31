@@ -22,6 +22,13 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     # i need to clearly specify it
     template_name = "submissions/submission_form.html"
 
+    # add user to this object
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.owner = self.request.user
+        # call inherited methods (which save object and render Http)
+        return super().form_valid(form)
+
 
 class DetailSubmissionView(LoginRequiredMixin, DetailView):
     model = Submission

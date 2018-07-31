@@ -12,7 +12,7 @@ from django.test import TestCase, Client
 from ..views import DetailSubmissionView
 
 
-class DeatilSubmissionViewTest(TestCase):
+class DetailSubmissionViewTest(TestCase):
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
