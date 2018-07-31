@@ -1,0 +1,18 @@
+[
+{
+  "model": "image_app.dictsex",
+  "pk": 1,
+  "fields": {
+    "label": "male",
+    "term": "PATO_0000384"
+  }
+},
+{
+  "model": "image_app.dictsex",
+  "pk": 2,
+  "fields": {
+    "label": "female",
+    "term": "PATO_0000383"
+  }
+}
+]

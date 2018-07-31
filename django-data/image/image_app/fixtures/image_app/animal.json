@@ -1,0 +1,20 @@
+[
+{
+  "model": "image_app.animal",
+  "pk": 1,
+  "fields": {
+    "name": 3,
+    "alternative_id": "11",
+    "description": "a 4-year old pig organic fed",
+    "material": "Organism",
+    "breed": 1,
+    "sex": 1,
+    "father": 1,
+    "mother": 2,
+    "birth_location": null,
+    "birth_location_latitude": NaN,
+    "birth_location_longitude": NaN,
+    "owner": 1
+  }
+}
+]

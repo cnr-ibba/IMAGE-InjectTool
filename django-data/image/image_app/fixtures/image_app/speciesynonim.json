@@ -1,0 +1,11 @@
+[
+{
+  "model": "language.speciesynonim",
+  "pk": 1,
+  "fields": {
+    "dictspecie": 1,
+    "language": 1,
+    "word": "Pig"
+  }
+}
+]

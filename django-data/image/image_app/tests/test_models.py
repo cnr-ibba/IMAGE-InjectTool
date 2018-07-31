@@ -11,134 +11,22 @@ import datetime
 from django.test import TestCase
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
-                              DictSex, DictSpecie, Name, Sample, uid_report)
-from language.models import SpecieSynonim
+                              DictSex, DictSpecie, Sample, uid_report)
 
 from validation.helpers.biosample import AnimalValidator, SampleValidator
 
 from ..constants import OBO_URL
 
 
-# a series of helper functions
-def create_dictsex(label='male', term='PATO_0000384'):
-    sex, created = DictSex.objects.get_or_create(
-                label=label,
-                term=term)
-
-    return sex
-
-
-def create_dictspecie(label='Sus scrofa', term='NCBITaxon_9823'):
-    specie, created = DictSpecie.objects.get_or_create(
-                label=label,
-                term=term)
-
-    # get a country
-    country = create_dictcountry()
-
-    # create a synonim
-    synonim, created = SpecieSynonim.objects.get_or_create(
-        dictspecie=specie,
-        language=country,
-        word='Pig')
-
-    return specie
-
-
-def create_dictcountry(label='Germany', term='NCIT_C16636'):
-    country, created = DictCountry.objects.get_or_create(
-                label=label,
-                term=term)
-
-    return country
-
-
-def create_dictbreed():
-    specie = create_dictspecie()
-
-    country = create_dictcountry()
-
-    breed, created = DictBreed.objects.get_or_create(
-                supplied_breed='Bunte Bentheimer',
-                mapped_breed='Bentheim Black Pied',
-                mapped_breed_term='LBO_0000347',
-                country=country,
-                specie=specie)
-
-    return breed
-
-
-def create_submission():
-    # get dependencies
-    country = create_dictcountry()
-
-    submission, created = Submission.objects.get_or_create(
-                gene_bank_name='CryoWeb',
-                datasource_version='23.01',
-                datasource_type=0,  # CryoWeb
-                gene_bank_country=country)
-
-    return submission
-
-
-def create_animal():
-    submission = create_submission()
-
-    name, created = Name.objects.get_or_create(
-            name='ANIMAL:::ID:::132713',
-            submission=submission)
-
-    breed = create_dictbreed()
-
-    sex = create_dictsex()
-
-    animal, created = Animal.objects.get_or_create(
-            name=name,
-            alternative_id='11',
-            description="a 4-year old pig organic fed",
-            breed=breed,
-            sex=sex)
-
-    # record id
-    return animal
-
-
-def create_sample(animal):
-    # get current submission for a new name
-    submission = create_submission()
-
-    name, created = Name.objects.get_or_create(
-            name='Siems_0722_393449',
-            submission=submission)
-
-    # now create a sample object
-    sample, created = Sample.objects.get_or_create(
-            name=name,
-            alternative_id='Siems_0722_393449',
-            description="semen collected when the animal turns to 4",
-            animal=animal,
-            collection_date=datetime.date(2017, 3, 12),
-            collection_place="deutschland",
-            organism_part='semen',
-            organism_part_term='UBERON_0001968',
-            developmental_stage='adult',
-            developmental_stage_term='EFO_0001272',
-            animal_age_at_collection=4,
-            availability='mailto:peter@ebi.ac.uk')
-
-    return sample
-
-
 class DictSexTestCase(TestCase):
     """Testing DictSex class"""
+
+    fixtures = ["image_app/dictsex"]
 
     def setUp(self):
         # my attributes
         self.label = 'male'
         self.term = 'PATO_0000384'
-
-        # call an helper function
-        create_dictsex(label=self.label, term=self.term)
 
     def test_to_validation(self):
         """Testing sex to biosample json"""
@@ -183,13 +71,15 @@ class DictSexTestCase(TestCase):
 class DictSpecieTestCase(TestCase):
     """Testing DictSpecie class"""
 
+    fixtures = [
+        "image_app/dictspecie",
+        "image_app/dictcountry",
+        "image_app/speciesynonim"]
+
     def setUp(self):
         # my attributes
         self.label = 'Sus scrofa'
         self.term = 'NCBITaxon_9823'
-
-        # call an helper function
-        create_dictspecie(label=self.label, term=self.term)
 
     def test_to_validation(self):
         """Testing specie to biosample json"""
@@ -201,6 +91,8 @@ class DictSpecieTestCase(TestCase):
                 self.term]
             ),
         }
+
+        print(DictSpecie.objects.all())
 
         sus = DictSpecie.objects.get(label=self.label)
         test = sus.to_validation()
@@ -246,13 +138,12 @@ class DictSpecieTestCase(TestCase):
 class DictCountryTestCase(TestCase):
     """Testing DictCountry class"""
 
+    fixtures = ["image_app/dictcountry"]
+
     def setUp(self):
         # my attributes
         self.label = 'Germany'
         self.term = 'NCIT_C16636'
-
-        # call an helper function
-        create_dictcountry(label=self.label, term=self.term)
 
     def test_to_validation(self):
         """Testing specie to biosample json"""
@@ -297,9 +188,11 @@ class DictCountryTestCase(TestCase):
 class DictBreedTestCase(TestCase):
     """Testing DictBreed class"""
 
-    def setUp(self):
-        # call an helper function
-        create_dictbreed()
+    fixtures = [
+        "image_app/dictbreed",
+        "image_app/dictcountry",
+        "image_app/dictspecie"
+    ]
 
     def test_to_validation(self):
         """Testing breed to biosample json"""
@@ -356,9 +249,14 @@ class DictBreedTestCase(TestCase):
 class SubmissionTestCase(TestCase):
     """Testing Submission class"""
 
+    fixtures = [
+        "image_app/user",
+        "image_app/dictcountry",
+        "image_app/submission"
+    ]
+
     def setUp(self):
-        # call an helper function
-        self.submission = create_submission()
+        self.submission = Submission.objects.get(pk=1)
 
     def test_str(self):
         test = str(self.submission)
@@ -370,12 +268,20 @@ class SubmissionTestCase(TestCase):
 class AnimalTestCase(TestCase):
     """Testing Animal Class"""
 
+    fixtures = [
+        "image_app/user",
+        "image_app/dictcountry",
+        "image_app/submission",
+        "image_app/name",
+        "image_app/dictbreed",
+        "image_app/dictspecie",
+        "image_app/dictsex",
+        "image_app/animal",
+    ]
+
     def setUp(self):
         # create animal
-        self.animal = create_animal()
-
-        # record id
-        self.animal_id = self.animal.id
+        self.animal = Animal.objects.get(pk=1)
 
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
@@ -397,7 +303,7 @@ class AnimalTestCase(TestCase):
         """Testing JSON conversion"""
 
         reference = {
-            "biosampleId": "animal_%s" % (self.animal_id),
+            "biosampleId": "animal_%s" % (self.animal.id),
             "project": "IMAGE",
             "description": "a 4-year old pig organic fed",
             "material": {
@@ -458,7 +364,7 @@ class AnimalTestCase(TestCase):
 
         # reference with no description
         reference = {
-            "biosampleId": "animal_%s" % (self.animal_id),
+            "biosampleId": "animal_%s" % (self.animal.id),
             "project": "IMAGE",
             "material": {
                 "text": "organism",
@@ -520,7 +426,7 @@ class AnimalTestCase(TestCase):
         """Testing JSON conversion for biosample submission"""
 
         reference = {
-            'alias': "animal_%s" % (self.animal_id),
+            'alias': "animal_%s" % (self.animal.id),
             'title': 'ANIMAL:::ID:::132713',
             'releaseDate': str(datetime.datetime.now().date()),
             'taxonId': 9823,
@@ -570,17 +476,24 @@ class AnimalTestCase(TestCase):
 class SampleTestCase(TestCase):
     """testing sample class"""
 
+    fixtures = [
+        "image_app/user",
+        "image_app/dictcountry",
+        "image_app/submission",
+        "image_app/name",
+        "image_app/dictbreed",
+        "image_app/dictspecie",
+        "image_app/dictsex",
+        "image_app/animal",
+        "image_app/sample"
+    ]
+
     def setUp(self):
         # create animal
-        self.animal = create_animal()
+        self.animal = Animal.objects.get(pk=1)
 
-        # record id for the animal
-        self.animal_id = self.animal.id
-
-        # now create a sample object
-        self.sample = create_sample(self.animal)
-
-        self.sample_id = self.sample.id
+        # now get a sample object
+        self.sample = Sample.objects.get(pk=1)
 
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
@@ -600,7 +513,7 @@ class SampleTestCase(TestCase):
 
     def test_to_validation(self):
         reference = {
-            "biosampleId": "sample_%s" % (self.sample_id),
+            "biosampleId": "sample_%s" % (self.sample.id),
             "project": "IMAGE",
             "description": "semen collected when the animal turns to 4",
             "material": {
@@ -616,7 +529,7 @@ class SampleTestCase(TestCase):
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "23.01",
             "dataSourceId": "Siems_0722_393449",
-            "derivedFrom": "animal_%s" % (self.animal_id),
+            "derivedFrom": "animal_%s" % (self.animal.id),
             "collectionDate": {
                 "text": "2017-03-12",
                 "unit": "YYYY-MM-DD"
@@ -652,7 +565,7 @@ class SampleTestCase(TestCase):
         """Test to biosample conversion with null fields"""
 
         reference = {
-            "biosampleId": "sample_%s" % (self.sample_id),
+            "biosampleId": "sample_%s" % (self.sample.id),
             "project": "IMAGE",
             "description": "semen collected when the animal turns to 4",
             "material": {
@@ -668,7 +581,7 @@ class SampleTestCase(TestCase):
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "23.01",
             "dataSourceId": "Siems_0722_393449",
-            "derivedFrom": "animal_%s" % (self.animal_id),
+            "derivedFrom": "animal_%s" % (self.animal.id),
         }
 
         # set some attributes as NULL
@@ -690,14 +603,14 @@ class SampleTestCase(TestCase):
         """Testing JSON conversion for biosample submission"""
 
         reference = {
-            'alias': "sample_%s" % (self.sample_id),
+            'alias': "sample_%s" % (self.sample.id),
             'title': 'Siems_0722_393449',
             'releaseDate': str(datetime.datetime.now().date()),
             'taxonId': 9823,
             'description': "semen collected when the animal turns to 4",
             'attributes': {},
             'sampleRelationships': [{
-                "alias": "animal_%s" % (self.animal_id),
+                "alias": "animal_%s" % (self.animal.id),
                 "relationshipNature": "derived from"
             }]
         }

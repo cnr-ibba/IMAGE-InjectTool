@@ -179,3 +179,5 @@
   - a user can't use an already register email for activation
 
 * Use [pytest-django](https://pytest-django.readthedocs.io/en/latest/)
+
+* fixtures need to be organized in directories

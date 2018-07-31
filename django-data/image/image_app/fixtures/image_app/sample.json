@@ -1,0 +1,29 @@
+[
+{
+  "model": "image_app.sample",
+  "pk": 1,
+  "fields": {
+    "name": 4,
+    "alternative_id": "Siems_0722_393449",
+    "description": "semen collected when the animal turns to 4",
+    "material": "Specimen from Organism",
+    "animal": 1,
+    "protocol": "NHS_Kryoprotokoll_Schafe_2004",
+    "collection_date": "2017-03-12",
+    "collection_place_latitude": null,
+    "collection_place_longitude": null,
+    "collection_place": "deutschland",
+    "organism_part": "semen",
+    "organism_part_term": "UBERON_0001968",
+    "developmental_stage": "adult",
+    "developmental_stage_term": "EFO_0001272",
+    "physiological_stage": null,
+    "animal_age_at_collection": 4,
+    "availability": "mailto:peter@ebi.ac.uk",
+    "storage": null,
+    "storage_processing": null,
+    "preparation_interval": null,
+    "owner": 1
+  }
+}
+]
