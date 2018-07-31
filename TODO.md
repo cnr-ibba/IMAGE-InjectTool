@@ -123,8 +123,6 @@
 
 * create to_biosample() python dictionary like biosample need
   - check for mandatory fields in IMAGE-metadata rules: tests for mandatory
-    fields need to be moved into validation module
-  - use fixtures to upload data into UID for tests
 
 * Recording submission ids in submission table
   - did I need also the sample ids?
@@ -179,3 +177,5 @@
   - a user can't use an already register email for activation
 
 * Use [pytest-django](https://pytest-django.readthedocs.io/en/latest/)
+
+* test each management command, or at least that it works

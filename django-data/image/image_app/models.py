@@ -13,7 +13,7 @@ from .helpers import format_attribute
 
 
 # helper classes
-class BaseDict():
+class DictMixin():
     """Base class for dictionary tables"""
 
     def __str__(self):
@@ -33,7 +33,7 @@ class BaseDict():
         return biosample
 
 
-class DictRole(BaseDict, models.Model):
+class DictRole(DictMixin, models.Model):
     """A class to model roles defined as childs of
     http://www.ebi.ac.uk/efo/EFO_0002012"""
 
@@ -57,7 +57,7 @@ class DictRole(BaseDict, models.Model):
         unique_together = (("label", "term"),)
 
 
-class DictCountry(BaseDict, models.Model):
+class DictCountry(DictMixin, models.Model):
     """A class to model contries defined by Gazetteer
     https://www.ebi.ac.uk/ols/ontologies/gaz"""
 
@@ -100,7 +100,7 @@ class DictCountry(BaseDict, models.Model):
         unique_together = (("label", "term"),)
 
 
-class DictSpecie(BaseDict, models.Model):
+class DictSpecie(DictMixin, models.Model):
     """A class to model species defined by NCBI organismal classification
     http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
 
@@ -231,7 +231,7 @@ class DictBreed(models.Model):
         unique_together = (("supplied_breed", "specie"),)
 
 
-class DictSex(BaseDict, models.Model):
+class DictSex(DictMixin, models.Model):
     """A class to model sex as defined in PATO"""
 
     label = models.CharField(
@@ -282,7 +282,96 @@ class Name(models.Model):
         unique_together = (("name", "submission"),)
 
 
-class Animal(models.Model):
+class BioSampleMixin(object):
+    """Common methods for animal and samples"""
+
+    def __str__(self):
+        return str(self.name)
+
+    def get_biosample_id(self):
+        """Get the biosample id or a temporary name"""
+
+        return self.name.biosample_id or "animal_%s" % (
+                self.id)
+
+    def to_validation(self):
+        """Common features to both Sample and Animal"""
+
+        result = {}
+
+        # get a biosample id or a default value
+        result["biosampleId"] = self.get_biosample_id()
+
+        result["project"] = "IMAGE"
+
+        if self.description:
+            result["description"] = self.description
+
+        result["name"] = self.name.name
+
+        submission = self.name.submission
+        result["geneBankName"] = submission.gene_bank_name
+        result["geneBankCountry"] = submission.gene_bank_country.label
+        # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
+        result["dataSourceType"] = submission.get_datasource_type_display()
+        result["dataSourceVersion"] = submission.datasource_version
+
+        result["dataSourceId"] = self.alternative_id
+
+        return result
+
+    def get_attributes(self):
+        """Common attribute definition"""
+
+        attributes = {}
+
+        attributes["project"] = format_attribute(
+            value="IMAGE")
+
+        attributes['dataSourceId'] = format_attribute(
+            value=self.name.name)
+
+        attributes['alternativeId'] = format_attribute(
+            value=self.alternative_id)
+
+        attributes['submissionTitle'] = format_attribute(
+            value=self.name.submission.title)
+
+        attributes['personLastName'] = format_attribute(
+            value=self.owner.last_name)
+
+        attributes['personEmail'] = format_attribute(
+            value=self.owner.email)
+
+        attributes['personAffiliation'] = format_attribute(
+            value=self.owner.person.affiliation.name)
+
+        attributes['personRole'] = format_attribute(
+            value=self.owner.person.role.label)
+
+        attributes['organizationName'] = format_attribute(
+            value=None)
+
+        attributes['organizationRole'] = format_attribute(
+            value=None)
+
+        attributes['geneBankName'] = format_attribute(
+            value=self.name.submission.gene_bank_name)
+
+        attributes['geneBankCountry'] = format_attribute(
+            value=self.name.submission.gene_bank_country.label,
+            terms=self.name.submission.gene_bank_country.term)
+
+        attributes['dataSourceType'] = format_attribute(
+            value=self.name.submission.get_datasource_type_display())
+
+        attributes['dataSourceVersion'] = format_attribute(
+            value=self.name.submission.datasource_version)
+
+        return attributes
+
+
+class Animal(BioSampleMixin, models.Model):
     # an animal name has a entry in name table
     name = models.OneToOneField(
             'Name',
@@ -338,9 +427,6 @@ class Animal(models.Model):
 
     owner = models.ForeignKey(User, related_name='animals')
 
-    def __str__(self):
-        return str(self.name)
-
     def get_biosample_id(self):
         """Get the biosample id or a temporary name"""
 
@@ -350,15 +436,7 @@ class Animal(models.Model):
     def to_validation(self):
         """Get a json representation of animal"""
 
-        result = {}
-
-        # get a biosample id or a default value
-        result["biosampleId"] = self.get_biosample_id()
-
-        result["project"] = "IMAGE"
-
-        if self.description:
-            result["description"] = self.description
+        result = super().to_validation()
 
         result["material"] = {
                 "text": "organism",
@@ -367,17 +445,6 @@ class Animal(models.Model):
                     "OBI_0100026"]
                 ),
         }
-
-        result["name"] = self.name.name
-
-        submission = self.name.submission
-        result["geneBankName"] = submission.gene_bank_name
-        result["geneBankCountry"] = submission.gene_bank_country.label
-        # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
-        result["dataSourceType"] = submission.get_datasource_type_display()
-        result["dataSourceVersion"] = submission.datasource_version
-
-        result["dataSourceId"] = self.alternative_id
 
         result["species"] = self.breed.specie.to_validation()
 
@@ -392,53 +459,10 @@ class Animal(models.Model):
     def get_attributes(self):
         """Return attributes like biosample needs"""
 
-        attributes = {}
+        attributes = super().get_attributes()
 
         attributes["material"] = format_attribute(
             value="organism", terms="OBI_0100026")
-
-        attributes["project"] = format_attribute(
-            value="IMAGE")
-
-        attributes['dataSourceId'] = format_attribute(
-            value=self.name.name)
-
-        attributes['alternativeId'] = format_attribute(
-            value=self.alternative_id)
-
-        attributes['submissionTitle'] = format_attribute(
-            value=self.name.submission.title)
-
-        attributes['personLastName'] = format_attribute(
-            value=None)
-
-        attributes['personEmail'] = format_attribute(
-            value=None)
-
-        attributes['personAffiliation'] = format_attribute(
-            value=None)
-
-        attributes['personRole'] = format_attribute(
-            value=None)
-
-        attributes['organizationName'] = format_attribute(
-            value=None)
-
-        attributes['organizationRole'] = format_attribute(
-            value=None)
-
-        attributes['geneBankName'] = format_attribute(
-            value=self.name.submission.gene_bank_name)
-
-        attributes['geneBankCountry'] = format_attribute(
-            value=self.name.submission.gene_bank_country.label,
-            terms=self.name.submission.gene_bank_country.term)
-
-        attributes['dataSourceType'] = format_attribute(
-            value=self.name.submission.get_datasource_type_display())
-
-        attributes['dataSourceVersion'] = format_attribute(
-            value=self.name.submission.datasource_version)
 
         attributes['species'] = format_attribute(
             value=self.breed.specie.label,
@@ -490,7 +514,7 @@ class Animal(models.Model):
         return result
 
 
-class Sample(models.Model):
+class Sample(BioSampleMixin, models.Model):
     # a sample name has a entry in name table
     name = models.ForeignKey(
             'Name',
@@ -559,9 +583,6 @@ class Sample(models.Model):
 
     owner = models.ForeignKey(User, related_name='samples')
 
-    def __str__(self):
-        return str(self.name)
-
     def get_biosample_id(self):
         """Get the biosample id or a temporary name"""
 
@@ -571,14 +592,8 @@ class Sample(models.Model):
     def to_validation(self):
         """Get a biosample representation of animal"""
 
-        # define value tu return
-        result = {}
+        result = super().to_validation()
 
-        # get a biosample id or a default value
-        result["biosampleId"] = self.get_biosample_id()
-
-        result["project"] = "IMAGE"
-        result["description"] = self.description
         result["material"] = {
                 "text": "specimen from organism",
                 "ontologyTerms": "/".join([
@@ -586,17 +601,6 @@ class Sample(models.Model):
                     "OBI_0001479"]
                 ),
         }
-
-        result["name"] = self.name.name
-
-        submission = self.name.submission
-        result["geneBankName"] = submission.gene_bank_name
-        result["geneBankCountry"] = submission.gene_bank_country.label
-        # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
-        result["dataSourceType"] = submission.get_datasource_type_display()
-        result["dataSourceVersion"] = submission.datasource_version
-
-        result["dataSourceId"] = self.alternative_id
 
         result["derivedFrom"] = self.animal.get_biosample_id()
 
@@ -642,13 +646,32 @@ class Sample(models.Model):
     def get_attributes(self):
         """Return attributes like biosample needs"""
 
-        attributes = {}
+        attributes = super().get_attributes()
 
         attributes["material"] = format_attribute(
             value="specimen from organism", terms="OBI_0001479")
 
-        attributes["project"] = format_attribute(
-            value="IMAGE")
+        attributes['species'] = format_attribute(
+            value=self.animal.breed.specie.label,
+            terms=self.animal.breed.specie.term)
+
+        # HINT: this won't to be a biosample id in the first submission.
+        # How to fix it? can be removed from mandatory attributes
+        attributes['derivedFrom'] = format_attribute(
+            value=self.animal.name.name)
+
+        attributes['collectionDate'] = format_attribute(
+            value=self.collection_date)
+
+        attributes['collectionPlace'] = format_attribute(
+            value=self.collection_place)
+
+        # TODO: this will point to a correct term dictionary table
+        attributes['organismPart'] = format_attribute(
+            value=self.organism_part)
+
+        # filter out empty values
+        attributes = {k: v for k, v in attributes.items() if v is not None}
 
         return attributes
 

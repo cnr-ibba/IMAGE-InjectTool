@@ -1,0 +1,13 @@
+[
+{
+  "model": "image_app.organization",
+  "pk": 1,
+  "fields": {
+    "name": "Test organization",
+    "address": "Foo Bar",
+    "country": 1,
+    "URI": null,
+    "role": 1
+  }
+}
+]

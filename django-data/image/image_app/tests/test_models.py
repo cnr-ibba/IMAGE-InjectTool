@@ -11,7 +11,8 @@ import datetime
 from django.test import TestCase
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
-                              DictSex, DictSpecie, Sample, uid_report)
+                              DictSex, DictSpecie, Sample, uid_report,
+                              Person)
 
 from validation.helpers.biosample import AnimalValidator, SampleValidator
 
@@ -277,7 +278,21 @@ class AnimalTestCase(TestCase):
         "image_app/dictspecie",
         "image_app/dictsex",
         "image_app/animal",
+        "image_app/organization",
+        "image_app/dictrole",
     ]
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # now fix person table
+        person = Person.objects.get(user__username="test")
+        person.affiliation_id = 1
+        person.role_id = 1
+        person.initials = "T"
+        person.save()
 
     def setUp(self):
         # create animal
@@ -485,8 +500,22 @@ class SampleTestCase(TestCase):
         "image_app/dictspecie",
         "image_app/dictsex",
         "image_app/animal",
-        "image_app/sample"
+        "image_app/sample",
+        "image_app/organization",
+        "image_app/dictrole",
     ]
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # now fix person table
+        person = Person.objects.get(user__username="test")
+        person.affiliation_id = 1
+        person.role_id = 1
+        person.initials = "T"
+        person.save()
 
     def setUp(self):
         # create animal
