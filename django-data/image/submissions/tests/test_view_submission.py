@@ -18,6 +18,8 @@ class DetailSubmissionViewTest(TestCase):
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
+        "submissions/dictrole",
+        "submissions/organization",
         "submissions/submission"
     ]
 

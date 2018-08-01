@@ -60,6 +60,8 @@ class FillUIDTestClass(BaseTestCase):
     # import this file and populate database once
     fixtures = [
         "cryoweb/user",
+        "cryoweb/dictrole",
+        "cryoweb/organization",
         "cryoweb/dictcountry",
         "cryoweb/submission",
         "cryoweb/dictsex",

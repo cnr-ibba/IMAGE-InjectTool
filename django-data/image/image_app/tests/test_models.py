@@ -253,7 +253,9 @@ class SubmissionTestCase(TestCase):
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",
-        "image_app/submission"
+        "image_app/submission",
+        "image_app/dictrole",
+        "image_app/organization"
     ]
 
     def setUp(self):

@@ -18,6 +18,7 @@ class SubmissionFormTest(TestCase):
             'description',
             'gene_bank_name',
             'gene_bank_country',
+            'organization',
             'datasource_type',
             'datasource_version',
             'uploaded_file'

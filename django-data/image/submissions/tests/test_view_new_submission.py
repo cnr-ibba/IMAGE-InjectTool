@@ -11,7 +11,7 @@ import os
 from django.urls import reverse, resolve
 from django.test import Client, TestCase
 
-from image_app.models import DictCountry, Submission
+from image_app.models import DictCountry, Submission, Organization
 import cryoweb.tests
 
 from ..views import CreateSubmissionView
@@ -23,7 +23,9 @@ class Initialize(TestCase):
 
     fixtures = [
         "submissions/user",
+        "submissions/dictrole",
         "submissions/dictcountry",
+        "submissions/organization",
     ]
 
     def setUp(self):
@@ -68,7 +70,7 @@ class CreateSubmissionViewTest(Initialize):
         self.assertContains(self.response, '<input', 6)
         self.assertContains(self.response, 'type="text"', 4)
         self.assertContains(self.response, 'type="file"', 1)
-        self.assertContains(self.response, '<select', 2)
+        self.assertContains(self.response, '<select', 3)
 
 
 class SuccessfulCreateSubmissionViewTest(Initialize):
@@ -82,8 +84,9 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
             "cryoweb_test_data_only.sql"
         )
 
-        # and now create a country object
+        # get required objects object
         self.country = DictCountry.objects.get(pk=1)
+        self.organization = Organization.objects.get(pk=1)
 
         # define test data
         data = {
@@ -91,6 +94,7 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
             'description': "Test Submission",
             'gene_bank_name': 'test',
             'gene_bank_country': self.country.id,
+            'organization': self.organization.id,
             'datasource_type': 0,
             'datasource_version': '0.1',
             'uploaded_file': open(ds_path),

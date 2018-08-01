@@ -9,5 +9,14 @@
     "URI": null,
     "role": 1
   }
+},
+{
+  "model": "image_app.organization",
+  "pk": 2,
+  "fields": {
+    "name": "IBBA-CNR",
+    "country": 1,
+    "role": 1
+  }
 }
 ]

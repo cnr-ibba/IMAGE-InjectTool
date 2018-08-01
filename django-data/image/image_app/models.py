@@ -272,7 +272,10 @@ class Name(models.Model):
     biosample_id = models.CharField(max_length=255, blank=True, null=True)
 
     # '+' instructs Django that we don’t need this reverse relationship
-    owner = models.ForeignKey(User, related_name='+')
+    owner = models.ForeignKey(
+        User,
+        related_name='+',
+        on_delete=models.CASCADE)
 
     def __str__(self):
         # HINT: shuold I return biosampleid if defined?
@@ -426,7 +429,10 @@ class Animal(BioSampleMixin, models.Model):
     birth_location_latitude = models.FloatField(blank=True, null=True)
     birth_location_longitude = models.FloatField(blank=True, null=True)
 
-    owner = models.ForeignKey(User, related_name='animals')
+    owner = models.ForeignKey(
+        User,
+        related_name='animals',
+        on_delete=models.CASCADE)
 
     def get_biosample_id(self):
         """Get the biosample id or a temporary name"""
@@ -582,7 +588,10 @@ class Sample(BioSampleMixin, models.Model):
 
     preparation_interval = models.IntegerField(blank=True, null=True)
 
-    owner = models.ForeignKey(User, related_name='samples')
+    owner = models.ForeignKey(
+        User,
+        related_name='samples',
+        on_delete=models.CASCADE)
 
     def get_biosample_id(self):
         """Get the biosample id or a temporary name"""
@@ -722,7 +731,7 @@ class Person(models.Model):
         on_delete=models.CASCADE,
         help_text="The institution you belong to")
 
-    # last_name, first_name and email comes from User model
+    # last_name, first_name and email come from User model
 
     role = models.ForeignKey(
         'DictRole',
@@ -856,6 +865,12 @@ class Submission(models.Model):
             null=False,
             help_text='examples: "2018-04-27", "version 1.5"')
 
+    # HINT: can this field be NULL?
+    organization = models.ForeignKey(
+        'Organization',
+        on_delete=models.CASCADE,
+        help_text="Who owns the data")
+
     # custom fields for datasource
     upload_dir = 'data_source/'
     uploaded_file = models.FileField(upload_to=upload_dir)
@@ -864,7 +879,10 @@ class Submission(models.Model):
     # internal column to check if data were uploaded in image db or not
     loaded = models.BooleanField(default=False)
 
-    owner = models.ForeignKey(User, related_name='submissions')
+    owner = models.ForeignKey(
+        User,
+        related_name='submissions',
+        on_delete=models.CASCADE)
 
     class Meta:
         # HINT: can I put two files for my cryoweb instance? May they have two

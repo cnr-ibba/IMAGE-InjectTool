@@ -13,7 +13,8 @@
     "uploaded_at": "2018-04-11T13:44:31.988Z",
     "gene_bank_name": "CryoWeb",
     "loaded": false,
-    "owner": 1
+    "owner": 1,
+    "organization": 2
   }
 }
 ]
