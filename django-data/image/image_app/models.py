@@ -354,10 +354,11 @@ class BioSampleMixin(object):
             terms=self.owner.person.role.term)
 
         attributes['organizationName'] = format_attribute(
-            value=None)
+            value=self.name.submission.organization.name)
 
         attributes['organizationRole'] = format_attribute(
-            value=None)
+            value=self.name.submission.organization.role.label,
+            terms=self.name.submission.organization.role.term)
 
         attributes['geneBankName'] = format_attribute(
             value=self.name.submission.gene_bank_name)

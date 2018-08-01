@@ -462,6 +462,15 @@ class AnimalTestCase(TestCase):
                 }]
         }]
 
+        role = [{
+            'value': 'submitter',
+            'terms': [{
+                "url": "/".join([
+                    OBO_URL,
+                    "EFO_0001741"])
+            }]
+        }]
+
         attributes = {
             'project': [{'value': 'IMAGE'}],
             'dataSourceId': [{'value': 'ANIMAL:::ID:::132713'}],
@@ -470,14 +479,9 @@ class AnimalTestCase(TestCase):
             'personLastName': [{'value': 'Bar'}],
             'personEmail': [{'value': 'test@test.com'}],
             'personAffiliation': [{'value': 'Test organization'}],
-            'personRole': [{
-                'value': 'submitter',
-                'terms': [{
-                    "url": "/".join([
-                        OBO_URL,
-                        "EFO_0001741"])
-                }]
-            }],
+            'personRole': role,
+            'organizationName': [{'value': 'IBBA-CNR'}],
+            'organizationRole': role,
             'geneBankName': [{'value': 'CryoWeb'}],
             'geneBankCountry': country,
             'dataSourceType': [{'value': 'CryoWeb'}],
@@ -696,6 +700,15 @@ class SampleTestCase(TestCase):
                 }]
         }]
 
+        role = [{
+            'value': 'submitter',
+            'terms': [{
+                "url": "/".join([
+                    OBO_URL,
+                    "EFO_0001741"])
+            }]
+        }]
+
         attributes = {
             'project': [{'value': 'IMAGE'}],
             'dataSourceId': [{
@@ -705,14 +718,9 @@ class SampleTestCase(TestCase):
             'personLastName': [{'value': 'Bar'}],
             'personEmail': [{'value': 'test@test.com'}],
             'personAffiliation': [{'value': 'Test organization'}],
-            'personRole': [{
-                'value': 'submitter',
-                'terms': [{
-                    "url": "/".join([
-                        OBO_URL,
-                        "EFO_0001741"])
-                }]
-            }],
+            'personRole': role,
+            'organizationName': [{'value': 'IBBA-CNR'}],
+            'organizationRole': role,
             'geneBankName': [{'value': 'CryoWeb'}],
             'geneBankCountry': country,
             'dataSourceType': [{'value': 'CryoWeb'}],
