@@ -77,7 +77,7 @@ class CreateAuthViewTest(BaseTest):
         )
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_view(self):
         view = resolve('/biosample/token/generate')
@@ -158,7 +158,7 @@ class InvalidCreateAuthViewTest(BaseTest):
         '''
         An invalid form submission should return to the same page
         '''
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_form_errors(self):
         form = self.response.context.get('form')

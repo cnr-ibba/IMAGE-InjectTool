@@ -51,7 +51,7 @@ class CreateSubmissionViewTest(Initialize):
         )
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_view(self):
         view = resolve('/submissions/create/')
@@ -114,7 +114,7 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
     def test_new_not_found_status_code(self):
         url = reverse('submissions:detail', kwargs={'pk': 99})
         response = self.client.get(url)
-        self.assertEquals(response.status_code, 404)
+        self.assertEqual(response.status_code, 404)
 
 
 class InvalidCreateSubmissionViewTest(Initialize):
@@ -130,7 +130,7 @@ class InvalidCreateSubmissionViewTest(Initialize):
         An invalid form submission should return to the same page
         '''
 
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_form_errors(self):
         form = self.response.context.get('form')

@@ -27,7 +27,7 @@ class ResendActivationViewTest(TestCase):
         self.response = self.client.get(url)
 
     def test_signup_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_signup_url_resolves_signup_view(self):
         view = resolve('/accounts/activate/resend/')
@@ -96,7 +96,7 @@ class InvalidResendActivationViewTest(BaseTest):
         data = {'email': 'foo@bar.com'}
         response = self.client.post(self.url, data)
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         form = response.context.get('form')
         self.assertGreater(len(form.errors), 0)
@@ -122,7 +122,7 @@ class InvalidResendActivationViewTest(BaseTest):
         data = {'email': 'john@doe.com'}
         response = self.client.post(self.url, data)
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         form = response.context.get('form')
         self.assertGreater(len(form.errors), 0)
@@ -159,7 +159,7 @@ class InvalidResendActivationViewTest(BaseTest):
         data = {'email': 'john@doe.com'}
         response = self.client.post(self.url, data)
 
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
         form = response.context.get('form')
         self.assertGreater(len(form.errors), 0)

@@ -91,7 +91,7 @@ def useZooma(term, category):
 
     # a warn
     if len(results) > 1:
-        logger.warn("Got %s results for %s" % (len(results), params))
+        logger.warning("Got %s results for %s" % (len(results), params))
 
     for elem in results:
         detectedType = elem['annotatedProperty']['propertyType']
@@ -125,7 +125,7 @@ def useZooma(term, category):
             # else: #  medium/low
 
         else:
-            logger.warn("Different type for %s" % elem['annotatedProperty'])
+            logger.warning("Different type for %s" % elem['annotatedProperty'])
 
     # HINT: is useful?
     result['type'] = category
@@ -149,7 +149,7 @@ def useZooma(term, category):
             return result
 
     # no results is returned with low or medium confidence
-    logger.warn("No result returned for %s" % (newTerm))
+    logger.warning("No result returned for %s" % (newTerm))
 
 
 def get_taxonID_by_scientific_name(scientific_name):
@@ -173,7 +173,7 @@ def get_taxonID_by_scientific_name(scientific_name):
     results = response.json()
 
     if len(results) > 1:
-        logger.warn(
+        logger.warning(
             "%s results found for %s" % (len(results), scientific_name))
 
     taxonId = int(results[0]['taxId'])

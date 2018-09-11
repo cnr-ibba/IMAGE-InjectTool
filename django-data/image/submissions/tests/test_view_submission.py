@@ -44,7 +44,7 @@ class DetailSubmissionViewTest(TestCase):
         )
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_view(self):
         view = resolve('/submissions/1/')

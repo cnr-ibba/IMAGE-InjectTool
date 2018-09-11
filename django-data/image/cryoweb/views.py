@@ -57,7 +57,7 @@ def upload_cryoweb(request):
     # test if cryoweb has data or not
     if cryowebdb.has_data(search_path='apiis_admin'):
         # give an error message
-        logger.warn("cryoweb mirror database has data. Ignoring data load")
+        logger.warning("cryoweb mirror database has data. Ignoring data load")
         messages.warning(
             request,
             message="cryoweb mirror database has data. Ignoring data load",
@@ -269,7 +269,7 @@ def fill_breeds(engine_from_cryoweb, context, submission):
         # skip duplicates (in the same bulk insert)
         # BUG: need to be supplied_breed, species as a key
         if row.supplied_breed in to_create:
-            logger.warn("%s: already marked for insertion (%s)" % (
+            logger.warning("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.supplied_breed])))
 
             msg = "Duplicated record %s" % (str(row))
@@ -282,7 +282,7 @@ def fill_breeds(engine_from_cryoweb, context, submission):
         # BUG: need to be supplied_breed, species as a key
         elif row.supplied_breed in in_table_breeds:
             msg = "%s: already present in database" % (str(row))
-            logger.warn(msg)
+            logger.warning(msg)
 
             # add warning to context
             # HINT: is this a warning?
@@ -335,7 +335,7 @@ def fill_names(dataframe, submission, context):
     for row in dataframe.itertuples():
         # skip duplicates (in the same bulk insert)
         if row.name in to_create:
-            logger.warn("%s: already marked for insertion (%s)" % (
+            logger.warning("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.name])))
 
             msg = "Duplicated record %s" % (str(row))
@@ -347,7 +347,7 @@ def fill_names(dataframe, submission, context):
         # object for a bulk_insert
         elif row.name in in_table_names:
             msg = "%s: already present in database" % (str(row))
-            logger.warn(msg)
+            logger.warning(msg)
 
             # add warning to context
             add_warnings(context, 'name', msg)
@@ -408,7 +408,7 @@ def fill_transfer(engine_from_cryoweb, submission, context):
 
     # remove empty spaces
     df_transfer_fin['name'] = df_transfer_fin['name'].str.replace(
-            '\s+', '_')
+            ' +', '_')
 
     # set index to dataframe
     df_transfer_fin.index = df_transfer_fin["db_animal"]
@@ -589,7 +589,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
     for row in df_animals_fin.itertuples():
         # skip duplicates (in the same bulk insert)
         if row.name_id in to_create:
-            logger.warn("%s: already marked for insertion (%s)" % (
+            logger.warning("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.name_id])))
 
             msg = "Duplicated record %s" % (str(row))
@@ -601,7 +601,7 @@ def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
         # object for a bulk_insert
         elif row.name_id in in_table_name_ids:
             msg = "%s: already present in database" % (str(row))
-            logger.warn(msg)
+            logger.warning(msg)
 
             # add warning to context
             add_warnings(context, 'animal', msg)
@@ -773,7 +773,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, submission, context):
 
     # change some data values: replace spaces in names and notes
     df_samples_fin['name'] = df_samples_fin['name'].str.replace(
-            '\s+', '_')
+            ' +', '_')
 
     # call a function to fill name table
     fill_names(df_samples_fin, submission, context)
@@ -815,7 +815,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, submission, context):
     for row in df_samples_fin.itertuples():
         # skip duplicates (in the same bulk insert)
         if row.name_id in to_create:
-            logger.warn("%s: already marked for insertion (%s)" % (
+            logger.warning("%s: already marked for insertion (%s)" % (
                     str(row), str(to_create[row.name_id])))
 
             msg = "Duplicated record %s" % (str(row))
@@ -827,7 +827,7 @@ def fill_samples(engine_from_cryoweb, df_transfer_fin, submission, context):
         # object for a bulk_insert
         elif row.name_id in in_table_name_ids:
             msg = "%s: already present in database" % (str(row))
-            logger.warn(msg)
+            logger.warning(msg)
 
             # add warning to context
             add_warnings(context, 'sample', msg)
@@ -891,7 +891,7 @@ def import_from_cryoweb(request):
 
     if not submission:
         # give an error message
-        logger.warn("cryoweb mirror database has data. Ignoring data load")
+        logger.warning("cryoweb mirror database has data. Ignoring data load")
         messages.warning(
             request,
             message="all submissions were loaded",
@@ -900,7 +900,7 @@ def import_from_cryoweb(request):
 
     # TODO: check this
     if submission.loaded is True:
-        logger.warn("submission %s was already uploaded" % submission)
+        logger.warning("submission %s was already uploaded" % submission)
         messages.warning(
             request,
             "submission %s was already uploaded" % submission)

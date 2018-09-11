@@ -3,9 +3,8 @@ from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
-from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.urls import resolve
+from django.urls import resolve, reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
@@ -16,11 +15,11 @@ class PasswordResetTests(TestCase):
         self.response = self.client.get(url)
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_view_function(self):
         view = resolve('/accounts/password_reset/')
-        self.assertEquals(view.func.view_class, auth_views.PasswordResetView)
+        self.assertEqual(view.func.view_class, auth_views.PasswordResetView)
 
     def test_csrf(self):
         self.assertContains(self.response, 'csrfmiddlewaretoken')
@@ -81,11 +80,11 @@ class PasswordResetDoneTests(TestCase):
         self.response = self.client.get(url)
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_view_function(self):
         view = resolve('/accounts/password_reset/done/')
-        self.assertEquals(
+        self.assertEqual(
             view.func.view_class, auth_views.PasswordResetDoneView)
 
 
@@ -108,13 +107,13 @@ class PasswordResetConfirmTests(TestCase):
         self.response = self.client.get(url, follow=True)
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_view_function(self):
         view = resolve(
             '/accounts/reset/{uidb64}/{token}/'.format(
                 uidb64=self.uid, token=self.token))
-        self.assertEquals(
+        self.assertEqual(
             view.func.view_class, auth_views.PasswordResetConfirmView)
 
     def test_csrf(self):
@@ -151,7 +150,7 @@ class InvalidPasswordResetConfirmTests(TestCase):
         self.response = self.client.get(url)
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_html(self):
         password_reset_url = reverse('accounts:password_reset')
@@ -166,9 +165,9 @@ class PasswordResetCompleteTests(TestCase):
         self.response = self.client.get(url)
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_view_function(self):
         view = resolve('/accounts/reset/done/')
-        self.assertEquals(
+        self.assertEqual(
             view.func.view_class, auth_views.PasswordResetCompleteView)

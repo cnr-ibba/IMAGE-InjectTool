@@ -81,7 +81,7 @@ class RegisterUserViewTest(Basetest):
         )
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_view(self):
         view = resolve('/biosample/register/')
@@ -166,7 +166,7 @@ class InvalidRegisterUserViewTests(Basetest):
         '''
         An invalid form submission should return to the same page
         '''
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_form_errors(self):
         form = self.response.context.get('form')
@@ -208,7 +208,7 @@ class InvalidUsiDataTests(Basetest):
         }
 
         response = self.client.post(self.url, self.data)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.check_messages(response, "error", "Unable to generate token")
 
     def test_invalid_pass(self):
@@ -224,7 +224,7 @@ class InvalidUsiDataTests(Basetest):
         }
 
         response = self.client.post(self.url, self.data)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.check_messages(response, "error", "Unable to generate token")
 
     def test_invalid_team(self):
@@ -242,6 +242,6 @@ class InvalidUsiDataTests(Basetest):
         }
 
         response = self.client.post(self.url, self.data)
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.check_messages(
             response, "error", "You don't belong to team:")

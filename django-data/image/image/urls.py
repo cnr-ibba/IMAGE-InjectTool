@@ -37,12 +37,26 @@ urlpatterns = [
         auth_views.LogoutView.as_view(
             template_name='accounts/logged_out.html'),
         name='logout'),
-    url(r'^image_app/', include('image_app.urls', namespace="image_app")),
-    url(r'^cryoweb/', include('cryoweb.urls', namespace="cryoweb")),
-    url(r'^biosample/', include('biosample.urls', namespace="biosample")),
-    url(r'^accounts/', include('accounts.urls', namespace="accounts")),
+    url(r'^image_app/',
+        include(
+            ('image_app.urls', 'image_app'),
+            namespace="image_app")),
+    url(r'^cryoweb/',
+        include(
+            ('cryoweb.urls', 'cryoweb'),
+            namespace="cryoweb")),
+    url(r'^biosample/',
+        include(
+            ('biosample.urls', 'biosample'),
+            namespace="biosample")),
+    url(r'^accounts/',
+        include(
+            ('accounts.urls', 'accounts'),
+            namespace="accounts")),
     url(r'^submissions/',
-        include('submissions.urls', namespace="submissions")),
+        include(
+            ('submissions.urls', 'submissions'),
+            namespace="submissions")),
     url(r'^admin/', admin.site.urls),
     url(r'^about/$', AboutView.as_view(), name='about'),
 ]

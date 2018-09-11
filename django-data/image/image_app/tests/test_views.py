@@ -65,7 +65,7 @@ class DashBoardViewTest(Initialize):
         )
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_view(self):
         view = resolve('/image_app/dashboard/')
@@ -107,7 +107,7 @@ class SummaryViewTest(Initialize):
         )
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_view(self):
         view = resolve('/image_app/summary/')
@@ -124,7 +124,7 @@ class TestInitializeDB(Initialize):
     def test_new_ds_view_success_status_code(self):
         url = reverse('image_app:initializedb')
         response = self.client.get(url)
-        self.assertEquals(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
 
     def test_url_resolves_view(self):
         url = reverse('image_app:initializedb')

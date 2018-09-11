@@ -18,11 +18,11 @@ class PasswordChangeTests(TestCase):
         self.response = self.client.get(url)
 
     def test_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_correct_view(self):
         view = resolve('/accounts/password_change/')
-        self.assertEquals(view.func.view_class, auth_views.PasswordChangeView)
+        self.assertEqual(view.func.view_class, auth_views.PasswordChangeView)
 
     def test_csrf(self):
         self.assertContains(self.response, 'csrfmiddlewaretoken')
@@ -100,7 +100,7 @@ class InvalidPasswordChangeTests(PasswordChangeTestCase):
         '''
         An invalid form submission should return to the same page
         '''
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_form_errors(self):
         form = self.response.context.get('form')

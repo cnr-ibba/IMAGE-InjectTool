@@ -43,7 +43,7 @@ class MyRegistrationManager(RegistrationManager):
 
         if profile.activated:
             message = "%s already active" % (email)
-            logger.warn(message)
+            logger.warning(message)
             return False, "mail already active"
 
         profile.create_new_activation_key()

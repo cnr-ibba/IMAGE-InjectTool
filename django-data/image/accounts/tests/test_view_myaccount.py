@@ -59,7 +59,7 @@ class MyAccountViewTest(Basetest):
         )
 
     def test_myaccount_status_code(self):
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_myaccount_url_resolves_myaccount_view(self):
         view = resolve('/accounts/my_account/')
@@ -148,7 +148,7 @@ class InvalidMyAccountViewTests(Basetest):
         '''
         An invalid form submission should return to the same page
         '''
-        self.assertEquals(self.response.status_code, 200)
+        self.assertEqual(self.response.status_code, 200)
 
     def test_form_errors(self):
         multi_form = self.response.context.get('form')
