@@ -1,10 +1,9 @@
 uwsgi
 mysqlclient
 psycopg2-binary
-Django==1.11.13
+Django==1.11.15
 pandas
 SQLAlchemy
-pymongo
 ipython
 django-debug-toolbar==1.9.1
 python-decouple
@@ -14,3 +13,7 @@ django-widget-tweaks
 requests
 django-betterforms
 django-registration-redux
+celery==4.2.1
+redis==2.10.6
+flower==0.9.2
+django_celery_beat==1.1.1

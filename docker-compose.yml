@@ -24,6 +24,10 @@ db:
     - "25432:5432"
 
 
+redis:
+  image: "redis:alpine"
+
+
 uwsgi:
   # a custom image for django
   build: ./uwsgi
@@ -45,6 +49,76 @@ uwsgi:
   # link container to database
   links:
     - db
+
+
+celery-worker:
+  # the same django image of uwsgi
+  build: ./uwsgi
+
+  # exec a different command uwsgi
+  command: celery -A image worker -l info -E --pidfile /var/run/celery.pid
+
+  # set working dir for uwsgi
+  working_dir: /var/uwsgi/image/
+
+  # define volumes
+  volumes:
+    - "./django-data/:/var/uwsgi/"
+    - "/etc/localtime:/etc/localtime:ro"
+
+  # Expose the default port
+
+  # link container to database
+  links:
+    - db
+    - redis
+
+
+celery-beat:
+  # the same django image of uwsgi
+  build: ./uwsgi
+
+  command: celery -A image beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --pidfile /var/run/celerybeat.pid
+
+  # set working dir for uwsgi
+  working_dir: /var/uwsgi/image/
+
+  # define volumes
+  volumes:
+    - "./django-data/:/var/uwsgi/"
+    - "/etc/localtime:/etc/localtime:ro"
+
+  # Expose the default port
+
+  # link container to database
+  links:
+    - db
+    - redis
+
+
+celery-flower:
+  # the same django image of uwsgi
+  build: ./uwsgi
+
+  command: celery -A image flower --port=5555 --loglevel=info # --persistent=True
+
+  # set working dir for uwsgi
+  working_dir: /var/uwsgi/image/
+
+  # define volumes
+  volumes:
+    - "./django-data/:/var/uwsgi/"
+    - "/etc/localtime:/etc/localtime:ro"
+
+  # Expose flower port
+  # TODO: serve this using nginx under authentication
+  ports:
+    - "5555:5555"
+
+  # link container to database
+  links:
+    - db
+    - redis
 
 
 nginx:

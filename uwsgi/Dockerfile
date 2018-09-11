@@ -40,11 +40,11 @@ ENV PYTHONUNBUFFERED 1
 
 # Install pypi modules (uwsgi)
 COPY requirements.txt /root/
-RUN pip install -r /root/requirements.txt
+RUN pip install --no-cache-dir -r /root/requirements.txt
 
 # installing custom modules
 COPY requirements_git.txt /root/
-RUN pip install -r /root/requirements_git.txt
+RUN pip install --no-cache-dir -r /root/requirements_git.txt
 
 # Execute a default command
 CMD ["/bin/bash"]
