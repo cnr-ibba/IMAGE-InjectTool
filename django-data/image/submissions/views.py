@@ -27,7 +27,17 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
         self.object = form.save(commit=False)
         self.object.owner = self.request.user
         # call inherited methods (which save object and render Http)
+        # a valid submission returns a submission detail view
+        # through get_absolute_url defined in Submission model method
+
+        # TODO: remove form:valid super method, save object, call the upload
+        # task then return success url
         return super().form_valid(form)
+
+        # TODO: a valid submission start a task
+        # TODO: call task
+        # self.object = form.save()
+        # return HttpResponseRedirect(self.get_success_url())
 
 
 class DetailSubmissionView(LoginRequiredMixin, DetailView):

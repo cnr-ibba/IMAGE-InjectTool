@@ -49,6 +49,7 @@ uwsgi:
   # link container to database
   links:
     - db
+    - redis
 
 
 celery-worker:

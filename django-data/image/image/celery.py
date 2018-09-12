@@ -7,6 +7,9 @@ Created on Tue Sep 11 14:34:27 2018
 """
 
 import os
+import redis
+
+from time import sleep
 
 from celery import Celery, Task
 from celery.schedules import crontab
@@ -33,6 +36,53 @@ class MyTask(Task):
 
     def debug_task(self):
         logger.debug('Request: {0!r}'.format(self.request))
+
+
+# http://loose-bits.com/2010/10/distributed-task-locking-in-celery.html
+def only_one(function=None, key="", timeout=None, blocking=False):
+    """Enforce only one celery task at a time."""
+
+    REDIS_CLIENT = redis.StrictRedis(host='redis', port=6379, db=0)
+
+    def _dec(run_func):
+        """Decorator."""
+
+        def _caller(*args, **kwargs):
+            """Caller."""
+            ret_value = None
+            have_lock = False
+            lock = REDIS_CLIENT.lock(key, timeout=timeout)
+            try:
+                logger.debug("Acquiring lock...")
+                have_lock = lock.acquire(blocking=blocking)
+                if have_lock:
+                    logger.debug("Calling function...")
+                    ret_value = run_func(*args, **kwargs)
+
+                else:
+                    logger.warn("Lock already took by another task")
+
+            finally:
+                if have_lock:
+                    logger.debug("Releasing lock")
+                    lock.release()
+
+            return ret_value
+
+        return _caller
+
+    return _dec(function) if function is not None else _dec
+
+
+@app.task(bind=True, base=MyTask)
+@only_one(key="SingleTask", timeout=60 * 5, blocking=True)
+def test(self, arg):
+    self.debug_task()
+    print(arg)
+    logger.info("Sleep for a minute...")
+    sleep(60)
+    logger.info("Done")
+    return "success"
 
 
 # https://stackoverflow.com/a/51429597
