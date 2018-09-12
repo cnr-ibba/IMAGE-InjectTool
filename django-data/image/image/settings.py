@@ -278,6 +278,8 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TIMEZONE = 'Europe/Rome'
+CELERY_ENABLE_UTC = False
 
 # cleanup after 1 hour
 # CELERY_TASK_RESULT_EXPIRES = 3600

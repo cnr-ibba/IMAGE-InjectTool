@@ -57,6 +57,6 @@ def clearsessions(self):
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-        crontab(hour="*/12"),
+        crontab(hour=12, minute=00),
         clearsessions.s(),
     )
