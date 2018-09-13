@@ -11,13 +11,13 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 
 """
 
-from time import sleep
+import time
+import redis
 
 from celery import task
 from celery.five import monotonic
 from celery.utils.log import get_task_logger
 from contextlib import contextmanager
-from django.core.cache import cache
 
 
 logger = get_task_logger(__name__)
@@ -26,23 +26,25 @@ LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 
 @contextmanager
-def memcache_lock(lock_id, oid):
+def redis_lock(lock_id, blocking=False):
+    REDIS_CLIENT = redis.StrictRedis(host='redis', port=6379, db=0)
+
     timeout_at = monotonic() + LOCK_EXPIRE - 3
-    # cache.add fails if the key already exists
-    status = cache.add(lock_id, oid, LOCK_EXPIRE)
+
+    lock = REDIS_CLIENT.lock(lock_id, timeout=LOCK_EXPIRE)
+    status = lock.acquire(blocking=blocking)
 
     try:
         yield status
 
     finally:
-        # memcache delete is very slow, but we have to use it to take
-        # advantage of using add() for atomic locking
+        # we take advantage of using add() for atomic locking
         if monotonic() < timeout_at and status:
             # don't release the lock if we exceeded the timeout
             # to lessen the chance of releasing an expired lock
             # owned by someone else
             # also don't release the lock if we didn't acquire it
-            cache.delete(lock_id)
+            lock.release()
 
 
 @task(bind=True)
@@ -52,10 +54,17 @@ def import_from_cryoweb(self, submission_id):
     lock_id = 'ImportFromCryoWeb'
     logger.info("Start import from cryoweb for submission: %s" % submission_id)
 
-    with memcache_lock(lock_id, self.app.oid) as acquired:
+    # forcing blocking cndition: Wait until a get a lock object
+    with redis_lock(lock_id, blocking=True) as acquired:
         if acquired:
             # do some stuff
-            sleep(60)
+            time.sleep(60)
 
-    logger.info(
-        "Cryoweb import completed for submission: %s" % submission_id)
+            logger.info(
+                "Cryoweb import completed for submission: %s" % submission_id)
+
+            # always return something
+            return "success"
+
+    logger.warning(
+        "Cryoweb import already running!")
