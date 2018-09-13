@@ -48,14 +48,14 @@ def redis_lock(lock_id, blocking=False):
 
 
 @task(bind=True)
-def import_from_cryoweb(self, submission_id):
+def import_from_cryoweb(self, submission_id, blocking=True):
     # The cache key consists of the task name and the MD5 digest
     # of the feed URL.
     lock_id = 'ImportFromCryoWeb'
     logger.info("Start import from cryoweb for submission: %s" % submission_id)
 
     # forcing blocking cndition: Wait until a get a lock object
-    with redis_lock(lock_id, blocking=True) as acquired:
+    with redis_lock(lock_id, blocking=blocking) as acquired:
         if acquired:
             # do some stuff
             time.sleep(60)
