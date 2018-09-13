@@ -78,7 +78,7 @@ def only_one(function=None, key="", timeout=None, blocking=False):
 @only_one(key="SingleTask", timeout=60 * 5, blocking=True)
 def test(self, arg):
     self.debug_task()
-    print(arg)
+    logger.info("Received: %s" % str(arg))
     logger.info("Sleep for a minute...")
     sleep(60)
     logger.info("Done")

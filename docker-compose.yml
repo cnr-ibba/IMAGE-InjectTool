@@ -57,7 +57,7 @@ celery-worker:
   build: ./uwsgi
 
   # exec a different command uwsgi
-  command: celery -A image worker -l info -E --pidfile /var/run/celery.pid
+  command: celery -A image worker -l info -E --concurrency 1 --uid www-data --pidfile /var/run/celery/celery.pid
 
   # set working dir for uwsgi
   working_dir: /var/uwsgi/image/
@@ -79,7 +79,7 @@ celery-beat:
   # the same django image of uwsgi
   build: ./uwsgi
 
-  command: celery -A image beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --pidfile /var/run/celerybeat.pid
+  command: celery -A image beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --pidfile /var/run/celery/celerybeat.pid
 
   # set working dir for uwsgi
   working_dir: /var/uwsgi/image/

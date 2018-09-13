@@ -32,8 +32,11 @@ WORKDIR /var/uwsgi/
 # Set uwsgi directory as VOLUME
 VOLUME /var/uwsgi/
 
-# Expose the default port
+# Expose the default port for django
 EXPOSE 8000
+
+# create a directory for celery pids and set permissions
+RUN mkdir -p /var/run/celery && chown -R www-data.www-data /var/run/celery
 
 # This environment variable force stdin, stdout and stderr to be totally unbuffered
 ENV PYTHONUNBUFFERED 1
