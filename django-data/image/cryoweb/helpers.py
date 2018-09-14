@@ -15,8 +15,11 @@ from language.models import SpecieSynonim
 logger = logging.getLogger(__name__)
 
 
-# a function to detect if cryoweb species have synonim or not
+# a function to detect if cryoweb species have synonims or not
 def check_species(language):
+    """Check specie for a language, ie: check_species(language='Germany').
+    Language is image_app.models.DictCountry.label"""
+
     # get all species using view
     species = VBreedSpecies.get_all_species()
 

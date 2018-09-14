@@ -19,6 +19,8 @@ from celery.five import monotonic
 from celery.utils.log import get_task_logger
 from contextlib import contextmanager
 
+from image_app.models import Submission
+
 
 logger = get_task_logger(__name__)
 
@@ -54,11 +56,19 @@ def import_from_cryoweb(self, submission_id, blocking=True):
     lock_id = 'ImportFromCryoWeb'
     logger.info("Start import from cryoweb for submission: %s" % submission_id)
 
+    # get a submission object
+    submission = Submission.objects.get(pk=submission_id)
+
     # forcing blocking cndition: Wait until a get a lock object
     with redis_lock(lock_id, blocking=blocking) as acquired:
         if acquired:
             # do some stuff
             time.sleep(60)
+
+            # modify database status
+            logger.debug("Updating submission %s" % (submission_id))
+            submission.loaded = True
+            submission.save()
 
             logger.info(
                 "Cryoweb import completed for submission: %s" % submission_id)

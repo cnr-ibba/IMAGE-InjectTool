@@ -875,10 +875,17 @@ class Submission(models.Model):
     # custom fields for datasource
     upload_dir = 'data_source/'
     uploaded_file = models.FileField(upload_to=upload_dir)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    # internal column to check if data were uploaded in image db or not
+    # when submission is created
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # internal column to check if data were uploaded in image UID or not
+    # HINT: check compatibility with cryoweb methods
     loaded = models.BooleanField(default=False)
+
+    # a field to track errors in UID loading. Should be blank if no errors
+    # are found
+    errors = models.TextField(null=True)
 
     owner = models.ForeignKey(
         User,

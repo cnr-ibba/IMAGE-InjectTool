@@ -14,6 +14,18 @@ import cryoweb.tasks
 
 
 class ImportCryowebTest(TestCase):
+    # import this file and populate database once
+    fixtures = [
+        "cryoweb/user",
+        "cryoweb/dictrole",
+        "cryoweb/organization",
+        "cryoweb/dictcountry",
+        "cryoweb/submission",
+        "cryoweb/dictsex",
+        "cryoweb/dictspecie",
+        "cryoweb/speciesynonim"
+    ]
+
     # TODO: patch the proper function
     @patch("cryoweb.tasks.time.sleep")
     def test_import_from_cryoweb(self, my_sleep):

@@ -8,6 +8,7 @@ Created on Tue Sep 11 14:34:27 2018
 
 import os
 import redis
+import functools
 
 from time import sleep
 
@@ -47,6 +48,8 @@ def only_one(function=None, key="", timeout=None, blocking=False):
     def _dec(run_func):
         """Decorator."""
 
+        # With @functools.wraps applied, our function can retain its attribute
+        @functools.wraps(run_func)
         def _caller(*args, **kwargs):
             """Caller."""
             ret_value = None
@@ -76,6 +79,16 @@ def only_one(function=None, key="", timeout=None, blocking=False):
 
 @app.task(bind=True, base=MyTask)
 @only_one(key="SingleTask", timeout=60 * 5, blocking=True)
+def test_single(self, arg):
+    self.debug_task()
+    logger.info("Received: %s" % str(arg))
+    logger.info("Sleep for a minute...")
+    sleep(60)
+    logger.info("Done")
+    return "success"
+
+
+@app.task(bind=True, base=MyTask)
 def test(self, arg):
     self.debug_task()
     logger.info("Received: %s" % str(arg))
@@ -107,6 +120,6 @@ def clearsessions(self):
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
-        crontab(hour=12, minute=00),
+        crontab(hour=12, minute=0),
         clearsessions.s(),
     )

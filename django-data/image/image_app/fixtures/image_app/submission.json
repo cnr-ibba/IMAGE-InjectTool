@@ -10,11 +10,12 @@
     "datasource_type": 0,
     "datasource_version": "23.01",
     "uploaded_file": "data_source/cryoweb_test_data_only.sql",
-    "uploaded_at": "2018-04-11T13:44:31.988Z",
+    "created_at": "2018-04-11T13:44:31.988Z",
     "gene_bank_name": "CryoWeb",
     "loaded": false,
     "owner": 1,
-    "organization": 2
+    "organization": 2,
+    "errors": null
   }
 }
 ]

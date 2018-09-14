@@ -33,7 +33,7 @@ def get_a_submission():
     """Get the first not uploaded submission"""
 
     return Submission.objects.filter(
-            loaded=False).order_by("-uploaded_at").first()
+            loaded=False).order_by("-created_at").first()
 
 
 @login_required

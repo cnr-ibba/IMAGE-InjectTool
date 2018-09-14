@@ -10,10 +10,10 @@ tmp/
 *migrations*
 *tgz
 *tar.gz
-*.json
 *.tar
 *.csv
 .pytest_cache/
+django-data/image/dumps/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
