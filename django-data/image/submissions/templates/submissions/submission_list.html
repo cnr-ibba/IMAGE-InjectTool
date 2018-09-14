@@ -5,10 +5,27 @@
 {% endblock title %}
 
 {% block content %}
- <ul>
-   {% for submission in object_list %}
-     <li><a href="{% url 'submissions:detail' pk=submission.pk %}">{{ submission.pk }}</a></li>
-   {% endfor %}
- </ul>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">Title</th>
+      <th scope="col">Description</th>
+      <th scope="col">Type</th>
+      <th scope="col">File</th>
+      <th scope="col">Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for submission in object_list %}
+      <tr class="{% cycle 'table-primary' 'table-secondary' %}">
+        <th><a href="{% url 'submissions:detail' pk=submission.pk %}">{{ submission.title }}</a></th>
+        <td>{{ submission.description|truncatechars:30 }}</td>
+        <td>{{ submission.get_datasource_type_display }}</td>
+        <td>{{ submission.get_uploaded_file_basename }}</td>
+        <td>{{ submission.created_at }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
 {% endblock %}

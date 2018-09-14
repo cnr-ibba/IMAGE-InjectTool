@@ -6,15 +6,63 @@
 {% endblock title %}
 
 {% block content %}
-  <ul>
-    <li>{{ submission.title }}</li>
-    <li>{{ submission.description }}</li>
-    <li>{{ submission.gene_bank_name }}</li>
-    <li>{{ submission.gene_bank_country }}</li>
-    <li>{{ submission.organization }}</li>
-    <li>{{ submission.get_datasource_type_display }}</li>
-    <li>{{ submission.datasource_version }}</li>
-    <li>{{ submission.uploaded_file }}</li>
-    <li>{{ submission.loaded }}</li>
-  </ul>
-{% endblock %}
+
+<h1>Submission Detail</h1>
+
+<table class="table table-hover mt-5">
+  <tbody>
+    <tr class="table-primary">
+      <th scope="row">Submission Title:</th>
+      <td>{{ submission.title }}</td>
+    </tr>
+    <tr class="table-secondary">
+      <th scope="row">Description:</th>
+      <td>{{ submission.description }}</td>
+    </tr>
+    <tr class="table-primary">
+      <th scope="row">Gene Bank Name:</th>
+      <td id="claims">{{ submission.gene_bank_name }}</td>
+    </tr>
+    <tr class="table-secondary">
+      <th scope="row">Gene Bank Country:</th>
+      <td>{{ submission.gene_bank_country }}</td>
+    </tr>
+
+    <tr class="table-primary">
+      <th scope="row">Organization:</th>
+      <td id="claims">{{ submission.organization }}</td>
+    </tr>
+    <tr class="table-secondary">
+      <th scope="row">Datasource Type:</th>
+      <td>{{ submission.get_datasource_type_display }}</td>
+    </tr>
+    <tr class="table-primary">
+      <th scope="row">Datasource version:</th>
+      <td>{{ submission.datasource_version }}</td>
+    </tr>
+    <tr class="table-secondary">
+      <th scope="row">Data File:</th>
+      <td id="claims"><a href="{{ submission.uploaded_file.url }}">{{ submission.get_uploaded_file_basename }}</a></td>
+    </tr>
+    <tr class="table-primary">
+      <th scope="row">Created at:</th>
+      <td>{{ submission.created_at }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="container mt-5">
+  <div class="row">
+    {% if submission.loaded %}
+      <div class="col-sm-4 lead text-center"><a class="btn btn-primary btn-lg btn-block" href="#" role="button">Edit data</a></div>
+      <div class="col-sm-4 lead text-center"><a class="btn btn-warning btn-lg btn-block" href="#" role="button">Validate</a></div>
+      <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block" href="#" role="button">Submit</a></div>
+    {% else %}
+      <div class="col-sm-4 lead text-center"><a class="btn btn-primary btn-lg btn-block disabled" href="#" role="button">Edit data</a></div>
+      <div class="col-sm-4 lead text-center"><a class="btn btn-warning btn-lg btn-block disabled" href="#" role="button">Validate</a></div>
+      <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block disabled" href="#" role="button">Submit</a></div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock content %}

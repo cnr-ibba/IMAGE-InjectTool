@@ -1,4 +1,5 @@
 
+import os
 import datetime
 from enum import Enum
 
@@ -907,6 +908,9 @@ class Submission(models.Model):
             self.gene_bank_country.label,
             self.datasource_version
         )
+
+    def get_uploaded_file_basename(self):
+        return os.path.basename(self.uploaded_file.name)
 
     def get_absolute_url(self):
         return reverse("submissions:detail", kwargs={"pk": self.pk})

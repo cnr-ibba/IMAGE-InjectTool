@@ -181,3 +181,5 @@
 * test each management command, or at least that it works
 
 * Upgrade `docker-compose.yml` to latest version format
+
+* Add breadcrumb

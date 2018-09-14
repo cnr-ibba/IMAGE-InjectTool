@@ -52,20 +52,17 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
     model = Submission
     template_name = "submissions/submission_detail.html"
 
+    # https://stackoverflow.com/a/45696442
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
 
         if self.object.errors is not None:
             messages.error(
                 request=self.request,
-                message='Error in importing data',
+                message='Error in importing data: %s' % self.object.errors,
                 extra_tags="alert alert-dismissible alert-danger")
 
             # TODO: add errors to context
-            messages.error(
-                request=self.request,
-                message=self.object.errors,
-                extra_tags="alert alert-dismissible alert-danger")
 
         # check if data are loaded or not
         elif self.object.loaded is False:
@@ -80,3 +77,4 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
 class ListSubmissionsView(LoginRequiredMixin, ListView):
     model = Submission
     template_name = "submissions/submission_list.html"
+    ordering = ['created_at']

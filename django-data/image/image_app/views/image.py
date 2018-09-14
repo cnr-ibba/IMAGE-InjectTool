@@ -37,6 +37,10 @@ class AboutView(TemplateView):
 class DashBoardView(LoginRequiredMixin, TemplateView):
     template_name = "image_app/dashboard.html"
 
+    def get_context_data(self, **kwargs):
+        kwargs['have_submission'] = Submission.objects.exists()
+        return super().get_context_data(**kwargs)
+
 
 class SummaryView(LoginRequiredMixin, TemplateView):
     template_name = "image_app/summary.html"
