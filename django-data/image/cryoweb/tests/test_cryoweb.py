@@ -43,17 +43,20 @@ class BaseTestCase(TestCase):
         self.client.login(username='test', password='test')
 
     def check_messages(self, response, tag, message_text):
-        """Check that a response has warnings"""
+        """Check that a response has messages"""
 
         # each element is an instance
         # of django.contrib.messages.storage.base.Message
         all_messages = [msg for msg in get_messages(response.wsgi_request)]
 
+        found = False
+
+        # I can have moltiple message, and maybe I need to find a specific one
         for message in all_messages:
-            self.assertTrue(tag in message.tags)
-            self.assertEqual(
-                message.message,
-                message_text)
+            if tag in message.tags and message_text in message.message:
+                found = True
+
+        self.assertTrue(found)
 
 
 class FillUIDTestClass(BaseTestCase):

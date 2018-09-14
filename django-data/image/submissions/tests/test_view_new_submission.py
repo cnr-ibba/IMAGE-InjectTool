@@ -8,6 +8,8 @@ Created on Tue Jul 24 16:58:41 2018
 
 import os
 
+from unittest.mock import patch
+
 from django.urls import reverse, resolve
 from django.test import Client, TestCase
 
@@ -74,7 +76,9 @@ class CreateSubmissionViewTest(Initialize):
 
 
 class SuccessfulCreateSubmissionViewTest(Initialize):
-    def setUp(self):
+    # patch to simulate data load
+    @patch('cryoweb.tasks.import_from_cryoweb.delay')
+    def setUp(self, my_task):
         # create a test user
         super().setUp()
 
@@ -103,18 +107,26 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         # submit an empty dictionary
         self.response = self.client.post(self.url, data, follow=True)
 
+        # get the submission object
+        self.submission = Submission.objects.first()
+
+        # track mocked object
+        self.my_task = my_task
+
     def test_new_submission_obj(self):
         self.assertTrue(Submission.objects.exists())
 
     def test_redirect(self):
-        submission = Submission.objects.first()
-        url = reverse('submissions:detail', kwargs={'pk': submission.pk})
+        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
         self.assertRedirects(self.response, url)
 
     def test_new_not_found_status_code(self):
         url = reverse('submissions:detail', kwargs={'pk': 99})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+    def test_task_called(self):
+        self.my_task.assert_called_with(self.submission.pk)
 
 
 class InvalidCreateSubmissionViewTest(Initialize):

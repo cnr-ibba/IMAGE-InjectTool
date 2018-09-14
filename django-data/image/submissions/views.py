@@ -6,11 +6,21 @@ Created on Tue Jul 24 15:49:23 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import logging
+
+from django.http import HttpResponseRedirect
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, DetailView, ListView
 
 from image_app.models import Submission
+from cryoweb.tasks import import_from_cryoweb
+
 from .forms import SubmissionForm
+
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 class CreateSubmissionView(LoginRequiredMixin, CreateView):
@@ -26,23 +36,46 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.owner = self.request.user
-        # call inherited methods (which save object and render Http)
-        # a valid submission returns a submission detail view
-        # through get_absolute_url defined in Submission model method
 
-        # TODO: remove form:valid super method, save object, call the upload
-        # task then return success url
-        return super().form_valid(form)
+        # update object
+        self.object = form.save()
 
-        # TODO: a valid submission start a task
-        # TODO: call task
-        # self.object = form.save()
-        # return HttpResponseRedirect(self.get_success_url())
+        # a valid submission start a task
+        res = import_from_cryoweb.delay(self.object.pk)
+        logger.info(
+            "Start cryoweb importing process using with task %s" % res.task_id)
+
+        # a redirect to self.object.get_absolute_url()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class DetailSubmissionView(LoginRequiredMixin, DetailView):
     model = Submission
     template_name = "submissions/submission_detail.html"
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+
+        if self.object.errors is not None:
+            messages.error(
+                request=self.request,
+                message='Error in importing data',
+                extra_tags="alert alert-dismissible alert-danger")
+
+            # TODO: add errors to context
+            messages.error(
+                request=self.request,
+                message=self.object.errors,
+                extra_tags="alert alert-dismissible alert-danger")
+
+        # check if data are loaded or not
+        elif self.object.loaded is False:
+            messages.warning(
+                request=self.request,
+                message='waiting for data processing',
+                extra_tags="alert alert-dismissible alert-warning")
+
+        return data
 
 
 class ListSubmissionsView(LoginRequiredMixin, ListView):

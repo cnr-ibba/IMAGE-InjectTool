@@ -173,13 +173,17 @@ class InvalidCreateAuthViewTest(BaseTest):
 
 class SuccessFullCreateAuthViewTest(BaseTest):
     @classmethod
-    def setup_class(cls):
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
         cls.mock_get_patcher = patch('pyEBIrest.auth.requests.get')
         cls.mock_get = cls.mock_get_patcher.start()
 
     @classmethod
-    def teardown_class(cls):
+    def tearDownClass(cls):
         cls.mock_get_patcher.stop()
+        super().tearDownClass()
 
     def setUp(self):
         # create a test user

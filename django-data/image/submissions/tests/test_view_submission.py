@@ -8,6 +8,9 @@ Created on Tue Jul 24 11:08:12 2018
 
 from django.urls import resolve, reverse
 from django.test import TestCase, Client
+from django.contrib.messages import get_messages
+
+from image_app.models import Submission
 
 from ..views import DetailSubmissionView
 
@@ -22,6 +25,22 @@ class DetailSubmissionViewTest(TestCase):
         "submissions/organization",
         "submissions/submission"
     ]
+
+    def check_messages(self, response, tag, message_text):
+        """Check that a response has warnings"""
+
+        # each element is an instance
+        # of django.contrib.messages.storage.base.Message
+        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+
+        found = False
+
+        # I can have moltiple message, and maybe I need to find a specific one
+        for message in all_messages:
+            if tag in message.tags and message_text in message.message:
+                found = True
+
+        self.assertTrue(found)
 
     def setUp(self):
         # login a test user (defined in fixture)
@@ -51,3 +70,41 @@ class DetailSubmissionViewTest(TestCase):
         self.assertIsInstance(view.func.view_class(), DetailSubmissionView)
 
     # TODO: test links for data edit, validate and submit
+
+    # simulate data loaded and unloaded with messages
+    def test_unloaded(self):
+        self.check_messages(
+            self.response,
+            "warning",
+            "waiting for data processing")
+
+    def test_loaded(self):
+        """If data were loaded, no warning message are present"""
+
+        # set loaded flag
+        submission = Submission.objects.get(pk=1)
+        submission.loaded = True
+        submission.save()
+
+        # get a new response
+        response = self.client.get(self.url)
+
+        # get all response
+        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+
+        self.assertTrue(len(all_messages) == 0)
+
+    # simulate errors in uploading data
+    def test_errors(self):
+        # set loaded flag
+        submission = Submission.objects.get(pk=1)
+        submission.errors = "Fake Error"
+        submission.save()
+
+        # get a new response
+        response = self.client.get(self.url)
+
+        self.check_messages(
+            response,
+            "error",
+            "Error in importing data")

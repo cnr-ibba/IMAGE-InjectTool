@@ -26,13 +26,20 @@ class Basetest(TestCase):
     ]
 
     @classmethod
-    def setup_class(cls):
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # adding mock objects
         cls.mock_get_patcher = patch('pyEBIrest.auth.requests.get')
         cls.mock_get = cls.mock_get_patcher.start()
 
     @classmethod
-    def teardown_class(cls):
+    def tearDownClass(cls):
         cls.mock_get_patcher.stop()
+
+        # calling base method
+        super().tearDownClass()
 
     def setUp(self):
         User = get_user_model()

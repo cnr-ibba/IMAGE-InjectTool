@@ -65,6 +65,8 @@ def import_from_cryoweb(self, submission_id, blocking=True):
             # do some stuff
             time.sleep(60)
 
+            # TODO: catch exception and write it into submission.errors
+
             # modify database status
             logger.debug("Updating submission %s" % (submission_id))
             submission.loaded = True
