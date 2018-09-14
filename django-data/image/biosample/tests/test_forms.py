@@ -8,7 +8,7 @@ Created on Fri Jul  6 16:04:18 2018
 
 from django.test import TestCase
 
-from ..forms import CreateAuthViewForm, RegisterUserForm, CreateUserForm
+from ..forms import CreateAuthViewForm, CreateUserForm, RegisterUserForm
 
 
 class CreateAuthViewFormTest(TestCase):

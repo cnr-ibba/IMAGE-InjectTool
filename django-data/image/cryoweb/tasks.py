@@ -12,15 +12,13 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 """
 
 import time
-import redis
+from contextlib import contextmanager
 
+import redis
 from celery import task
 from celery.five import monotonic
 from celery.utils.log import get_task_logger
-from contextlib import contextmanager
-
 from image_app.models import Submission
-
 
 logger = get_task_logger(__name__)
 

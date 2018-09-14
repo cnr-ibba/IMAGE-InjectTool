@@ -8,16 +8,15 @@ Created on Tue Jul 24 15:49:23 2018
 
 import logging
 
-from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, ListView
 
-from image_app.models import Submission
 from cryoweb.tasks import import_from_cryoweb
+from image_app.models import Submission
 
 from .forms import SubmissionForm
-
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

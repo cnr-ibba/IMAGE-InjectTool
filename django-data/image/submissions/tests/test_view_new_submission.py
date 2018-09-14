@@ -7,17 +7,16 @@ Created on Tue Jul 24 16:58:41 2018
 """
 
 import os
-
 from unittest.mock import patch
 
-from django.urls import reverse, resolve
 from django.test import Client, TestCase
+from django.urls import resolve, reverse
 
-from image_app.models import DictCountry, Submission, Organization
 import cryoweb.tests
+from image_app.models import DictCountry, Organization, Submission
 
-from ..views import CreateSubmissionView
 from ..forms import SubmissionForm
+from ..views import CreateSubmissionView
 
 
 class Initialize(TestCase):

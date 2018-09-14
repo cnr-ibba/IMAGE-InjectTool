@@ -8,18 +8,16 @@ Created on Tue Jul 10 14:55:11 2018
 
 from unittest.mock import patch
 
-from django.test import Client, TestCase
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
-from django.urls import reverse, resolve
-
-from pyEBIrest.auth import Auth
+from django.test import Client, TestCase
+from django.urls import resolve, reverse
 
 from image_app.models import Organization
+from pyEBIrest.auth import Auth
 
 from ..forms import CreateUserForm
 from ..views import CreateUserView
-
 from .test_token import generate_token
 
 

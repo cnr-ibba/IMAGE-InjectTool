@@ -6,17 +6,16 @@ Created on Fri Jul  6 16:01:20 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
-from django.test import Client, TestCase
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
-from django.urls import reverse, resolve
+from django.test import Client, TestCase
+from django.urls import resolve, reverse
 
 from ..forms import RegisterUserForm
-from ..views import RegisterUserView
 from ..models import ManagedTeam
-
+from ..views import RegisterUserView
 from .test_token import generate_token
 
 

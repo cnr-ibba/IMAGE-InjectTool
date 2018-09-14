@@ -21,8 +21,8 @@ from django.shortcuts import redirect, render
 
 import cryoweb.helpers
 import image_app.helpers
-from image_app.models import (Animal, Submission, DictBreed, DictCountry,
-                              DictSex, DictSpecie, Name, Sample)
+from image_app.models import (Animal, DictBreed, DictCountry, DictSex,
+                              DictSpecie, Name, Sample, Submission)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

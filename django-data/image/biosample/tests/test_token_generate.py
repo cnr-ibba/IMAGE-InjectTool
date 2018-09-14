@@ -6,17 +6,16 @@ Created on Tue Jul 17 14:52:13 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
-from django.test import Client, TestCase
-from django.urls import reverse, resolve
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.test import Client, TestCase
+from django.urls import resolve, reverse
 
 from ..forms import CreateAuthViewForm
-from ..views import CreateAuthView
 from ..models import Account, ManagedTeam
-
+from ..views import CreateAuthView
 from .session_enabled_test_case import SessionEnabledTestCase
 from .test_token import generate_token
 

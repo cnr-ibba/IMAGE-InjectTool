@@ -7,6 +7,7 @@ Created on Tue Jul 24 16:55:56 2018
 """
 
 from django.test import TestCase
+
 from ..forms import SubmissionForm
 
 

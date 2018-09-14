@@ -7,20 +7,17 @@ Created on Mon Apr  9 16:58:01 2018
 """
 
 import pandas as pd
-
 from django.contrib.messages import get_messages
+from django.core.management import call_command
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
-from django.core.management import call_command
 
 import cryoweb.helpers
-
 import image_app.helpers
-
 from image_app.models import DictCountry, DictSpecie, User
-from ..views import (fill_countries, fill_species, get_a_submission)
-
 from language.models import SpecieSynonim
+
+from ..views import fill_countries, fill_species, get_a_submission
 
 
 class BaseTestCase(TestCase):

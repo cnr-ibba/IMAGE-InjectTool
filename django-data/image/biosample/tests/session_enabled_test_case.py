@@ -24,9 +24,10 @@ class MyTest(SessionEnabledTestCase):
 
 """
 
+from importlib import import_module
+
 from django.conf import settings as django_settings
 from django.test import TestCase
-from importlib import import_module
 
 
 class SessionEnabledTestCase(TestCase):

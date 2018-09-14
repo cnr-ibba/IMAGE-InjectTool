@@ -7,16 +7,15 @@ Created on Tue Jul 17 10:59:01 2018
 """
 
 import datetime
-import python_jwt
 
-from django.test import TestCase, Client
-from django.urls import reverse, resolve
+import python_jwt
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.test import Client, TestCase
+from django.urls import resolve, reverse
 
-from ..views import AuthView
 from ..models import Account, ManagedTeam
-
+from ..views import AuthView
 from .session_enabled_test_case import SessionEnabledTestCase
 
 
