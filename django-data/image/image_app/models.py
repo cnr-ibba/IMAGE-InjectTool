@@ -886,7 +886,9 @@ class Submission(models.Model):
 
     # a field to track errors in UID loading. Should be blank if no errors
     # are found
-    errors = models.TextField(null=True)
+    errors = models.TextField(
+        null=True,
+        blank=True)
 
     owner = models.ForeignKey(
         User,

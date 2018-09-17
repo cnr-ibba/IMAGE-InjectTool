@@ -180,7 +180,7 @@ class FillUIDTestClass(BaseTestCase):
         """Testing load_species function"""
 
         # define a custum df for species
-        test_df = pd.DataFrame({'efabis_species': ['Cattle', 'Sheep']})
+        test_df = pd.DataFrame({'ext_species': ['Cattle', 'Sheep']})
 
         # concat dataframe two times
         test_df = pd.concat([test_df, test_df])
@@ -189,7 +189,7 @@ class FillUIDTestClass(BaseTestCase):
         reference = []
 
         # get specie using synonyms (loaded using fixtures)
-        for synonim in test_df["efabis_species"]:
+        for synonim in test_df["ext_species"]:
             dictspecie = DictSpecie.get_by_synonim(synonim, "Germany")
             reference += [dictspecie.id]
 

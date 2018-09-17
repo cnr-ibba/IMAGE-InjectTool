@@ -40,9 +40,11 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
         self.object = form.save()
 
         # a valid submission start a task
+        # TODO: derive the correct task from data type
+        # I will have a different loading function accordingly with data type
         res = import_from_cryoweb.delay(self.object.pk)
         logger.info(
-            "Start cryoweb importing process using with task %s" % res.task_id)
+            "Start cryoweb importing process with task %s" % res.task_id)
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())

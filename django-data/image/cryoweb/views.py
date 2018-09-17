@@ -147,7 +147,7 @@ def fill_species(df_breeds_species, context, submission):
     logger.info("called fill_species()")
 
     # get all species
-    species_set = set(df_breeds_species["efabis_species"])
+    species_set = set(df_breeds_species["ext_species"])
 
     # get submission language
     language = submission.gene_bank_country.label
@@ -172,7 +172,7 @@ def fill_species(df_breeds_species, context, submission):
     logger.debug("returning: %s" % (species_dict))
 
     # now I have a dictionary of species to id, map columns to values
-    return list(df_breeds_species.efabis_species.map(species_dict))
+    return list(df_breeds_species.ext_species.map(species_dict))
 
 
 def fill_countries(df_breeds_species, context):
@@ -228,7 +228,7 @@ def fill_breeds(engine_from_cryoweb, context, submission):
     df_breeds_fin = df_breeds_species[
         ['db_breed',
          'efabis_mcname',
-         'efabis_species',
+         'ext_species',
          'efabis_country']]
 
     # set index to dataframe. Index will be internal cryoweb id
@@ -240,7 +240,7 @@ def fill_breeds(engine_from_cryoweb, context, submission):
     df_breeds_fin = df_breeds_fin.rename(
         columns={
             'efabis_mcname': 'supplied_breed',
-            'efabis_species': 'species',
+            'ext_species': 'species',
             'efabis_country': 'country',
         }
     )

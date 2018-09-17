@@ -10,6 +10,8 @@ from django.conf.urls import url
 
 from . import views
 
+# TODO: those views will be removed when data import and database task will be
+# addressed using celery modules
 urlpatterns = [
     url(r'^upload_cryoweb/$',
         views.upload_cryoweb,

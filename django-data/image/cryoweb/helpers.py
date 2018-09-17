@@ -34,7 +34,13 @@ def check_species(language):
         return True
 
     elif len(species) > synonims.count():
-        logger.warning("Some species haven't a synonim!")
+        logger.warning(
+            "Some species haven't a synonim for language: %s!" % (language))
+        logger.debug("Following terms lack of synonim:")
+        for specie in species:
+            if not SpecieSynonim.objects.filter(
+                    word=specie, language__label=language).exists():
+                logger.debug(specie)
         return False
 
     # may I see this case? For instance when filling synonims?

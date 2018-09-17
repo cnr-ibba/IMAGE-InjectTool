@@ -853,7 +853,7 @@ class VBreedSpecies(models.Model):
     @classmethod
     def get_all_species(cls):
         # get all distinct objects
-        queryset = cls.objects.order_by(
-            'efabis_species').distinct('efabis_species')
+        queryset = cls.objects.distinct('ext_species').order_by(
+            'ext_species')
 
-        return [entry.efabis_species for entry in queryset]
+        return [entry.ext_species for entry in queryset]
