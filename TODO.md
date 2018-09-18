@@ -54,7 +54,13 @@
   Using google refine? For the moment, no duplicate can be inserted into database,
   the second occurrence will not be included in database.
 
-* NGINX media folder can serve media files (jpg, etc). Deal with dump files (permissions?)
+* NGINX media folder can serve media files (jpg, etc).
+  - Deal with dump files (permissions?)
+  - Protect media files froun un-authenticated user. See
+    [this gist](https://gist.github.com/cobusc/ea1d01611ef05dacb0f33307e292abf4),
+    [private media with django](http://racingtadpole.com/blog/private-media-with-django/),
+    [How to Serve Protected Content With Django](https://wellfire.co/learn/nginx-django-x-accel-redirects/)
+    and [Django: What setting to be done in NGINX Conf to serve media file to logged in users only](https://www.digitalocean.com/community/questions/django-what-setting-to-be-done-in-nginx-conf-to-serve-media-file-to-logged-in-users-only)
 
 * deal with timeout when uploading data sources
 

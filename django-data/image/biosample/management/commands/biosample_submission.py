@@ -56,6 +56,12 @@ class Command(BaseCommand):
             type=str,
             help="A text file containing a valid token")
 
+        parser.add_argument(
+            '--finalize',
+            action='store_true',
+            default=False,
+            help="Finalize a submission")
+
         # TODO: provide team name by command line
 
     def handle(self, *args, **options):
@@ -121,9 +127,10 @@ class Command(BaseCommand):
             logger.error("Errors for submission: %s" % (errors))
             raise Exception("Submission has error exiting")
 
-        # finalize submission if there are not errors
-        logger.info("Finalizing submission")
-        submission.finalize()
+        if options['finalize']:
+            # finalize submission if there are not errors
+            logger.info("Finalizing submission")
+            submission.finalize()
 
         # completed
         logger.info("%s ended" % (sys.argv[1]))

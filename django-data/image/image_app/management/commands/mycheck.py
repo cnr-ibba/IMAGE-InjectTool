@@ -69,7 +69,10 @@ class TestDB(unittest.TestCase):
         database_files = [
                 str(datasource.uploaded_file) for datasource in queryset]
 
-        # HINT: are two list in the same order?
+        # Order the two lists
+        data_source_files.sort()
+        database_files.sort()
+
         self.assertListEqual(data_source_files,
                              database_files,
                              "\n "
