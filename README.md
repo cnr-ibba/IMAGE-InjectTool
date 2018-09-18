@@ -90,11 +90,15 @@ you have to move all `IMAGE-InjectTool` directory with all its content
 Build the docker-compose suite
 ------------------------------
 
-There are three containers defined in docker-compose.yml
+There are seven containers defined in `docker-compose.yml`
 
  - uwsgi: the code base
  - nginx: web interface
  - db: the postgres database
+ - redis: the redis database
+ - celery-worker: a celey worker image based on uwsgi image
+ - celery-beat: a celey beat image based on uwsgi image
+ - celery-flower: a celery monitoring imaged based on uwsgi image
 
 ```bash
 # build the images according to the docker-compose.yml specificatios. Docker will
@@ -255,6 +259,12 @@ $ docker-compose run --rm uwsgi coverage run --source='.' -m py.test
 # generate coverage report
 $ docker-compose run --rm uwsgi coverage report
 $ docker-compose run --rm uwsgi coverage html
+
+# scaling up celery worker to two instances:
+$ docker-compose scale celery-worker=2
+
+# restart celery workers and reload tasks:
+$ docker-compose restart celery-worker
 ```
 
 Exporting data from cryoweb
@@ -283,4 +293,10 @@ Submit UID data to biosample
 
 ```
 $ docker-compose run --rm uwsgi python manage.py biosample_submission -u <username>
+```
+
+Generate a biosample `json` file:
+
+```
+$ docker-compose run --rm uwsgi python manage.py get_json_for_biosample --outfile italian_submission_example.jso
 ```

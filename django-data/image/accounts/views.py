@@ -182,7 +182,8 @@ class ActivationView(RegistrationActivationView):
         if user and not activated:
             # this could be an activated user trying the same key used for
             # activation
-            logger.warning("key %s already used by %s" % (activation_key, user))
+            logger.warning("key %s already used by %s" % (
+                activation_key, user))
 
             messages.warning(
                 self.request,
