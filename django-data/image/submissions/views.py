@@ -57,17 +57,18 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
     # https://stackoverflow.com/a/45696442
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
+        waiting = Submission.STATUSES.get_value('waiting')
 
-        if self.object.errors is not None:
+        if self.object.message is not None and self.object.message != '':
             messages.error(
                 request=self.request,
-                message='Error in importing data: %s' % self.object.errors,
+                message='Error in importing data: %s' % self.object.message,
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # TODO: add errors to context
+            # TODO: add message to context
 
         # check if data are loaded or not
-        elif self.object.loaded is False:
+        elif self.object.status is waiting:
             messages.warning(
                 request=self.request,
                 message='waiting for data processing',

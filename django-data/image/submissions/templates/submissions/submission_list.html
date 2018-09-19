@@ -5,6 +5,9 @@
 {% endblock title %}
 
 {% block content %}
+
+<h1>Resume a submission</h1>
+
 <table class="table table-hover">
   <thead>
     <tr>
@@ -13,6 +16,7 @@
       <th scope="col">Type</th>
       <th scope="col">File</th>
       <th scope="col">Created</th>
+      <th scope="col">Status</th>
     </tr>
   </thead>
   <tbody>
@@ -23,6 +27,7 @@
         <td>{{ submission.get_datasource_type_display }}</td>
         <td>{{ submission.get_uploaded_file_basename }}</td>
         <td>{{ submission.created_at }}</td>
+        <td>{{ submission.get_status_display }}</td>
       </tr>
     {% endfor %}
   </tbody>

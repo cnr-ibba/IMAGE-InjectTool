@@ -263,7 +263,7 @@ class SubmissionTestCase(TestCase):
 
     def test_str(self):
         test = str(self.submission)
-        reference = "CryoWeb (Germany, 23.01)"
+        reference = "Cryoweb (Germany, test)"
 
         self.assertEqual(reference, test)
 
@@ -331,10 +331,10 @@ class AnimalTestCase(TestCase):
                 ),
             },
             "name": "ANIMAL:::ID:::132713",
-            "geneBankName": "CryoWeb",
+            "geneBankName": "Cryoweb",
             "geneBankCountry": "Germany",
             "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "23.01",
+            "dataSourceVersion": "test",
             "dataSourceId": "11",
             "species": {
                 "text": "Sus scrofa",
@@ -391,10 +391,10 @@ class AnimalTestCase(TestCase):
                 ),
             },
             "name": "ANIMAL:::ID:::132713",
-            "geneBankName": "CryoWeb",
+            "geneBankName": "Cryoweb",
             "geneBankCountry": "Germany",
             "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "23.01",
+            "dataSourceVersion": "test",
             "dataSourceId": "11",
             "species": {
                 "text": "Sus scrofa",
@@ -480,12 +480,12 @@ class AnimalTestCase(TestCase):
             'personEmail': [{'value': 'test@test.com'}],
             'personAffiliation': [{'value': 'Test organization'}],
             'personRole': role,
-            'organizationName': [{'value': 'IBBA-CNR'}],
+            'organizationName': [{'value': 'Test organization'}],
             'organizationRole': role,
-            'geneBankName': [{'value': 'CryoWeb'}],
+            'geneBankName': [{'value': 'Cryoweb'}],
             'geneBankCountry': country,
             'dataSourceType': [{'value': 'CryoWeb'}],
-            'dataSourceVersion': [{'value': '23.01'}],
+            'dataSourceVersion': [{'value': 'test'}],
             'material': [{
                 'value': 'organism',
                 'terms': [{'url': "/".join([
@@ -600,10 +600,10 @@ class SampleTestCase(TestCase):
                 ),
             },
             "name": "Siems_0722_393449",
-            "geneBankName": "CryoWeb",
+            "geneBankName": "Cryoweb",
             "geneBankCountry": "Germany",
             "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "23.01",
+            "dataSourceVersion": "test",
             "dataSourceId": "Siems_0722_393449",
             "derivedFrom": "animal_%s" % (self.animal.id),
             "collectionDate": {
@@ -652,10 +652,10 @@ class SampleTestCase(TestCase):
                 ),
             },
             "name": "Siems_0722_393449",
-            "geneBankName": "CryoWeb",
+            "geneBankName": "Cryoweb",
             "geneBankCountry": "Germany",
             "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "23.01",
+            "dataSourceVersion": "test",
             "dataSourceId": "Siems_0722_393449",
             "derivedFrom": "animal_%s" % (self.animal.id),
         }
@@ -719,12 +719,12 @@ class SampleTestCase(TestCase):
             'personEmail': [{'value': 'test@test.com'}],
             'personAffiliation': [{'value': 'Test organization'}],
             'personRole': role,
-            'organizationName': [{'value': 'IBBA-CNR'}],
+            'organizationName': [{'value': 'Test organization'}],
             'organizationRole': role,
-            'geneBankName': [{'value': 'CryoWeb'}],
+            'geneBankName': [{'value': 'Cryoweb'}],
             'geneBankCountry': country,
             'dataSourceType': [{'value': 'CryoWeb'}],
-            'dataSourceVersion': [{'value': '23.01'}],
+            'dataSourceVersion': [{'value': 'test'}],
             "material": [{
                 "value": "specimen from organism",
                 "terms": [{

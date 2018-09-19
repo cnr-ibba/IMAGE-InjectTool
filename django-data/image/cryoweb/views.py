@@ -32,8 +32,10 @@ logger = logging.getLogger(__name__)
 def get_a_submission():
     """Get the first not uploaded submission"""
 
+    waiting = Submission.STATUSES.get_value('waiting')
+
     return Submission.objects.filter(
-            loaded=False).order_by("-created_at").first()
+            status=waiting).order_by("-created_at").first()
 
 
 @login_required
@@ -899,7 +901,9 @@ def import_from_cryoweb(request):
         return redirect('image_app:dashboard')
 
     # TODO: check this
-    if submission.loaded is True:
+    waiting = Submission.STATUSES.get_value('waiting')
+
+    if submission.status != waiting:
         logger.warning("submission %s was already uploaded" % submission)
         messages.warning(
             request,
@@ -960,7 +964,8 @@ def import_from_cryoweb(request):
         # login information or template excel files
 
         # update submission.loaded field (I have alread loaded this data)
-        submission.loaded = True
+        loaded = Submission.STATUSES.get_value('loaded')
+        submission.status = loaded
         submission.save()
 
     # TODO: remove this: is not informative

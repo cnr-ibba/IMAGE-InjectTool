@@ -83,7 +83,7 @@ class DetailSubmissionViewTest(TestCase):
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.loaded = True
+        submission.status = Submission.STATUSES.get_value('loaded')
         submission.save()
 
         # get a new response
@@ -92,13 +92,15 @@ class DetailSubmissionViewTest(TestCase):
         # get all response
         all_messages = [msg for msg in get_messages(response.wsgi_request)]
 
+        print(all_messages)
+
         self.assertTrue(len(all_messages) == 0)
 
     # simulate errors in uploading data
     def test_errors(self):
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.errors = "Fake Error"
+        submission.message = "Fake Error"
         submission.save()
 
         # get a new response

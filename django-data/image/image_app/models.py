@@ -880,15 +880,40 @@ class Submission(models.Model):
     # when submission is created
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # internal column to check if data were uploaded in image UID or not
-    # HINT: check compatibility with cryoweb methods
-    loaded = models.BooleanField(default=False)
+    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+    class STATUSES(Enum):
+        waiting = (0, 'Waiting')
+        loaded = (1, 'Loaded')
+        submitted = (2, 'Submitted')
+        error = (3, 'Error')
+        need_revision = (4, 'Need Revision')
+
+        @classmethod
+        def get_value(cls, member):
+            return cls[member].value[0]
+
+    # a column to track submission status
+    status = models.SmallIntegerField(
+            choices=[x.value for x in STATUSES],
+            help_text='example: Waiting',
+            null=True,
+            blank=True,
+            default=0)
 
     # a field to track errors in UID loading. Should be blank if no errors
     # are found
-    errors = models.TextField(
+    message = models.TextField(
         null=True,
         blank=True)
+
+    # track biosample submission id in a field
+    # HINT: if I update a completed submision, shuold I track the
+    # last submission id?
+    biosample_submission_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text='Biosample submission id')
 
     owner = models.ForeignKey(
         User,

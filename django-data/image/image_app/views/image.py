@@ -58,8 +58,11 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         # Add info for datasource
         # TODO: count object for a certain user
         context['datasource_count'] = Submission.objects.count()
-        context['datasource_uploaded'] = Submission.objects.filter(
-            loaded=True).count()
+
+        # count not waiting objects. Using q for a not equal condition
+        waiting = Submission.STATUSES.get_value('waiting')
+        context['datasource_uploaded'] = Submission.objects.exclude(
+            status=waiting).count()
 
         # add info for cryoweb db
         context["cryoweb_hasdata"] = False
