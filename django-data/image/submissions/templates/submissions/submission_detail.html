@@ -50,6 +50,10 @@
       <th scope="row">Created at:</th>
       <td>{{ submission.created_at }}</td>
     </tr>
+    <tr class="table-secondary">
+      <th scope="row">Status:</th>
+      <td>{{ submission.get_status_display }}</td>
+    </tr>
   </tbody>
 </table>
 

@@ -22,6 +22,11 @@ from .forms import SubmissionForm
 logger = logging.getLogger(__name__)
 
 
+# reading statuses
+WAITING = Submission.STATUSES.get_value('waiting')
+ERROR = Submission.STATUSES.get_value('error')
+
+
 class CreateSubmissionView(LoginRequiredMixin, CreateView):
     form_class = SubmissionForm
     model = Submission
@@ -35,9 +40,13 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.owner = self.request.user
+        self.object.message = "waiting for data processing"
+
+        # force status
+        self.object.status = WAITING
 
         # update object
-        self.object = form.save()
+        self.object.save()
 
         # a valid submission start a task
         # TODO: derive the correct task from data type
@@ -57,22 +66,27 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
     # https://stackoverflow.com/a/45696442
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        waiting = Submission.STATUSES.get_value('waiting')
 
-        if self.object.message is not None and self.object.message != '':
+        # check if data are loaded or not
+        if self.object.status == WAITING:
+            # get the message or define a default message for waiting
+            message = self.object.message or "waiting for data processing"
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+        elif self.object.status == ERROR:
             messages.error(
                 request=self.request,
                 message='Error in importing data: %s' % self.object.message,
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # TODO: add message to context
-
-        # check if data are loaded or not
-        elif self.object.status is waiting:
-            messages.warning(
+        elif self.object.message is not None and self.object.message != '':
+            messages.debug(
                 request=self.request,
-                message='waiting for data processing',
-                extra_tags="alert alert-dismissible alert-warning")
+                message=self.object.message,
+                extra_tags="alert alert-dismissible alert-light")
 
         return data
 
@@ -81,3 +95,4 @@ class ListSubmissionsView(LoginRequiredMixin, ListView):
     model = Submission
     template_name = "submissions/submission_list.html"
     ordering = ['created_at']
+    paginate_by = 10

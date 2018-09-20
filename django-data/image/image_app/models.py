@@ -887,6 +887,7 @@ class Submission(models.Model):
         submitted = (2, 'Submitted')
         error = (3, 'Error')
         need_revision = (4, 'Need Revision')
+        ready = (5, "Ready")
 
         @classmethod
         def get_value(cls, member):

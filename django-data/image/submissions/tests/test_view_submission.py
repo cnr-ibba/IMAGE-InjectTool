@@ -101,6 +101,7 @@ class DetailSubmissionViewTest(TestCase):
         # set loaded flag
         submission = Submission.objects.get(pk=1)
         submission.message = "Fake Error"
+        submission.status = Submission.STATUSES.get_value('error')
         submission.save()
 
         # get a new response

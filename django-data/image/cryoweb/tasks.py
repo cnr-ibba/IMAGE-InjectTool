@@ -57,6 +57,9 @@ def import_from_cryoweb(self, submission_id, blocking=True):
     # get a submission object
     submission = Submission.objects.get(pk=submission_id)
 
+    # get statuses
+    loaded = Submission.STATUSES.get_value('loaded')
+
     # forcing blocking cndition: Wait until a get a lock object
     with redis_lock(lock_id, blocking=blocking) as acquired:
         if acquired:
@@ -67,11 +70,15 @@ def import_from_cryoweb(self, submission_id, blocking=True):
 
             # modify database status
             logger.debug("Updating submission %s" % (submission_id))
-            submission.loaded = True
+
+            message = "Cryoweb import completed for submission: %s" % (
+                submission_id)
+
+            submission.message = message
+            submission.status = loaded
             submission.save()
 
-            logger.info(
-                "Cryoweb import completed for submission: %s" % submission_id)
+            logger.info(message)
 
             # always return something
             return "success"
