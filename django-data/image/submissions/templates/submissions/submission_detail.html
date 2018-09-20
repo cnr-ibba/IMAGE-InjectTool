@@ -1,6 +1,8 @@
 
 {% extends "base.html" %}
 
+{% load submissions_tags %}
+
 {% block title %}
   Submission {{ submission.pk }}
 {% endblock title %}
@@ -51,11 +53,15 @@
   </tbody>
 </table>
 
+{# call a custom templatetag and send result into a variable #}
+{% is_waiting submission as waiting %}
+
 <div class="container mt-5">
   <div class="row">
-    <div class="col-sm-4 lead text-center"><a class="btn btn-primary btn-lg btn-block {% if submission.status == 0 %}disabled{% endif %}" href="#" role="button">Edit data</a></div>
-    <div class="col-sm-4 lead text-center"><a class="btn btn-warning btn-lg btn-block {% if submission.status == 0 %}disabled{% endif %}" href="#" role="button">Validate</a></div>
-    <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block {% if submission.status == 0 %}disabled{% endif %}" href="#" role="button">Submit</a></div>
+    {# disabling a button if waiting variable is set to true #}
+    <div class="col-sm-4 lead text-center"><a class="btn btn-primary btn-lg btn-block {% if waiting %}disabled{% endif %}" href="#" role="button">Edit data</a></div>
+    <div class="col-sm-4 lead text-center"><a class="btn btn-warning btn-lg btn-block {% if waiting %}disabled{% endif %}" href="#" role="button">Validate</a></div>
+    <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block {% if waiting %}disabled{% endif %}" href="#" role="button">Submit</a></div>
   </div>
 </div>
 
