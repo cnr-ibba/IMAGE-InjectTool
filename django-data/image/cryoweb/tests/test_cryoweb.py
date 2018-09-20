@@ -12,7 +12,6 @@ from django.core.management import call_command
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
-import cryoweb.helpers
 import image_app.helpers
 from image_app.models import DictCountry, DictSpecie, User
 from language.models import SpecieSynonim
@@ -22,7 +21,16 @@ from ..views import fill_countries, fill_species, get_a_submission
 
 class BaseTestCase(TestCase):
     # import this file and populate database once
-    fixtures = []
+    fixtures = [
+        "cryoweb/user",
+        "cryoweb/dictrole",
+        "cryoweb/organization",
+        "cryoweb/dictcountry",
+        "cryoweb/submission",
+        "cryoweb/dictsex",
+        "cryoweb/dictspecie",
+        "cryoweb/speciesynonim"
+    ]
 
     # By default, fixtures are only loaded into the default database. If you
     # are using multiple databases and set multi_db=True, fixtures will be
@@ -57,18 +65,6 @@ class BaseTestCase(TestCase):
 
 
 class FillUIDTestClass(BaseTestCase):
-    # import this file and populate database once
-    fixtures = [
-        "cryoweb/user",
-        "cryoweb/dictrole",
-        "cryoweb/organization",
-        "cryoweb/dictcountry",
-        "cryoweb/submission",
-        "cryoweb/dictsex",
-        "cryoweb/dictspecie",
-        "cryoweb/speciesynonim"
-    ]
-
     @classmethod
     def setUpClass(cls):
         # calling my base class setup
@@ -198,19 +194,6 @@ class FillUIDTestClass(BaseTestCase):
 
         # testing equality
         self.assertEqual(reference, test)
-
-    def test_check_species(self):
-        """Testing species and synonims"""
-
-        self.assertTrue(cryoweb.helpers.check_species("Germany"))
-
-        # now delete a synonim
-        synonim = SpecieSynonim.objects.get(
-            language__label='Germany',
-            word='Cattle')
-        synonim.delete()
-
-        self.assertFalse(cryoweb.helpers.check_species("Germany"))
 
     def test_load_countriess(self):
         """Testing load_countries function"""
