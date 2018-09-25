@@ -16,6 +16,7 @@ from image_app.models import Submission
 
 from .test_cryoweb import BaseTestCase
 from ..helpers import upload_cryoweb, check_species
+from ..models import db_has_data, truncate_database
 
 
 class CheckSpecie(BaseTestCase):
@@ -33,6 +34,15 @@ class CheckSpecie(BaseTestCase):
             app='cryoweb',
             database='cryoweb',
             verbosity=0)
+
+    @classmethod
+    def tearDownClass(cls):
+        # truncate cryoweb database after loading
+        if db_has_data():
+            truncate_database()
+
+        # calling my base class teardown class
+        super().tearDownClass()
 
     def test_check_species(self):
         """Testing species and synonims"""
@@ -56,6 +66,16 @@ class UploadCryoweb(BaseTestCase):
         # track submission
         self.submission = Submission.objects.get(pk=1)
 
+    def tearDown(self):
+        """Clean test database after modifications"""
+
+        # truncate cryoweb database after loading
+        if db_has_data():
+            truncate_database()
+
+        # calling my base class teardown class
+        super().tearDown()
+
     def test_database_name(self):
         self.assertEqual(
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
@@ -64,8 +84,27 @@ class UploadCryoweb(BaseTestCase):
         """Testing uploading to cryoweb"""
 
         self.assertTrue(upload_cryoweb(self.submission.id))
+        self.assertTrue(db_has_data())
 
-    # mock subprocess.run an raise Exception
+        # if I try again to upload cryoweb, I will get a False object and
+        # submission message
+        self.assertFalse(
+            upload_cryoweb(self.submission.id),
+            msg="Testing uploading with data in cryoweb")
+
+        # reload submission
+        self.submission = Submission.objects.get(pk=1)
+
+        self.assertEqual(
+            self.submission.status,
+            Submission.STATUSES.get_value('error'))
+
+        self.assertIn(
+            "Cryoweb has data",
+            self.submission.message)
+
+    # mock subprocess.run an raise Exception. Read it and update submission
+    # message using helpers.upload_cryoweb
     def test_upload_cryoweb_errors(self):
         """Testing errors in uploading cryoweb data"""
 

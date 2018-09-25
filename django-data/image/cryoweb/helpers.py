@@ -16,7 +16,7 @@ from decouple import AutoConfig
 from django.conf import settings
 
 from image_app.models import Submission
-from cryoweb.models import VBreedSpecies
+from cryoweb.models import VBreedSpecies, db_has_data as cryoweb_has_data
 from language.models import SpecieSynonim
 
 # Get an instance of a logger
@@ -85,6 +85,17 @@ def upload_cryoweb(submission_id):
     # debug
     logger.debug("Got Submission %s" % (submission))
 
+    # If cryoweb has data, update submission message and return false
+    if cryoweb_has_data():
+        logger.error("Cryoweb has data!")
+
+        # update submission status
+        submission.status = Submission.STATUSES.get_value('error')
+        submission.message = "Cryoweb has data"
+        submission.save()
+
+        return False
+
     # this is the full path in docker container
     fullpath = submission.uploaded_file.file
 
@@ -125,7 +136,10 @@ def upload_cryoweb(submission_id):
         n_of_statements = len(result.stdout.split("\n"))
         logger.debug("%s statement executed" % n_of_statements)
 
-        logger.info("%s uploaded into cryoweb database" % (
-            submission.uploaded_file.name))
+        for line in result.stderr.split("\n"):
+            logger.error(line)
+
+        logger.info("{filename} uploaded into cryoweb {database}".format(
+            filename=submission.uploaded_file.name, database=database_name))
 
     return True

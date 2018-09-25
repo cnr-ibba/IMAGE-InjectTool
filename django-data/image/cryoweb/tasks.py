@@ -20,6 +20,8 @@ from celery.five import monotonic
 from celery.utils.log import get_task_logger
 from image_app.models import Submission
 
+from .helpers import upload_cryoweb
+
 logger = get_task_logger(__name__)
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
@@ -63,10 +65,18 @@ def import_from_cryoweb(self, submission_id, blocking=True):
     # forcing blocking cndition: Wait until a get a lock object
     with redis_lock(lock_id, blocking=blocking) as acquired:
         if acquired:
-            # do some stuff
-            time.sleep(60)
+            # upload data into cryoweb database
+            status = upload_cryoweb(submission_id)
 
-            # TODO: catch exception and write it into submission.errors
+            # if something went wrong, uploaded_cryoweb has token the exception
+            # ad update submission.message field
+            if status is False:
+                logger.error("Error in uploading cryoweb data")
+
+                # this a failure in my import, not the task itself
+                return "error in uploading cryoweb data"
+
+            # TODO: load cryoweb data into UID
 
             # modify database status
             logger.debug("Updating submission %s" % (submission_id))
@@ -79,6 +89,8 @@ def import_from_cryoweb(self, submission_id, blocking=True):
             submission.save()
 
             logger.info(message)
+
+            # TODO: Truncate and free cryoweb database
 
             # always return something
             return "success"
