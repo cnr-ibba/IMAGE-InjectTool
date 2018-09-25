@@ -32,13 +32,11 @@
 
 * Submission table
   - Submission table need to track the batch biosample upload
-  - Need to extend submission table in submission.models in order to model
-    additional fields (eg submission status)
-  - Recording submission ids in submission table
 
 * ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
   Using google refine? For the moment, no duplicate can be inserted into database,
   the second occurrence will not be included in database.
+  - tag problematich fields?
 
 * NGINX media folder can serve media files (jpg, etc).
   - Deal with dump files (permissions?)
@@ -47,6 +45,7 @@
     [private media with django](http://racingtadpole.com/blog/private-media-with-django/),
     [How to Serve Protected Content With Django](https://wellfire.co/learn/nginx-django-x-accel-redirects/)
     and [Django: What setting to be done in NGINX Conf to serve media file to logged in users only](https://www.digitalocean.com/community/questions/django-what-setting-to-be-done-in-nginx-conf-to-serve-media-file-to-logged-in-users-only)
+  - add subdirs in media folder `data_source/`
 
 * deal with timeout when uploading data sources
   - all time consuming features will be implemented as celery tasks
@@ -59,6 +58,8 @@
 * What happens if two user load data in the same time? deal with concurrency
   - Data need to be isolated from a user POV
   - isolation with an asyncronous queue system? celery
+
+* celery-flower need to be removed if it is not necessary
 
 * record need to have a column in which the status is recorded (need revisions,
   submitted, ...)

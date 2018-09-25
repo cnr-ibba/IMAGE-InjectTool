@@ -45,10 +45,6 @@ class CheckSpecie(BaseTestCase):
             word='Cattle')
         synonim.delete()
 
-        print(synonim._state.db)
-        print(settings.DATABASES[synonim._state.db]['NAME'])
-        print(SpecieSynonim.objects.all())
-
         self.assertFalse(check_species("Germany"))
 
 

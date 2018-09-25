@@ -167,6 +167,9 @@ EMAIL_USE_TLS = <True if TLS if required. False otherwise>
 EMAIL_PORT = <your smtp port>
 ```
 
+> NOTE: Your email provider (ie Gmail) could untrust email sent from an unkwnown
+address, you need to log in and authorize email sent from a new address
+
 ### Start composed image
 
 Pages are served by an nginx docker container controlled by Docker Compose
