@@ -31,7 +31,7 @@ class Base():
         with connections["cryoweb"].cursor() as cursor:
             statement = "TRUNCATE TABLE {0} CASCADE".format(
                 cls._meta.db_table)
-            logger.warning(statement)
+            logger.debug(statement)
             cursor.execute(statement)
 
 

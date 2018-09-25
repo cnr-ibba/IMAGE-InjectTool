@@ -11,7 +11,6 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 
 """
 
-import time
 from contextlib import contextmanager
 
 import redis
@@ -21,6 +20,7 @@ from celery.utils.log import get_task_logger
 from image_app.models import Submission
 
 from .helpers import upload_cryoweb
+from .models import truncate_database, db_has_data as cryoweb_has_data
 
 logger = get_task_logger(__name__)
 
@@ -76,6 +76,8 @@ def import_from_cryoweb(self, submission_id, blocking=True):
                 # this a failure in my import, not the task itself
                 return "error in uploading cryoweb data"
 
+                # TODO: what I have to do in this case? report for issue
+
             # TODO: load cryoweb data into UID
 
             # modify database status
@@ -90,7 +92,10 @@ def import_from_cryoweb(self, submission_id, blocking=True):
 
             logger.info(message)
 
-            # TODO: Truncate and free cryoweb database
+            # clean database if has data
+            if cryoweb_has_data():
+                logger.debug("Cleaning up cryoweb database")
+                truncate_database()
 
             # always return something
             return "success"
