@@ -170,3 +170,6 @@
 * Where managing tasks like zooma are called? before validation pages
 
 * Token generation shuld be requested using modals when submitting to biosample
+
+* Check UID tables:
+  - check the CASCADE foreign keys
