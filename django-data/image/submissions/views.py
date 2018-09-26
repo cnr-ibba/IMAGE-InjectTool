@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 WAITING = Submission.STATUSES.get_value('waiting')
 ERROR = Submission.STATUSES.get_value('error')
 
+CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
+
 
 class CreateSubmissionView(LoginRequiredMixin, CreateView):
     form_class = SubmissionForm
@@ -40,20 +42,28 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.owner = self.request.user
-        self.object.message = "waiting for data processing"
 
-        # force status
-        self.object.status = WAITING
-
-        # update object
-        self.object.save()
-
-        # a valid submission start a task
-        # TODO: derive the correct task from data type
         # I will have a different loading function accordingly with data type
-        res = import_from_cryoweb.delay(self.object.pk)
-        logger.info(
-            "Start cryoweb importing process with task %s" % res.task_id)
+        if self.object.datasource_type == CRYOWEB_TYPE:
+            # update object and force status
+            self.object.message = "waiting for data processing"
+            self.object.status = WAITING
+            self.object.save()
+
+            # a valid submission start a task
+            res = import_from_cryoweb.delay(self.object.pk)
+            logger.info(
+                "Start cryoweb importing process with task %s" % res.task_id)
+
+        else:
+            message = "{datasource} import is not implemented".format(
+                datasource=self.object.get_datasource_type_display())
+
+            self.object.message = message
+            self.object.status = ERROR
+            self.object.save()
+
+            logger.error(message)
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())

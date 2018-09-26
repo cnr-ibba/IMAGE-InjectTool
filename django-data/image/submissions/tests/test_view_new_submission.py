@@ -19,6 +19,15 @@ from ..forms import SubmissionForm
 from ..views import CreateSubmissionView
 
 
+# get template types from submission object
+CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
+TEMPLATE_TYPE = Submission.TYPES.get_value('template')
+CRB_ANIM_TYPE = Submission.TYPES.get_value('crb_anim')
+
+# get submission status
+ERROR = Submission.STATUSES.get_value('error')
+
+
 class Initialize(TestCase):
     """Does the common stuff when testing cases are run"""
 
@@ -36,6 +45,33 @@ class Initialize(TestCase):
 
         self.url = reverse('submissions:create')
         self.response = self.client.get(self.url)
+
+    def get_data(self, ds_type=CRYOWEB_TYPE):
+        """Get data dictionary"""
+
+        # get data source path
+        ds_path = os.path.join(
+            cryoweb.tests.__path__[0],
+            "cryoweb_test_data_only.sql"
+        )
+
+        # get required objects object
+        self.country = DictCountry.objects.get(pk=1)
+        self.organization = Organization.objects.get(pk=1)
+
+        # define test data
+        data = {
+            'title': "Submission",
+            'description': "Test Submission",
+            'gene_bank_name': 'test',
+            'gene_bank_country': self.country.id,
+            'organization': self.organization.id,
+            'datasource_type': ds_type,
+            'datasource_version': '0.1',
+            'uploaded_file': open(ds_path),
+        }
+
+        return data
 
 
 class CreateSubmissionViewTest(Initialize):
@@ -81,36 +117,27 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         # create a test user
         super().setUp()
 
-        # get data source path
-        ds_path = os.path.join(
-            cryoweb.tests.__path__[0],
-            "cryoweb_test_data_only.sql"
-        )
-
-        # get required objects object
-        self.country = DictCountry.objects.get(pk=1)
-        self.organization = Organization.objects.get(pk=1)
-
-        # define test data
-        data = {
-            'title': "Submission",
-            'description': "Test Submission",
-            'gene_bank_name': 'test',
-            'gene_bank_country': self.country.id,
-            'organization': self.organization.id,
-            'datasource_type': 0,
-            'datasource_version': '0.1',
-            'uploaded_file': open(ds_path),
-        }
-
-        # submit an empty dictionary
-        self.response = self.client.post(self.url, data, follow=True)
+        # submit a cryoweb like dictionary
+        self.response = self.client.post(
+            self.url,
+            self.get_data(),
+            follow=True)
 
         # get the submission object
         self.submission = Submission.objects.first()
 
         # track mocked object
         self.my_task = my_task
+
+    def tearDown(self):
+        # delete uploaded file if exists
+        fullpath = self.submission.uploaded_file.path
+
+        if os.path.exists(fullpath):
+            os.remove(fullpath)
+
+        # call super method
+        super().tearDown()
 
     def test_new_submission_obj(self):
         self.assertTrue(Submission.objects.exists())
@@ -149,3 +176,57 @@ class InvalidCreateSubmissionViewTest(Initialize):
 
     def test_no_new_obj(self):
         self.assertFalse(Submission.objects.exists())
+
+
+class UnsupportedCreateSubmissionViewTest(Initialize):
+    def tearDown(self):
+        # delete uploaded file if exists
+        fullpath = self.submission.uploaded_file.path
+
+        if os.path.exists(fullpath):
+            os.remove(fullpath)
+
+        # call super method
+        super().tearDown()
+
+    def test_template_loading(self):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_type=TEMPLATE_TYPE),
+            follow=True)
+
+        # get the submission object
+        self.submission = Submission.objects.first()
+
+        # test redirect
+        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
+        self.assertRedirects(response, url)
+
+        # test status
+        self.assertEqual(self.submission.status, ERROR)
+
+        # test message
+        message = "Template import is not implemented"
+        self.assertEqual(self.submission.message, message)
+
+    def test_crb_anim_loading(self):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_type=CRB_ANIM_TYPE),
+            follow=True)
+
+        # get the submission object
+        self.submission = Submission.objects.first()
+
+        # test redirect
+        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
+        self.assertRedirects(response, url)
+
+        # test status
+        self.assertEqual(self.submission.status, ERROR)
+
+        # test message
+        message = "CRB-Anim import is not implemented"
+        self.assertEqual(self.submission.message, message)

@@ -26,4 +26,9 @@
     <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
   </ul>
 
+  <p class="lead">
+    <a class="btn btn-primary btn-lg" href="{% url 'submissions:list' %}" role="button">Submissions List</a>
+    <a class="btn btn-secondary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+  </p>
+
 {% endblock content %}
