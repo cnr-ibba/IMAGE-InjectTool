@@ -19,3 +19,12 @@ def is_waiting(submission):
         return True
     else:
         return False
+
+
+@register.simple_tag
+def has_errors(submission):
+    error = Submission.STATUSES.get_value('error')
+    if submission.status == error:
+        return True
+    else:
+        return False

@@ -10,6 +10,7 @@ from unittest import mock
 
 from django.conf import settings
 from django.core.management import call_command
+from django.test import TestCase
 
 from language.models import SpecieSynonim
 from image_app.models import Submission
@@ -19,7 +20,7 @@ from ..helpers import upload_cryoweb, check_species, CryoWebImportError
 from ..models import db_has_data, truncate_database
 
 
-class CheckSpecie(BaseTestCase):
+class CheckSpecie(BaseTestCase, TestCase):
     @classmethod
     def setUpClass(cls):
         # calling my base class setup

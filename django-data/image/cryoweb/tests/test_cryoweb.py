@@ -20,7 +20,7 @@ from ..views import fill_countries, fill_species, get_a_submission
 from ..models import db_has_data, truncate_database
 
 
-class BaseTestCase(TestCase):
+class BaseTestCase():
     # import this file and populate database once
     fixtures = [
         "cryoweb/user",
@@ -65,7 +65,7 @@ class BaseTestCase(TestCase):
         self.assertTrue(found)
 
 
-class FillUIDTestClass(BaseTestCase):
+class FillUIDTestClass(BaseTestCase, TestCase):
     @classmethod
     def setUpClass(cls):
         # calling my base class setup

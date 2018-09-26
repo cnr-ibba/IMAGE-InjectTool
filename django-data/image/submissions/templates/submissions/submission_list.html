@@ -35,4 +35,9 @@
 
 {% include 'includes/pagination.html' %}
 
+<p class="lead">
+  <a class="btn btn-primary btn-lg" href="{% url 'submissions:create' %}" role="button">Create Submission</a>
+  <a class="btn btn-secondary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+</p>
+
 {% endblock %}
