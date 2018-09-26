@@ -15,7 +15,7 @@ from language.models import SpecieSynonim
 from image_app.models import Submission
 
 from .test_cryoweb import BaseTestCase
-from ..helpers import upload_cryoweb, check_species
+from ..helpers import upload_cryoweb, check_species, CryoWebImportError
 from ..models import db_has_data, truncate_database
 
 
@@ -81,16 +81,17 @@ class UploadCryoweb(BaseTestCase):
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
 
     def test_upload_cryoweb(self):
-        """Testing uploading to cryoweb"""
+        """Testing uploading and uploading with data into cryoweb"""
 
         self.assertTrue(upload_cryoweb(self.submission.id))
         self.assertTrue(db_has_data())
 
         # if I try again to upload cryoweb, I will get a False object and
         # submission message
-        self.assertFalse(
-            upload_cryoweb(self.submission.id),
-            msg="Testing uploading with data in cryoweb")
+        self.assertRaises(
+            CryoWebImportError,
+            upload_cryoweb,
+            self.submission.id)
 
         # reload submission
         self.submission = Submission.objects.get(pk=1)

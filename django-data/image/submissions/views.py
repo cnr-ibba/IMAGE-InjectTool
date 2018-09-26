@@ -94,5 +94,5 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
 class ListSubmissionsView(LoginRequiredMixin, ListView):
     model = Submission
     template_name = "submissions/submission_list.html"
-    ordering = ['created_at']
+    ordering = ['-created_at']
     paginate_by = 10

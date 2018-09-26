@@ -1,12 +1,11 @@
 import os
 import unittest
 
-import pandas as pd
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from image_app import helpers
-from image_app.models import Animal, Submission
+from cryoweb.models import Animal as CryoWebAnimal
+from image_app.models import Animal as ImageAnimal, Submission
 
 
 class Command(BaseCommand):
@@ -21,31 +20,23 @@ class Command(BaseCommand):
 class TestDB(unittest.TestCase):
     """Testing database status"""
 
-    def setUp(self):
-        # get a cryoweb helper instance
-        self.cryowebdb = helpers.CryowebDB()
-
-        # get a connection object
-        self.conn = self.cryowebdb.get_connection(search_path='apiis_admin')
-
     def test_db1_animal_table_is_not_empty(self):
         """Tests that cryoweb.animal table is not empty"""
 
-        df_count = pd.read_sql_query(
-                'select count(*) as n_rows from animal',
-                con=self.conn)
-
-        # pprint.pprint(df_count['n_rows'].values[0])
-        self.assertTrue(int(df_count['n_rows'].values[0]) > 0)
+        self.assertTrue(
+            CryoWebAnimal.objects.count() > 0,
+            msg="%s.%s table is empty!!!" % (
+                settings.DATABASES['cryoweb']['NAME'],
+                CryoWebAnimal._meta.db_table))
 
     def test_db2_animal_table_is_not_empty(self):
         """Tests that image animal table is not empty"""
 
-        # pprint.pprint(df_count['n_rows'].values[0])
-        self.assertTrue(Animal.objects.count() > 0,
-                        msg="%s.%s table is empty!!!" % (
-                                settings.DATABASES['default']['NAME'],
-                                Animal._meta.db_table))
+        self.assertTrue(
+            ImageAnimal.objects.count() > 0,
+            msg="%s.%s table is empty!!!" % (
+                settings.DATABASES['default']['NAME'],
+                ImageAnimal._meta.db_table))
 
     def test_no_orphaned_backup_files_in_filesys(self):
         """Tests no orphaned backup files in /media/data_source dir"""

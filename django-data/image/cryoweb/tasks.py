@@ -14,13 +14,14 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 from contextlib import contextmanager
 
 import redis
-from celery import task
+from celery import task, states
 from celery.five import monotonic
 from celery.utils.log import get_task_logger
+from celery.exceptions import Ignore
 from image_app.models import Submission
 
 from .helpers import upload_cryoweb
-from .models import truncate_database, db_has_data as cryoweb_has_data
+from .models import truncate_database
 
 logger = get_task_logger(__name__)
 
@@ -49,7 +50,28 @@ def redis_lock(lock_id, blocking=False):
             lock.release()
 
 
+# clean cryoweb database after calling decorated function
+def clean_cryoweb_database(f):
+    def wrap(*args, **kwargs):
+        result = f(*args, **kwargs)
+
+        # clean database after calling function. If results is None, task
+        # wasn't running since a lock was acquired with non-blocking
+        if result:
+            logger.debug("Cleaning up cryoweb database")
+            truncate_database()
+
+        return result
+
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
+
+    # return decorated function
+    return wrap
+
+
 @task(bind=True)
+@clean_cryoweb_database
 def import_from_cryoweb(self, submission_id, blocking=True):
     # The cache key consists of the task name and the MD5 digest
     # of the feed URL.
@@ -91,11 +113,6 @@ def import_from_cryoweb(self, submission_id, blocking=True):
             submission.save()
 
             logger.info(message)
-
-            # clean database if has data
-            if cryoweb_has_data():
-                logger.debug("Cleaning up cryoweb database")
-                truncate_database()
 
             # always return something
             return "success"

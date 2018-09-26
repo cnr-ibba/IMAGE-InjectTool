@@ -62,6 +62,11 @@ def check_species(language):
         raise NotImplementedError("Not implemented")
 
 
+# A class to deal with cryoweb import errors
+class CryoWebImportError(Exception):
+    pass
+
+
 def upload_cryoweb(submission_id):
     """Imports backup into the cryoweb db
 
@@ -85,7 +90,8 @@ def upload_cryoweb(submission_id):
     # debug
     logger.debug("Got Submission %s" % (submission))
 
-    # If cryoweb has data, update submission message and return false
+    # If cryoweb has data, update submission message and return exception:
+    # maybe another process is running or there is another type of problem
     if cryoweb_has_data():
         logger.error("Cryoweb has data!")
 
@@ -94,7 +100,7 @@ def upload_cryoweb(submission_id):
         submission.message = "Cryoweb has data"
         submission.save()
 
-        return False
+        raise CryoWebImportError("Cryoweb has data!")
 
     # this is the full path in docker container
     fullpath = submission.uploaded_file.file
