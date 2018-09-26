@@ -14,7 +14,6 @@ import logging
 import pandas as pd
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.management import call_command
 from django.shortcuts import redirect, render
 
 import cryoweb.helpers
@@ -883,26 +882,3 @@ def import_from_cryoweb(request):
     logger.info("import_from_cryoweb finished")
 
     return render(request, 'image_app/import_from_cryoweb.html', context)
-
-
-@login_required
-def truncate_cryoweb_tables(request):
-    """ truncate cryoweb tables
-
-    this fx calls the custom function truncate_cryoweb_tables, defined in
-    image_app/management/commands/truncate_cryoweb_tables.py
-    this fx can also be called command line as
-    $ docker-compose run --rm uwsgi python manage.py truncate_cryoweb_tables
-
-    :param request: HTTP request automatically sent by the framework
-    :return: the resulting HTML page
-    """
-
-    call_command('truncate_cryoweb_tables')
-
-    messages.success(
-        request,
-        message="cryoweb database was truncated with success",
-        extra_tags="alert alert-dismissible alert-success")
-
-    return redirect('image_app:dashboard')

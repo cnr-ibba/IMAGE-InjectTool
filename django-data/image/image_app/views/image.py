@@ -8,11 +8,7 @@ Created on Tue Feb  6 15:04:07 2018
 
 import logging
 
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.management import call_command
-from django.shortcuts import redirect
 from django.views.generic import TemplateView
 
 from ..helpers import CryowebDB
@@ -75,77 +71,3 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         context["uid_report"] = uid_report()
 
         return context
-
-
-@login_required
-def truncate_databases(request):
-    """ truncate cryoweb and image tables
-
-    this fx calls the custom functions truncate_cryoweb_tables and
-    truncate_image_tables, defined in
-    image_app/management/commands/truncate_cryoweb_tables.py and
-    image_app/management/commands/truncate_image_tables.py
-    in order to have the same fx "command line" is necessary to call both
-    $ docker-compose run --rm uwsgi python manage.py truncate_cryoweb_tables
-    $ docker-compose run --rm uwsgi python manage.py truncate_image_tables
-
-    :param request: HTTP request automatically sent by the framework
-    :return: the resulting HTML page
-    """
-
-    call_command('truncate_cryoweb_tables')
-
-    messages.success(
-        request,
-        message="cryoweb database was truncated with success",
-        extra_tags="alert alert-dismissible alert-success")
-
-    call_command('truncate_image_tables')
-
-    messages.success(
-        request,
-        message="image database was truncated with success",
-        extra_tags="alert alert-dismissible alert-success")
-
-    return redirect('image_app:dashboard')
-
-
-# TODO: this will be removed in production
-@login_required
-def truncate_image_tables(request):
-    """ truncate image tables
-
-    this fx calls the custom function truncate_image_tables, defined in
-    image_app/management/commands/truncate_image_tables.py
-    this fx can also be called command line as
-    $ docker-compose run --rm uwsgi python manage.py truncate_image_tables
-
-    :param request: HTTP request automatically sent by the framework
-    :return: the resulting HTML page
-    """
-
-    # TODO: move commands to a function
-    call_command('truncate_image_tables')
-
-    messages.success(
-        request,
-        message="image database was truncated with success",
-        extra_tags="alert alert-dismissible alert-success")
-
-    return redirect('image_app:dashboard')
-
-
-# TODO: this will be removed in production
-@login_required
-def initializedb(request):
-    """initialize UID database after truncating image tables"""
-
-    # TODO: move commands to a function
-    call_command('initializedb')
-
-    messages.success(
-        request,
-        message="image database correctly initialized",
-        extra_tags="alert alert-dismissible alert-success")
-
-    return redirect('image_app:dashboard')

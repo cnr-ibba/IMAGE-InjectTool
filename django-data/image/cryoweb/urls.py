@@ -16,8 +16,4 @@ urlpatterns = [
     url(r'^import_from_cryoweb/$',
         views.import_from_cryoweb,
         name='import_from_cryoweb'),
-
-    url(r'^truncate_cryoweb_tables/$',
-        views.truncate_cryoweb_tables,
-        name='truncate_cryoweb_tables'),
 ]

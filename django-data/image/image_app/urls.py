@@ -32,18 +32,6 @@ urlpatterns = [
         views.SummaryView.as_view(),
         name='summary'),
 
-    url(r'^truncate_image_tables/$',
-        views.truncate_image_tables,
-        name='truncate_image_tables'),
-
-    url(r'^truncate_databases/$',
-        views.truncate_databases,
-        name='truncate_databases'),
-
-    url(r'^initializedb/$',
-        views.initializedb,
-        name='initializedb'),
-
     url(r'^sample/(?P<pk>[0-9]+)/json/$',
         login_required(views.SampleJSON.as_view()),
         name='sample-json'),

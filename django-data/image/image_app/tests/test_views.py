@@ -10,7 +10,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from ..models import User
-from ..views import initializedb, DashBoardView, SummaryView
+from ..views import DashBoardView, SummaryView
 
 
 class Initialize(TestCase):
@@ -114,19 +114,3 @@ class SummaryViewTest(Initialize):
         self.assertIsInstance(view.func.view_class(), SummaryView)
 
     # TODO: test summary after data load
-
-
-class TestInitializeDB(Initialize):
-    def setUp(self):
-        # create test user
-        super().setUp()
-
-    def test_new_ds_view_success_status_code(self):
-        url = reverse('image_app:initializedb')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 302)
-
-    def test_url_resolves_view(self):
-        url = reverse('image_app:initializedb')
-        view = resolve(url)
-        self.assertEqual(view.func, initializedb)
