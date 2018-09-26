@@ -10,8 +10,6 @@ In this module views regarding data import from cryoweb are described
 """
 
 import logging
-import shlex
-import subprocess
 
 import pandas as pd
 from django.contrib import messages
@@ -36,97 +34,6 @@ def get_a_submission():
 
     return Submission.objects.filter(
             status=waiting).order_by("-created_at").first()
-
-
-@login_required
-def upload_cryoweb(request):
-    """Imports backup into the cryoweb db
-
-    This function uses the container's installation of psql to import a backup
-    file into the "cryoweb" database. The imported backup file is
-    the last inserted into the image's table image_app_submission.
-
-    :param request: HTTP request automatically sent by the framework
-    :return: the resulting HTML page
-
-    """
-
-    logger.info("called upload_cryoweb with request: %s" % (request))
-
-    # get a cryoweb helper instance
-    cryowebdb = image_app.helpers.CryowebDB()
-
-    # test if cryoweb has data or not
-    if cryowebdb.has_data(search_path='apiis_admin'):
-        # give an error message
-        logger.warning("cryoweb mirror database has data. Ignoring data load")
-        messages.warning(
-            request,
-            message="cryoweb mirror database has data. Ignoring data load",
-            extra_tags="alert alert-dismissible alert-warning")
-        return redirect('image_app:dashboard')
-
-    username = request.user.username
-    context = {'username': username}
-
-    # TODO: get submission to load from link or admin
-    submission = get_a_submission()
-
-    logger.debug("Got Submission %s" % (submission))
-
-    # this is not only database value, but the full path in docker
-    # container
-    fullpath = submission.uploaded_file.file
-
-    # get a string and quote fullpath
-    fullpath = shlex.quote(str(fullpath))
-
-    # append fullpath to context
-    context['fullpath'] = fullpath
-
-    # define command line
-    cmd_line = ("/usr/bin/psql -U cryoweb_insert_only -h db "
-                "cryoweb")
-
-    cmds = shlex.split(cmd_line)
-
-    logger.debug("Executing: %s" % " ".join(cmds))
-
-    try:
-        result = subprocess.run(
-            cmds,
-            stdin=open(fullpath),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True,
-            env={'PGPASSWORD': image_app.helpers.config(
-                    'CRYOWEB_INSERT_ONLY_PW')},
-            encoding='utf8'
-            )
-
-    except Exception as exc:
-        context['returncode'] = -1
-        context['stderr'] = str(exc)
-        messages.error(
-            request,
-            "error in calling upload_cryoweb",
-            extra_tags="alert alert-dismissible alert-danger")
-        logger.error("error in calling upload_cryoweb: %s" % (exc))
-
-    else:
-        context['returncode'] = result.returncode
-        context['output'] = result.stderr.split("\n")
-        n_of_statements = len(result.stdout.split("\n"))
-
-        logger.debug("%s statement executed" % n_of_statements)
-        messages.success(
-            request,
-            message='%s statement executed' % (n_of_statements),
-            extra_tags="alert alert-dismissible alert-success")
-
-    logger.info("upload_cryoweb finished")
-
-    return render(request, 'image_app/upload_cryoweb.html', context)
 
 
 def add_warnings(context, section, msg):

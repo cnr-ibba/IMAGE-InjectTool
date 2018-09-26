@@ -17,6 +17,7 @@ from image_app.models import DictCountry, DictSpecie, User
 from language.models import SpecieSynonim
 
 from ..views import fill_countries, fill_species, get_a_submission
+from ..models import db_has_data, truncate_database
 
 
 class BaseTestCase(TestCase):
@@ -80,6 +81,15 @@ class FillUIDTestClass(BaseTestCase):
             database='cryoweb',
             verbosity=0)
 
+    @classmethod
+    def tearDownClass(cls):
+        # truncate cryoweb database after loading
+        if db_has_data():
+            truncate_database()
+
+        # calling my base class teardown class
+        super().tearDownClass()
+
     def setUp(self):
         """Setting up"""
 
@@ -101,27 +111,6 @@ class FillUIDTestClass(BaseTestCase):
             'loaded': {},
             'warnings': {},
             'has_warnings': False}
-
-    def test_cryoweb_already_imported(self):
-        # Create an instance of a GET request.
-        # request = self.factory.get(reverse('cryoweb:upload_cryoweb'))
-
-        # Recall that middleware are not supported. You can simulate a
-        # logged-in user by setting request.user manually.
-        # request.user = self.user
-
-        # Test upload_cryoweb() as if it were deployed at
-        # reverse('cryoweb:upload_cryoweb')
-        # response = upload_cryoweb(request)
-
-        # same thing, but with a client request
-        response = self.client.get(
-            reverse('cryoweb:upload_cryoweb'))
-
-        self.check_messages(
-            response,
-            "warning",
-            "cryoweb mirror database has data. Ignoring data load")
 
     def test_import_into_UID(self):
         """Import loaded cryoweb data into UID"""
