@@ -14,13 +14,13 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 from contextlib import contextmanager
 
 import redis
-from celery import task, states
+from celery import task
 from celery.five import monotonic
 from celery.utils.log import get_task_logger
-from celery.exceptions import Ignore
+
 from image_app.models import Submission
 
-from .helpers import upload_cryoweb
+from .helpers import upload_cryoweb, check_UID, cryoweb_import
 from .models import truncate_database
 
 logger = get_task_logger(__name__)
@@ -81,6 +81,9 @@ def import_from_cryoweb(self, submission_id, blocking=True):
     # get a submission object
     submission = Submission.objects.get(pk=submission_id)
 
+    # check UID status. get an exception if database is not initialized
+    check_UID(submission)
+
     # get statuses
     loaded = Submission.STATUSES.get_value('loaded')
 
@@ -98,9 +101,8 @@ def import_from_cryoweb(self, submission_id, blocking=True):
                 # this a failure in my import, not the task itself
                 return "error in uploading cryoweb data"
 
-                # TODO: what I have to do in this case? report for issue
-
-            # TODO: load cryoweb data into UID
+            # load cryoweb data into UID
+            cryoweb_import(submission)
 
             # modify database status
             logger.debug("Updating submission %s" % (submission_id))

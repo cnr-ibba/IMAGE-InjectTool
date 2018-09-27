@@ -11,6 +11,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 import cryoweb.tasks
+from ..helpers import CryoWebImportError
 
 
 class ImportCryowebTest(TestCase):
@@ -27,10 +28,11 @@ class ImportCryowebTest(TestCase):
     ]
 
     # patching upload_cryoweb and truncate database
-    @patch("cryoweb.tasks.upload_cryoweb", return_value=True)
-    @patch("cryoweb.models.db_has_data", return_value=False)
     @patch("cryoweb.tasks.truncate_database")
-    def test_import_from_cryoweb(self, my_truncate, my_has_data, my_upload):
+    @patch("cryoweb.tasks.cryoweb_import")
+    @patch("cryoweb.tasks.upload_cryoweb", return_value=True)
+    def test_import_from_cryoweb(
+            self, my_upload, my_import, my_truncate):
         """Testing cryoweb import"""
 
         # NOTE that I'm calling the function directly, without delay
@@ -40,44 +42,56 @@ class ImportCryowebTest(TestCase):
         # assert a success with data uploading
         self.assertEqual(res, "success")
 
+        # assert that method were called
+        self.assertTrue(my_upload.called)
+        self.assertTrue(my_import.called)
+
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
-    @patch("cryoweb.models.db_has_data", return_value=True)
+    @patch("cryoweb.helpers.cryoweb_has_data", return_value=True)
     @patch("cryoweb.tasks.truncate_database")
     def test_import_has_data(self, my_truncate, my_has_data):
         """Test cryoweb import with data in cryoweb database"""
 
-        # NOTE that I'm calling the function directly, without delay
-        # (AsyncResult). I've patched the time consuming task
-        res = cryoweb.tasks.import_from_cryoweb(submission_id=1)
+        # importing data in staged area with data raises an exception
+        self.assertRaises(
+            CryoWebImportError,
+            cryoweb.tasks.import_from_cryoweb,
+            submission_id=1)
 
-        # assert a success with data uploading
-        self.assertEqual(res, "success")
+        self.assertTrue(my_has_data.called)
 
-        # ensure that database is truncated
-        self.assertTrue(my_truncate.called)
+        # When I got an exception, task escapes without cleaning database
+        self.assertFalse(my_truncate.called)
 
-    @patch("cryoweb.tasks.upload_cryoweb", return_value=False)
     @patch("cryoweb.tasks.truncate_database")
-    def test_error_in_uploading(self, my_truncate, my_upload):
+    @patch("cryoweb.tasks.cryoweb_import")
+    @patch("cryoweb.tasks.upload_cryoweb", return_value=False)
+    def test_error_in_uploading(
+            self, my_upload, my_import, my_truncate):
         """Testing error in importing data"""
 
-        # NOTE that I'm calling the function directly, without delay
-        # (AsyncResult). I've patched the time consuming task
         res = cryoweb.tasks.import_from_cryoweb(submission_id=1)
 
         # assert an error in data uploading
         self.assertEqual(res, "error in uploading cryoweb data")
+
+        # assert that method were called
+        self.assertTrue(my_upload.called)
+        self.assertFalse(my_import.called)
 
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
     # Test a non blocking instance
     @patch("redis.lock.LuaLock.acquire", return_value=False)
-    @patch("cryoweb.tasks.upload_cryoweb")
-    @patch("cryoweb.tasks.truncate_database")
-    def test_import_from_cryoweb_nb(self, my_truncate, my_upload, my_lock):
+    @patch("cryoweb.helpers.cryoweb_import")
+    @patch("cryoweb.helpers.upload_cryoweb", return_value=True)
+    @patch("cryoweb.models.db_has_data", return_value=False)
+    @patch("cryoweb.models.truncate_database")
+    def test_import_from_cryoweb_nb(
+            self, my_truncate, my_has_data, my_upload, my_import, my_lock):
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
         res = cryoweb.tasks.import_from_cryoweb(
@@ -89,7 +103,6 @@ class ImportCryowebTest(TestCase):
         # assert that methods were not called
         self.assertFalse(my_truncate.called)
         self.assertFalse(my_upload.called)
-
-        # TODO: test no import from cryoweb called
+        self.assertFalse(my_import.called)
 
     # HINT: Uploading the same submission fails or overwrite?
