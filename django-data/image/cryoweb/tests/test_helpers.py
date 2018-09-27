@@ -16,7 +16,8 @@ from language.models import SpecieSynonim
 from image_app.models import Submission
 
 from .test_cryoweb import BaseTestCase
-from ..helpers import upload_cryoweb, check_species, CryoWebImportError
+from ..helpers import (
+    upload_cryoweb, check_species, CryoWebImportError, cryoweb_import)
 from ..models import db_has_data, truncate_database
 
 
@@ -59,7 +60,7 @@ class CheckSpecie(BaseTestCase, TestCase):
         self.assertFalse(check_species("Germany"))
 
 
-class UploadCryoweb(BaseTestCase):
+class UploadCryoweb(BaseTestCase, TestCase):
     def setUp(self):
         # calling my base class setup
         super().setUp()
@@ -124,3 +125,45 @@ class UploadCryoweb(BaseTestCase):
             self.assertIn(
                 "Test upload failed",
                 self.submission.message)
+
+
+class CryowebImport(BaseTestCase, TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # this fixture have to be loaded in a secondary (test) database,
+        # I can't upload it using names and fixture section, so it will
+        # be added manually using loaddata
+        call_command(
+            'loaddata',
+            'cryoweb/cryoweb.json',
+            app='cryoweb',
+            database='cryoweb',
+            verbosity=0)
+
+    @classmethod
+    def tearDownClass(cls):
+        # truncate cryoweb database after loading
+        if db_has_data():
+            truncate_database()
+
+        # calling my base class teardown class
+        super().tearDownClass()
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # track submission
+        self.submission = Submission.objects.get(pk=1)
+
+    def test_database_name(self):
+        self.assertEqual(
+            settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
+
+    def test_cryoweb_import(self):
+        """Import from cryoweb staging database into UID"""
+
+        self.assertTrue(cryoweb_import(self.submission))

@@ -31,7 +31,7 @@ config = AutoConfig(search_path=settings_dir)
 
 
 # TODO: remove this class
-class Database():
+class Database(object):
     """A base class for database connections"""
 
     def __init__(self):
@@ -40,7 +40,10 @@ class Database():
         self.engine_uri = None
 
     def __del__(self):
+        logger.debug("self.conn is %s" % self.conn)
+
         if self.conn is not None:
+            logger.debug("Closing connection")
             self.conn.close()
 
     def get_engine(self):
@@ -103,7 +106,7 @@ class CryowebDB(Database):
             return False
 
 
-# TODO: remove this class
+# TODO: remove this class and fix truncate_image_tables
 class ImageDB(Database):
     """A class to deal with Image database instances"""
 
