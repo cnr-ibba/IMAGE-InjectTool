@@ -149,3 +149,21 @@ def upload_cryoweb(submission_id):
             filename=submission.uploaded_file.name, database=database_name))
 
     return True
+
+
+# HINT: move to image_app.helpers?
+# TODO: call this **BEFORE** loading data into cryoweb
+def check_UID():
+    """A function to ensure that UID is valid before data upload. Specific
+    to the module where is called from"""
+
+    pass
+
+
+def import_from_cryoweb(submission_id):
+    """Import data from cryoweb stage database into UID
+
+    :submission_id: the submission primary key
+    """
+
+    pass

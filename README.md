@@ -290,8 +290,6 @@ password:
 $ docker-compose run --rm uwsgi python manage.py create_usi_user -u <username> --email <email> --full_name <name> <surname>
 ```
 
-> *TODO*: Move this functionality to a django user authentication app
-
 Submit UID data to biosample
 
 ```

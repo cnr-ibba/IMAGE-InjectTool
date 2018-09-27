@@ -30,6 +30,7 @@ settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
 
 
+# TODO: remove this class
 class Database():
     """A base class for database connections"""
 
@@ -66,6 +67,7 @@ class Database():
         return self.conn
 
 
+# TODO: remove this class
 class CryowebDB(Database):
     """A class to deal with Cryoweb database instances. Define common methods
     useful in other parts of the code"""
@@ -101,6 +103,7 @@ class CryowebDB(Database):
             return False
 
 
+# TODO: remove this class
 class ImageDB(Database):
     """A class to deal with Image database instances"""
 
