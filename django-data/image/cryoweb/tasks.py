@@ -76,12 +76,15 @@ def import_from_cryoweb(self, submission_id, blocking=True):
     # The cache key consists of the task name and the MD5 digest
     # of the feed URL.
     lock_id = 'ImportFromCryoWeb'
+
+    # TODO: tell that task is started
     logger.info("Start import from cryoweb for submission: %s" % submission_id)
 
     # get a submission object
     submission = Submission.objects.get(pk=submission_id)
 
     # check UID status. get an exception if database is not initialized
+    # TODO: model exception in submission message
     check_UID(submission)
 
     # get statuses
@@ -102,6 +105,7 @@ def import_from_cryoweb(self, submission_id, blocking=True):
                 return "error in uploading cryoweb data"
 
             # load cryoweb data into UID
+            # TODO: check status
             cryoweb_import(submission)
 
             # modify database status
@@ -110,10 +114,13 @@ def import_from_cryoweb(self, submission_id, blocking=True):
             message = "Cryoweb import completed for submission: %s" % (
                 submission_id)
 
+            # TODO: those updates need to be placed inn cryoweb_import
+            # as other function do when they found an error
             submission.message = message
             submission.status = loaded
             submission.save()
 
+            # TODO: set logging message to talk about tasks
             logger.info(message)
 
             # always return something

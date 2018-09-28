@@ -47,6 +47,8 @@
     as celery task
   - When google cache is active, two pages are loaded: all scripts will be executed
     using celery tasks
+  - fix logging in celery modules (each log is printed two times, one for django
+    and one for task itself)
 
 * NGINX media folder can serve media files (jpg, etc).
   - Deal with dump files (permissions?)
@@ -69,7 +71,7 @@
     [cit needed] and [here](https://stackoverflow.com/questions/28035119/should-i-be-adding-the-django-migration-files-in-the-gitignore-file)
   - django `contettype` framework to model relations between Name and Sample and
     animal
-    
+
 * import June code:
   - geo standardization
   - date standardization
@@ -99,9 +101,10 @@
     in cryoweb models
   - remove sqlalchemy `image_app.helpers` classes
   - remove pandas
-  - fixtures and pre calculate data in test database are recordered in transactions:
+  - fixtures and pre calculated data in test database are recordered in transactions:
     I need to see object using the same connection (see loaded fixtures with
     the same connection)
+  - remove unused view `import_from_cryoweb`
 
 * metadata rules
   - taxon (= specie) is a mandatory fields for biosample, taxonId not but is better
@@ -140,6 +143,9 @@
   - Where managing tasks like zooma are called? before validation pages?
   - species and countries need to be validated against dictionary tables
   - check for synonim before cryoweb insert into dictspecie table.
+  - what happens when uploading a submission with no synonim loaded? The loading
+    process fails, I need to free staging databases but fill the dictionary tables
+    requiring user intervention.
 
 * Regarding site visualization
   - Token generation shuld be requested using modals when submitting to biosample
@@ -148,6 +154,7 @@
   - Data changes that are not POST request, will be modeled using celery
   - all GET requests need to be idenpotent
   - Error handling (API?/String messages?)
+  - Navbar for tools (zooma, dictionary tables, etc)?
 
 * Issues relative to UID:
   - check the CASCADE foreign keys
@@ -160,3 +167,5 @@
   - check the Relation type between `Sample` and `Name`: need to be One2One
   - rename `image_app` application into `uid`?
   - More user can belong to same organization?
+  - `contenttypes` framework for `Name` relations?
+  - `contenttypes` framework to model errors?

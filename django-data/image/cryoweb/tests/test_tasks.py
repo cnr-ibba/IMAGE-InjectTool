@@ -84,6 +84,8 @@ class ImportCryowebTest(TestCase):
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
+    # TODO: test errors between loading from cryoweb to UID
+
     # Test a non blocking instance
     @patch("redis.lock.LuaLock.acquire", return_value=False)
     @patch("cryoweb.helpers.cryoweb_import")

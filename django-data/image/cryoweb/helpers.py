@@ -144,20 +144,21 @@ def upload_cryoweb(submission_id):
 
         return False
 
-    else:
-        n_of_statements = len(result.stdout.split("\n"))
-        logger.debug("%s statement executed" % n_of_statements)
+    n_of_statements = len(result.stdout.split("\n"))
+    logger.debug("%s statement executed" % n_of_statements)
 
-        for line in result.stderr.split("\n"):
-            logger.error(line)
+    for line in result.stderr.split("\n"):
+        logger.error(line)
 
-        logger.info("{filename} uploaded into cryoweb {database}".format(
-            filename=submission.uploaded_file.name, database=database_name))
+    logger.info("{filename} uploaded into {database}".format(
+        filename=submission.uploaded_file.name, database=database_name))
 
     return True
 
 
-# HINT: move to image_app.helpers?
+# a function specific for cryoweb import path to ensure that all required
+# fields in UID are present. There could be a function like this in others
+# import paths
 def check_UID(submission):
     """A function to ensure that UID is valid before data upload. Specific
     to the module where is called from"""
@@ -168,8 +169,12 @@ def check_UID(submission):
     if len(DictSex.objects.all()) == 0:
         raise CryoWebImportError("You have to upload DictSex data")
 
+    # HINT: if I don't have a synonim, what I need to do?
     if not check_species(submission.gene_bank_country.label):
         raise CryoWebImportError("Some species haven't a synonim!")
+
+    # TODO: deal with exceptions
+    # TODO: return a status
 
 
 def add_warnings(context, section, msg):
@@ -921,34 +926,45 @@ def cryoweb_import(submission):
     # set those values using a function from helper objects
     engine_from_cryoweb = cryowebdb.get_engine()
 
-    # BREEDS
-    df_breeds_fin = fill_breeds(
-        engine_from_cryoweb,
-        context,
-        submission)
+    try:
+        # BREEDS
+        df_breeds_fin = fill_breeds(
+            engine_from_cryoweb,
+            context,
+            submission)
 
-    # TRANSFER
-    df_transfer_fin = fill_transfer(
-        engine_from_cryoweb,
-        submission,
-        context)
+        # TRANSFER
+        df_transfer_fin = fill_transfer(
+            engine_from_cryoweb,
+            submission,
+            context)
 
-    # ANIMALS
-    fill_animals(
-        engine_from_cryoweb,
-        df_breeds_fin,
-        df_transfer_fin,
-        submission,
-        context)
+        # ANIMALS
+        fill_animals(
+            engine_from_cryoweb,
+            df_breeds_fin,
+            df_transfer_fin,
+            submission,
+            context)
 
-    # SAMPLES
-    fill_samples(
-        engine_from_cryoweb,
-        df_transfer_fin,
-        submission,
-        context)
+        # SAMPLES
+        fill_samples(
+            engine_from_cryoweb,
+            df_transfer_fin,
+            submission,
+            context)
+
+    except Exception as exc:
+        # save a message in database
+        submission.status = Submission.STATUSES.get_value('error')
+        submission.message = str(exc)
+        submission.save()
+
+        # debug
+        logger.error("error in importing from cryoweb: %s" % (exc))
+
+        return False
 
     logger.info("Import from staging area is complete")
 
-    # HINT: need I to return a value?
     return True
