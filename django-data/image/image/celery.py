@@ -43,6 +43,7 @@ class MyTask(Task):
 def only_one(function=None, key="", timeout=None, blocking=False):
     """Enforce only one celery task at a time."""
 
+    # TODO: read parameters from settings.py
     REDIS_CLIENT = redis.StrictRedis(host='redis', port=6379, db=0)
 
     def _dec(run_func):

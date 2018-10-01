@@ -6,6 +6,8 @@ Created on Mon May 14 10:28:39 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+# --- import
+
 import os
 import shlex
 import logging
@@ -22,19 +24,21 @@ from image_app.models import (
     Sample)
 from language.models import SpecieSynonim
 
-from .models import VBreedSpecies, db_has_data as cryoweb_has_data
+from .models import (
+    VBreedsSpecies, db_has_data as cryoweb_has_data, VTransfer, VAnimal)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
+# --- check functions
 # a function to detect if cryoweb species have synonims or not
 def check_species(language):
     """Check specie for a language, ie: check_species(language='Germany').
     Language is image_app.models.DictCountry.label"""
 
     # get all species using view
-    species = VBreedSpecies.get_all_species()
+    species = VBreedsSpecies.get_all_species()
 
     # for logging purposes
     database_name = settings.DATABASES['cryoweb']['NAME']
@@ -67,11 +71,33 @@ def check_species(language):
         raise NotImplementedError("Not implemented")
 
 
+# a function specific for cryoweb import path to ensure that all required
+# fields in UID are present. There could be a function like this in others
+# import paths
+def check_UID(submission):
+    """A function to ensure that UID is valid before data upload. Specific
+    to the module where is called from"""
+
+    logger.debug("Checking UID")
+
+    # check that dict sex table contains data
+    if len(DictSex.objects.all()) == 0:
+        raise CryoWebImportError("You have to upload DictSex data")
+
+    # HINT: if I don't have a synonim, what I need to do?
+    if not check_species(submission.gene_bank_country.label):
+        raise CryoWebImportError("Some species haven't a synonim!")
+
+    # TODO: deal with exceptions
+    # TODO: return a status
+
+
 # A class to deal with cryoweb import errors
 class CryoWebImportError(Exception):
     pass
 
 
+# --- Upload data into cryoweb database
 def upload_cryoweb(submission_id):
     """Imports backup into the cryoweb db
 
@@ -156,27 +182,7 @@ def upload_cryoweb(submission_id):
     return True
 
 
-# a function specific for cryoweb import path to ensure that all required
-# fields in UID are present. There could be a function like this in others
-# import paths
-def check_UID(submission):
-    """A function to ensure that UID is valid before data upload. Specific
-    to the module where is called from"""
-
-    logger.debug("Checking UID")
-
-    # check that dict sex table contains data
-    if len(DictSex.objects.all()) == 0:
-        raise CryoWebImportError("You have to upload DictSex data")
-
-    # HINT: if I don't have a synonim, what I need to do?
-    if not check_species(submission.gene_bank_country.label):
-        raise CryoWebImportError("Some species haven't a synonim!")
-
-    # TODO: deal with exceptions
-    # TODO: return a status
-
-
+# --- Upload data into UID database
 def add_warnings(context, section, msg):
     """Helper function for import_from_cryoweb and its functions"""
 
@@ -253,6 +259,48 @@ def fill_countries(df_breeds_species, context):
 
     # now I have a dictionary of species to id, map columns to values
     return list(df_breeds_species.efabis_country.map(countries_dict))
+
+
+def fill_uid_breeds(submission):
+    """Fill UID DictBreed model. Require a submission instance"""
+
+    logger.debug("fill_uid_breeds() started")
+
+    # get submission language
+    language = submission.gene_bank_country.label
+
+    for v_breed_specie in VBreedsSpecies.objects.all():
+        # get specie. Since I need a dictionary tables, DictSpecie is
+        # already filled
+        specie = DictSpecie.get_by_synonim(
+            synonim=v_breed_specie.ext_species,
+            language=language)
+
+        # get country. Maybe DictCountry will be related to dictionary table
+        # for now, I can create an object or not
+        # TODO: define if is a dictionary related term or not
+        # use language for consistency with submission
+        country, created = DictCountry.objects.get_or_create(
+            label=language)
+
+        if created:
+            logger.info("Created %s" % country)
+
+        else:
+            logger.debug("Found %s" % country)
+
+        breed, created = DictBreed.objects.get_or_create(
+            supplied_breed=v_breed_specie.efabis_mcname,
+            specie=specie,
+            country=country)
+
+        if created:
+            logger.info("Created %s" % breed)
+
+        else:
+            logger.debug("Found %s" % breed)
+
+    logger.debug("fill_uid_breeds() completed")
 
 
 def fill_breeds(engine_from_cryoweb, context, submission):
@@ -359,6 +407,31 @@ def fill_breeds(engine_from_cryoweb, context, submission):
 
     # return processed dataframe
     return df_breeds_fin
+
+
+def fill_uid_names(submission):
+    """Read VTransfer Views and fill name table"""
+
+    # debug
+    logger.info("called fill_uid_names()")
+
+    # get all Vtransfer object
+    for v_tranfer in VTransfer.objects.all():
+        # no name manipulation. If two objects are indentical, there's no
+        # duplicates.
+        # HINT: The ramon example will be a issue in validation step
+        name, created = Name.objects.get_or_create(
+            name=v_tranfer.get_fullname(),
+            submission=submission,
+            owner=submission.owner)
+
+        if created:
+            logger.info("Created %s" % name)
+
+        else:
+            logger.debug("Found %s" % name)
+
+    logger.info("fill_uid_names() completed")
 
 
 def fill_names(dataframe, submission, context):
@@ -512,6 +585,76 @@ def getNameId(row, df_transfer_fin, tag, name_to_id):
 
     # get name.id from dictionary
     return name_to_id[data["name"]]
+
+
+def fill_uid_animals(submission):
+    """Helper function to fill animal data in UID animal table"""
+
+    # debug
+    logger.info("called fill_uid_animals()")
+
+    # get submission language
+    language = submission.gene_bank_country.label
+
+    # get male and female DictSex objects from database
+    male = DictSex.objects.get(label="male")
+    female = DictSex.objects.get(label="female")
+
+    # cycle over animals
+    for v_animal in VAnimal.objects.all():
+        # get specie translated by dictionary
+        specie = DictSpecie.get_by_synonim(
+            synonim=v_animal.ext_species,
+            language=language)
+
+        # get breed name through VBreedsSpecies model
+        efabis_mcname = v_animal.efabis_mcname()
+        breed = DictBreed.objects.get(
+            supplied_breed=efabis_mcname,
+            specie=specie)
+
+        # get name for this animal and for mother and father
+        name = Name.objects.get(
+            name=v_animal.ext_animal, submission=submission)
+
+        father = Name.objects.get(
+            name=v_animal.ext_sire, submission=submission)
+
+        mother = Name.objects.get(
+            name=v_animal.ext_dam, submission=submission)
+
+        # determine sex. Check for values
+        if v_animal.ext_sex == 'm':
+            sex = male
+
+        elif v_animal.ext_sex == 'f':
+            sex = female
+
+        else:
+            raise CryoWebImportError(
+                "Unknown sex '%s' for '%s'" % (v_animal.ext_sex, v_animal))
+
+        # create a new object
+        animal, created = Animal.objects.get_or_create(
+            name=name,
+            alternative_id=v_animal.db_animal,
+            breed=breed,
+            sex=sex,
+            father=father,
+            mother=mother,
+            birth_location_latitude=v_animal.latitude,
+            birth_location_longitude=v_animal.longitude,
+            description=v_animal.comment,
+            owner=submission.owner)
+
+        if created:
+            logger.info("Created %s" % animal)
+
+        else:
+            logger.debug("Found %s" % animal)
+
+    # debug
+    logger.info("fill_uid_animals() completed")
 
 
 def fill_animals(engine_from_cryoweb, df_breeds_fin, df_transfer_fin,
@@ -928,18 +1071,27 @@ def cryoweb_import(submission):
 
     try:
         # BREEDS
+        fill_uid_breeds(submission)
+
+        # TODO: remove this function
         df_breeds_fin = fill_breeds(
             engine_from_cryoweb,
             context,
             submission)
 
-        # TRANSFER
+        # NAME
+        fill_uid_names(submission)
+
+        # TODO: remove this function
         df_transfer_fin = fill_transfer(
             engine_from_cryoweb,
             submission,
             context)
 
         # ANIMALS
+        fill_uid_animals(submission)
+
+        # TODO: remove this function
         fill_animals(
             engine_from_cryoweb,
             df_breeds_fin,

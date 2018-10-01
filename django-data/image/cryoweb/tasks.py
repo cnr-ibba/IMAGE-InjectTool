@@ -30,6 +30,7 @@ LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 @contextmanager
 def redis_lock(lock_id, blocking=False):
+    # TODO: read parameters from settings
     REDIS_CLIENT = redis.StrictRedis(host='redis', port=6379, db=0)
 
     timeout_at = monotonic() + LOCK_EXPIRE - 3

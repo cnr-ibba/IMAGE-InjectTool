@@ -842,9 +842,9 @@ class VesselsStorage(Base, models.Model):
         unique_together = (('db_vessel', 'storage_id', 'db_status'),)
 
 
-# Useful views
+# --- Useful Views
 # https://blog.rescale.com/using-database-views-in-django-orm/
-class VBreedSpecies(models.Model):
+class VBreedsSpecies(models.Model):
     v_guid = models.BigIntegerField(primary_key=True)
     breed_id = models.IntegerField(unique=True, blank=True, null=True)
     db_breed = models.IntegerField(blank=True, null=True)
@@ -867,10 +867,11 @@ class VBreedSpecies(models.Model):
     class Meta:
         managed = False
         db_table = 'v_breeds_species'
+        verbose_name = "Breeds Species View"
 
     def __str__(self):
         return "{breed} ({specie})".format(
-                breed=self.ext_breed,
+                breed=self.efabis_mcname,
                 specie=self.ext_species)
 
     @classmethod
@@ -881,6 +882,90 @@ class VBreedSpecies(models.Model):
 
         return [entry.ext_species for entry in queryset]
 
+
+class VTransfer(models.Model):
+    v_guid = models.BigIntegerField(primary_key=True)
+    db_animal = models.IntegerField(unique=True, blank=True, null=True)
+    ext_animal = models.TextField(blank=True, null=True)
+    db_unit = models.IntegerField(blank=True, null=True)
+    ext_unit = models.TextField(blank=True, null=True)
+    id_set = models.IntegerField(blank=True, null=True)
+    ext_id_set = models.TextField(blank=True, null=True)
+    opening_dt = models.DateField(blank=True, null=True)
+    closing_dt = models.DateField(blank=True, null=True)
+    last_change_dt = models.DateTimeField(blank=True, null=True)
+    last_change_user = models.TextField(blank=True, null=True)
+    dirty = models.NullBooleanField()
+    chk_lvl = models.SmallIntegerField(blank=True, null=True)
+    guid = models.IntegerField(primary_key=True)
+    owner = models.TextField(blank=True, null=True)
+    version = models.IntegerField(blank=True, null=True)
+    synch = models.NullBooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'v_transfer'
+        verbose_name = "Transfer View"
+
+    def __str__(self):
+        return self.get_fullname()
+
+    def get_fullname(self):
+        """No changes in names object"""
+
+        return ":::".join([self.ext_unit, self.ext_animal])
+
+
+class VAnimal(models.Model):
+    v_guid = models.BigIntegerField(primary_key=True)
+    db_animal = models.IntegerField(unique=True, blank=True, null=True)
+    ext_animal = models.TextField(blank=True, null=True)
+    db_sire = models.IntegerField(blank=True, null=True)
+    ext_sire = models.TextField(blank=True, null=True)
+    db_dam = models.IntegerField(blank=True, null=True)
+    ext_dam = models.TextField(blank=True, null=True)
+    db_sex = models.IntegerField(blank=True, null=True)
+    ext_sex = models.TextField(blank=True, null=True)
+    db_breed = models.IntegerField(blank=True, null=True)
+    ext_breed = models.TextField(blank=True, null=True)
+    db_species = models.IntegerField(blank=True, null=True)
+    ext_species = models.TextField(blank=True, null=True)
+    birth_dt = models.DateField(blank=True, null=True)
+    birth_year = models.TextField(blank=True, null=True)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
+    image_id = models.IntegerField(blank=True, null=True)
+    db_org = models.IntegerField(blank=True, null=True)
+    ext_org = models.TextField(blank=True, null=True)
+    la_rep = models.TextField(blank=True, null=True)
+    la_rep_dt = models.DateField(blank=True, null=True)
+    last_change_dt = models.DateTimeField(blank=True, null=True)
+    last_change_user = models.TextField(blank=True, null=True)
+    dirty = models.NullBooleanField()
+    chk_lvl = models.SmallIntegerField(blank=True, null=True)
+    guid = models.IntegerField(primary_key=True)
+    owner = models.TextField(blank=True, null=True)
+    version = models.IntegerField(blank=True, null=True)
+    synch = models.NullBooleanField()
+    db_hybrid = models.IntegerField(blank=True, null=True)
+    ext_hybrid = models.TextField(blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'v_animal'
+        verbose_name = "Animal View"
+
+    def efabis_mcname(self):
+        "Retrieve efabis mcname from breed_species table"
+
+        # HINT: is this unique in VBreedsSpecies?
+        entry = VBreedsSpecies.objects.get(db_breed=self.db_breed)
+
+        return entry.efabis_mcname
+
+
+# --- Custom functions
 
 # A method to truncate database
 def truncate_database():
@@ -923,7 +1008,7 @@ def truncate_database():
     Targets.truncate()
     Transfer.truncate()
     Unit.truncate()
-    # VBreedSpecies  # it's a view, not a table
+    # VBreedsSpecies  # it's a view, not a table
     Vessels.truncate()
     VesselsStorage.truncate()
 

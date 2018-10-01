@@ -6,18 +6,21 @@ Created on Thu Sep 20 16:01:04 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest import mock
+# --- import
+
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
 from language.models import SpecieSynonim
-from image_app.models import Submission
+from image_app.models import Submission, DictBreed, Name, Animal
 
 from .test_cryoweb import BaseTestCase
 from ..helpers import (
-    upload_cryoweb, check_species, CryoWebImportError, cryoweb_import)
+    upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
+    fill_uid_breeds, fill_uid_names, fill_uid_animals)
 from ..models import db_has_data, truncate_database
 
 
@@ -111,7 +114,7 @@ class UploadCryoweb(BaseTestCase, TestCase):
     def test_upload_cryoweb_errors(self):
         """Testing errors in uploading cryoweb data"""
 
-        with mock.patch('subprocess.run') as runMock:
+        with patch('subprocess.run') as runMock:
             runMock.side_effect = Exception("Test upload failed")
             self.assertFalse(upload_cryoweb(self.submission.id))
 
@@ -163,7 +166,43 @@ class CryowebImport(BaseTestCase, TestCase):
         self.assertEqual(
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
 
-    def test_cryoweb_import(self):
+    def test_fill_uid_breeds(self):
+        # call function
+        fill_uid_breeds(self.submission)
+
+        # eval queryset
+        queryset = DictBreed.objects.all()
+        breeds = [dictbreed.supplied_breed for dictbreed in queryset]
+
+        self.assertEqual(len(queryset), 2)
+        self.assertListEqual(
+            breeds, ['Aberdeen Angus', 'Ostfriesisches Milchschaf'])
+
+    def test_fill_uid_names(self):
+        # call function
+        fill_uid_names(self.submission)
+
+        queryset = Name.objects.filter(submission=self.submission)
+
+        self.assertEqual(len(queryset), 5)
+
+    def test_fill_uid_animals(self):
+        # call function
+        fill_uid_breeds(self.submission)
+        fill_uid_names(self.submission)
+        fill_uid_animals(self.submission)
+
+        queryset = Animal.objects.all()
+
+        self.assertEqual(len(queryset), 3)
+
+    @patch('cryoweb.helpers.fill_uid_animals')
+    @patch('cryoweb.helpers.fill_uid_names')
+    @patch('cryoweb.helpers.fill_uid_breeds')
+    def test_cryoweb_import(self, my_breeds, my_names, my_animals):
         """Import from cryoweb staging database into UID"""
 
         self.assertTrue(cryoweb_import(self.submission))
+        self.assertTrue(my_breeds.called)
+        self.assertTrue(my_names.called)
+        self.assertTrue(my_animals.called)
