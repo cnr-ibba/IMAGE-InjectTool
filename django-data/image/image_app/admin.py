@@ -4,9 +4,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
-from .models import (
-    Animal, DictBreed, DictCountry, DictRole, DictSpecie, Name,
-    Ontology, Organization, Person, Publication, Sample, Submission)
+from .models import (Animal, DictBreed, DictCountry, DictRole, DictSpecie,
+                     Name, Ontology, Organization, Person, Publication, Sample,
+                     Submission)
 
 
 class DictBreedAdmin(admin.ModelAdmin):

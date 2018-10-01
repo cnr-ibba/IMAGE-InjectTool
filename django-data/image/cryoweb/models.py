@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Adding a classmethod to Category if you want to enable truncate
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/truncate.html
-class Base():
+class BaseMixin():
     "Base class for cryoweb tables"
 
     @classmethod
@@ -35,7 +35,7 @@ class Base():
             cursor.execute(statement)
 
 
-class Animal(Base, models.Model):
+class Animal(BaseMixin, models.Model):
     db_animal = models.IntegerField(unique=True, blank=True, null=True)
     db_sire = models.IntegerField(blank=True, null=True)
     db_dam = models.IntegerField(blank=True, null=True)
@@ -67,7 +67,7 @@ class Animal(Base, models.Model):
         db_table = 'animal'
 
 
-class ArConstraints(Base, models.Model):
+class ArConstraints(BaseMixin, models.Model):
     cons_id = models.IntegerField(unique=True, blank=True, null=True)
     cons_name = models.TextField(blank=True, null=True)
     cons_type = models.TextField(blank=True, null=True)
@@ -87,7 +87,7 @@ class ArConstraints(Base, models.Model):
         unique_together = (('cons_name', 'cons_type'),)
 
 
-class ArDbtdescriptors(Base, models.Model):
+class ArDbtdescriptors(BaseMixin, models.Model):
     descriptor_id = models.IntegerField(unique=True, blank=True, null=True)
     descriptor_name = models.TextField(blank=True, null=True)
     descriptor_value = models.TextField(blank=True, null=True)
@@ -107,7 +107,7 @@ class ArDbtdescriptors(Base, models.Model):
         unique_together = (('descriptor_name', 'descriptor_value'),)
 
 
-class ArDbtpolicies(Base, models.Model):
+class ArDbtpolicies(BaseMixin, models.Model):
     dbtpolicy_id = models.IntegerField(unique=True, blank=True, null=True)
     action_id = models.IntegerField(blank=True, null=True)
     table_id = models.IntegerField(blank=True, null=True)
@@ -127,7 +127,7 @@ class ArDbtpolicies(Base, models.Model):
         unique_together = (('action_id', 'table_id', 'descriptor_id'),)
 
 
-class ArDbttables(Base, models.Model):
+class ArDbttables(BaseMixin, models.Model):
     table_id = models.IntegerField(unique=True, blank=True, null=True)
     table_name = models.TextField(blank=True, null=True)
     table_columns = models.TextField(blank=True, null=True)
@@ -147,7 +147,7 @@ class ArDbttables(Base, models.Model):
         unique_together = (('table_name', 'table_columns'),)
 
 
-class ArRoleConstraints(Base, models.Model):
+class ArRoleConstraints(BaseMixin, models.Model):
     cons_id = models.IntegerField(blank=True, null=True)
     first_role_id = models.IntegerField(blank=True, null=True)
     second_role_id = models.IntegerField(blank=True, null=True)
@@ -166,7 +166,7 @@ class ArRoleConstraints(Base, models.Model):
         unique_together = (('cons_id', 'first_role_id', 'second_role_id'),)
 
 
-class ArRoleDbtpolicies(Base, models.Model):
+class ArRoleDbtpolicies(BaseMixin, models.Model):
     role_id = models.IntegerField(blank=True, null=True)
     dbtpolicy_id = models.IntegerField(blank=True, null=True)
     last_change_dt = models.DateTimeField(blank=True, null=True)
@@ -184,7 +184,7 @@ class ArRoleDbtpolicies(Base, models.Model):
         unique_together = (('role_id', 'dbtpolicy_id'),)
 
 
-class ArRoleStpolicies(Base, models.Model):
+class ArRoleStpolicies(BaseMixin, models.Model):
     role_id = models.IntegerField(blank=True, null=True)
     stpolicy_id = models.IntegerField(blank=True, null=True)
     last_change_dt = models.DateTimeField(blank=True, null=True)
@@ -202,7 +202,7 @@ class ArRoleStpolicies(Base, models.Model):
         unique_together = (('role_id', 'stpolicy_id'),)
 
 
-class ArRoles(Base, models.Model):
+class ArRoles(BaseMixin, models.Model):
     role_id = models.IntegerField(unique=True, blank=True, null=True)
     role_name = models.TextField(blank=True, null=True)
     role_long_name = models.TextField(blank=True, null=True)
@@ -224,7 +224,7 @@ class ArRoles(Base, models.Model):
         unique_together = (('role_name', 'role_type'),)
 
 
-class ArStpolicies(Base, models.Model):
+class ArStpolicies(BaseMixin, models.Model):
     stpolicy_id = models.IntegerField(unique=True, blank=True, null=True)
     stpolicy_name = models.TextField(blank=True, null=True)
     stpolicy_type = models.TextField(blank=True, null=True)
@@ -244,7 +244,7 @@ class ArStpolicies(Base, models.Model):
         unique_together = (('stpolicy_name', 'stpolicy_type'),)
 
 
-class ArUserRoles(Base, models.Model):
+class ArUserRoles(BaseMixin, models.Model):
     user_id = models.IntegerField(blank=True, null=True)
     role_id = models.IntegerField(blank=True, null=True)
     last_change_dt = models.DateTimeField(blank=True, null=True)
@@ -262,7 +262,7 @@ class ArUserRoles(Base, models.Model):
         unique_together = (('user_id', 'role_id'),)
 
 
-class ArUsers(Base, models.Model):
+class ArUsers(BaseMixin, models.Model):
     user_id = models.IntegerField(unique=True, blank=True, null=True)
     user_login = models.TextField(unique=True, blank=True, null=True)
     user_password = models.TextField(blank=True, null=True)
@@ -287,7 +287,7 @@ class ArUsers(Base, models.Model):
         db_table = 'ar_users'
 
 
-class ArUsersData(Base, models.Model):
+class ArUsersData(BaseMixin, models.Model):
     user_id = models.IntegerField(unique=True, blank=True, null=True)
     user_first_name = models.TextField(blank=True, null=True)
     user_second_name = models.TextField(blank=True, null=True)
@@ -318,7 +318,7 @@ class ArUsersData(Base, models.Model):
         db_table = 'ar_users_data'
 
 
-class Blobs(Base, models.Model):
+class Blobs(BaseMixin, models.Model):
     blob_id = models.IntegerField(blank=True, null=True)
     blob = models.BinaryField(blank=True, null=True)
     last_change_dt = models.DateTimeField(blank=True, null=True)
@@ -336,7 +336,7 @@ class Blobs(Base, models.Model):
         db_table = 'blobs'
 
 
-class BreedsSpecies(Base, models.Model):
+class BreedsSpecies(BaseMixin, models.Model):
     breed_id = models.IntegerField(unique=True, blank=True, null=True)
     db_breed = models.IntegerField(blank=True, null=True)
     db_species = models.IntegerField(blank=True, null=True)
@@ -359,7 +359,7 @@ class BreedsSpecies(Base, models.Model):
         unique_together = (('db_species', 'db_breed'),)
 
 
-class Codes(Base, models.Model):
+class Codes(BaseMixin, models.Model):
     ext_code = models.TextField(blank=True, null=True)
     # Field renamed because it was a Python reserved word.
     class_field = models.TextField(db_column='class', blank=True, null=True)
@@ -386,7 +386,7 @@ class Codes(Base, models.Model):
                 ('class_field', 'ext_code'),)
 
 
-class Contacts(Base, models.Model):
+class Contacts(BaseMixin, models.Model):
     db_contact = models.IntegerField(unique=True, blank=True, null=True)
     title = models.TextField(blank=True, null=True)
     salutation = models.TextField(blank=True, null=True)
@@ -424,7 +424,7 @@ class Contacts(Base, models.Model):
         db_table = 'contacts'
 
 
-class Event(Base, models.Model):
+class Event(BaseMixin, models.Model):
     event_id = models.IntegerField(blank=True, null=True)
     db_event_type = models.IntegerField(blank=True, null=True)
     db_sampler = models.IntegerField(blank=True, null=True)
@@ -446,7 +446,7 @@ class Event(Base, models.Model):
                 ('event_id', 'db_event_type', 'db_location', 'event_dt'),)
 
 
-class Inspool(Base, models.Model):
+class Inspool(BaseMixin, models.Model):
     ds = models.TextField(blank=True, null=True)
     record_seq = models.IntegerField(unique=True, blank=True, null=True)
     in_date = models.DateField(blank=True, null=True)
@@ -468,7 +468,7 @@ class Inspool(Base, models.Model):
         db_table = 'inspool'
 
 
-class InspoolErr(Base, models.Model):
+class InspoolErr(BaseMixin, models.Model):
     record_seq = models.IntegerField(blank=True, null=True)
     err_type = models.TextField(blank=True, null=True)
     action = models.TextField(blank=True, null=True)
@@ -500,7 +500,7 @@ class InspoolErr(Base, models.Model):
         db_table = 'inspool_err'
 
 
-class Languages(Base, models.Model):
+class Languages(BaseMixin, models.Model):
     lang_id = models.IntegerField(unique=True, blank=True, null=True)
     iso_lang = models.TextField(unique=True, blank=True, null=True)
     lang = models.TextField(blank=True, null=True)
@@ -522,7 +522,7 @@ class Languages(Base, models.Model):
         db_table = 'languages'
 
 
-class LoadStat(Base, models.Model):
+class LoadStat(BaseMixin, models.Model):
     ds = models.TextField(blank=True, null=True)
     job_start = models.DateTimeField(blank=True, null=True)
     job_end = models.DateTimeField(blank=True, null=True)
@@ -544,7 +544,7 @@ class LoadStat(Base, models.Model):
         db_table = 'load_stat'
 
 
-class Locations(Base, models.Model):
+class Locations(BaseMixin, models.Model):
     db_animal = models.IntegerField(blank=True, null=True)
     db_location = models.IntegerField(blank=True, null=True)
     entry_dt = models.DateField(blank=True, null=True)
@@ -565,7 +565,7 @@ class Locations(Base, models.Model):
         db_table = 'locations'
 
 
-class Movements(Base, models.Model):
+class Movements(BaseMixin, models.Model):
     movements_id = models.IntegerField(unique=True, blank=True, null=True)
     from_storage = models.IntegerField(blank=True, null=True)
     to_storage = models.IntegerField(blank=True, null=True)
@@ -587,7 +587,7 @@ class Movements(Base, models.Model):
         db_table = 'movements'
 
 
-class NewPest(Base, models.Model):
+class NewPest(BaseMixin, models.Model):
     # Field renamed because it was a Python reserved word.
     class_field = models.TextField(db_column='class', blank=True, null=True)
     key = models.TextField(blank=True, null=True)
@@ -609,7 +609,7 @@ class NewPest(Base, models.Model):
         unique_together = (('class_field', 'key', 'trait'),)
 
 
-class Nodes(Base, models.Model):
+class Nodes(BaseMixin, models.Model):
     nodename = models.TextField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
     last_change_dt = models.DateTimeField(blank=True, null=True)
@@ -626,7 +626,7 @@ class Nodes(Base, models.Model):
         db_table = 'nodes'
 
 
-class Protocols(Base, models.Model):
+class Protocols(BaseMixin, models.Model):
     protocol_id = models.IntegerField(blank=True, null=True)
     protocol_name = models.TextField(blank=True, null=True)
     db_material_type = models.IntegerField(blank=True, null=True)
@@ -645,7 +645,7 @@ class Protocols(Base, models.Model):
         db_table = 'protocols'
 
 
-class Sources(Base, models.Model):
+class Sources(BaseMixin, models.Model):
     source = models.TextField(blank=True, null=True)
     tablename = models.TextField(blank=True, null=True)
     # Field renamed because it was a Python reserved word.
@@ -665,7 +665,7 @@ class Sources(Base, models.Model):
         db_table = 'sources'
 
 
-class StatusChanges(Base, models.Model):
+class StatusChanges(BaseMixin, models.Model):
     status_change_id = models.IntegerField(blank=True, null=True)
     vessels_storage_id = models.IntegerField(blank=True, null=True)
     old_status = models.IntegerField(blank=True, null=True)
@@ -686,7 +686,7 @@ class StatusChanges(Base, models.Model):
         db_table = 'status_changes'
 
 
-class Storage(Base, models.Model):
+class Storage(BaseMixin, models.Model):
     storage_id = models.IntegerField(unique=True, blank=True, null=True)
     storage_name = models.TextField(blank=True, null=True)
     parent_id = models.IntegerField(blank=True, null=True)
@@ -705,7 +705,7 @@ class Storage(Base, models.Model):
         db_table = 'storage'
 
 
-class StorageHistory(Base, models.Model):
+class StorageHistory(BaseMixin, models.Model):
     storage_id = models.IntegerField(blank=True, null=True)
     old_storage_name = models.TextField(blank=True, null=True)
     new_storage_name = models.TextField(blank=True, null=True)
@@ -729,7 +729,7 @@ class StorageHistory(Base, models.Model):
         db_table = 'storage_history'
 
 
-class Targets(Base, models.Model):
+class Targets(BaseMixin, models.Model):
     target = models.TextField(blank=True, null=True)
     tablename = models.TextField(blank=True, null=True)
     # Field renamed because it was a Python reserved word.
@@ -749,7 +749,7 @@ class Targets(Base, models.Model):
         db_table = 'targets'
 
 
-class Transfer(Base, models.Model):
+class Transfer(BaseMixin, models.Model):
     db_animal = models.IntegerField(blank=True, null=True)
     ext_animal = models.TextField(blank=True, null=True)
     db_unit = models.IntegerField(blank=True, null=True)
@@ -771,7 +771,7 @@ class Transfer(Base, models.Model):
         unique_together = (('db_unit', 'ext_animal'),)
 
 
-class Unit(Base, models.Model):
+class Unit(BaseMixin, models.Model):
     db_unit = models.IntegerField(unique=True, blank=True, null=True)
     ext_unit = models.TextField(blank=True, null=True)
     ext_id = models.TextField(blank=True, null=True)
@@ -796,7 +796,7 @@ class Unit(Base, models.Model):
                 ('ext_unit', 'ext_id', 'closing_dt'),)
 
 
-class Vessels(Base, models.Model):
+class Vessels(BaseMixin, models.Model):
     db_vessel = models.IntegerField(unique=True, blank=True, null=True)
     ext_vessel = models.TextField(unique=True, blank=True, null=True)
     db_animal = models.IntegerField(blank=True, null=True)
@@ -820,7 +820,7 @@ class Vessels(Base, models.Model):
         db_table = 'vessels'
 
 
-class VesselsStorage(Base, models.Model):
+class VesselsStorage(BaseMixin, models.Model):
     vessels_storage_id = models.IntegerField(blank=True, null=True)
     db_vessel = models.IntegerField(blank=True, null=True)
     storage_id = models.IntegerField(blank=True, null=True)
@@ -965,7 +965,7 @@ class VAnimal(models.Model):
         return entry.efabis_mcname
 
 
-class VVessels(Base, models.Model):
+class VVessels(models.Model):
     v_guid = models.BigIntegerField(primary_key=True)
     db_vessel = models.IntegerField(unique=True, blank=True, null=True)
     ext_vessel = models.TextField(unique=True, blank=True, null=True)
@@ -1007,7 +1007,7 @@ class VVessels(Base, models.Model):
         return protocol.ext_material_type
 
 
-class VProtocols(Base, models.Model):
+class VProtocols(models.Model):
     v_guid = models.BigIntegerField(primary_key=True)
     protocol_id = models.IntegerField(blank=True, null=True)
     protocol_name = models.TextField(blank=True, null=True)
@@ -1089,3 +1089,6 @@ def db_has_data():
             Animal.objects.exists() or Protocols.objects.exists() or
             Vessels.objects.exists()):
         return True
+
+    else:
+        return False

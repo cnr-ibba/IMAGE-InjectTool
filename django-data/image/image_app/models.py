@@ -1,16 +1,38 @@
 
-import os
 import datetime
+import logging
+import os
 from enum import Enum
 
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import connections, models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
 
 from .constants import OBO_URL
 from .helpers import format_attribute
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
+
+# Adding a classmethod to Category if you want to enable truncate
+# https://books.agiliq.com/projects/django-orm-cookbook/en/latest/truncate.html
+class BaseMixin():
+    "Base class for cryoweb tables"
+
+    @classmethod
+    def truncate(cls):
+        """Truncate table"""
+
+        # Django.db.connections is a dictionary-like object that allows you
+        # to retrieve a specific connection using its alias
+        with connections["default"].cursor() as cursor:
+            statement = "TRUNCATE TABLE {0} CASCADE".format(
+                cls._meta.db_table)
+            logger.debug(statement)
+            cursor.execute(statement)
 
 
 # helper classes
@@ -34,7 +56,7 @@ class DictMixin():
         return biosample
 
 
-class DictRole(DictMixin, models.Model):
+class DictRole(DictMixin, BaseMixin, models.Model):
     """A class to model roles defined as childs of
     http://www.ebi.ac.uk/efo/EFO_0002012"""
 
@@ -58,7 +80,7 @@ class DictRole(DictMixin, models.Model):
         unique_together = (("label", "term"),)
 
 
-class DictCountry(DictMixin, models.Model):
+class DictCountry(DictMixin, BaseMixin, models.Model):
     """A class to model contries defined by Gazetteer
     https://www.ebi.ac.uk/ols/ontologies/gaz"""
 
@@ -101,7 +123,7 @@ class DictCountry(DictMixin, models.Model):
         unique_together = (("label", "term"),)
 
 
-class DictSpecie(DictMixin, models.Model):
+class DictSpecie(DictMixin, BaseMixin, models.Model):
     """A class to model species defined by NCBI organismal classification
     http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
 
@@ -157,7 +179,7 @@ class DictSpecie(DictMixin, models.Model):
             speciesynonim__language__label=language)
 
 
-class DictBreed(models.Model):
+class DictBreed(BaseMixin, models.Model):
     # this was the description field in cryoweb v_breeds_species tables
     supplied_breed = models.CharField(max_length=255, blank=False)
     mapped_breed = models.CharField(max_length=255, blank=False, null=True)
@@ -232,7 +254,7 @@ class DictBreed(models.Model):
         unique_together = (("supplied_breed", "specie"),)
 
 
-class DictSex(DictMixin, models.Model):
+class DictSex(DictMixin, BaseMixin, models.Model):
     """A class to model sex as defined in PATO"""
 
     label = models.CharField(
@@ -252,7 +274,7 @@ class DictSex(DictMixin, models.Model):
         verbose_name_plural = 'sex'
 
 
-class Name(models.Model):
+class Name(BaseMixin, models.Model):
     """Model UID names: define a name (sample or animal) unique for each
     data submission"""
 
@@ -377,7 +399,7 @@ class BioSampleMixin(object):
         return attributes
 
 
-class Animal(BioSampleMixin, models.Model):
+class Animal(BioSampleMixin, BaseMixin, models.Model):
     # an animal name has a entry in name table
     name = models.OneToOneField(
             'Name',
@@ -523,7 +545,7 @@ class Animal(BioSampleMixin, models.Model):
         return result
 
 
-class Sample(BioSampleMixin, models.Model):
+class Sample(BioSampleMixin, BaseMixin, models.Model):
     # a sample name has a entry in name table
     # TODO: this is a One2One foreign key
     name = models.ForeignKey(
@@ -722,7 +744,7 @@ class Sample(BioSampleMixin, models.Model):
         return result
 
 
-class Person(models.Model):
+class Person(BaseMixin, models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     initials = models.CharField(max_length=255, blank=True, null=True)
 
@@ -766,7 +788,7 @@ def save_user_person(sender, instance, **kwargs):
     instance.person.save()
 
 
-class Organization(models.Model):
+class Organization(BaseMixin, models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     name = models.CharField(max_length=255)
     address = models.CharField(
@@ -787,7 +809,7 @@ class Organization(models.Model):
         return self.name
 
 
-class Publication(models.Model):
+class Publication(BaseMixin, models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     pubmed_id = models.CharField(max_length=255,
                                  help_text='Valid PubMed ID, numeric only')
@@ -801,7 +823,7 @@ class Publication(models.Model):
 
 
 # HINT: do I need this table?
-class Ontology(models.Model):
+class Ontology(BaseMixin, models.Model):
     library_name = models.CharField(
             max_length=255,
             help_text='Each value must be unique',
@@ -822,7 +844,7 @@ class Ontology(models.Model):
         verbose_name_plural = "ontologies"
 
 
-class Submission(models.Model):
+class Submission(BaseMixin, models.Model):
     title = models.CharField(
         "Submission title",
         max_length=255,
@@ -945,6 +967,50 @@ class Submission(models.Model):
         return reverse("submissions:detail", kwargs={"pk": self.pk})
 
 
+# --- Custom functions
+
+
+# A method to truncate database
+def truncate_database():
+    """Truncate image database"""
+
+    logger.warning("Truncating ALL image tables")
+
+    # call each class and truncate its table by calling truncate method
+    Animal.truncate()
+    DictBreed.truncate()
+    DictCountry.truncate()
+    DictRole.truncate()
+    DictSex.truncate()
+    DictSpecie.truncate()
+    Name.truncate()
+    Ontology.truncate()
+    Organization.truncate()
+    Person.truncate()
+    Publication.truncate()
+    Sample.truncate()
+    Submission.truncate()
+
+    logger.warning("All cryoweb tables were truncated")
+
+
+def truncate_filled_tables():
+    """Truncate filled tables by import processes"""
+
+    logger.warning("Truncating filled tables tables")
+
+    # call each class and truncate its table by calling truncate method
+    Animal.truncate()
+    DictBreed.truncate()
+    DictSpecie.truncate()
+    Name.truncate()
+    Publication.truncate()
+    Sample.truncate()
+    Submission.truncate()
+
+    logger.warning("All filled tables were truncated")
+
+
 def uid_report():
     """Performs a statistic on UID database to find issues"""
 
@@ -970,3 +1036,14 @@ def uid_report():
     report['species_without_ontology'] = species.count()
 
     return report
+
+
+# A method to discover is image database has data or not
+def db_has_data():
+    # Test only tables I read data to fill UID
+    if (Animal.objects.exists() or Sample.objects.exists() or
+            Name.objects.exists()):
+        return True
+
+    else:
+        return False

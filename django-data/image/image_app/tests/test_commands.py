@@ -22,3 +22,17 @@ class CommandsTestCase(TestCase):
         args = []
         opts = {}
         call_command('initializedb', *args, **opts)
+
+    def test_truncate_image_app(self):
+        " Test initializedb command."
+
+        args = []
+        opts = {}
+        call_command('truncate_image_tables', *args, **opts)
+
+    def test_truncate_image_app_all(self):
+        " Test initializedb command."
+
+        args = ["--all"]
+        opts = {}
+        call_command('truncate_image_tables', *args, **opts)

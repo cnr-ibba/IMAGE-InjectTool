@@ -3,8 +3,7 @@ import logging
 
 from django.core.management import BaseCommand
 
-from image_app import helpers
-from image_app.models import Submission
+from image_app.models import truncate_database, truncate_filled_tables
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -23,62 +22,16 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        imagedb = helpers.ImageDB()
-
-        # estabilishing a connection
-        conn = imagedb.get_connection()
-
-        # TODO: move add prefix image_app to django modeled image tables
         # HINT: maybe UID or InjectTools could be more informative than
         # image_app suffix?
 
-        if options['all'] is True:
-            logger.info("Truncating all image tables...")
+        logger.info("Starting truncate_image_tables")
 
-            # HINT: image_app_person, image_app_organization and
-            # image_app_person_organizations haven't to be deleted or user
-            # registered in django admin will not work anymore
-            statement = """
-                    TRUNCATE image_app_animal,
-                             image_app_database,
-                             image_app_dictbreed,
-                             image_app_dictcountry,
-                             image_app_dictrole,
-                             image_app_dictsex,
-                             image_app_dictspecie,
-                             image_app_name,
-                             image_app_ontology,
-                             image_app_publication,
-                             image_app_sample,
-                             image_app_submission,
-                             language_speciesynonim RESTART IDENTITY
-                        """
+        if options['all'] is True:
+            truncate_database()
 
         else:
-            logger.info("Truncating filled image tables...")
-
-            statement = """
-                    TRUNCATE image_app_animal,
-                             image_app_dictbreed,
-                             image_app_name,
-                             image_app_sample,
-                             image_app_dictspecie,
-                             image_app_submission,
-                             language_speciesynonim RESTART IDENTITY
-                        """
-
-        # debug
-        logger.debug("Executing: %s" % (statement))
-
-        # start a transaction
-        trans = conn.begin()
-        conn.execute(statement)
-        trans.commit()
-
-        # unset loaded flag from data source
-        for submission in Submission.objects.all():
-            submission.loaded = False
-            submission.save()
+            truncate_filled_tables()
 
         # debug
         logger.info("Done!")
