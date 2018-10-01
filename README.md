@@ -215,7 +215,7 @@ folder:
 
 ```
 $ docker-compose run --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media'
-$ docker-compose run --rm uwsgi sh -c 'chmod g+rwx media && chgrp -R www-data .'
+$ docker-compose run --rm uwsgi sh -c 'chmod -R g+rwx media && chgrp -R www-data .'
 ```
 
 ### Other useful commands

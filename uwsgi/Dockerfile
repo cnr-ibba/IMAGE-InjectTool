@@ -45,9 +45,5 @@ ENV PYTHONUNBUFFERED 1
 COPY requirements.txt /root/
 RUN pip install --no-cache-dir -r /root/requirements.txt
 
-# installing custom modules
-COPY requirements_git.txt /root/
-RUN pip install --no-cache-dir -r /root/requirements_git.txt
-
 # Execute a default command
 CMD ["/bin/bash"]

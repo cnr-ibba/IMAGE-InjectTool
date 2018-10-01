@@ -1,1 +1,0 @@
-git+https://github.com/bunop/pyEBIrest.git@dfade553aaecd6cd896fb32457c4d183e7c96e2e
