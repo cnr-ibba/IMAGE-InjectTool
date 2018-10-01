@@ -17,10 +17,29 @@ from django.test import TestCase
 from language.models import SpecieSynonim
 from image_app.models import Submission, DictBreed, Name, Animal, Sample
 
-from .test_cryoweb import BaseTestCase
 from ..helpers import (
     upload_cryoweb, check_species, CryoWebImportError, cryoweb_import)
 from ..models import db_has_data, truncate_database
+
+
+class BaseTestCase():
+    # import this file and populate database once
+    fixtures = [
+        "cryoweb/user",
+        "cryoweb/dictrole",
+        "cryoweb/organization",
+        "cryoweb/dictcountry",
+        "cryoweb/submission",
+        "cryoweb/dictsex",
+        "cryoweb/dictspecie",
+        "cryoweb/speciesynonim"
+    ]
+
+    # By default, fixtures are only loaded into the default database. If you
+    # are using multiple databases and set multi_db=True, fixtures will be
+    # loaded into all databases. However, this will raise problems when
+    # managing extended user models
+    multi_db = False
 
 
 class CheckSpecie(BaseTestCase, TestCase):

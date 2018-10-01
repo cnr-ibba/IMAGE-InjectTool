@@ -41,10 +41,6 @@ urlpatterns = [
         include(
             ('image_app.urls', 'image_app'),
             namespace="image_app")),
-    url(r'^cryoweb/',
-        include(
-            ('cryoweb.urls', 'cryoweb'),
-            namespace="cryoweb")),
     url(r'^biosample/',
         include(
             ('biosample.urls', 'biosample'),

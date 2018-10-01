@@ -11,7 +11,8 @@ import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 
-from ..helpers import CryowebDB
+from cryoweb.models import db_has_data as cryoweb_has_data
+
 from ..models import Submission, uid_report
 
 # Get an instance of a logger
@@ -62,8 +63,7 @@ class SummaryView(LoginRequiredMixin, TemplateView):
 
         # add info for cryoweb db
         context["cryoweb_hasdata"] = False
-        cryowebdb = CryowebDB()
-        if cryowebdb.has_data(search_path='apiis_admin'):
+        if cryoweb_has_data():
             logger.debug("Cryoweb has data!")
             context["cryoweb_hasdata"] = True
 
