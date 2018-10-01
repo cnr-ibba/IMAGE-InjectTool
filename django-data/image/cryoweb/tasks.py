@@ -17,10 +17,9 @@ import redis
 from celery import task
 from celery.five import monotonic
 from celery.utils.log import get_task_logger
-
 from image_app.models import Submission
 
-from .helpers import upload_cryoweb, check_UID, cryoweb_import
+from .helpers import check_UID, cryoweb_import, upload_cryoweb
 from .models import truncate_database
 
 logger = get_task_logger(__name__)

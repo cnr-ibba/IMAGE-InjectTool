@@ -8,7 +8,7 @@ Created on Fri Sep 28 13:02:55 2018
 
 from django.contrib import admin
 
-from .models import VBreedsSpecies, VTransfer, VAnimal, VVessels
+from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
 
 # Register your models here.
 admin.site.register(VBreedsSpecies)

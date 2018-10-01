@@ -8,10 +8,10 @@
 # Feel free to rename the models, but don't rename db_table values or field
 # names.
 from __future__ import unicode_literals
+
 import logging
 
-from django.db import models, connections
-
+from django.db import connections, models
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
