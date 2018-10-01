@@ -25,7 +25,8 @@ from image_app.models import (
 from language.models import SpecieSynonim
 
 from .models import (
-    VBreedsSpecies, db_has_data as cryoweb_has_data, VTransfer, VAnimal)
+    VBreedsSpecies, db_has_data as cryoweb_has_data, VTransfer, VAnimal,
+    VVessels)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -862,6 +863,50 @@ def get_protocols(engine_from_cryoweb):
     return df_protocols_fin
 
 
+def fill_uid_samples(submission):
+    """Helper function to fill animal data in UID animal table"""
+
+    # debug
+    logger.info("called fill_uid_samples()")
+
+    for v_vessel in VVessels.objects.all():
+        # get name for this sample. Need to insert it
+        name, created = Name.objects.get_or_create(
+            name=v_vessel.ext_vessel,
+            submission=submission,
+            owner=submission.owner)
+
+        if created:
+            logger.info("Created %s" % name)
+
+        else:
+            logger.debug("Found %s" % name)
+
+        # get animal object using name
+        animal = Animal.objects.get(
+            name__name=v_vessel.ext_animal,
+            name__submission=submission)
+
+        sample, created = Sample.objects.get_or_create(
+            name=name,
+            alternative_id=v_vessel.db_vessel,
+            collection_date=v_vessel.production_dt,
+            protocol=v_vessel.get_protocol_name(),
+            organism_part=v_vessel.get_organism_part(),
+            animal=animal,
+            description=v_vessel.comment,
+            owner=submission.owner)
+
+        if created:
+            logger.info("Created %s" % sample)
+
+        else:
+            logger.debug("Found %s" % sample)
+
+    # debug
+    logger.info("fill_uid_samples() completed")
+
+
 def fill_samples(engine_from_cryoweb, df_transfer_fin, submission, context):
     """Helper function to fill image samples table"""
 
@@ -1100,6 +1145,9 @@ def cryoweb_import(submission):
             context)
 
         # SAMPLES
+        fill_uid_samples(submission)
+
+        # TODO: remove this function
         fill_samples(
             engine_from_cryoweb,
             df_transfer_fin,

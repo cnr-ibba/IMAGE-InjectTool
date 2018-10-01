@@ -965,6 +965,73 @@ class VAnimal(models.Model):
         return entry.efabis_mcname
 
 
+class VVessels(Base, models.Model):
+    v_guid = models.BigIntegerField(primary_key=True)
+    db_vessel = models.IntegerField(unique=True, blank=True, null=True)
+    ext_vessel = models.TextField(unique=True, blank=True, null=True)
+    db_animal = models.IntegerField(blank=True, null=True)
+    ext_animal = models.TextField(unique=True, blank=True, null=True)
+    protocol_id = models.IntegerField(blank=True, null=True)
+    ext_protocol_id = models.IntegerField(blank=True, null=True)
+    production_dt = models.DateField(blank=True, null=True)
+    freezing_dt = models.DateField(blank=True, null=True)
+    db_vessel_type = models.IntegerField(blank=True, null=True)
+    ext_vessel_type = models.TextField(unique=True, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+    chk_lvl = models.SmallIntegerField(blank=True, null=True)
+    dirty = models.NullBooleanField()
+    guid = models.BigIntegerField(primary_key=True)
+    last_change_dt = models.DateTimeField(blank=True, null=True)
+    last_change_user = models.TextField(blank=True, null=True)
+    owner = models.TextField(blank=True, null=True)
+    synch = models.NullBooleanField()
+    version = models.SmallIntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'v_vessels'
+        verbose_name = "Vessels View"
+
+    def __str__(self):
+        return "%s (%s)" % (self.ext_vessel, self.ext_animal)
+
+    def get_protocol(self):
+        return VProtocols.objects.get(protocol_id=self.ext_protocol_id)
+
+    def get_protocol_name(self):
+        protocol = self.get_protocol()
+        return protocol.protocol_name
+
+    def get_organism_part(self):
+        protocol = self.get_protocol()
+        return protocol.ext_material_type
+
+
+class VProtocols(Base, models.Model):
+    v_guid = models.BigIntegerField(primary_key=True)
+    protocol_id = models.IntegerField(blank=True, null=True)
+    protocol_name = models.TextField(blank=True, null=True)
+    db_material_type = models.IntegerField(blank=True, null=True)
+    ext_material_type = models.TextField(unique=True, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+    chk_lvl = models.SmallIntegerField(blank=True, null=True)
+    dirty = models.NullBooleanField()
+    guid = models.BigIntegerField(primary_key=True)
+    last_change_dt = models.DateTimeField(blank=True, null=True)
+    last_change_user = models.TextField(blank=True, null=True)
+    owner = models.TextField(blank=True, null=True)
+    synch = models.NullBooleanField()
+    version = models.SmallIntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'v_protocols'
+        verbose_name = "Protocols View"
+
+    def __str__(self):
+        return "%s, %s" % (self.protocol_name, self.ext_material_type)
+
+
 # --- Custom functions
 
 # A method to truncate database

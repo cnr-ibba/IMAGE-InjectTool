@@ -15,12 +15,12 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from language.models import SpecieSynonim
-from image_app.models import Submission, DictBreed, Name, Animal
+from image_app.models import Submission, DictBreed, Name, Animal, Sample
 
 from .test_cryoweb import BaseTestCase
 from ..helpers import (
     upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
-    fill_uid_breeds, fill_uid_names, fill_uid_animals)
+    fill_uid_breeds, fill_uid_names, fill_uid_animals, fill_uid_samples)
 from ..models import db_has_data, truncate_database
 
 
@@ -196,13 +196,26 @@ class CryowebImport(BaseTestCase, TestCase):
 
         self.assertEqual(len(queryset), 3)
 
+    def test_fill_uid_samples(self):
+        # call function
+        fill_uid_breeds(self.submission)
+        fill_uid_names(self.submission)
+        fill_uid_animals(self.submission)
+        fill_uid_samples(self.submission)
+
+        queryset = Sample.objects.all()
+
+        self.assertEqual(len(queryset), 1)
+
+    @patch('cryoweb.helpers.fill_uid_samples')
     @patch('cryoweb.helpers.fill_uid_animals')
     @patch('cryoweb.helpers.fill_uid_names')
     @patch('cryoweb.helpers.fill_uid_breeds')
-    def test_cryoweb_import(self, my_breeds, my_names, my_animals):
+    def test_cryoweb_import(self, my_breeds, my_names, my_animals, my_samples):
         """Import from cryoweb staging database into UID"""
 
         self.assertTrue(cryoweb_import(self.submission))
         self.assertTrue(my_breeds.called)
         self.assertTrue(my_names.called)
         self.assertTrue(my_animals.called)
+        self.assertTrue(my_samples.called)
