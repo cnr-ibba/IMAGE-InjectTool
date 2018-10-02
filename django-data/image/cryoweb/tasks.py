@@ -96,10 +96,6 @@ def import_from_cryoweb(self, submission_id, blocking=True):
     # get a submission object
     submission = Submission.objects.get(pk=submission_id)
 
-    # check UID status. get an exception if database is not initialized
-    # TODO: model exception in submission message
-    check_UID(submission)
-
     # get statuses
     loaded = Submission.STATUSES.get_value('loaded')
 
@@ -116,6 +112,10 @@ def import_from_cryoweb(self, submission_id, blocking=True):
 
                 # this a failure in my import, not the task itself
                 return "error in uploading cryoweb data"
+
+            # check UID status. get an exception if database is not initialized
+            # TODO: model exception in submission message
+            check_UID(submission)
 
             # load cryoweb data into UID
             # TODO: check status

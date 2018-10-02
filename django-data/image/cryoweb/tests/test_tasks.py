@@ -28,11 +28,12 @@ class ImportCryowebTest(TestCase):
     ]
 
     # patching upload_cryoweb and truncate database
+    @patch("cryoweb.tasks.check_UID", return_value=True)
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import")
     @patch("cryoweb.tasks.upload_cryoweb", return_value=True)
     def test_import_from_cryoweb(
-            self, my_upload, my_import, my_truncate):
+            self, my_upload, my_import, my_truncate, my_check):
         """Testing cryoweb import"""
 
         # NOTE that I'm calling the function directly, without delay
@@ -45,6 +46,7 @@ class ImportCryowebTest(TestCase):
         # assert that method were called
         self.assertTrue(my_upload.called)
         self.assertTrue(my_import.called)
+        self.assertTrue(my_check.called)
 
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)

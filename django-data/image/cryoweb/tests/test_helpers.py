@@ -15,11 +15,13 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from language.models import SpecieSynonim
-from image_app.models import Submission, DictBreed, Name, Animal, Sample
+from image_app.models import (
+    Submission, DictBreed, Name, Animal, Sample, DictSex)
 
 from ..helpers import (
-    upload_cryoweb, check_species, CryoWebImportError, cryoweb_import)
-from ..models import db_has_data, truncate_database
+    upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
+    check_UID)
+from ..models import db_has_data, truncate_database, BreedsSpecies
 
 
 class BaseTestCase():
@@ -41,8 +43,17 @@ class BaseTestCase():
     # managing extended user models
     multi_db = False
 
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
 
-class CheckSpecie(BaseTestCase, TestCase):
+        # track submission
+        self.submission = Submission.objects.get(pk=1)
+
+
+class CryoWebMixin(object):
+    """Custom methods to upload cryoweb data into database for testing"""
+
     @classmethod
     def setUpClass(cls):
         # calling my base class setup
@@ -67,10 +78,15 @@ class CheckSpecie(BaseTestCase, TestCase):
         # calling my base class teardown class
         super().tearDownClass()
 
+
+class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
     def test_check_species(self):
         """Testing species and synonims"""
 
         self.assertTrue(check_species("Germany"))
+
+        # no species for this language
+        self.assertFalse(check_species("Italy"))
 
         # now delete a synonim
         synonim = SpecieSynonim.objects.get(
@@ -80,15 +96,51 @@ class CheckSpecie(BaseTestCase, TestCase):
 
         self.assertFalse(check_species("Germany"))
 
+    def test_no_species(self):
+        """Test no species in cryoweb database"""
+
+        queryset = BreedsSpecies.objects.all()
+        queryset.delete()
+
+        self.assertRaisesRegex(
+            CryoWebImportError,
+            "You have no species",
+            check_species, "Germany")
+
+
+class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):
+    def test_empty_dictsex(self):
+        """Empty dictsex and check that I can't proceed"""
+
+        queryset = DictSex.objects.all()
+        queryset.delete()
+
+        self.assertRaisesRegex(
+            CryoWebImportError,
+            "You have to upload DictSex data",
+            check_UID, self.submission)
+
+    def test_no_synonim(self):
+        # now delete a synonim
+        synonim = SpecieSynonim.objects.get(
+            language__label='Germany',
+            word='Cattle')
+        synonim.delete()
+
+        self.assertRaisesRegex(
+            CryoWebImportError,
+            "Some species haven't a synonim!",
+            check_UID, self.submission)
+
+    def test_check_UID(self):
+        """testing normal behaviour"""
+
+        self.assertTrue(check_UID(self.submission))
+
 
 class UploadCryoweb(BaseTestCase, TestCase):
-    def setUp(self):
-        # calling my base class setup
-        super().setUp()
-
-        # track submission
-        self.submission = Submission.objects.get(pk=1)
-
+    # need to clean database after testing import. Can't use CryowebMixin
+    # since i need to test cryoweb import
     def tearDown(self):
         """Clean test database after modifications"""
 
@@ -148,38 +200,7 @@ class UploadCryoweb(BaseTestCase, TestCase):
                 self.submission.message)
 
 
-class CryowebImport(BaseTestCase, TestCase):
-    @classmethod
-    def setUpClass(cls):
-        # calling my base class setup
-        super().setUpClass()
-
-        # this fixture have to be loaded in a secondary (test) database,
-        # I can't upload it using names and fixture section, so it will
-        # be added manually using loaddata
-        call_command(
-            'loaddata',
-            'cryoweb/cryoweb.json',
-            app='cryoweb',
-            database='cryoweb',
-            verbosity=0)
-
-    @classmethod
-    def tearDownClass(cls):
-        # truncate cryoweb database after loading
-        if db_has_data():
-            truncate_database()
-
-        # calling my base class teardown class
-        super().tearDownClass()
-
-    def setUp(self):
-        # calling my base class setup
-        super().setUp()
-
-        # track submission
-        self.submission = Submission.objects.get(pk=1)
-
+class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
     def test_database_name(self):
         self.assertEqual(
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')

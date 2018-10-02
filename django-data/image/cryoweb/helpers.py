@@ -39,6 +39,10 @@ def check_species(language):
     # for logging purposes
     database_name = settings.DATABASES['cryoweb']['NAME']
 
+    if len(species) == 0:
+        raise CryoWebImportError(
+            "You have no species in %s database" % database_name)
+
     # debug
     logger.debug("Got %s species from %s" % (species, database_name))
 
@@ -46,7 +50,6 @@ def check_species(language):
     synonims = SpecieSynonim.objects.filter(
         word__in=species, language__label=language)
 
-    # HINT: is this state useful?
     # check that numbers are equal
     if len(species) == synonims.count():
         logger.debug("Each species has a synonim in %s language" % (language))
@@ -84,8 +87,8 @@ def check_UID(submission):
     if not check_species(submission.gene_bank_country.label):
         raise CryoWebImportError("Some species haven't a synonim!")
 
-    # TODO: deal with exceptions
-    # TODO: return a status
+    # return a status
+    return True
 
 
 # A class to deal with cryoweb import errors

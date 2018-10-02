@@ -29,6 +29,7 @@ class SpecieSynonim(models.Model):
         unique_together = (("dictspecie", "language", "word"),)
 
     def __str__(self):
-        return "{word} ({dictspecie})".format(
+        return "{language}:{word} ({dictspecie})".format(
+            language=self.language.label,
             word=self.word,
             dictspecie=self.dictspecie)
