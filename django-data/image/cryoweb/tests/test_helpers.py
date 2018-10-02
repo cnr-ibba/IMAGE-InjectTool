@@ -156,7 +156,7 @@ class UploadCryoweb(BaseTestCase, TestCase):
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
 
     def test_upload_cryoweb(self):
-        """Testing uploading and uploading with data into cryoweb"""
+        """Testing uploading and importing data from cryoweb to UID"""
 
         self.assertTrue(upload_cryoweb(self.submission.id))
         self.assertTrue(db_has_data())
@@ -229,3 +229,21 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
 
         queryset = Sample.objects.all()
         self.assertEqual(len(queryset), 1, msg="check sample load")
+
+    @patch("cryoweb.helpers.check_UID", side_effect=Exception("Test message"))
+    def test_cryoweb_import_errors(self, my_check):
+        """Testing importing with data into UID with errors"""
+
+        self.assertFalse(cryoweb_import(self.submission))
+        self.assertTrue(my_check.called)
+
+        # reload submission
+        self.submission = Submission.objects.get(pk=1)
+
+        self.assertEqual(
+            self.submission.status,
+            Submission.STATUSES.get_value('error'))
+
+        self.assertIn(
+            "Test message",
+            self.submission.message)

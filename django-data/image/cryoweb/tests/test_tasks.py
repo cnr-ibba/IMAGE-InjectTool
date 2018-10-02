@@ -28,12 +28,11 @@ class ImportCryowebTest(TestCase):
     ]
 
     # patching upload_cryoweb and truncate database
-    @patch("cryoweb.tasks.check_UID", return_value=True)
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import")
     @patch("cryoweb.tasks.upload_cryoweb", return_value=True)
     def test_import_from_cryoweb(
-            self, my_upload, my_import, my_truncate, my_check):
+            self, my_upload, my_import, my_truncate):
         """Testing cryoweb import"""
 
         # NOTE that I'm calling the function directly, without delay
@@ -46,7 +45,6 @@ class ImportCryowebTest(TestCase):
         # assert that method were called
         self.assertTrue(my_upload.called)
         self.assertTrue(my_import.called)
-        self.assertTrue(my_check.called)
 
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
@@ -72,7 +70,7 @@ class ImportCryowebTest(TestCase):
     @patch("cryoweb.tasks.upload_cryoweb", return_value=False)
     def test_error_in_uploading(
             self, my_upload, my_import, my_truncate):
-        """Testing error in importing data"""
+        """Testing error in importing data into cryoweb"""
 
         res = cryoweb.tasks.import_from_cryoweb(submission_id=1)
 
@@ -86,7 +84,24 @@ class ImportCryowebTest(TestCase):
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
-    # TODO: test errors between loading from cryoweb to UID
+    @patch("cryoweb.tasks.truncate_database")
+    @patch("cryoweb.tasks.cryoweb_import", return_value=False)
+    @patch("cryoweb.tasks.upload_cryoweb", return_value=True)
+    def test_error_in_uploading2(
+            self, my_upload, my_import, my_truncate):
+        """Testing error in importing data from cryoweb to UID"""
+
+        res = cryoweb.tasks.import_from_cryoweb(submission_id=1)
+
+        # assert an error in data uploading
+        self.assertEqual(res, "error in importing cryoweb data")
+
+        # assert that method were called
+        self.assertTrue(my_upload.called)
+        self.assertTrue(my_import.called)
+
+        # ensure that database is truncated
+        self.assertTrue(my_truncate.called)
 
     # Test a non blocking instance
     @patch("redis.lock.LuaLock.acquire", return_value=False)

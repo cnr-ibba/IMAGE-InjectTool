@@ -26,6 +26,10 @@ from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+# Set Submission statuses
+LOADED = Submission.STATUSES.get_value('loaded')
+ERROR = Submission.STATUSES.get_value('error')
+
 
 # --- check functions
 # a function to detect if cryoweb species have synonims or not
@@ -127,7 +131,7 @@ def upload_cryoweb(submission_id):
         logger.error("Cryoweb has data!")
 
         # update submission status
-        submission.status = Submission.STATUSES.get_value('error')
+        submission.status = ERROR
         submission.message = "Cryoweb has data"
         submission.save()
 
@@ -160,7 +164,7 @@ def upload_cryoweb(submission_id):
 
     except Exception as exc:
         # save a message in database
-        submission.status = Submission.STATUSES.get_value('error')
+        submission.status = ERROR
         submission.message = str(exc)
         submission.save()
 
@@ -375,6 +379,9 @@ def cryoweb_import(submission):
     logger.info("Importing from cryoweb staging area")
 
     try:
+        # check UID status. get an exception if database is not initialized
+        check_UID(submission)
+
         # BREEDS
         fill_uid_breeds(submission)
 
@@ -389,7 +396,7 @@ def cryoweb_import(submission):
 
     except Exception as exc:
         # save a message in database
-        submission.status = Submission.STATUSES.get_value('error')
+        submission.status = ERROR
         submission.message = str(exc)
         submission.save()
 
@@ -397,6 +404,14 @@ def cryoweb_import(submission):
         logger.error("error in importing from cryoweb: %s" % (exc))
 
         return False
+
+    else:
+        message = "Cryoweb import completed for submission: %s" % (
+            submission.id)
+
+        submission.message = message
+        submission.status = LOADED
+        submission.save()
 
     logger.info("Import from staging area is complete")
 

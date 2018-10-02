@@ -21,7 +21,7 @@ from celery.five import monotonic
 from celery.utils.log import get_task_logger
 from image_app.models import Submission
 
-from .helpers import check_UID, cryoweb_import, upload_cryoweb
+from .helpers import cryoweb_import, upload_cryoweb
 from .models import truncate_database
 from django.conf import settings
 
@@ -96,9 +96,6 @@ def import_from_cryoweb(self, submission_id, blocking=True):
     # get a submission object
     submission = Submission.objects.get(pk=submission_id)
 
-    # get statuses
-    loaded = Submission.STATUSES.get_value('loaded')
-
     # forcing blocking cndition: Wait until a get a lock object
     with redis_lock(lock_id, blocking=blocking) as acquired:
         if acquired:
@@ -113,25 +110,21 @@ def import_from_cryoweb(self, submission_id, blocking=True):
                 # this a failure in my import, not the task itself
                 return "error in uploading cryoweb data"
 
-            # check UID status. get an exception if database is not initialized
-            # TODO: model exception in submission message
-            check_UID(submission)
-
             # load cryoweb data into UID
-            # TODO: check status
-            cryoweb_import(submission)
+            # check status
+            status = cryoweb_import(submission)
 
-            # modify database status
+            if status is False:
+                logger.error("Error in importing cryoweb data")
+
+                # this a failure in my import, not the task itself
+                return "error in importing cryoweb data"
+
+            # modify database status. If I arrive here, everything went ok
             logger.debug("Updating submission %s" % (submission_id))
 
             message = "Cryoweb import completed for submission: %s" % (
                 submission_id)
-
-            # TODO: those updates need to be placed inn cryoweb_import
-            # as other function do when they found an error
-            submission.message = message
-            submission.status = loaded
-            submission.save()
 
             # TODO: set logging message to talk about tasks
             logger.info(message)
