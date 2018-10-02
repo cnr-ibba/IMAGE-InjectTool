@@ -14,6 +14,8 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 from contextlib import contextmanager
 
 import redis
+import logging
+
 from celery import task
 from celery.five import monotonic
 from celery.utils.log import get_task_logger
@@ -21,16 +23,27 @@ from image_app.models import Submission
 
 from .helpers import check_UID, cryoweb_import, upload_cryoweb
 from .models import truncate_database
+from django.conf import settings
 
+# get a logger for tasks
 logger = get_task_logger(__name__)
+
+# getting cryoweb logger to disable its handler
+cryoweb_logger = logging.getLogger('cryoweb')
+
+for handler in cryoweb_logger.handlers:
+    cryoweb_logger.removeHandler(handler)
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
 
 @contextmanager
 def redis_lock(lock_id, blocking=False):
-    # TODO: read parameters from settings
-    REDIS_CLIENT = redis.StrictRedis(host='redis', port=6379, db=0)
+    # read parameters from settings
+    REDIS_CLIENT = redis.StrictRedis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        db=settings.REDIS_DB)
 
     timeout_at = monotonic() + LOCK_EXPIRE - 3
 

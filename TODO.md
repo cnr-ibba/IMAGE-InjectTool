@@ -41,10 +41,6 @@
   - Data need to be isolated from a user POV
 
 * regarding performance issues:
-  - What happens if two user load data in the same time? deal with concurrency
-  - isolation with an asyncronous queue system? celery
-  - deal with timeout when uploading data sources. Implement import_from_cryoweb
-    as celery task
   - When google cache is active, two pages are loaded: all scripts will be executed
     using celery tasks
   - fix logging in celery modules (each log is printed two times, one for django
@@ -91,20 +87,7 @@
 
 * Dashboard page: database status and links of all applications developed
   - report and links for datasource (upload datasource, views datasources etc)
-  - report and links for cryoweb staging area
   - check for duplicate breeds - names
-
-* cryoweb tables need to be filled using django ORM:
-  - can test using correct test database: now functions and pandas function use
-    hardcoded cryoweb database even in tests.
-  - implement [views](https://blog.rescale.com/using-database-views-in-django-orm/)
-    in cryoweb models
-  - remove sqlalchemy `image_app.helpers` classes
-  - remove pandas
-  - fixtures and pre calculated data in test database are recordered in transactions:
-    I need to see object using the same connection (see loaded fixtures with
-    the same connection)
-  - remove unused view `import_from_cryoweb`
 
 * metadata rules
   - taxon (= specie) is a mandatory fields for biosample, taxonId not but is better
@@ -158,13 +141,9 @@
 
 * Issues relative to UID:
   - check the CASCADE foreign keys
-  - implement the `truncate` class method
-  - `truncate_image_tables` management command need to rely on django ORM
-  - remove the `image_app.helpers` unuseful classes
   - `Publication` table is empty at the moment
   - records (like `Name`) need to have a column in which the status is recorded
     (need revisions, submitted, ...)
-  - check the Relation type between `Sample` and `Name`: need to be One2One
   - rename `image_app` application into `uid`?
   - More user can belong to same organization?
   - `contenttypes` framework for `Name` relations?

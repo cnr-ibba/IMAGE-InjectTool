@@ -547,8 +547,8 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
 
 class Sample(BioSampleMixin, BaseMixin, models.Model):
     # a sample name has a entry in name table
-    # TODO: this is a One2One foreign key
-    name = models.ForeignKey(
+    # this is a One2One foreign key
+    name = models.OneToOneField(
             'Name',
             on_delete=models.PROTECT)
 
