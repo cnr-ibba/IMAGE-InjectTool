@@ -903,6 +903,8 @@ class Submission(BaseMixin, models.Model):
     # when submission is created
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # TODO: add a field for last update
+
     # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
     class STATUSES(Enum):
         waiting = (0, 'Waiting')
@@ -933,6 +935,7 @@ class Submission(BaseMixin, models.Model):
     # track biosample submission id in a field
     # HINT: if I update a completed submision, shuold I track the
     # last submission id?
+    # HINT: is this a unique key?
     biosample_submission_id = models.CharField(
         max_length=255,
         blank=True,

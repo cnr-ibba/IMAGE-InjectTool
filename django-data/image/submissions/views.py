@@ -92,6 +92,10 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
                 message='Error in importing data: %s' % self.object.message,
                 extra_tags="alert alert-dismissible alert-danger")
 
+        # TODO: add a message for a SUBMITTED status
+
+        # TODO: add a message for NEED_REVISION status
+
         elif self.object.message is not None and self.object.message != '':
             messages.debug(
                 request=self.request,

@@ -27,11 +27,12 @@
   - Submission table need to track the batch biosample upload
   - How I can update an already loaded biosample using a different submission from
     the first one?
-  - Need to check UID integrity **before** loading data into submission?
   - If data loading fails, were I can fix my data? update submission view?
   - what the `edit data` in the submission detail view means? editing data into UID?
     Update submission view? if `uploaded_file` fields changes, what I have
     to do?
+  - what happens if I update something after submission to biosample? need I track
+    what changes I see and patch in a new submission?
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -45,6 +46,7 @@
     using celery tasks
   - fix logging in celery modules (each log is printed two times, one for django
     and one for task itself)
+  - `submission.biosample_submission_id` need to be indexed
 
 * NGINX media folder can serve media files (jpg, etc).
   - Deal with dump files (permissions?)
