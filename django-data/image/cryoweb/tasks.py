@@ -14,7 +14,6 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 from contextlib import contextmanager
 
 import redis
-import logging
 
 from celery import task
 from celery.five import monotonic
@@ -28,13 +27,8 @@ from django.conf import settings
 # get a logger for tasks
 logger = get_task_logger(__name__)
 
-# getting cryoweb logger to disable its handler
-cryoweb_logger = logging.getLogger('cryoweb')
-
-for handler in cryoweb_logger.handlers:
-    cryoweb_logger.removeHandler(handler)
-
-LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+# Lock expires in 10 minutes
+LOCK_EXPIRE = 60 * 10
 
 
 @contextmanager

@@ -11,8 +11,10 @@ import os
 from celery import Celery, Task
 from celery.schedules import crontab
 from celery.utils.log import get_task_logger
+from celery.signals import setup_logging
 
 from django.core import management
+from django.conf import settings
 
 
 logger = get_task_logger(__name__)
@@ -25,6 +27,15 @@ app = Celery('proj')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.autodiscover_tasks()
+
+
+# configure logging
+# https://groups.google.com/forum/#!topic/celery-users/mhcwubJTTnw
+@setup_logging.connect
+def configure_logging(sender=None, **kwargs):
+    import logging
+    import logging.config
+    logging.config.dictConfig(settings.LOGGING)
 
 
 class MyTask(Task):

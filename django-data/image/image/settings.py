@@ -152,7 +152,8 @@ LOGGING = {
     'formatters': {
         'verbose': {
             'format': ('%(asctime)s - %(name)s - %(levelname)s - PID '
-                       '%(process)d - %(threadName)s - %(message)s')
+                       '%(process)d - %(processName)s - %(threadName)s - '
+                       '%(message)s')
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -165,6 +166,15 @@ LOGGING = {
         },
     },
     'loggers': {
+        'celery': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': True,
+        },
+        'celery.beat': {
+            'level': 'INFO',
+            'handlers': ['console'],
+        },
         'django.db.backends': {
             'level': 'INFO',
             'handlers': ['console'],
