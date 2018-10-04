@@ -29,7 +29,7 @@ class BaseMixin():
         # Django.db.connections is a dictionary-like object that allows you
         # to retrieve a specific connection using its alias
         with connections["cryoweb"].cursor() as cursor:
-            statement = "TRUNCATE TABLE {0} CASCADE".format(
+            statement = "TRUNCATE TABLE {0} RESTART IDENTITY CASCADE".format(
                 cls._meta.db_table)
             logger.debug(statement)
             cursor.execute(statement)
@@ -956,6 +956,14 @@ class VAnimal(models.Model):
         db_table = 'v_animal'
         verbose_name = "Animal View"
 
+    def __str__(self):
+        return "%s (%s) (sire:%s, dam:%s)" % (
+            self.ext_animal,
+            self.efabis_mcname,
+            self.ext_sire,
+            self.ext_dam)
+
+    @property
     def efabis_mcname(self):
         "Retrieve efabis mcname from breed_species table"
 
@@ -963,6 +971,24 @@ class VAnimal(models.Model):
         entry = VBreedsSpecies.objects.get(db_breed=self.db_breed)
 
         return entry.efabis_mcname
+
+    def get_sire(self):
+        """Retrieve sire of this animal from VAnimal table"""
+
+        try:
+            return VAnimal.objects.get(db_animal=self.db_sire)
+
+        except VAnimal.DoesNotExist:
+            return None
+
+    def get_dam(self):
+        """Retrieve dam of this animal from VAnimal table"""
+
+        try:
+            return VAnimal.objects.get(db_animal=self.db_dam)
+
+        except VAnimal.DoesNotExist:
+            return None
 
 
 class VVessels(models.Model):

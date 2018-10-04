@@ -176,8 +176,9 @@ def upload_cryoweb(submission_id):
     n_of_statements = len(result.stdout.split("\n"))
     logger.debug("%s statement executed" % n_of_statements)
 
-    for line in result.stderr.split("\n"):
-        logger.error(line)
+    if len(result.stderr) > 0:
+        for line in result.stderr.split("\n"):
+            logger.error(line)
 
     logger.info("{filename} uploaded into {database}".format(
         filename=submission.uploaded_file.name, database=database_name))
@@ -276,18 +277,21 @@ def fill_uid_animals(submission):
             language=language)
 
         # get breed name through VBreedsSpecies model
-        efabis_mcname = v_animal.efabis_mcname()
+        efabis_mcname = v_animal.efabis_mcname
         breed = DictBreed.objects.get(
             supplied_breed=efabis_mcname,
             specie=specie)
 
         # get name for this animal and for mother and father
+        logger.debug("Getting %s as my name" % (v_animal.ext_animal))
         name = Name.objects.get(
             name=v_animal.ext_animal, submission=submission)
 
+        logger.debug("Getting %s as father" % (v_animal.ext_sire))
         father = Name.objects.get(
             name=v_animal.ext_sire, submission=submission)
 
+        logger.debug("Getting %s as mother" % (v_animal.ext_dam))
         mother = Name.objects.get(
             name=v_animal.ext_dam, submission=submission)
 
@@ -402,6 +406,7 @@ def cryoweb_import(submission):
 
         # debug
         logger.error("error in importing from cryoweb: %s" % (exc))
+        logger.exception(exc)
 
         return False
 

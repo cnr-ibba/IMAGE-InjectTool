@@ -7,6 +7,8 @@ Created on Thu Sep 20 16:01:04 2018
 """
 
 # --- import
+import os
+import shutil
 
 from unittest.mock import patch
 
@@ -139,6 +141,23 @@ class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):
 
 
 class UploadCryoweb(BaseTestCase, TestCase):
+    uploaded_file = False
+    dst_path = None
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # ensuring that file cryoweb_test_data_only.sql is present
+        submission = Submission.objects.get(pk=1)
+        self.dst_path = submission.uploaded_file.path
+
+        if not os.path.exists(self.dst_path):
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            src_path = os.path.join(base_dir, "cryoweb_test_data_only.sql")
+            shutil.copy(src_path, self.dst_path)
+            self.uploaded_file = True
+
     # need to clean database after testing import. Can't use CryowebMixin
     # since i need to test cryoweb import
     def tearDown(self):
@@ -147,6 +166,10 @@ class UploadCryoweb(BaseTestCase, TestCase):
         # truncate cryoweb database after loading
         if db_has_data():
             truncate_database()
+
+        # remove file if I placed it for tests
+        if self.uploaded_file:
+            os.remove(self.dst_path)
 
         # calling my base class teardown class
         super().tearDown()

@@ -29,7 +29,7 @@ class BaseMixin():
         # Django.db.connections is a dictionary-like object that allows you
         # to retrieve a specific connection using its alias
         with connections["default"].cursor() as cursor:
-            statement = "TRUNCATE TABLE {0} CASCADE".format(
+            statement = "TRUNCATE TABLE {0} RESTART IDENTITY CASCADE".format(
                 cls._meta.db_table)
             logger.debug(statement)
             cursor.execute(statement)
@@ -300,12 +300,12 @@ class Name(BaseMixin, models.Model):
         related_name='+',
         on_delete=models.CASCADE)
 
-    def __str__(self):
-        # HINT: shuold I return biosampleid if defined?
-        return "%s (Submission: %s)" % (self.name, self.submission_id)
-
     class Meta:
         unique_together = (("name", "submission"),)
+
+    def __str__(self):
+        # HINT: should I return biosampleid if defined?
+        return "%s (Submission: %s)" % (self.name, self.submission_id)
 
 
 class BioSampleMixin(object):

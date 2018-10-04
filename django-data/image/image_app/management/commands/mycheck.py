@@ -4,8 +4,8 @@ import unittest
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from cryoweb.models import Animal as CryoWebAnimal
-from image_app.models import Animal as ImageAnimal, Submission
+from cryoweb.models import db_has_data as cryoweb_has_data
+from image_app.models import Submission, db_has_data as image_has_data
 
 
 class Command(BaseCommand):
@@ -23,20 +23,18 @@ class TestDB(unittest.TestCase):
     def test_db1_animal_table_is_not_empty(self):
         """Tests that cryoweb.animal table is not empty"""
 
-        self.assertTrue(
-            CryoWebAnimal.objects.count() > 0,
-            msg="%s.%s table is empty!!!" % (
-                settings.DATABASES['cryoweb']['NAME'],
-                CryoWebAnimal._meta.db_table))
+        self.assertFalse(
+            cryoweb_has_data(),
+            msg="%s database has data!!!" % (
+                settings.DATABASES['cryoweb']['NAME']))
 
     def test_db2_animal_table_is_not_empty(self):
         """Tests that image animal table is not empty"""
 
         self.assertTrue(
-            ImageAnimal.objects.count() > 0,
-            msg="%s.%s table is empty!!!" % (
-                settings.DATABASES['default']['NAME'],
-                ImageAnimal._meta.db_table))
+            image_has_data(),
+            msg="%s database is empty!!!" % (
+                settings.DATABASES['default']['NAME']))
 
     def test_no_orphaned_backup_files_in_filesys(self):
         """Tests no orphaned backup files in /media/data_source dir"""
@@ -64,11 +62,12 @@ class TestDB(unittest.TestCase):
         data_source_files.sort()
         database_files.sort()
 
-        self.assertListEqual(data_source_files,
-                             database_files,
-                             "\n "
-                             "\n Orphaned backup files found "
-                             "\n in {}"
-                             "\n try "
-                             "\n $ ...manage.py clean_backup command "
-                             "".format(settings.MEDIA_ROOT))
+        self.assertListEqual(
+            data_source_files,
+            database_files,
+            "\n "
+            "\n Orphaned backup files found "
+            "\n in {}"
+            "\n try "
+            "\n $ ...manage.py clean_backup command "
+            "".format(settings.MEDIA_ROOT))
