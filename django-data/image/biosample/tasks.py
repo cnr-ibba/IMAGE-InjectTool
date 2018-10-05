@@ -46,6 +46,8 @@ def get_auth(user=None, password=None):
 # define a function to get biosample statuses for submissions
 @task(bind=True)
 def fetch_status(self):
+    logger.info("fetch_status started")
+
     # create a new auth object
     logger.debug("Generate a token for 'USI_MANAGER'")
 
@@ -112,5 +114,14 @@ def fetch_status(self):
                 else:
                     logger.warning("Unknown status %s for submission %s" % (
                         submission.submissionStatus, submission.name))
+
+                # submission status condition
+
+            # submission present in database
+
+        # submission retrieved in biosample
+
+    # debug
+    logger.info("fetch_status completed")
 
     return "success"

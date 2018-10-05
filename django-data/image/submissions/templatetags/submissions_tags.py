@@ -28,3 +28,12 @@ def has_errors(submission):
         return True
     else:
         return False
+
+
+@register.simple_tag
+def is_ready(submission):
+    ready = Submission.STATUSES.get_value('ready')
+    if submission.status == ready:
+        return True
+    else:
+        return False

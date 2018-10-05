@@ -906,6 +906,12 @@ class Submission(BaseMixin, models.Model):
     # TODO: add a field for last update
 
     # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+    # waiting: waiting to upload data into UID
+    # loaded: data loaded into UID, can validate
+    # error: error in uploading data into UID
+    # ready: validated data ready for submission
+    # need_revision: validated data need checks before submission
+    # submitted: submitted to biosample
     class STATUSES(Enum):
         waiting = (0, 'Waiting')
         loaded = (1, 'Loaded')

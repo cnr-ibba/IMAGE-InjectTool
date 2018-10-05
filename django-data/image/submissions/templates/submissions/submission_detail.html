@@ -60,13 +60,20 @@
 {# call a custom templatetag and send result into a variable #}
 {% is_waiting submission as waiting %}
 {% has_errors submission as errors %}
+{% is_ready submission as ready %}
 
 <div class="container mt-5">
   <div class="row">
     {# disabling a button if waiting variable is set to true #}
     <div class="col-sm-4 lead text-center"><a class="btn btn-primary btn-lg btn-block {% if waiting %}disabled{% endif %}" href="#" role="button">Edit data</a></div>
-    <div class="col-sm-4 lead text-center"><a class="btn btn-warning btn-lg btn-block {% if waiting or errors %}disabled{% endif %}" href="#" role="button">Validate</a></div>
-    <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block {% if waiting or errors %}disabled{% endif %}" href="#" role="button">Submit</a></div>
+    {# <div class="col-sm-4 lead text-center"><a class="btn btn-warning btn-lg btn-block {% if waiting or errors %}disabled{% endif %}" href="#" role="button">Validate</a></div> #}
+    {# This form is always functional, even with disabled class #}
+    <form class="col-sm-4 lead text-center" action="{% url 'validation:validate' %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="submission_id" value="{{ submission.pk }}">
+      <button type="submit" class="btn btn-warning btn-lg btn-block">Validate</button>
+    </form>
+    <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block {% if not ready %}disabled{% endif %}" href="#" role="button">Submit</a></div>
   </div>
   <div class="row mt-2">
     <div class="col-sm-4 lead text-center"><a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Submissions List</a></div>

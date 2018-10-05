@@ -61,3 +61,18 @@ class HasErrorsTest(CommonTestCase, TestCase):
             Context({'submission': self.submission}))
 
         self.assertEqual(rendered, "True")
+
+
+class IsReadyTest(CommonTestCase, TestCase):
+    TEMPLATE = Template(
+        "{% load submissions_tags %}{% is_ready submission %}"
+    )
+
+    def test_is_ready(self):
+        self.submission.status = Submission.STATUSES.get_value('ready')
+        self.submission.save()
+
+        rendered = self.TEMPLATE.render(
+            Context({'submission': self.submission}))
+
+        self.assertEqual(rendered, "True")
