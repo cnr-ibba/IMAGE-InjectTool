@@ -25,4 +25,7 @@ class ValidateView(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         self.submission_id = form.cleaned_data['submission_id']
 
+        # TODO: do stuff
+        # TODO: change submission status
+
         return super(ValidateView, self).form_valid(form)

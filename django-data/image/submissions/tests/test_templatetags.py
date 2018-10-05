@@ -12,6 +12,14 @@ from django.template import Template, Context
 from image_app.models import Submission
 
 
+WAITING = Submission.STATUSES.get_value('waiting')
+LOADED = Submission.STATUSES.get_value('loaded')
+ERROR = Submission.STATUSES.get_value('error')
+READY = Submission.STATUSES.get_value('ready')
+NEED_REVISION = Submission.STATUSES.get_value('need_revision')
+SUBMITTED = Submission.STATUSES.get_value('submitted')
+
+
 class CommonTestCase():
     """Does the common stuff when testing cases are run"""
 
@@ -26,53 +34,105 @@ class CommonTestCase():
     def setUp(self):
         self.submission = Submission.objects.get(pk=1)
 
-    def test_tag_not_present(self):
-        self.submission.status = Submission.STATUSES.get_value('loaded')
+    def render_status(self, status):
+        self.submission.status = status
         self.submission.save()
 
-        rendered = self.TEMPLATE.render(
+        return self.TEMPLATE.render(
             Context({'submission': self.submission}))
 
-        self.assertEqual(rendered, "False")
 
+class CanEditTest(CommonTestCase, TestCase):
+    """Test if I can edit data against different submission statuses"""
 
-class IsWaitingTest(CommonTestCase, TestCase):
     TEMPLATE = Template(
-        "{% load submissions_tags %}{% is_waiting submission %}"
+        "{% load submissions_tags %}{% can_edit submission %}"
     )
 
     def test_is_waiting(self):
-        rendered = self.TEMPLATE.render(
-            Context({'submission': self.submission}))
+        rendered = self.render_status(WAITING)
+        self.assertEqual(rendered, "False")
 
+    def test_is_loaded(self):
+        rendered = self.render_status(LOADED)
         self.assertEqual(rendered, "True")
 
-
-class HasErrorsTest(CommonTestCase, TestCase):
-    TEMPLATE = Template(
-        "{% load submissions_tags %}{% has_errors submission %}"
-    )
-
-    def test_has_error(self):
-        self.submission.status = Submission.STATUSES.get_value('error')
-        self.submission.save()
-
-        rendered = self.TEMPLATE.render(
-            Context({'submission': self.submission}))
-
+    def test_is_error(self):
+        rendered = self.render_status(ERROR)
         self.assertEqual(rendered, "True")
-
-
-class IsReadyTest(CommonTestCase, TestCase):
-    TEMPLATE = Template(
-        "{% load submissions_tags %}{% is_ready submission %}"
-    )
 
     def test_is_ready(self):
-        self.submission.status = Submission.STATUSES.get_value('ready')
-        self.submission.save()
-
-        rendered = self.TEMPLATE.render(
-            Context({'submission': self.submission}))
-
+        rendered = self.render_status(READY)
         self.assertEqual(rendered, "True")
+
+    def test_need_revision(self):
+        rendered = self.render_status(NEED_REVISION)
+        self.assertEqual(rendered, "True")
+
+    def test_is_submitted(self):
+        rendered = self.render_status(SUBMITTED)
+        self.assertEqual(rendered, "True")
+
+
+class CanValidateTest(CommonTestCase, TestCase):
+    """Test if I can validate data against different submission statuses"""
+
+    TEMPLATE = Template(
+        "{% load submissions_tags %}{% can_validate submission %}"
+    )
+
+    def test_is_waiting(self):
+        rendered = self.render_status(WAITING)
+        self.assertEqual(rendered, "False")
+
+    def test_is_loaded(self):
+        rendered = self.render_status(LOADED)
+        self.assertEqual(rendered, "True")
+
+    def test_is_error(self):
+        rendered = self.render_status(ERROR)
+        self.assertEqual(rendered, "False")
+
+    def test_is_ready(self):
+        rendered = self.render_status(READY)
+        self.assertEqual(rendered, "True")
+
+    def test_need_revision(self):
+        rendered = self.render_status(NEED_REVISION)
+        self.assertEqual(rendered, "True")
+
+    def test_is_submitted(self):
+        rendered = self.render_status(SUBMITTED)
+        self.assertEqual(rendered, "False")
+
+
+class CanSubmitTest(CommonTestCase, TestCase):
+    """Test if I can submit data against different submission statuses"""
+
+    TEMPLATE = Template(
+        "{% load submissions_tags %}{% can_submit submission %}"
+    )
+
+    def test_is_waiting(self):
+        rendered = self.render_status(WAITING)
+        self.assertEqual(rendered, "False")
+
+    def test_is_loaded(self):
+        rendered = self.render_status(LOADED)
+        self.assertEqual(rendered, "False")
+
+    def test_is_error(self):
+        rendered = self.render_status(ERROR)
+        self.assertEqual(rendered, "False")
+
+    def test_is_ready(self):
+        rendered = self.render_status(READY)
+        self.assertEqual(rendered, "True")
+
+    def test_need_revision(self):
+        rendered = self.render_status(NEED_REVISION)
+        self.assertEqual(rendered, "False")
+
+    def test_is_submitted(self):
+        rendered = self.render_status(SUBMITTED)
+        self.assertEqual(rendered, "False")

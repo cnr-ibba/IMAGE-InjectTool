@@ -12,28 +12,34 @@ from image_app.models import Submission
 register = template.Library()
 
 
+WAITING = Submission.STATUSES.get_value('waiting')
+LOADED = Submission.STATUSES.get_value('loaded')
+ERROR = Submission.STATUSES.get_value('error')
+READY = Submission.STATUSES.get_value('ready')
+NEED_REVISION = Submission.STATUSES.get_value('need_revision')
+SUBMITTED = Submission.STATUSES.get_value('submitted')
+
+
 @register.simple_tag
-def is_waiting(submission):
-    waiting = Submission.STATUSES.get_value('waiting')
-    if submission.status == waiting:
+def can_edit(submission):
+    if submission.status != WAITING:
+        return True
+
+    else:
+        return False
+
+
+@register.simple_tag
+def can_validate(submission):
+    if submission.status not in [ERROR, WAITING, SUBMITTED]:
         return True
     else:
         return False
 
 
 @register.simple_tag
-def has_errors(submission):
-    error = Submission.STATUSES.get_value('error')
-    if submission.status == error:
-        return True
-    else:
-        return False
-
-
-@register.simple_tag
-def is_ready(submission):
-    ready = Submission.STATUSES.get_value('ready')
-    if submission.status == ready:
+def can_submit(submission):
+    if submission.status == READY:
         return True
     else:
         return False
