@@ -95,6 +95,8 @@
   - taxon (= specie) is a mandatory fields for biosample, taxonId not but is better
     to map it into the specie table
   - check mandatory fields for biosample. Other fields are attributes
+  - test against example `json` files, don't derive reference on the fly (it
+    seems difficult update validation tests)
   - geo fields were added in last metadata rules
 
 * Biosample manager user should do:
@@ -150,3 +152,5 @@
   - More user can belong to same organization?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
+
+  * create a `commons` library to store all common stuff

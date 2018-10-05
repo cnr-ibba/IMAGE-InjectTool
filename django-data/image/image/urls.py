@@ -49,6 +49,10 @@ urlpatterns = [
         include(
             ('accounts.urls', 'accounts'),
             namespace="accounts")),
+    url(r'^validation/',
+        include(
+            ('validation.urls', 'validation'),
+            namespace="validation")),
     url(r'^submissions/',
         include(
             ('submissions.urls', 'submissions'),
