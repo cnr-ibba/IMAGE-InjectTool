@@ -15,7 +15,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from ..models import Account, ManagedTeam
-from ..views import AuthView
+from ..views import TokenView
 from .session_enabled_test_case import SessionEnabledTestCase
 
 
@@ -41,7 +41,7 @@ def generate_token(now=None, domains=['subs.test-team-1']):
         algorithm='RS256')
 
 
-class TestAuthView(SessionEnabledTestCase):
+class TestTokenView(SessionEnabledTestCase):
     fixtures = [
         "biosample/managedteam.json"
     ]
@@ -99,7 +99,7 @@ class TestAuthView(SessionEnabledTestCase):
 
     def test_url_resolves_view(self):
         view = resolve('/biosample/token/')
-        self.assertIsInstance(view.func.view_class(), AuthView)
+        self.assertIsInstance(view.func.view_class(), TokenView)
 
     def test_contains_navigation_links(self):
         dashboard_url = reverse('image_app:dashboard')
@@ -144,7 +144,7 @@ class TestAuthView(SessionEnabledTestCase):
             "Your token is expired")
 
 
-class NewAuthViewTest(TestCase):
+class NewTokenViewTest(TestCase):
     def setUp(self):
         User = get_user_model()
 

@@ -13,9 +13,9 @@ from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-from ..forms import CreateAuthViewForm
+from ..forms import GenerateTokenForm
 from ..models import Account, ManagedTeam
-from ..views import CreateAuthView
+from ..views import GenerateTokenView
 from .session_enabled_test_case import SessionEnabledTestCase
 from .test_token import generate_token
 
@@ -80,7 +80,7 @@ class CreateAuthViewTest(BaseTest):
 
     def test_url_resolves_view(self):
         view = resolve('/biosample/token/generate')
-        self.assertIsInstance(view.func.view_class(), CreateAuthView)
+        self.assertIsInstance(view.func.view_class(), GenerateTokenView)
 
     def test_csrf(self):
         self.assertContains(self.response, 'csrfmiddlewaretoken')
@@ -88,7 +88,7 @@ class CreateAuthViewTest(BaseTest):
     def test_contains_form(self):
         form = self.response.context.get('form')
 
-        self.assertIsInstance(form, CreateAuthViewForm)
+        self.assertIsInstance(form, GenerateTokenForm)
 
     def test_form_inputs(self):
         '''

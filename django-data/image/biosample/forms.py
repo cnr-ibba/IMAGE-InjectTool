@@ -12,7 +12,7 @@ from django.contrib.auth import password_validation
 from .models import Account
 
 
-class CreateAuthViewForm(forms.Form):
+class GenerateTokenForm(forms.Form):
     user = forms.CharField(
         help_text="Your Biosample User id",
         disabled=True)
@@ -25,7 +25,7 @@ class CreateAuthViewForm(forms.Form):
     def __init__(self, *args, **kwargs):
         if 'request' in kwargs:
             self.request = kwargs.pop('request')
-        super(CreateAuthViewForm, self).__init__(*args, **kwargs)
+        super(GenerateTokenForm, self).__init__(*args, **kwargs)
 
 
 class RegisterUserForm(forms.ModelForm):

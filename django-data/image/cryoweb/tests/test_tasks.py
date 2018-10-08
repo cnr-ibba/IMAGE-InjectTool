@@ -116,8 +116,8 @@ class ImportCryowebTest(TestCase):
         res = cryoweb.tasks.import_from_cryoweb(
             submission_id=1, blocking=False)
 
-        # assert a None value if database is locked
-        self.assertIsNone(res)
+        # assert database is locked
+        self.assertEqual(res, "Cryoweb import already running!")
 
         # assert that methods were not called
         self.assertFalse(my_truncate.called)

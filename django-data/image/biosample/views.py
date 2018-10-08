@@ -17,7 +17,7 @@ from django.contrib import messages
 from pyEBIrest import Auth
 from pyEBIrest.client import User
 
-from .forms import CreateAuthViewForm, RegisterUserForm, CreateUserForm
+from .forms import GenerateTokenForm, RegisterUserForm, CreateUserForm
 from .models import Account, ManagedTeam
 
 # Get an instance of a logger
@@ -34,6 +34,8 @@ config = AutoConfig(search_path=settings_dir)
 # languages with multiple inheritance, mixins can be used to add enhanced
 # functionality and behavior to classes.
 class TokenMixin(object):
+    """Register account if a biosample account is not registered"""
+
     def dispatch(self, request, *args, **kwargs):
         # this will ask to login to an un-logged user
         if not request.user.is_authenticated:
@@ -63,6 +65,8 @@ class TokenMixin(object):
 
 
 class RegisterMixin(object):
+    """If a biosample account is already registered, returns to dashboard"""
+
     def dispatch(self, request, *args, **kwargs):
         # this will ask to login to an un-logged user
         if not request.user.is_authenticated:
@@ -121,9 +125,9 @@ class MyFormMixin(object):
         return super(MyFormMixin, self).form_invalid(form)
 
 
-class CreateAuthView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
+class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
     template_name = 'biosample/generate_token.html'
-    form_class = CreateAuthViewForm
+    form_class = GenerateTokenForm
     success_url_message = 'Token generated!'
 
     def get_initial(self):
@@ -131,7 +135,7 @@ class CreateAuthView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
         Returns the initial data to use for forms on this view.
         """
 
-        initial = super(CreateAuthView, self).get_initial()
+        initial = super(GenerateTokenView, self).get_initial()
         initial['user'] = self.request.user.biosample_account.name
 
         return initial
@@ -145,7 +149,7 @@ class CreateAuthView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
         try:
             auth = Auth(user=user, password=password)
             self.request.session['token'] = auth.token
-            return super(CreateAuthView, self).form_valid(form)
+            return super(GenerateTokenView, self).form_valid(form)
 
         except ConnectionError as e:
             # logger exception. With repr() the exception name is rendered
@@ -161,12 +165,14 @@ class CreateAuthView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
             return self.form_invalid(form)
 
 
-class AuthView(LoginRequiredMixin, TokenMixin, TemplateView):
+class TokenView(LoginRequiredMixin, TokenMixin, TemplateView):
+    """Visualize token details"""
+
     template_name = 'biosample/token.html'
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
-        context = super(AuthView, self).get_context_data(**kwargs)
+        context = super(TokenView, self).get_context_data(**kwargs)
 
         # get user and team object
         context['name'] = self.request.user.biosample_account.name

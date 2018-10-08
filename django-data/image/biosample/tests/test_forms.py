@@ -8,12 +8,12 @@ Created on Fri Jul  6 16:04:18 2018
 
 from django.test import TestCase
 
-from ..forms import CreateAuthViewForm, CreateUserForm, RegisterUserForm
+from ..forms import GenerateTokenForm, CreateUserForm, RegisterUserForm
 
 
-class CreateAuthViewFormTest(TestCase):
+class GenerateTokenFormTest(TestCase):
     def test_form_has_fields(self):
-        form = CreateAuthViewForm()
+        form = GenerateTokenForm()
         expected = ['user', 'password']
         actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)

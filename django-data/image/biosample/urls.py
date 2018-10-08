@@ -12,12 +12,12 @@ from . import views
 urlpatterns = [
     url(
         r'^token/generate$',
-        views.CreateAuthView.as_view(),
+        views.GenerateTokenView.as_view(),
         name='token-generation'
     ),
     url(
         r'^token/$',
-        views.AuthView.as_view(),
+        views.TokenView.as_view(),
         name='token'
     ),
     url(
