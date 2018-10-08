@@ -347,53 +347,54 @@ class BioSampleMixin(object):
         return result
 
     def get_attributes(self):
-        """Common attribute definition"""
+        """Common attribute definition. Attribute name is the name in
+        metadata rules"""
 
         attributes = {}
 
-        attributes["project"] = format_attribute(
+        attributes["Project"] = format_attribute(
             value="IMAGE")
 
-        attributes['dataSourceId'] = format_attribute(
+        attributes['Data source ID'] = format_attribute(
             value=self.name.name)
 
-        attributes['alternativeId'] = format_attribute(
+        attributes['Alternative id'] = format_attribute(
             value=self.alternative_id)
 
-        attributes['submissionTitle'] = format_attribute(
+        attributes['Submission title'] = format_attribute(
             value=self.name.submission.title)
 
-        attributes['personLastName'] = format_attribute(
+        attributes['Person last name'] = format_attribute(
             value=self.owner.last_name)
 
-        attributes['personEmail'] = format_attribute(
+        attributes['Person email'] = format_attribute(
             value=self.owner.email)
 
-        attributes['personAffiliation'] = format_attribute(
+        attributes['Person affiliation'] = format_attribute(
             value=self.owner.person.affiliation.name)
 
-        attributes['personRole'] = format_attribute(
+        attributes['Person role'] = format_attribute(
             value=self.owner.person.role.label,
             terms=self.owner.person.role.term)
 
-        attributes['organizationName'] = format_attribute(
+        attributes['Organization name'] = format_attribute(
             value=self.name.submission.organization.name)
 
-        attributes['organizationRole'] = format_attribute(
+        attributes['Organization role'] = format_attribute(
             value=self.name.submission.organization.role.label,
             terms=self.name.submission.organization.role.term)
 
-        attributes['geneBankName'] = format_attribute(
+        attributes['Gene bank name'] = format_attribute(
             value=self.name.submission.gene_bank_name)
 
-        attributes['geneBankCountry'] = format_attribute(
+        attributes['Gene bank country'] = format_attribute(
             value=self.name.submission.gene_bank_country.label,
             terms=self.name.submission.gene_bank_country.term)
 
-        attributes['dataSourceType'] = format_attribute(
+        attributes['Data source type'] = format_attribute(
             value=self.name.submission.get_datasource_type_display())
 
-        attributes['dataSourceVersion'] = format_attribute(
+        attributes['Data source version'] = format_attribute(
             value=self.name.submission.datasource_version)
 
         return attributes
@@ -492,21 +493,21 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
 
         attributes = super().get_attributes()
 
-        attributes["material"] = format_attribute(
+        attributes["Material"] = format_attribute(
             value="organism", terms="OBI_0100026")
 
-        attributes['species'] = format_attribute(
+        attributes['Species'] = format_attribute(
             value=self.breed.specie.label,
             terms=self.breed.specie.term)
 
-        attributes['suppliedBreed'] = format_attribute(
+        attributes['Supplied breed'] = format_attribute(
             value=self.breed.supplied_breed)
 
-        attributes['efabisBreedCountry'] = format_attribute(
+        attributes['EFABIS Breed country'] = format_attribute(
             value=self.breed.country.label,
             terms=self.breed.country.term)
 
-        attributes['sex'] = format_attribute(
+        attributes['Sex'] = format_attribute(
             value=self.sex.label,
             terms=self.sex.term)
 
@@ -683,26 +684,26 @@ class Sample(BioSampleMixin, BaseMixin, models.Model):
 
         attributes = super().get_attributes()
 
-        attributes["material"] = format_attribute(
+        attributes["Material"] = format_attribute(
             value="specimen from organism", terms="OBI_0001479")
 
-        attributes['species'] = format_attribute(
+        attributes['Species'] = format_attribute(
             value=self.animal.breed.specie.label,
             terms=self.animal.breed.specie.term)
 
         # HINT: this won't to be a biosample id in the first submission.
         # How to fix it? can be removed from mandatory attributes
-        attributes['derivedFrom'] = format_attribute(
+        attributes['Derived from'] = format_attribute(
             value=self.animal.name.name)
 
-        attributes['collectionDate'] = format_attribute(
+        attributes['Collection date'] = format_attribute(
             value=str(self.collection_date), units="YYYY-MM-DD")
 
-        attributes['collectionPlace'] = format_attribute(
+        attributes['Collection place'] = format_attribute(
             value=self.collection_place)
 
         # TODO: this will point to a correct term dictionary table
-        attributes['organismPart'] = format_attribute(
+        attributes['Organism part'] = format_attribute(
             value=self.organism_part,
             terms=self.organism_part_term)
 

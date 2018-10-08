@@ -33,6 +33,11 @@ key2key = {
     'organism': 'animal',
     'specimen from organism': 'sample'}
 
+# set the biosample mandatory keys
+mandatory_keys = [
+    'alias', 'title', 'releaseDate', 'taxonId', 'description']
+
+
 # scan and search mandatory fields for each rule group
 mandatory_fields = {}
 optional_fields = {}
@@ -49,8 +54,13 @@ for key1, key2 in key2key.items():
         if group['name'] == key1:
             # get rules from group dictionary
             for field in group.get('rules'):
-                # use the camel case convention for names
-                name = to_camel_case(field['Name'])
+                # use the camel case convention for names only for
+                # biosample mandatory keys
+                if field in mandatory_keys:
+                    name = to_camel_case(field['Name'])
+
+                else:
+                    name = field['Name']
 
                 # track mandatory fields in a dictionary
                 if field['Required'] == 'mandatory':

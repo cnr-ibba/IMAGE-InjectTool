@@ -5,42 +5,42 @@
   "taxonId": 9823,
   "description": "a 4-year old pig organic fed",
   "attributes": {
-    "project": [
+    "Project": [
       {
         "value": "IMAGE"
       }
     ],
-    "dataSourceId": [
+    "Data source ID": [
       {
         "value": "ANIMAL:::ID:::132713"
       }
     ],
-    "alternativeId": [
+    "Alternative id": [
       {
         "value": "11"
       }
     ],
-    "submissionTitle": [
+    "Submission title": [
       {
         "value": "test"
       }
     ],
-    "personLastName": [
+    "Person last name": [
       {
         "value": "Bar"
       }
     ],
-    "personEmail": [
+    "Person email": [
       {
         "value": "test@test.com"
       }
     ],
-    "personAffiliation": [
+    "Person affiliation": [
       {
         "value": "Test organization"
       }
     ],
-    "personRole": [
+    "Person role": [
       {
         "value": "submitter",
         "terms": [
@@ -50,12 +50,12 @@
         ]
       }
     ],
-    "organizationName": [
+    "Organization name": [
       {
         "value": "Test organization"
       }
     ],
-    "organizationRole": [
+    "Organization role": [
       {
         "value": "submitter",
         "terms": [
@@ -65,12 +65,12 @@
         ]
       }
     ],
-    "geneBankName": [
+    "Gene bank name": [
       {
         "value": "Cryoweb"
       }
     ],
-    "geneBankCountry": [
+    "Gene bank country": [
       {
         "value": "Germany",
         "terms": [
@@ -80,17 +80,17 @@
         ]
       }
     ],
-    "dataSourceType": [
+    "Data source type": [
       {
         "value": "CryoWeb"
       }
     ],
-    "dataSourceVersion": [
+    "Data source version": [
       {
         "value": "test"
       }
     ],
-    "material": [
+    "Material": [
       {
         "value": "organism",
         "terms": [
@@ -100,7 +100,7 @@
         ]
       }
     ],
-    "species": [
+    "Species": [
       {
         "value": "Sus scrofa",
         "terms": [
@@ -110,12 +110,12 @@
         ]
       }
     ],
-    "suppliedBreed": [
+    "Supplied breed": [
       {
         "value": "Bunte Bentheimer"
       }
     ],
-    "efabisBreedCountry": [
+    "EFABIS Breed country": [
       {
         "value": "Germany",
         "terms": [
@@ -125,7 +125,7 @@
         ]
       }
     ],
-    "sex": [
+    "Sex": [
       {
         "value": "male",
         "terms": [
