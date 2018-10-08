@@ -13,6 +13,7 @@ from django.views.generic.edit import FormView
 from django.urls import reverse
 
 from image_app.models import Submission
+from submissions.templatetags.submissions_tags import can_validate
 
 from .forms import ValidateForm
 from .tasks import validate_submission
@@ -37,7 +38,16 @@ class ValidateView(LoginRequiredMixin, FormView):
         submission_id = form.cleaned_data['submission_id']
         submission = Submission.objects.get(pk=submission_id)
 
-        # TODO: check if I can validate object (statuses)
+        # track submission id in order to render page
+        self.submission_id = submission_id
+
+        # check if I can validate object (statuses)
+        if not can_validate(submission):
+            # return super method (which calls get_success_url)
+            logger.error(
+                "Can't validate submission %s: current status is %s" % (
+                    submission, submission.get_status_display()))
+            return super(ValidateView, self).form_valid(form)
 
         submission.message = "waiting for data validation"
         submission.status = WAITING
@@ -49,8 +59,5 @@ class ValidateView(LoginRequiredMixin, FormView):
             "Start validation process for %s with task %s" % (
                 submission,
                 res.task_id))
-
-        # track submission id in order to render page
-        self.submission_id = submission_id
 
         return super(ValidateView, self).form_valid(form)

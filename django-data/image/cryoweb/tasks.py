@@ -120,7 +120,7 @@ def import_from_cryoweb(self, submission_id, blocking=True):
             message = "Cryoweb import completed for submission: %s" % (
                 submission_id)
 
-            # TODO: set logging message to talk about tasks
+            # debug
             logger.info(message)
 
             # always return something
@@ -128,3 +128,5 @@ def import_from_cryoweb(self, submission_id, blocking=True):
 
     logger.warning(
         "Cryoweb import already running!")
+
+    return "Cryoweb import already running!"

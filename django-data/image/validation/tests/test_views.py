@@ -18,6 +18,9 @@ from ..views import ValidateView
 
 # reading statuses
 WAITING = Submission.STATUSES.get_value('waiting')
+ERROR = Submission.STATUSES.get_value('error')
+SUBMITTED = Submission.STATUSES.get_value('submitted')
+LOADED = Submission.STATUSES.get_value('loaded')
 
 
 class TestMixin(object):
@@ -89,6 +92,12 @@ class SuccessfulValidateViewTest(TestMixin, TestCase):
 
         # get a submission object
         submission = Submission.objects.get(pk=1)
+
+        # set a status which I can validate
+        submission.status = LOADED
+        submission.save()
+
+        # track submission ID
         self.submission_id = submission.id
 
         # get the url for dashboard
@@ -123,6 +132,55 @@ class SuccessfulValidateViewTest(TestMixin, TestCase):
             submission.message,
             "waiting for data validation")
 
+    def __common_statuses(self):
+        """Common function for statuses"""
+
+        # call valiate views with cyrrent status WAITING
+        response = self.client.post(
+            self.url, {
+                'submission_id': self.submission_id
+            }
+        )
+
+        # assert redirect
+        url = reverse('submissions:detail', kwargs={'pk': self.submission_id})
+        self.assertRedirects(response, url)
+
+        # get number of call (equal to first call)
+        self.assertEqual(self.my_validation.call_count, 1)
+
+    def test_submission_waiting(self):
+        """check no validation with submission status WAITING"""
+
+        # valutate status and no function called
+        self.__common_statuses()
+
+    def test_submission_error(self):
+        """check no validation with submission status ERROR"""
+
+        # get submission
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # update status and save
+        submission.status = ERROR
+        submission.save()
+
+        # valutate status and no function called
+        self.__common_statuses()
+
+    def test_submission_submitted(self):
+        """check no validation with submission status SUBMITTED"""
+
+        # get submission
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # update status and save
+        submission.status = SUBMITTED
+        submission.save()
+
+        # valutate status and no function called
+        self.__common_statuses()
+
 
 class InvalidValidateViewTest(TestMixin, TestCase):
     def setUp(self):
@@ -142,4 +200,4 @@ class InvalidValidateViewTest(TestMixin, TestCase):
 
     # TODO: check no validation process started
 
-    # TODO: check no validation with submission statuses
+    # TODO:
