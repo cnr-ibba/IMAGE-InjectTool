@@ -1,0 +1,146 @@
+{
+  "alias": "sample_1",
+  "title": "Siems_0722_393449",
+  "releaseDate": "2018-10-08",
+  "taxonId": 9823,
+  "description": "semen collected when the animal turns to 4",
+  "attributes": {
+    "project": [
+      {
+        "value": "IMAGE"
+      }
+    ],
+    "dataSourceId": [
+      {
+        "value": "Siems_0722_393449"
+      }
+    ],
+    "alternativeId": [
+      {
+        "value": "Siems_0722_393449"
+      }
+    ],
+    "submissionTitle": [
+      {
+        "value": "test"
+      }
+    ],
+    "personLastName": [
+      {
+        "value": "Bar"
+      }
+    ],
+    "personEmail": [
+      {
+        "value": "test@test.com"
+      }
+    ],
+    "personAffiliation": [
+      {
+        "value": "Test organization"
+      }
+    ],
+    "personRole": [
+      {
+        "value": "submitter",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/EFO_0001741"
+          }
+        ]
+      }
+    ],
+    "organizationName": [
+      {
+        "value": "Test organization"
+      }
+    ],
+    "organizationRole": [
+      {
+        "value": "submitter",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/EFO_0001741"
+          }
+        ]
+      }
+    ],
+    "geneBankName": [
+      {
+        "value": "Cryoweb"
+      }
+    ],
+    "geneBankCountry": [
+      {
+        "value": "Germany",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/NCIT_C16636"
+          }
+        ]
+      }
+    ],
+    "dataSourceType": [
+      {
+        "value": "CryoWeb"
+      }
+    ],
+    "dataSourceVersion": [
+      {
+        "value": "test"
+      }
+    ],
+    "material": [
+      {
+        "value": "specimen from organism",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/OBI_0001479"
+          }
+        ]
+      }
+    ],
+    "species": [
+      {
+        "value": "Sus scrofa",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/NCBITaxon_9823"
+          }
+        ]
+      }
+    ],
+    "derivedFrom": [
+      {
+        "value": "ANIMAL:::ID:::132713"
+      }
+    ],
+    "collectionDate": [
+      {
+        "value": "2017-03-12",
+        "units": "YYYY-MM-DD"
+      }
+    ],
+    "collectionPlace": [
+      {
+        "value": "deutschland"
+      }
+    ],
+    "organismPart": [
+      {
+        "value": "semen",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/UBERON_0001968"
+          }
+        ]
+      }
+    ]
+  },
+  "sampleRelationships": [
+    {
+      "alias": "animal_1",
+      "relationshipNature": "derived from"
+    }
+  ]
+}

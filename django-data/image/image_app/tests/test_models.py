@@ -6,6 +6,8 @@ Created on Tue Apr  3 12:16:55 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
+import os
+import json
 import datetime
 
 from django.test import TestCase
@@ -442,77 +444,10 @@ class AnimalTestCase(TestCase):
     def test_to_biosample(self):
         """Testing JSON conversion for biosample submission"""
 
-        reference = {
-            'alias': "animal_%s" % (self.animal.id),
-            'title': 'ANIMAL:::ID:::132713',
-            'releaseDate': str(datetime.datetime.now().date()),
-            'taxonId': 9823,
-            'description': "a 4-year old pig organic fed",
-            'attributes': {},
-            'sampleRelationships': []
-        }
-
-        # define attributes
-        country = [{
-            'value': 'Germany',
-            'terms': [{
-                "url": "/".join([
-                    OBO_URL,
-                    "NCIT_C16636"])
-                }]
-        }]
-
-        role = [{
-            'value': 'submitter',
-            'terms': [{
-                "url": "/".join([
-                    OBO_URL,
-                    "EFO_0001741"])
-            }]
-        }]
-
-        attributes = {
-            'project': [{'value': 'IMAGE'}],
-            'dataSourceId': [{'value': 'ANIMAL:::ID:::132713'}],
-            'alternativeId': [{'value': '11'}],
-            'submissionTitle': [{'value': 'test'}],
-            'personLastName': [{'value': 'Bar'}],
-            'personEmail': [{'value': 'test@test.com'}],
-            'personAffiliation': [{'value': 'Test organization'}],
-            'personRole': role,
-            'organizationName': [{'value': 'Test organization'}],
-            'organizationRole': role,
-            'geneBankName': [{'value': 'Cryoweb'}],
-            'geneBankCountry': country,
-            'dataSourceType': [{'value': 'CryoWeb'}],
-            'dataSourceVersion': [{'value': 'test'}],
-            'material': [{
-                'value': 'organism',
-                'terms': [{'url': "/".join([
-                    OBO_URL,
-                    "OBI_0100026"])
-                }]
-            }],
-            'species': [{
-                'value': 'Sus scrofa',
-                'terms': [{
-                    "url": "/".join([
-                        OBO_URL,
-                        "NCBITaxon_9823"])
-                }]
-            }],
-            'suppliedBreed': [{'value': 'Bunte Bentheimer'}],
-            'efabisBreedCountry': country,
-            'sex': [{
-                'value': 'male',
-                'terms': [{'url': "/".join([
-                    OBO_URL,
-                    "PATO_0000384"])
-                }]
-            }],
-        }
-
-        reference['attributes'] = attributes
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(base_dir, "biosample_animal.json")
+        handle = open(file_path)
+        reference = json.load(handle)
 
         test = self.animal.to_biosample()
 
@@ -678,87 +613,10 @@ class SampleTestCase(TestCase):
     def test_to_biosample(self):
         """Testing JSON conversion for biosample submission"""
 
-        reference = {
-            'alias': "sample_%s" % (self.sample.id),
-            'title': 'Siems_0722_393449',
-            'releaseDate': str(datetime.datetime.now().date()),
-            'taxonId': 9823,
-            'description': "semen collected when the animal turns to 4",
-            'attributes': {},
-            'sampleRelationships': [{
-                "alias": "animal_%s" % (self.animal.id),
-                "relationshipNature": "derived from"
-            }]
-        }
-
-        country = [{
-            'value': 'Germany',
-            'terms': [{
-                "url": "/".join([
-                    OBO_URL,
-                    "NCIT_C16636"])
-                }]
-        }]
-
-        role = [{
-            'value': 'submitter',
-            'terms': [{
-                "url": "/".join([
-                    OBO_URL,
-                    "EFO_0001741"])
-            }]
-        }]
-
-        attributes = {
-            'project': [{'value': 'IMAGE'}],
-            'dataSourceId': [{
-                'value': 'Siems_0722_393449'}],
-            'alternativeId': [{'value': 'Siems_0722_393449'}],
-            'submissionTitle': [{'value': 'test'}],
-            'personLastName': [{'value': 'Bar'}],
-            'personEmail': [{'value': 'test@test.com'}],
-            'personAffiliation': [{'value': 'Test organization'}],
-            'personRole': role,
-            'organizationName': [{'value': 'Test organization'}],
-            'organizationRole': role,
-            'geneBankName': [{'value': 'Cryoweb'}],
-            'geneBankCountry': country,
-            'dataSourceType': [{'value': 'CryoWeb'}],
-            'dataSourceVersion': [{'value': 'test'}],
-            "material": [{
-                "value": "specimen from organism",
-                "terms": [{
-                    "url": "/".join([
-                        OBO_URL,
-                        "OBI_0001479"])
-                }]
-            }],
-            'species': [{
-                'value': 'Sus scrofa',
-                'terms': [{
-                    "url": "/".join([
-                        OBO_URL,
-                        "NCBITaxon_9823"])
-                }]
-            }],
-            'derivedFrom': [{'value': 'ANIMAL:::ID:::132713'}],
-            'collectionDate': [{
-                'value': "2017-03-12",
-                'units': 'YYYY-MM-DD'
-            }],
-            'collectionPlace': [{'value': "deutschland"}],
-
-            'organismPart': [{
-                'value': 'semen',
-                'terms': [{
-                    "url": "/".join([
-                        OBO_URL,
-                        "UBERON_0001968"])
-                }]
-            }]
-        }
-
-        reference['attributes'] = attributes
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(base_dir, "biosample_sample.json")
+        handle = open(file_path)
+        reference = json.load(handle)
 
         test = self.sample.to_biosample()
 

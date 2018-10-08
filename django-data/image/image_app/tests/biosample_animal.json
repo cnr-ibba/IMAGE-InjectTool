@@ -1,0 +1,140 @@
+{
+  "alias": "animal_1",
+  "title": "ANIMAL:::ID:::132713",
+  "releaseDate": "2018-10-08",
+  "taxonId": 9823,
+  "description": "a 4-year old pig organic fed",
+  "attributes": {
+    "project": [
+      {
+        "value": "IMAGE"
+      }
+    ],
+    "dataSourceId": [
+      {
+        "value": "ANIMAL:::ID:::132713"
+      }
+    ],
+    "alternativeId": [
+      {
+        "value": "11"
+      }
+    ],
+    "submissionTitle": [
+      {
+        "value": "test"
+      }
+    ],
+    "personLastName": [
+      {
+        "value": "Bar"
+      }
+    ],
+    "personEmail": [
+      {
+        "value": "test@test.com"
+      }
+    ],
+    "personAffiliation": [
+      {
+        "value": "Test organization"
+      }
+    ],
+    "personRole": [
+      {
+        "value": "submitter",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/EFO_0001741"
+          }
+        ]
+      }
+    ],
+    "organizationName": [
+      {
+        "value": "Test organization"
+      }
+    ],
+    "organizationRole": [
+      {
+        "value": "submitter",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/EFO_0001741"
+          }
+        ]
+      }
+    ],
+    "geneBankName": [
+      {
+        "value": "Cryoweb"
+      }
+    ],
+    "geneBankCountry": [
+      {
+        "value": "Germany",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/NCIT_C16636"
+          }
+        ]
+      }
+    ],
+    "dataSourceType": [
+      {
+        "value": "CryoWeb"
+      }
+    ],
+    "dataSourceVersion": [
+      {
+        "value": "test"
+      }
+    ],
+    "material": [
+      {
+        "value": "organism",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/OBI_0100026"
+          }
+        ]
+      }
+    ],
+    "species": [
+      {
+        "value": "Sus scrofa",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/NCBITaxon_9823"
+          }
+        ]
+      }
+    ],
+    "suppliedBreed": [
+      {
+        "value": "Bunte Bentheimer"
+      }
+    ],
+    "efabisBreedCountry": [
+      {
+        "value": "Germany",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/NCIT_C16636"
+          }
+        ]
+      }
+    ],
+    "sex": [
+      {
+        "value": "male",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/PATO_0000384"
+          }
+        ]
+      }
+    ]
+  },
+  "sampleRelationships": []
+}
