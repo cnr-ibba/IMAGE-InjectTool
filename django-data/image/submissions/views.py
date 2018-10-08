@@ -46,7 +46,7 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
         # I will have a different loading function accordingly with data type
         if self.object.datasource_type == CRYOWEB_TYPE:
             # update object and force status
-            self.object.message = "waiting for data processing"
+            self.object.message = "waiting for data loading"
             self.object.status = WAITING
             self.object.save()
 
@@ -79,8 +79,9 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
 
         # check if data are loaded or not
         if self.object.status == WAITING:
-            # get the message or define a default message for waiting
-            message = self.object.message or "waiting for data processing"
+            # get the message
+            message = self.object.message
+
             messages.warning(
                 request=self.request,
                 message=message,

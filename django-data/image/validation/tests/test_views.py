@@ -6,25 +6,32 @@ Created on Fri Oct  5 11:39:34 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from django.contrib.auth import get_user_model
+from unittest.mock import patch
+
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
+
+from image_app.models import Submission
 
 from ..forms import ValidateForm
 from ..views import ValidateView
 
+# reading statuses
+WAITING = Submission.STATUSES.get_value('waiting')
+
 
 class TestMixin(object):
     """Base class for validation tests"""
+
+    fixtures = [
+        "submissions/user",
+        "submissions/dictcountry",
+        "submissions/dictrole",
+        "submissions/organization",
+        "submissions/submission"
+    ]
+
     def setUp(self):
-        User = get_user_model()
-
-        # create a testuser
-        self.user = User.objects.create_user(
-            username='test',
-            password='test',
-            email="test@test.com")
-
         self.client = Client()
         self.client.login(username='test', password='test')
 
@@ -75,10 +82,46 @@ class ValidateViewTest(TestMixin, TestCase):
 
 
 class SuccessfulValidateViewTest(TestMixin, TestCase):
-    # TODO: test redirection after validation occurs
-    # TODO: check validation started
-    # TODO: check submission.state changed
-    pass
+    @patch('validation.views.validate_submission.delay')
+    def setUp(self, my_validation):
+        # call base methods
+        super(SuccessfulValidateViewTest, self).setUp()
+
+        # get a submission object
+        submission = Submission.objects.get(pk=1)
+        self.submission_id = submission.id
+
+        # get the url for dashboard
+        self.url = reverse('validation:validate')
+        self.response = self.client.post(
+            self.url, {
+                'submission_id': self.submission_id
+            }
+        )
+
+        # track my patched function
+        self.my_validation = my_validation
+
+    def test_redirect(self):
+        """test redirection after validation occurs"""
+
+        url = reverse('submissions:detail', kwargs={'pk': self.submission_id})
+        self.assertRedirects(self.response, url)
+
+    def test_validation_status(self):
+        """check validation started and submission.state"""
+
+        # check validation started
+        self.assertTrue(self.my_validation.called)
+
+        # get submission object
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # check submission.state changed
+        self.assertEqual(submission.status, WAITING)
+        self.assertEqual(
+            submission.message,
+            "waiting for data validation")
 
 
 class InvalidValidateViewTest(TestMixin, TestCase):
@@ -98,3 +141,5 @@ class InvalidValidateViewTest(TestMixin, TestCase):
         self.assertEqual(self.response.status_code, 200)
 
     # TODO: check no validation process started
+
+    # TODO: check no validation with submission statuses

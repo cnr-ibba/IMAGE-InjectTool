@@ -76,7 +76,7 @@ class DetailSubmissionViewTest(TestCase):
         self.check_messages(
             self.response,
             "warning",
-            "waiting for data processing")
+            "waiting for data loading")
 
     def test_loaded(self):
         """If data were loaded, no warning message are present"""

@@ -10,10 +10,23 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
+from image_app.models import Submission
+
 from ..tasks import validate_submission
+
+# get available statuses
+READY = Submission.STATUSES.get_value('ready')
 
 
 class ValidateSubmissionTest(TestCase):
+    fixtures = [
+        "submissions/user",
+        "submissions/dictcountry",
+        "submissions/dictrole",
+        "submissions/organization",
+        "submissions/submission"
+    ]
+
     # TODO: remove unuseful stuff and test a real case
     @patch("validation.tasks.sleep")
     def test_validate_submission(self, my_sleep):
@@ -23,3 +36,12 @@ class ValidateSubmissionTest(TestCase):
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
+
+        # TODO: check submission status and message
+        submission = Submission.objects.get(pk=1)
+
+        # check submission.state changed
+        self.assertEqual(submission.status, READY)
+        self.assertEqual(
+            submission.message,
+            "Submission validated with success")
