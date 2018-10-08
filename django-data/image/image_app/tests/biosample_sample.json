@@ -135,6 +135,11 @@
           }
         ]
       }
+    ],
+    "Collection place accuracy": [
+      {
+        "value": "missing geographic information"
+      }
     ]
   },
   "sampleRelationships": [

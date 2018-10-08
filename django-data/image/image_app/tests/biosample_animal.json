@@ -134,6 +134,11 @@
           }
         ]
       }
+    ],
+    "Birth location accuracy": [
+      {
+        "value": "missing geographic information"
+      }
     ]
   },
   "sampleRelationships": []

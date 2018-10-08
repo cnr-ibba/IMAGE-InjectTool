@@ -400,6 +400,18 @@ class BioSampleMixin(object):
         return attributes
 
 
+class ACCURACY(Enum):
+        missing = (0, 'missing geographic information')
+        country = (1, 'country level')
+        region = (2, 'region level')
+        precise = (3, 'precise coordinates')
+        unknown = (4, 'unknown accuracy level')
+
+        @classmethod
+        def get_value(cls, member):
+            return cls[member].value[0]
+
+
 class Animal(BioSampleMixin, BaseMixin, models.Model):
     # an animal name has a entry in name table
     name = models.OneToOneField(
@@ -453,6 +465,14 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
 
     birth_location_latitude = models.FloatField(blank=True, null=True)
     birth_location_longitude = models.FloatField(blank=True, null=True)
+
+    # accuracy field (enum)
+    birth_location_accuracy = models.SmallIntegerField(
+        choices=[x.value for x in ACCURACY],
+        help_text='example: unknown accuracy level, country level',
+        null=False,
+        blank=False,
+        default=ACCURACY.get_value('missing'))
 
     owner = models.ForeignKey(
         User,
@@ -510,6 +530,9 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
         attributes['Sex'] = format_attribute(
             value=self.sex.label,
             terms=self.sex.term)
+
+        attributes["Birth location accuracy"] = format_attribute(
+            value=self.get_birth_location_accuracy_display())
 
         # filter out empty values
         attributes = {k: v for k, v in attributes.items() if v is not None}
@@ -575,6 +598,14 @@ class Sample(BioSampleMixin, BaseMixin, models.Model):
     collection_place_latitude = models.FloatField(blank=True, null=True)
     collection_place_longitude = models.FloatField(blank=True, null=True)
     collection_place = models.CharField(max_length=255, blank=True, null=True)
+
+    # accuracy field (enum)
+    collection_place_accuracy = models.SmallIntegerField(
+        choices=[x.value for x in ACCURACY],
+        help_text='example: unknown accuracy level, country level',
+        null=False,
+        blank=False,
+        default=ACCURACY.get_value('missing'))
 
     # TODO: move those fields to dictionary tables
     organism_part = models.CharField(max_length=255, blank=True, null=True)
@@ -706,6 +737,9 @@ class Sample(BioSampleMixin, BaseMixin, models.Model):
         attributes['Organism part'] = format_attribute(
             value=self.organism_part,
             terms=self.organism_part_term)
+
+        attributes["Collection place accuracy"] = format_attribute(
+            value=self.get_collection_place_accuracy_display())
 
         # filter out empty values
         attributes = {k: v for k, v in attributes.items() if v is not None}

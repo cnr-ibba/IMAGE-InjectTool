@@ -17,7 +17,7 @@ from django.conf import settings
 
 from decouple import AutoConfig
 from image_app.models import (Animal, DictBreed, DictCountry, DictSex,
-                              DictSpecie, Name, Sample, Submission)
+                              DictSpecie, Name, Sample, Submission, ACCURACY)
 from language.models import SpecieSynonim
 
 from .models import db_has_data as cryoweb_has_data
@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 # Set Submission statuses
 LOADED = Submission.STATUSES.get_value('loaded')
 ERROR = Submission.STATUSES.get_value('error')
+
+# get accuracy levels
+MISSING = ACCURACY.get_value('missing')
+UNKNOWN = ACCURACY.get_value('unknown')
 
 
 # --- check functions
@@ -306,6 +310,12 @@ def fill_uid_animals(submission):
             raise CryoWebImportError(
                 "Unknown sex '%s' for '%s'" % (v_animal.ext_sex, v_animal))
 
+        # checking accuracy
+        accuracy = MISSING
+
+        if v_animal.latitude and v_animal.longitude:
+            accuracy = UNKNOWN
+
         # create a new object
         animal, created = Animal.objects.get_or_create(
             name=name,
@@ -316,6 +326,7 @@ def fill_uid_animals(submission):
             mother=mother,
             birth_location_latitude=v_animal.latitude,
             birth_location_longitude=v_animal.longitude,
+            birth_location_accuracy=accuracy,
             description=v_animal.comment,
             owner=submission.owner)
 

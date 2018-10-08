@@ -63,7 +63,7 @@
     [here](https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html).
     Others solutions could be [autocomplete fields](http://django-extensions.readthedocs.io/en/latest/admin_extensions.html?highlight=ForeignKeyAutocompleteAdmin)
     or using [django-salmonella](https://github.com/lincolnloop/django-dynamic-raw-id)
-  - django admin wil be not accessible to normal user?
+  - django admin will be not accessible to normal user?
   - Using LoginRequiredMixing for class based view authentication (update all classes)
   - add migrations in git repository, as suggested from official django documentation
     [cit needed] and [here](https://stackoverflow.com/questions/28035119/should-i-be-adding-the-django-migration-files-in-the-gitignore-file)
@@ -97,7 +97,6 @@
   - check mandatory fields for biosample. Other fields are attributes
   - test against example `json` files, don't derive reference on the fly (it
     seems difficult update validation tests)
-  - geo fields were added in last metadata rules
 
 * Biosample manager user should do:
   - Monitor biosample submission to see if sample are validated or not (by team/user)
