@@ -11,7 +11,7 @@ from . import views
 
 urlpatterns = [
     url(
-        r'^token/generate$',
+        r'^token/generate/$',
         views.GenerateTokenView.as_view(),
         name='token-generation'
     ),

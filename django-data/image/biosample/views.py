@@ -97,6 +97,7 @@ class RegisterMixin(object):
 
 class MyFormMixin(object):
     success_url_message = "Please set this variable"
+    success_url = reverse_lazy("image_app:dashboard")
 
     # add the request to the kwargs
     # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
@@ -114,7 +115,7 @@ class MyFormMixin(object):
             message=self.success_url_message,
             extra_tags="alert alert-dismissible alert-success")
 
-        return reverse_lazy("image_app:dashboard")
+        return super(MyFormMixin, self).get_success_url()
 
     def form_invalid(self, form):
         messages.error(
@@ -129,6 +130,18 @@ class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
     template_name = 'biosample/generate_token.html'
     form_class = GenerateTokenForm
     success_url_message = 'Token generated!'
+
+    def dispatch(self, request, *args, **kwargs):
+        # try to read next link
+        next_url = request.GET.get('next', None)
+
+        # redirect to next url
+        if next_url:
+            logger.debug("Got %s as next_url" % next_url)
+            self.success_url = next_url
+
+        return super(
+            GenerateTokenView, self).dispatch(request, *args, **kwargs)
 
     def get_initial(self):
         """

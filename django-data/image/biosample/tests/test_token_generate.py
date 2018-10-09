@@ -79,7 +79,7 @@ class CreateAuthViewTest(BaseTest):
         self.assertEqual(self.response.status_code, 200)
 
     def test_url_resolves_view(self):
-        view = resolve('/biosample/token/generate')
+        view = resolve('/biosample/token/generate/')
         self.assertIsInstance(view.func.view_class(), GenerateTokenView)
 
     def test_csrf(self):
@@ -109,6 +109,9 @@ class CreateAuthViewTest(BaseTest):
 
 
 class NewCreateAuthViewTest(TestCase):
+    """Test that a non register biosample user is redirected to biosample
+    registration page"""
+
     def setUp(self):
         User = get_user_model()
 
@@ -121,7 +124,7 @@ class NewCreateAuthViewTest(TestCase):
         self.client = Client()
         self.client.login(username='test', password='test')
 
-        # get the url for dashboard
+        # this user is not registered in biosample. Get generate token view
         self.url = reverse('biosample:token-generation')
         self.response = self.client.get(self.url)
 
@@ -207,3 +210,15 @@ class SuccessFullCreateAuthViewTest(BaseTest):
 
         self.assertRedirects(self.response, self.dashboard_url)
         self.check_messages(self.response, "success", "Token generated!")
+
+    def test_next_redirection(self):
+        """A valid form submission with a next parameter in request"""
+
+        # construct url
+        next_url = reverse("about")
+        url = self.url + "?next=%s" % (next_url)
+
+        # get response
+        response = self.client.post(url, self.data)
+
+        self.assertRedirects(response, next_url)

@@ -46,7 +46,6 @@
     using celery tasks
   - fix logging in celery modules (each log is printed two times, one for django
     and one for task itself)
-  - `submission.biosample_submission_id` need to be indexed
 
 * NGINX media folder can serve media files (jpg, etc).
   - Deal with dump files (permissions?)
@@ -119,6 +118,7 @@
   - check out the django [validators](https://docs.djangoproject.com/en/1.11/ref/validators/)
     documentation
   - read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
+  - [django-crispy-forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html)
 
 * Regarding tests:
   - implement functional testing
@@ -153,4 +153,4 @@
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
 
-  * create a `commons` library to store all common stuff
+* create a `commons` library to store all common stuff
