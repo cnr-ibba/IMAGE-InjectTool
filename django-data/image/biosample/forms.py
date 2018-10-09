@@ -92,3 +92,10 @@ class CreateUserForm(forms.Form):
             self.add_error('password2', error)
 
         return password2
+
+
+# I use forms.Form since I need to pass primary key as a field,
+# and I can't use it with a modelform
+class SubmitForm(forms.Form):
+    submission_id = forms.IntegerField(
+        required=True)

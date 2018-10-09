@@ -30,4 +30,9 @@ urlpatterns = [
         views.CreateUserView.as_view(),
         name='create'
     ),
+    url(
+        r'^submit/$',
+        views.SubmitView.as_view(),
+        name='submit'
+    ),
 ]

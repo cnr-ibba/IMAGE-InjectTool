@@ -5,7 +5,7 @@ import logging
 from decouple import AutoConfig
 
 from django.conf import settings
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.crypto import get_random_string
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
@@ -17,8 +17,16 @@ from django.contrib import messages
 from pyEBIrest import Auth
 from pyEBIrest.client import User
 
-from .forms import GenerateTokenForm, RegisterUserForm, CreateUserForm
+from image_app.models import Submission
+from submissions.templatetags.submissions_tags import can_submit
+
+from .forms import (
+    GenerateTokenForm, RegisterUserForm, CreateUserForm, SubmitForm)
 from .models import Account, ManagedTeam
+from .tasks import submit
+
+# get available statuses
+WAITING = Submission.STATUSES.get_value('waiting')
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -398,3 +406,42 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         # call to a inherited function (which does an HttpResponseRedirect
         # to success_url)
         return super(CreateUserView, self).form_valid(form)
+
+
+class SubmitView(LoginRequiredMixin, FormView):
+    form_class = SubmitForm
+    template_name = 'biosample/submit.html'
+    submission_id = None
+
+    def get_success_url(self):
+        return reverse('submissions:detail', kwargs={
+            'pk': self.submission_id})
+
+    def form_valid(self, form):
+        submission_id = form.cleaned_data['submission_id']
+        submission = Submission.objects.get(pk=submission_id)
+
+        # track submission id in order to render page
+        self.submission_id = submission_id
+
+        # check if I can submit object (statuses)
+        if not can_submit(submission):
+            # return super method (which calls get_success_url)
+            logger.error(
+                "Can't submission submission %s: current status is %s" % (
+                    submission, submission.get_status_display()))
+            return super(SubmitView, self).form_valid(form)
+
+        # Update submission status
+        submission.status = WAITING
+        submission.message = "Waiting for biosample submission"
+        submission.save()
+
+        # a valid submission start a task
+        res = submit.delay(submission_id)
+        logger.info(
+            "Start validation process for %s with task %s" % (
+                submission,
+                res.task_id))
+
+        return super(SubmitView, self).form_valid(form)

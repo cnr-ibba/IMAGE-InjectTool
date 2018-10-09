@@ -7,6 +7,7 @@ Created on Tue Oct  2 16:07:58 2018
 """
 
 import os
+from time import sleep
 
 from decouple import AutoConfig
 from celery import task
@@ -31,6 +32,30 @@ config = AutoConfig(search_path=settings_dir)
 # Set Submission statuses
 SUBMITTED = Submission.STATUSES.get_value('submitted')
 NEED_REVISION = Submission.STATUSES.get_value('need_revision')
+
+
+# a function to submit data into biosample
+@task(bind=True)
+def submit(self, submission_id):
+    # get submissio object
+    submission = Submission.objects.get(pk=submission_id)
+
+    logger.info("Starting submission for user %s" % (
+        submission.owner.biosample_account))
+
+    # TODO: do stuff
+    sleep(30)
+
+    # TODO: track submission_id in table
+    submission.biosample_submission_id = None
+
+    # Update submission status
+    submission.message = "Waiting for biosample validation"
+    submission.save()
+
+    logger.info("submission completed")
+
+    return "success"
 
 
 # a function to get a valid auth object

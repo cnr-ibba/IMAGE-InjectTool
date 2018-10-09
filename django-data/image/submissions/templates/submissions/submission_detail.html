@@ -67,7 +67,7 @@
     {# disabling a button if waiting variable is set to true #}
     <div class="col-sm-4 lead text-center"><a class="btn btn-primary btn-lg btn-block {% if not edit %}disabled{% endif %}" href="#" role="button">Edit data</a></div>
     <div class="col-sm-4 lead text-center"><a class="btn btn-warning btn-lg btn-block {% if not validate %}disabled{% endif %}" href="javascript:{document.getElementById('validate').submit()}" role="button">Validate</a></div>
-    <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block {% if not submit %}disabled{% endif %}" href="#" role="button">Submit</a></div>
+    <div class="col-sm-4 lead text-center"><a class="btn btn-success btn-lg btn-block {% if not submit %}disabled{% endif %}" href="javascript:{document.getElementById('submit').submit()}" role="button">Submit</a></div>
   </div>
   <div class="row mt-2">
     <div class="col-sm-4 lead text-center"><a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Submissions List</a></div>
@@ -76,6 +76,11 @@
 </div>
 
 <form id='validate' action="{% url 'validation:validate' %}" method="POST">
+  {% csrf_token %}
+  <input type="hidden" name="submission_id" value="{{ submission.pk }}">
+</form>
+
+<form id='submit' action="{% url 'biosample:submit' %}" method="POST">
   {% csrf_token %}
   <input type="hidden" name="submission_id" value="{{ submission.pk }}">
 </form>
