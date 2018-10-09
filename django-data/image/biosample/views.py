@@ -432,7 +432,7 @@ class SubmitView(LoginRequiredMixin, FormView):
         if not can_submit(submission):
             # return super method (which calls get_success_url)
             logger.error(
-                "Can't submission submission %s: current status is %s" % (
+                "Can't submit submission %s: current status is %s" % (
                     submission, submission.get_status_display()))
             return super(SubmitView, self).form_valid(form)
 

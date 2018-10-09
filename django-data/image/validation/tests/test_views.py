@@ -21,6 +21,7 @@ WAITING = Submission.STATUSES.get_value('waiting')
 ERROR = Submission.STATUSES.get_value('error')
 SUBMITTED = Submission.STATUSES.get_value('submitted')
 LOADED = Submission.STATUSES.get_value('loaded')
+COMPLETED = Submission.STATUSES.get_value('completed')
 
 
 class TestMixin(object):
@@ -132,8 +133,34 @@ class SuccessfulValidateViewTest(TestMixin, TestCase):
             submission.message,
             "waiting for data validation")
 
-    def __common_statuses(self):
+
+class NoValidateViewTest(TestMixin, TestCase):
+    @patch('validation.views.validate_submission.delay')
+    def setUp(self, my_validation):
+        # call base methods
+        super(NoValidateViewTest, self).setUp()
+
+        # get a submission object
+        submission = Submission.objects.get(pk=1)
+
+        # track submission ID
+        self.submission_id = submission.id
+
+        # get the url for dashboard
+        self.url = reverse('validation:validate')
+
+        # track my patched function
+        self.my_validation = my_validation
+
+    def __common_stuff(self, status):
         """Common function for statuses"""
+
+        # get submission
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # update status and save
+        submission.status = status
+        submission.save()
 
         # call valiate views with cyrrent status WAITING
         response = self.client.post(
@@ -147,39 +174,31 @@ class SuccessfulValidateViewTest(TestMixin, TestCase):
         self.assertRedirects(response, url)
 
         # get number of call (equal to first call)
-        self.assertEqual(self.my_validation.call_count, 1)
+        self.assertEqual(self.my_validation.call_count, 0)
 
     def test_submission_waiting(self):
         """check no validation with submission status WAITING"""
 
         # valutate status and no function called
-        self.__common_statuses()
+        self.__common_stuff(WAITING)
 
     def test_submission_error(self):
         """check no validation with submission status ERROR"""
 
-        # get submission
-        submission = Submission.objects.get(pk=self.submission_id)
-
-        # update status and save
-        submission.status = ERROR
-        submission.save()
-
         # valutate status and no function called
-        self.__common_statuses()
+        self.__common_stuff(ERROR)
 
     def test_submission_submitted(self):
         """check no validation with submission status SUBMITTED"""
 
-        # get submission
-        submission = Submission.objects.get(pk=self.submission_id)
+        # valutate status and no function called
+        self.__common_stuff(SUBMITTED)
 
-        # update status and save
-        submission.status = SUBMITTED
-        submission.save()
+    def test_submission_completed(self):
+        """check no validation with submission status COMPLETED"""
 
         # valutate status and no function called
-        self.__common_statuses()
+        self.__common_stuff(COMPLETED)
 
 
 class InvalidValidateViewTest(TestMixin, TestCase):

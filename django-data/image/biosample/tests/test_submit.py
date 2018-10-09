@@ -179,39 +179,31 @@ class NoSubmitViewTest(TestMixin, TestCase):
         self.assertRedirects(response, url)
 
         # get number of call (equal to first call)
-        self.assertEqual(self.my_validation.call_count, 1)
+        self.assertEqual(self.my_submit.call_count, 0)
 
     def test_submission_waiting(self):
-        """check no validation with submission status WAITING"""
+        """check no submission with submission status WAITING"""
 
         # valutate status and no function called
-        self.__common_statuses()
+        self.__common_stuff(WAITING)
 
     def test_submission_error(self):
-        """check no validation with submission status ERROR"""
-
-        # get submission
-        submission = Submission.objects.get(pk=self.submission_id)
-
-        # update status and save
-        submission.status = ERROR
-        submission.save()
+        """check no submission with submission status ERROR"""
 
         # valutate status and no function called
-        self.__common_statuses()
+        self.__common_stuff(ERROR)
 
     def test_submission_submitted(self):
-        """check no validation with submission status SUBMITTED"""
-
-        # get submission
-        submission = Submission.objects.get(pk=self.submission_id)
-
-        # update status and save
-        submission.status = SUBMITTED
-        submission.save()
+        """check no submission with submission status SUBMITTED"""
 
         # valutate status and no function called
-        self.__common_statuses()
+        self.__common_stuff(SUBMITTED)
+
+    def test_submission_completed(self):
+        """check no submission with submission status COMPLETED"""
+
+        # valutate status and no function called
+        self.__common_stuff(COMPLETED)
 
 
 class InvalidSubmitViewTest(TestMixin, TestCase):
