@@ -8,7 +8,8 @@ Created on Fri Jul  6 16:04:18 2018
 
 from django.test import TestCase
 
-from ..forms import GenerateTokenForm, CreateUserForm, RegisterUserForm
+from ..forms import (
+    GenerateTokenForm, CreateUserForm, RegisterUserForm, SubmitForm)
 
 
 class GenerateTokenFormTest(TestCase):
@@ -32,4 +33,12 @@ class CreateUserFormTest(TestCase):
         form = CreateUserForm()
         expected = sorted(['password1', 'password2'])
         actual = sorted(list(field.name for field in form))
+        self.assertSequenceEqual(expected, actual)
+
+
+class SubmitFormTest(TestCase):
+    def test_form_has_fields(self):
+        form = SubmitForm()
+        expected = ['submission_id']
+        actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)

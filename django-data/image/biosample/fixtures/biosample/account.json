@@ -1,0 +1,11 @@
+[
+{
+  "model": "biosample.account",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "name": "image-test",
+    "team": 1
+  }
+}
+]

@@ -32,6 +32,8 @@ config = AutoConfig(search_path=settings_dir)
 # Set Submission statuses
 SUBMITTED = Submission.STATUSES.get_value('submitted')
 NEED_REVISION = Submission.STATUSES.get_value('need_revision')
+COMPLETED = Submission.STATUSES.get_value('completed')
+WAITING = Submission.STATUSES.get_value('waiting')
 
 
 # a function to submit data into biosample
@@ -43,13 +45,16 @@ def submit(self, submission_id):
     logger.info("Starting submission for user %s" % (
         submission.owner.biosample_account))
 
+    # TODO: read biosample token from redis database
+
     # TODO: do stuff
     sleep(30)
 
     # TODO: track submission_id in table
     submission.biosample_submission_id = None
 
-    # Update submission status
+    # Update submission status: a completed but not yet finalized submission
+    submission.status = SUBMITTED
     submission.message = "Waiting for biosample validation"
     submission.save()
 
@@ -92,7 +97,7 @@ def fetch_status(self):
         for submission in submissions:
             # fetch submission in database
             try:
-                # TODO: filter out by status
+                # TODO: filter out submission by status
                 obj = Submission.objects.get(
                     biosample_submission_id=submission.name)
 
@@ -103,11 +108,18 @@ def fetch_status(self):
                 continue
 
             else:
+                # check submission status. If waiting I'm currentlty submitting
+                if obj.status == WAITING:
+                    logger.warning(
+                        "submission %s is corrently under submission" % (
+                            submission.name))
+                    continue
+
                 logger.info(submission)
 
                 # Update submission status if completed
                 if submission.submissionStatus == 'Completed':
-                    obj.status = SUBMITTED
+                    obj.status = COMPLETED
                     obj.message = "Successful submission into biosample"
                     obj.save()
 

@@ -421,6 +421,10 @@ class SubmitView(LoginRequiredMixin, FormView):
         submission_id = form.cleaned_data['submission_id']
         submission = Submission.objects.get(pk=submission_id)
 
+        # TODO: check token: if expired or near to expiring, call
+        # generate token with a redirect to this view
+        # HINT: can POST data be shared between views?
+
         # track submission id in order to render page
         self.submission_id = submission_id
 
