@@ -368,7 +368,7 @@ class BioSampleMixin(object):
             value=self.owner.last_name)
 
         attributes['Person email'] = format_attribute(
-            value=self.owner.email)
+            value="mailto:%s" % (self.owner.email))
 
         attributes['Person affiliation'] = format_attribute(
             value=self.owner.person.affiliation.name)

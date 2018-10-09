@@ -32,7 +32,7 @@
     ],
     "Person email": [
       {
-        "value": "test@test.com"
+        "value": "mailto:test@test.com"
       }
     ],
     "Person affiliation": [

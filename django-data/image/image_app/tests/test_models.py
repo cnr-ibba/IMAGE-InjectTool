@@ -449,6 +449,10 @@ class AnimalTestCase(TestCase):
         handle = open(file_path)
         reference = json.load(handle)
 
+        # fix release date to today
+        now = datetime.datetime.now()
+        reference['releaseDate'] = str(now.date())
+
         test = self.animal.to_biosample()
 
         self.maxDiff = None
@@ -617,6 +621,10 @@ class SampleTestCase(TestCase):
         file_path = os.path.join(base_dir, "biosample_sample.json")
         handle = open(file_path)
         reference = json.load(handle)
+
+        # fix release date to today
+        now = datetime.datetime.now()
+        reference['releaseDate'] = str(now.date())
 
         test = self.sample.to_biosample()
 
