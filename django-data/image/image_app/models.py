@@ -947,6 +947,7 @@ class Submission(BaseMixin, models.Model):
     # ready: validated data ready for submission
     # need_revision: validated data need checks before submission
     # submitted: submitted to biosample
+    # completed: finalized submission with biosample id
     class STATUSES(Enum):
         waiting = (0, 'Waiting')
         loaded = (1, 'Loaded')
@@ -954,6 +955,7 @@ class Submission(BaseMixin, models.Model):
         error = (3, 'Error')
         need_revision = (4, 'Need Revision')
         ready = (5, "Ready")
+        completed = (6, "Completed")
 
         @classmethod
         def get_value(cls, member):

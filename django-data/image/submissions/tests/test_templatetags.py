@@ -18,6 +18,7 @@ ERROR = Submission.STATUSES.get_value('error')
 READY = Submission.STATUSES.get_value('ready')
 NEED_REVISION = Submission.STATUSES.get_value('need_revision')
 SUBMITTED = Submission.STATUSES.get_value('submitted')
+COMPLETED = Submission.STATUSES.get_value('completed')
 
 
 class CommonTestCase():
@@ -71,6 +72,10 @@ class CanEditTest(CommonTestCase, TestCase):
 
     def test_is_submitted(self):
         rendered = self.render_status(SUBMITTED)
+        self.assertEqual(rendered, "False")
+
+    def test_is_completed(self):
+        rendered = self.render_status(COMPLETED)
         self.assertEqual(rendered, "True")
 
 
@@ -105,6 +110,10 @@ class CanValidateTest(CommonTestCase, TestCase):
         rendered = self.render_status(SUBMITTED)
         self.assertEqual(rendered, "False")
 
+    def test_is_completed(self):
+        rendered = self.render_status(COMPLETED)
+        self.assertEqual(rendered, "False")
+
 
 class CanSubmitTest(CommonTestCase, TestCase):
     """Test if I can submit data against different submission statuses"""
@@ -135,4 +144,8 @@ class CanSubmitTest(CommonTestCase, TestCase):
 
     def test_is_submitted(self):
         rendered = self.render_status(SUBMITTED)
+        self.assertEqual(rendered, "False")
+
+    def test_is_completed(self):
+        rendered = self.render_status(COMPLETED)
         self.assertEqual(rendered, "False")

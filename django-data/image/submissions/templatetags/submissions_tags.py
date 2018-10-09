@@ -18,11 +18,12 @@ ERROR = Submission.STATUSES.get_value('error')
 READY = Submission.STATUSES.get_value('ready')
 NEED_REVISION = Submission.STATUSES.get_value('need_revision')
 SUBMITTED = Submission.STATUSES.get_value('submitted')
+COMPLETED = Submission.STATUSES.get_value('completed')
 
 
 @register.simple_tag
 def can_edit(submission):
-    if submission.status != WAITING:
+    if submission.status not in [WAITING, SUBMITTED]:
         return True
 
     else:
@@ -31,7 +32,7 @@ def can_edit(submission):
 
 @register.simple_tag
 def can_validate(submission):
-    if submission.status not in [ERROR, WAITING, SUBMITTED]:
+    if submission.status not in [ERROR, WAITING, SUBMITTED, COMPLETED]:
         return True
     else:
         return False

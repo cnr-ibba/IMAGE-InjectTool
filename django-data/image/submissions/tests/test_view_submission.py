@@ -79,7 +79,7 @@ class DetailSubmissionViewTest(TestCase):
             "waiting for data loading")
 
     def test_loaded(self):
-        """If data were loaded, no warning message are present"""
+        """If data were loaded, no warning messages are present"""
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
@@ -92,7 +92,40 @@ class DetailSubmissionViewTest(TestCase):
         # get all response
         all_messages = [msg for msg in get_messages(response.wsgi_request)]
 
-        print(all_messages)
+        self.assertTrue(len(all_messages) == 0)
+
+    def test_submitted(self):
+        """With submitted data into biosample (not yet finalized) I will get
+        an error message"""
+
+        # set loaded flag
+        submission = Submission.objects.get(pk=1)
+        submission.status = Submission.STATUSES.get_value('submitted')
+        submission.message = "submitted"
+        submission.save()
+
+        # get a new response
+        response = self.client.get(self.url)
+
+        self.check_messages(
+            response,
+            "warning",
+            "submitted")
+
+    def test_completed(self):
+        """If submission is completed (submitted and finalized in biosample)
+        no warning messages are present"""
+
+        # set loaded flag
+        submission = Submission.objects.get(pk=1)
+        submission.status = Submission.STATUSES.get_value('completed')
+        submission.save()
+
+        # get a new response
+        response = self.client.get(self.url)
+
+        # get all response
+        all_messages = [msg for msg in get_messages(response.wsgi_request)]
 
         self.assertTrue(len(all_messages) == 0)
 

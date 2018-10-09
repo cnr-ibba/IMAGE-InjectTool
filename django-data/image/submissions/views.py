@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # reading statuses
 WAITING = Submission.STATUSES.get_value('waiting')
 ERROR = Submission.STATUSES.get_value('error')
+SUBMITTED = Submission.STATUSES.get_value('submitted')
 
 CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
 
@@ -78,7 +79,7 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
         data = super().get_context_data(**kwargs)
 
         # check if data are loaded or not
-        if self.object.status == WAITING:
+        if self.object.status in [WAITING, SUBMITTED]:
             # get the message
             message = self.object.message
 
