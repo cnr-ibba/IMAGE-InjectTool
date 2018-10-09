@@ -108,7 +108,7 @@ class CreateAuthViewTest(BaseTest):
         self.assertContains(self.response, '<button type="submit"')
 
 
-class NewCreateAuthViewTest(TestCase):
+class UnregisteredAuthViewTest(TestCase):
     """Test that a non register biosample user is redirected to biosample
     registration page"""
 
@@ -222,3 +222,13 @@ class SuccessFullCreateAuthViewTest(BaseTest):
         response = self.client.post(url, self.data)
 
         self.assertRedirects(response, next_url)
+
+    @patch("biosample.views.Auth", side_effect=ConnectionError("test"))
+    def test_error_with_biosample(self, my_auth):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 200)
+
+        self.check_messages(
+            response,
+            "error",
+            "Unable to generate token")

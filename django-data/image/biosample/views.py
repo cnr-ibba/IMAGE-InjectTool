@@ -37,10 +37,6 @@ class TokenMixin(object):
     """Register account if a biosample account is not registered"""
 
     def dispatch(self, request, *args, **kwargs):
-        # this will ask to login to an un-logged user
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-
         # get user from request and user model. This could be also Anonymous
         # user:however with metod decorator a login is required before dispatch
         # method is called
@@ -68,10 +64,6 @@ class RegisterMixin(object):
     """If a biosample account is already registered, returns to dashboard"""
 
     def dispatch(self, request, *args, **kwargs):
-        # this will ask to login to an un-logged user
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
-
         # get user from request and user model. This could be also Anonymous
         # user:however with metod decorator a login is required before dispatch
         # method is called
@@ -161,12 +153,14 @@ class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
 
         try:
             auth = Auth(user=user, password=password)
-            self.request.session['token'] = auth.token
-            return super(GenerateTokenView, self).form_valid(form)
 
         except ConnectionError as e:
             # logger exception. With repr() the exception name is rendered
             logger.error(repr(e))
+
+            # maybe I typed a wrong password or there is an issue in biosample
+            # logg error in message and return form_invalid
+            # HINT: deal with two conditions?
 
             # parse error message
             messages.error(
@@ -176,6 +170,10 @@ class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
 
             # return invalid form
             return self.form_invalid(form)
+
+        else:
+            self.request.session['token'] = auth.token
+            return super(GenerateTokenView, self).form_valid(form)
 
 
 class TokenView(LoginRequiredMixin, TokenMixin, TemplateView):
@@ -282,8 +280,9 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
         return kwargs
 
+    # HINT: move to a celery task?
     def form_valid(self, form):
-        """Create a new team in with biosample manager user, then crete a new
+        """Create a new team in with biosample manager user, then create a new
         user and register it"""
 
         password = form.cleaned_data['password1']

@@ -165,6 +165,30 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.assertTrue(get_domain_by_name.called)
         self.assertTrue(add_user_to_team.called)
 
+    @patch('pyEBIrest.client.User.add_user_to_team')
+    @patch('pyEBIrest.client.User.get_domain_by_name')
+    @patch('pyEBIrest.client.User.create_team')
+    @patch('biosample.views.Auth', new=mocked_auth)
+    @patch('pyEBIrest.client.User.create_user',
+           side_effect=ConnectionError("test"))
+    def test_error_with_biosample(self, create_user, create_team,
+                                  get_domain_by_name, add_user_to_team):
+        """Testing create user with biosample errors"""
+
+        self.data = {
+            'password1': 'image-password',
+            'password2': 'image-password',
+        }
+
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 200)
+        self.check_messages(response, "error", "Problem in creating user")
+
+        self.assertTrue(create_user.called)
+        self.assertFalse(create_team.called)
+        self.assertFalse(get_domain_by_name.called)
+        self.assertFalse(add_user_to_team.called)
+
 
 class InvalidCreateUserViewTests(Basetest):
     def setUp(self):
