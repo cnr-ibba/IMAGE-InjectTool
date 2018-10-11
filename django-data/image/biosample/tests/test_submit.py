@@ -7,12 +7,14 @@ Created on Tue Oct  9 16:05:54 2018
 """
 
 import redis
+import datetime
 
 from unittest.mock import patch
 
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 from django.conf import settings
+from django.contrib.messages import get_messages
 
 from image_app.models import Submission
 
@@ -48,6 +50,22 @@ class TestMixin(object):
     def setUp(self):
         self.client = Client()
         self.client.login(username='test', password='test')
+
+    def check_messages(self, response, tag, message_text):
+        """Check that a response has warnings"""
+
+        # each element is an instance
+        # of django.contrib.messages.storage.base.Message
+        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+
+        found = False
+
+        # I can have moltiple message, and maybe I need to find a specific one
+        for message in all_messages:
+            if tag in message.tags and message_text in message.message:
+                found = True
+
+        self.assertTrue(found)
 
 
 class SubmitViewTest(TestMixin, TestCase):
@@ -123,7 +141,7 @@ class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
         # get a submission object
         submission = Submission.objects.get(pk=1)
 
-        # set a status which I can validate
+        # set a status which I can submit
         submission.status = READY
         submission.save()
 
@@ -180,9 +198,102 @@ class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
 
         self.assertIsNotNone(self.redis.get(key))
 
-    # TODO: check no token redirects to token:generate
+    def __common_redirect(self):
+        """Common stuff called when there are problems with tocken"""
 
-    # TODO: check that an expired token redirects to token:generate
+        # get submission object
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # set a status which I can submit
+        submission.status = READY
+        submission.save()
+
+        # make request
+        self.response = self.client.post(
+            self.url, {
+                'submission_id': self.submission_id
+            }
+        )
+
+        # assert a redirect
+        next_url = reverse('biosample:token-generation') + "?next=%s" % (
+            self.url)
+        self.assertRedirects(self.response, next_url)
+
+        # reload session
+        session = self.get_session()
+
+        # assert that this submission id is recorded in session
+        key = "submitview:submission_id"
+        self.assertIn(key, session)
+        self.assertEqual(session[key], self.submission_id)
+
+    def test_no_token(self):
+        """check no token redirects to token:generate"""
+
+        # get session and remove token
+        session = self.get_session()
+        del(session['token'])
+        session.save()
+        self.set_session_cookies(session)
+
+        # test redirect to token generation
+        self.__common_redirect()
+
+        self.check_messages(
+            self.response,
+            "error",
+            "You haven't generated any token yet")
+
+    def test_expired_token(self):
+        """check that an expired token redirects to token:generate"""
+
+        session = self.get_session()
+        now = int(datetime.datetime.now().timestamp())
+        session['token'] = generate_token(now-10000)
+        session.save()
+        self.set_session_cookies(session)
+
+        # test redirect to token generation
+        self.__common_redirect()
+
+        self.check_messages(
+            self.response,
+            "error",
+            "Your token is expired or near to expire")
+
+    @patch('biosample.views.submit.delay')
+    def test_resuming_submission(self, my_submit):
+        """check resume the submission with get method and submission_id
+        stored in session"""
+
+        # get session and add key
+        session = self.get_session()
+        key = "submitview:submission_id"
+        session[key] = self.submission_id
+        session.save()
+        self.set_session_cookies(session)
+
+        # get submission object
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # set a status which I can submit
+        submission.status = READY
+        submission.save()
+
+        # make request
+        response = self.client.get(self.url)
+
+        # assert redirect to submission detail
+        url = reverse('submissions:detail', kwargs={'pk': self.submission_id})
+        self.assertRedirects(response, url)
+
+        # assert task.submit called
+        self.assertTrue(my_submit.called)
+
+        # assert session key is removed
+        session = self.get_session()
+        self.assertNotIn(key, session)
 
 
 class NoSubmitViewTest(TestMixin, TestCase):

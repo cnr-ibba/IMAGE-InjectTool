@@ -8,6 +8,7 @@ from decouple import AutoConfig
 from django.conf import settings
 from django.urls import reverse_lazy, reverse
 from django.utils.crypto import get_random_string
+from django.utils.http import is_safe_url
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -136,8 +137,9 @@ class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
         # try to read next link
         next_url = request.GET.get('next', None)
 
-        # redirect to next url
-        if next_url:
+        # redirect to next url. is_safe_url: is a safe redirection
+        # (i.e. it doesn't point to a different host and uses a safe scheme).
+        if next_url and is_safe_url(next_url):
             logger.debug("Got %s as next_url" % next_url)
             self.success_url = next_url
 
@@ -418,6 +420,49 @@ class SubmitView(LoginRequiredMixin, FormView):
         return reverse('submissions:detail', kwargs={
             'pk': self.submission_id})
 
+    def redirect_to_token(self, submission_id):
+        """Save the current submission_id in session, then return a redirect
+        to GenerateTokenView with my current url as next parameter"""
+
+        # determine next url after token generarion
+        next_url = (
+            reverse("biosample:token-generation") +
+            "?next=%s" % self.request.path)
+
+        # POST data can't be shared accross redirect, since redirect can be
+        # accessible only wia GET. So post data need to be stored elsewere,
+        # eg in session
+        self.request.session["submitview:submission_id"] = submission_id
+        logger.debug("Tracking submission_id %s for submission" % (
+            submission_id))
+
+        # redirect to my new url
+        return redirect(next_url)
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET requests: instantiate a blank version of the form or
+        resume submission after token generation"""
+
+        if "submitview:submission_id" in self.request.session:
+            # track submission id in order to render page
+            self.submission_id = self.request.session.pop(
+                "submitview:submission_id")
+            logger.debug(
+                "Resume submission view for %s" % (self.submission_id))
+
+            if 'token' in self.request.session:
+                auth = Auth(token=self.request.session['token'])
+                submission = Submission.objects.get(pk=self.submission_id)
+
+                # start the submission project
+                self.start_submission(auth, submission)
+
+                # get success url
+                return redirect(self.get_success_url())
+
+        # outside a valid token and submission key, I will return the form
+        return self.render_to_response(self.get_context_data())
+
     def form_valid(self, form):
         submission_id = form.cleaned_data['submission_id']
         submission = Submission.objects.get(pk=submission_id)
@@ -433,32 +478,45 @@ class SubmitView(LoginRequiredMixin, FormView):
                     submission, submission.get_status_display()))
             return super(SubmitView, self).form_valid(form)
 
-        # TODO: check token: if expired or near to expiring, call
-        # generate token with a redirect to this view
-        # HINT: can POST data be shared between views?
-        try:
+        # check token: if expired or near to expiring, call
+        # generate token with a redirect to generate-token
+        if 'token' in self.request.session:
             auth = Auth(token=self.request.session['token'])
 
-        except KeyError as e:
-            logger.warn("No valid tocken found. Redirect to tocken generation")
+        else:
+            logger.warning(
+                "No valid token found. Redirect to tocken generation")
 
             messages.error(
                 self.request,
-                "You haven't generated any token yet",
+                "You haven't generated any token yet. Generate a new one",
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # TODO: redirect to generate:token
-            return self.form_invalid(form)
+            # redirect to token-generation
+            return self.redirect_to_token(submission_id)
 
         # check tocken expiration
         if auth.is_expired() or auth.get_duration().seconds < 1800:
+            logger.warning(
+                "Token is expired or near to expire. Generate a new one")
+
             messages.error(
                 self.request,
-                "Your token is expired",
+                "Your token is expired or near to expire",
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # TODO: redirect to generate:token
-            return self.form_invalid(form)
+            # redirect to token-generation
+            return self.redirect_to_token(submission_id)
+
+        # start the submission project
+        self.start_submission(auth, submission)
+
+        return redirect(self.get_success_url())
+
+    def start_submission(self, auth, submission):
+        """Change submission status and submit data with a valid token"""
+
+        logger.debug("Connecting to redis database")
 
         # here token is valid, so store it in redis database
         client = redis.StrictRedis(
@@ -470,6 +528,8 @@ class SubmitView(LoginRequiredMixin, FormView):
             submission_id=self.submission_id,
             user=self.request.user)
 
+        logger.debug("Writing token in redis")
+
         client.set(key, auth.token, ex=auth.get_duration().seconds)
 
         # Update submission status
@@ -478,10 +538,8 @@ class SubmitView(LoginRequiredMixin, FormView):
         submission.save()
 
         # a valid submission start a task
-        res = submit.delay(submission_id)
+        res = submit.delay(submission.id)
         logger.info(
             "Start validation process for %s with task %s" % (
                 submission,
                 res.task_id))
-
-        return super(SubmitView, self).form_valid(form)
