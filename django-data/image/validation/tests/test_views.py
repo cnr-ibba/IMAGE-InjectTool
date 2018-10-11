@@ -202,7 +202,8 @@ class NoValidateViewTest(TestMixin, TestCase):
 
 
 class InvalidValidateViewTest(TestMixin, TestCase):
-    def setUp(self):
+    @patch('validation.views.validate_submission.delay')
+    def setUp(self, my_validation):
         # call base methods
         super(InvalidValidateViewTest, self).setUp()
 
@@ -210,13 +211,15 @@ class InvalidValidateViewTest(TestMixin, TestCase):
         self.url = reverse('validation:validate')
         self.response = self.client.post(self.url, {})
 
+        # track my patched function
+        self.my_validation = my_validation
+
     def test_status_code(self):
         """Invalid post data returns the form"""
 
-        print(self.response.content)
-
         self.assertEqual(self.response.status_code, 200)
 
-    # TODO: check no validation process started
+    def test_novalidation(self):
+        """check no validation process started"""
 
-    # TODO:
+        self.assertFalse(self.my_validation.called)
