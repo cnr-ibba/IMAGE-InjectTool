@@ -6,15 +6,22 @@ Created on Tue Oct  9 16:05:54 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import redis
+
 from unittest.mock import patch
 
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
+from django.conf import settings
 
 from image_app.models import Submission
 
 from ..forms import SubmitForm
 from ..views import SubmitView
+
+from .session_enabled_test_case import SessionEnabledTestCase
+from .test_token import generate_token
+
 
 # get available status
 READY = Submission.STATUSES.get_value('ready')
@@ -88,7 +95,26 @@ class SubmitViewTest(TestMixin, TestCase):
         self.assertContains(self.response, '<input', 2)
 
 
-class SuccessfulSubmitViewTest(TestMixin, TestCase):
+class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        cls.redis = redis.StrictRedis(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            db=settings.REDIS_DB)
+
+    @classmethod
+    def tearDownClass(cls):
+        key = "token:submission:1:test"
+
+        if cls.redis.exists(key):
+            cls.redis.delete(key)
+
+        super().tearDownClass()
+
     @patch('biosample.views.submit.delay')
     def setUp(self, my_submit):
         # call base methods
@@ -104,7 +130,16 @@ class SuccessfulSubmitViewTest(TestMixin, TestCase):
         # track submission ID
         self.submission_id = submission.id
 
-        # get the url for dashboard
+        # track owner
+        self.owner = submission.owner
+
+        # generate a valid token
+        session = self.get_session()
+        session['token'] = generate_token()
+        session.save()
+        self.set_session_cookies(session)
+
+        # get the url for dashboard (make request)
         self.url = reverse('biosample:submit')
         self.response = self.client.post(
             self.url, {
@@ -116,13 +151,13 @@ class SuccessfulSubmitViewTest(TestMixin, TestCase):
         self.my_submit = my_submit
 
     def test_redirect(self):
-        """test redirection after validation occurs"""
+        """test redirection after submission occurs"""
 
         url = reverse('submissions:detail', kwargs={'pk': self.submission_id})
         self.assertRedirects(self.response, url)
 
-    def test_validation_status(self):
-        """check validation started and submission.state"""
+    def test_submit_status(self):
+        """check submission to biosample started and submission.state"""
 
         # check validation started
         self.assertTrue(self.my_submit.called)
@@ -135,6 +170,19 @@ class SuccessfulSubmitViewTest(TestMixin, TestCase):
         self.assertEqual(
             submission.message,
             "Waiting for biosample submission")
+
+    def test_valid_token(self):
+        """check that a valid token is writtein in redis"""
+
+        key = "token:submission:{submission_id}:{username}".format(
+            submission_id=self.submission_id,
+            username=self.owner.username)
+
+        self.assertIsNotNone(self.redis.get(key))
+
+    # TODO: check no token redirects to token:generate
+
+    # TODO: check that an expired token redirects to token:generate
 
 
 class NoSubmitViewTest(TestMixin, TestCase):

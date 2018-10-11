@@ -1,5 +1,6 @@
 
 import os
+import redis
 import logging
 
 from decouple import AutoConfig
@@ -210,7 +211,7 @@ class TokenView(LoginRequiredMixin, TokenMixin, TemplateView):
             context["auth"] = auth
 
         except KeyError as e:
-            logger.error(repr(e))
+            logger.error("No valid token found for %s" % self.request.user)
 
             messages.error(
                 self.request,
@@ -421,10 +422,6 @@ class SubmitView(LoginRequiredMixin, FormView):
         submission_id = form.cleaned_data['submission_id']
         submission = Submission.objects.get(pk=submission_id)
 
-        # TODO: check token: if expired or near to expiring, call
-        # generate token with a redirect to this view
-        # HINT: can POST data be shared between views?
-
         # track submission id in order to render page
         self.submission_id = submission_id
 
@@ -435,6 +432,45 @@ class SubmitView(LoginRequiredMixin, FormView):
                 "Can't submit submission %s: current status is %s" % (
                     submission, submission.get_status_display()))
             return super(SubmitView, self).form_valid(form)
+
+        # TODO: check token: if expired or near to expiring, call
+        # generate token with a redirect to this view
+        # HINT: can POST data be shared between views?
+        try:
+            auth = Auth(token=self.request.session['token'])
+
+        except KeyError as e:
+            logger.warn("No valid tocken found. Redirect to tocken generation")
+
+            messages.error(
+                self.request,
+                "You haven't generated any token yet",
+                extra_tags="alert alert-dismissible alert-danger")
+
+            # TODO: redirect to generate:token
+            return self.form_invalid(form)
+
+        # check tocken expiration
+        if auth.is_expired() or auth.get_duration().seconds < 1800:
+            messages.error(
+                self.request,
+                "Your token is expired",
+                extra_tags="alert alert-dismissible alert-danger")
+
+            # TODO: redirect to generate:token
+            return self.form_invalid(form)
+
+        # here token is valid, so store it in redis database
+        client = redis.StrictRedis(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            db=settings.REDIS_DB)
+
+        key = "token:submission:{submission_id}:{user}".format(
+            submission_id=self.submission_id,
+            user=self.request.user)
+
+        client.set(key, auth.token, ex=auth.get_duration().seconds)
 
         # Update submission status
         submission.status = WAITING

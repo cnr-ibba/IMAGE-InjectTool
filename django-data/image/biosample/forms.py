@@ -99,3 +99,9 @@ class CreateUserForm(forms.Form):
 class SubmitForm(forms.Form):
     submission_id = forms.IntegerField(
         required=True)
+
+    # the request is now available, add it to the instance data
+    def __init__(self, *args, **kwargs):
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
+        super(SubmitForm, self).__init__(*args, **kwargs)

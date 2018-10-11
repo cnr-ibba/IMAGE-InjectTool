@@ -112,7 +112,7 @@ class TestTokenView(SessionEnabledTestCase):
         self.assertContains(self.response, 'image-test')
         self.assertContains(self.response, 'subs.test-team-1')
 
-    def test_any_token(self):
+    def test_no_token_generated(self):
         self.check_messages(
             self.response,
             "error",
