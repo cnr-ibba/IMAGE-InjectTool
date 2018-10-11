@@ -217,16 +217,8 @@ class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
 
         # assert a redirect
         next_url = reverse('biosample:token-generation') + "?next=%s" % (
-            self.url)
+            reverse('submissions:detail', kwargs={'pk': self.submission_id}))
         self.assertRedirects(self.response, next_url)
-
-        # reload session
-        session = self.get_session()
-
-        # assert that this submission id is recorded in session
-        key = "submitview:submission_id"
-        self.assertIn(key, session)
-        self.assertEqual(session[key], self.submission_id)
 
     def test_no_token(self):
         """check no token redirects to token:generate"""
@@ -261,39 +253,6 @@ class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
             self.response,
             "error",
             "Your token is expired or near to expire")
-
-    @patch('biosample.views.submit.delay')
-    def test_resuming_submission(self, my_submit):
-        """check resume the submission with get method and submission_id
-        stored in session"""
-
-        # get session and add key
-        session = self.get_session()
-        key = "submitview:submission_id"
-        session[key] = self.submission_id
-        session.save()
-        self.set_session_cookies(session)
-
-        # get submission object
-        submission = Submission.objects.get(pk=self.submission_id)
-
-        # set a status which I can submit
-        submission.status = READY
-        submission.save()
-
-        # make request
-        response = self.client.get(self.url)
-
-        # assert redirect to submission detail
-        url = reverse('submissions:detail', kwargs={'pk': self.submission_id})
-        self.assertRedirects(response, url)
-
-        # assert task.submit called
-        self.assertTrue(my_submit.called)
-
-        # assert session key is removed
-        session = self.get_session()
-        self.assertNotIn(key, session)
 
 
 class NoSubmitViewTest(TestMixin, TestCase):
