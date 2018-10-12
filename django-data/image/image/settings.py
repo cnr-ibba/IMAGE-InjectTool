@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 import os
 
 from decouple import config
+from celery.schedules import crontab
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -235,7 +236,7 @@ USE_L10N = True
 # retrieval.
 # As a consequence, if you’re using PostgreSQL, you can switch between
 # USE_TZ = False and USE_TZ = True freely
-USE_TZ = False
+USE_TZ = True
 
 # django can accept named URL patterns
 # https://stackoverflow.com/a/1519675
@@ -293,5 +294,14 @@ CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-# cleanup after 1 hour
-# CELERY_TASK_RESULT_EXPIRES = 3600
+# Other Celery settings
+CELERY_BEAT_SCHEDULE = {
+    'clearsessions': {
+        'task': 'image.celery.clearsessions',
+        'schedule': crontab(hour=12, minute=0),
+    },
+    'fetch_biosample_status': {
+        'task': 'biosample.tasks.fetch_status',
+        'schedule': crontab(hour="*", minute='10,20,30,40,50,00'),
+    }
+}

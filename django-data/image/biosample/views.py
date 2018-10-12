@@ -511,6 +511,6 @@ class SubmitView(LoginRequiredMixin, FormView):
         # a valid submission start a task
         res = submit.delay(submission.id)
         logger.info(
-            "Start validation process for %s with task %s" % (
+            "Start submission process for %s with task %s" % (
                 submission,
                 res.task_id))

@@ -24,7 +24,6 @@
   - test [OpenRefine client](https://github.com/OpenRefine/refine-client-py)
 
 * Regarding data submissions
-  - Submission table need to track the batch biosample upload
   - How I can update an already loaded biosample using a different submission from
     the first one?
   - If data loading fails, were I can fix my data? update submission view?
@@ -40,12 +39,8 @@
     the second occurrence will not be included in database.
   - tag problematic fields?
   - Data need to be isolated from a user POV
-
-* regarding performance issues:
-  - When google cache is active, two pages are loaded: all scripts will be executed
-    using celery tasks
-  - fix logging in celery modules (each log is printed two times, one for django
-    and one for task itself)
+  - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
+    and its father
 
 * NGINX media folder can serve media files (jpg, etc).
   - Deal with dump files (permissions?)
@@ -83,7 +78,6 @@
     values for other data than cryoweb. When they are unknown, they shouldn't be
     exported.
   - return a default ontology for breed if non mapping occours
-  - check for mandatory fields in IMAGE-metadata rules: tests for mandatory
   - model other field types
 
 * Dashboard page: database status and links of all applications developed
@@ -91,15 +85,25 @@
   - check for duplicate breeds - names
 
 * metadata rules
-  - taxon (= specie) is a mandatory fields for biosample, taxonId not but is better
-    to map it into the specie table
-  - check mandatory fields for biosample. Other fields are attributes
   - test against example `json` files, don't derive reference on the fly (it
     seems difficult update validation tests)
 
 * Biosample manager user should do:
   - Monitor biosample submission to see if sample are validated or not (by team/user)
-  - finalize submission after biosample validation occours
+  - finalize submission after biosample validation occours.
+  - deal with temporary problems in fetcthing status
+  ```
+  Traceback (most recent call last):
+    File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 382, in trace_task
+      R = retval = fun(*args, **kwargs)
+    File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 641, in __protected_call__
+      return self.run(*args, **kwargs)
+    File "/var/uwsgi/image/biosample/tasks.py", line 182, in fetch_status
+      errors = submission.has_errors()
+    File "/usr/local/lib/python3.6/site-packages/pyEBIrest/client.py", line 964, in has_errors
+      "You can check errors after validation is completed")
+  RuntimeError: You can check errors after validation is completed
+```
   - ask for user intervention / notify success
   - fetch biosample id when submission is finalized and completed
 
@@ -125,6 +129,7 @@
   - a user can't use an already register email for activation. Test it
   - test each management command, or at least that it works
   - simplify fixture, remove redundancy
+  - `biosample.tests.test_task` is too complex: divide tests into smaller one
 
 * Regarding languages, dictionaries and ontology terms:
   - Where managing tasks like zooma are called? before validation pages?
@@ -135,10 +140,10 @@
     requiring user intervention.
 
 * Regarding site visualization
-  - Token generation shuld be requested using modals when submitting to biosample
+  - Token generation could be requested using modals when submitting to biosample,
+    there's no difference from a web page, however, is only estetic
   - Add breadcrumb for pages
   - Add messages when views are called or code executed
-  - Data changes that are not POST request, will be modeled using celery
   - all GET requests need to be idenpotent
   - Error handling (API?/String messages?)
   - Navbar for tools (zooma, dictionary tables, etc)?
@@ -154,3 +159,9 @@
   - `contenttypes` framework to model errors?
 
 * create a `commons` library to store all common stuff
+
+* deal with timezone in containers
+
+* regarding `pyEBIrest` library:
+  - fetch submission by name: it is possible?
+  - rename library?
