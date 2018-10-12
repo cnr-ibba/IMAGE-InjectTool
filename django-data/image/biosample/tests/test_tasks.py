@@ -7,12 +7,12 @@ Created on Tue Oct  9 14:51:13 2018
 """
 
 import redis
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.conf import settings
 
-from image_app.models import Submission
+from image_app.models import Submission, Person
 
 from ..tasks import submit
 from .test_token import generate_token
@@ -31,6 +31,12 @@ class SubmitTestCase(TestCase):
         "submissions/submission",
         "biosample/account",
         "biosample/managedteam",
+        "image_app/dictsex",
+        "image_app/dictspecie",
+        "image_app/dictbreed",
+        "image_app/name",
+        "image_app/animal",
+        "image_app/sample"
     ]
 
     submission_key = "token:submission:1:test"
@@ -51,6 +57,13 @@ class SubmitTestCase(TestCase):
         # write token to database
         cls.redis.set(cls.submission_key, token, ex=3600)
 
+        # now fix person table
+        person = Person.objects.get(user__username="test")
+        person.affiliation_id = 1
+        person.role_id = 1
+        person.initials = "T"
+        person.save()
+
     @classmethod
     def tearDownClass(cls):
         if cls.redis.exists(cls.submission_key):
@@ -69,10 +82,8 @@ class SubmitTestCase(TestCase):
         # track submission ID
         self.submission_id = submission.id
 
-    # TODO: remove unuseful stuff and test a real case
     @patch("biosample.tasks.Root")
-    @patch("biosample.tasks.sleep")
-    def test_submit(self, my_sleep, my_root):
+    def test_submit(self, my_root):
         # mocking chain
         my_team = my_root.return_value.get_team_by_name.return_value
         my_team.name = "subs.test-team-1"
@@ -101,3 +112,4 @@ class SubmitTestCase(TestCase):
         self.assertTrue(my_root.called)
         self.assertTrue(my_root.return_value.get_team_by_name.called)
         self.assertTrue(my_team.create_submission.called)
+        self.assertEqual(my_submission.create_sample.call_count, 2)

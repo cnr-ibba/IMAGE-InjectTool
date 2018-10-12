@@ -9,8 +9,6 @@ Created on Tue Oct  2 16:07:58 2018
 import os
 import redis
 
-from time import sleep
-
 from decouple import AutoConfig
 from celery import task
 from celery.utils.log import get_task_logger
@@ -20,7 +18,7 @@ from pyEBIrest.client import Root
 
 from django.conf import settings
 
-from image_app.models import Submission
+from image_app.models import Submission, Animal
 
 from .models import ManagedTeam
 
@@ -80,18 +78,31 @@ def submit(self, submission_id):
     logger.info("Creating a new submission for %s" % (team.name))
     biosample_submission = team.create_submission()
 
-    # TODO: do stuff
-    sleep(30)
-
     # track submission_id in table
     submission.biosample_submission_id = biosample_submission.name
+    submission.save()
+
+    logger.info("Fetching data and add to submission %s" % (
+        biosample_submission.name))
+
+    for animal in Animal.objects.filter(name__submission=submission):
+        logger.info("Appending animal %s" % (
+            animal))
+        biosample_submission.create_sample(animal.to_biosample())
+
+        # Add their specimen
+        for sample in animal.sample_set.all():
+            logger.info("Appending sample %s" % (sample))
+            biosample_submission.create_sample(sample.to_biosample())
+
+    logger.info("submission completed")
 
     # Update submission status: a completed but not yet finalized submission
     submission.status = SUBMITTED
     submission.message = "Waiting for biosample validation"
     submission.save()
 
-    logger.info("submission completed")
+    logger.info("database updated and task finished")
 
     return "success"
 
