@@ -7,6 +7,8 @@ Created on Tue Oct  2 16:07:58 2018
 """
 
 import os
+import redis
+
 from time import sleep
 
 from decouple import AutoConfig
@@ -45,13 +47,44 @@ def submit(self, submission_id):
     logger.info("Starting submission for user %s" % (
         submission.owner.biosample_account))
 
-    # TODO: read biosample token from redis database
+    # get info from submission object
+    team_name = submission.owner.biosample_account.team.name
+
+    # read biosample token from redis database
+    client = redis.StrictRedis(
+        host=settings.REDIS_HOST,
+        port=settings.REDIS_PORT,
+        db=settings.REDIS_DB)
+
+    key = "token:submission:{submission_id}:{user}".format(
+        submission_id=submission_id,
+        user=submission.owner)
+
+    # create a new auth object
+    logger.debug("Reading token for '%s'" % submission.owner)
+
+    # getting token from redis db
+    token = client.get(key).decode("utf8")
+
+    # reading token in auth
+    auth = Auth(token=token)
+
+    logger.debug("getting biosample root")
+    root = Root(auth=auth)
+
+    # getting team
+    logger.debug("getting team '%s'" % (team_name))
+    team = root.get_team_by_name(team_name)
+
+    # create a submission
+    logger.info("Creating a new submission for %s" % (team.name))
+    biosample_submission = team.create_submission()
 
     # TODO: do stuff
     sleep(30)
 
-    # TODO: track submission_id in table
-    submission.biosample_submission_id = None
+    # track submission_id in table
+    submission.biosample_submission_id = biosample_submission.name
 
     # Update submission status: a completed but not yet finalized submission
     submission.status = SUBMITTED
