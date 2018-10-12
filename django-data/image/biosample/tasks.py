@@ -85,6 +85,9 @@ def submit(self, submission_id):
     logger.info("Fetching data and add to submission %s" % (
         biosample_submission.name))
 
+    # HINT: what happen if a token expire while submitting?
+    # TODO: deal with submission recovery
+
     for animal in Animal.objects.filter(name__submission=submission):
         logger.info("Appending animal %s" % (
             animal))
@@ -147,7 +150,7 @@ def fetch_status(self):
 
             except Submission.DoesNotExist:
                 logger.warning(
-                    "submission %s is not present in database" % (
+                    "submission '%s' is not present in database" % (
                         submission.name))
                 continue
 
@@ -155,7 +158,7 @@ def fetch_status(self):
                 # check submission status. If waiting I'm currentlty submitting
                 if obj.status == WAITING:
                     logger.warning(
-                        "submission %s is corrently under submission" % (
+                        "submission '%s' is corrently under submission" % (
                             submission.name))
                     continue
 
@@ -179,7 +182,8 @@ def fetch_status(self):
                     errors = submission.has_errors()
 
                     if True in errors:
-                        logger.error("Errors for submission: %s" % (errors))
+                        logger.error("Errors for submission: %s" % (
+                                submission))
                         logger.error("Fix them, then finalize")
 
                         # Update status
