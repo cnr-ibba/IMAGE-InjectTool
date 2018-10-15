@@ -6,13 +6,12 @@ Created on Tue Jul 17 10:59:01 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import datetime
-
 import python_jwt
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
+from django.utils import timezone
 
 from ..models import Account, ManagedTeam
 from ..views import TokenView
@@ -23,7 +22,7 @@ def generate_token(now=None, domains=['subs.test-team-1']):
     """A function to generate a 'fake' token"""
 
     if not now:
-        now = int(datetime.datetime.now().timestamp())
+        now = int(timezone.now().timestamp())
 
     claims = {
         'iss': 'https://explore.aai.ebi.ac.uk/sp',
@@ -129,7 +128,7 @@ class TestTokenView(SessionEnabledTestCase):
 
     def test_expired_token(self):
         session = self.get_session()
-        now = int(datetime.datetime.now().timestamp())
+        now = int(timezone.now().timestamp())
         session['token'] = generate_token(now-10000)
         session.save()
         self.set_session_cookies(session)

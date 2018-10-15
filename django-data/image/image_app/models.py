@@ -1,5 +1,4 @@
 
-import datetime
 import logging
 import os
 from enum import Enum
@@ -9,6 +8,7 @@ from django.db import connections, models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
+from django.utils import timezone
 
 from .constants import OBO_URL
 from .helpers import format_attribute
@@ -551,7 +551,7 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
         if release_date:
             result['releaseDate'] = None
         else:
-            now = datetime.datetime.now()
+            now = timezone.now()
             result['releaseDate'] = str(now.date())
 
         result['taxonId'] = self.breed.specie.taxon_id
@@ -758,7 +758,7 @@ class Sample(BioSampleMixin, BaseMixin, models.Model):
         if release_date:
             result['releaseDate'] = None
         else:
-            now = datetime.datetime.now()
+            now = timezone.now()
             result['releaseDate'] = str(now.date())
 
         result['taxonId'] = self.animal.breed.specie.taxon_id

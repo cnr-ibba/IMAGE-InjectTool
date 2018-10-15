@@ -7,7 +7,6 @@ Created on Tue Oct  9 16:05:54 2018
 """
 
 import redis
-import datetime
 
 from unittest.mock import patch
 
@@ -15,6 +14,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 from django.conf import settings
 from django.contrib.messages import get_messages
+from django.utils import timezone
 
 from image_app.models import Submission
 
@@ -241,7 +241,7 @@ class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
         """check that an expired token redirects to token:generate"""
 
         session = self.get_session()
-        now = int(datetime.datetime.now().timestamp())
+        now = int(timezone.now().timestamp())
         session['token'] = generate_token(now-10000)
         session.save()
         self.set_session_cookies(session)

@@ -8,9 +8,9 @@ Created on Tue Apr  3 12:16:55 2018
 
 import os
 import json
-import datetime
 
 from django.test import TestCase
+from django.utils import timezone
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
@@ -450,7 +450,7 @@ class AnimalTestCase(TestCase):
         reference = json.load(handle)
 
         # fix release date to today
-        now = datetime.datetime.now()
+        now = timezone.now()
         reference['releaseDate'] = str(now.date())
 
         test = self.animal.to_biosample()
@@ -623,7 +623,7 @@ class SampleTestCase(TestCase):
         reference = json.load(handle)
 
         # fix release date to today
-        now = datetime.datetime.now()
+        now = timezone.now()
         reference['releaseDate'] = str(now.date())
 
         test = self.sample.to_biosample()

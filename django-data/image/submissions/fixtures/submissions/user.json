@@ -7,12 +7,12 @@
     "last_login": null,
     "is_superuser": false,
     "username": "test",
-    "first_name": "",
-    "last_name": "",
+    "first_name": "Foo",
+    "last_name": "Bar",
     "email": "test@test.com",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2018-07-30T15:06:13.911",
+    "date_joined": "2018-07-30T15:06:13.911Z",
     "groups": [],
     "user_permissions": []
   }

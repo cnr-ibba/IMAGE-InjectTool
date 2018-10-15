@@ -12,7 +12,7 @@
     "email": "test@test.com",
     "is_staff": false,
     "is_active": true,
-    "date_joined": "2018-07-30T15:06:13.911",
+    "date_joined": "2018-07-30T15:06:13.911Z",
     "groups": [],
     "user_permissions": []
   }
