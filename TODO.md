@@ -29,11 +29,78 @@ InjectTool TODO
   - How I can update an already loaded biosample using a different submission from
     the first one?
   - If data loading fails, were I can fix my data? update submission view?
+  - What I have to do for fails in 3rd party API (ie: temporary issues on biosample
+    site)?
   - what the `edit data` in the submission detail view means? editing data into UID?
     Update submission view? if `uploaded_file` fields changes, what I have
     to do?
   - what happens if I update something after submission to biosample? need I track
     what changes I see and patch in a new submission?
+  - what if a token expires during a submission?
+  - a partial submission need to be resumed  
+  - deal with `ConnectionError(MaxRetryError('None: Max retries exceeded with url: /api/submissions/fcc2fec8-dd03-4cdf-b487-a4a2de737334/contents/samples (Caused by None)',),)`
+
+```
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.6/site-packages/urllib3/connection.py", line 171, in _new_conn
+    (self._dns_host, self.port), self.timeout, **extra_kw)
+  File "/usr/local/lib/python3.6/site-packages/urllib3/util/connection.py", line 56, in create_connection
+    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):
+  File "/usr/local/lib/python3.6/socket.py", line 745, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.6/site-packages/urllib3/connectionpool.py", line 600, in urlopen
+    chunked=chunked)
+  File "/usr/local/lib/python3.6/site-packages/urllib3/connectionpool.py", line 343, in _make_request
+    self._validate_conn(conn)
+  File "/usr/local/lib/python3.6/site-packages/urllib3/connectionpool.py", line 849, in _validate_conn
+    conn.connect()
+  File "/usr/local/lib/python3.6/site-packages/urllib3/connection.py", line 314, in connect
+    conn = self._new_conn()
+  File "/usr/local/lib/python3.6/site-packages/urllib3/connection.py", line 180, in _new_conn
+    self, "Failed to establish a new connection: %s" % e)
+urllib3.exceptions.NewConnectionError: <urllib3.connection.VerifiedHTTPSConnection object at 0x7f637fb0acc0>: Failed to establish a new connection: [Errno -2] Name or service not known
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.6/site-packages/requests/adapters.py", line 445, in send
+    timeout=timeout
+  File "/usr/local/lib/python3.6/site-packages/urllib3/connectionpool.py", line 638, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/usr/local/lib/python3.6/site-packages/urllib3/util/retry.py", line 398, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPSConnectionPool(host='submission-test.ebi.ac.uk', port=443): Max retries exceeded with url: /api/submissions/fcc2fec8-dd03-4cdf-b487-a4a2de737334/contents/samples (Caused by NewConnectionError('<urllib3.connection.VerifiedHTTPSConnection object at 0x7f637fb0acc0>: Failed to establish a new connection: [Errno -2] Name or service not known',))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 382, in trace_task
+    R = retval = fun(*args, **kwargs)
+  File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 641, in __protected_call__
+    return self.run(*args, **kwargs)
+  File "/var/uwsgi/image/biosample/tasks.py", line 94, in submit
+    biosample_submission.create_sample(animal.to_biosample())
+  File "/usr/local/lib/python3.6/site-packages/pyEBIrest/client.py", line 871, in create_sample
+    response = self.post(link, payload=sample_data, headers=headers)
+  File "/usr/local/lib/python3.6/site-packages/pyEBIrest/client.py", line 89, in post
+    return requests.post(url, json=payload, headers=headers)
+  File "/usr/local/lib/python3.6/site-packages/requests/api.py", line 112, in post
+    return request('post', url, data=data, json=json, **kwargs)
+  File "/usr/local/lib/python3.6/site-packages/requests/api.py", line 58, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/usr/local/lib/python3.6/site-packages/requests/sessions.py", line 512, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.6/site-packages/requests/sessions.py", line 622, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.6/site-packages/requests/adapters.py", line 513, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPSConnectionPool(host='submission-test.ebi.ac.uk', port=443): Max retries exceeded with url: /api/submissions/fcc2fec8-dd03-4cdf-b487-a4a2de737334/contents/samples (Caused by NewConnectionError('<urllib3.connection.VerifiedHTTPSConnection object at 0x7f637fb0acc0>: Failed to establish a new connection: [Errno -2] Name or service not known',))
+```
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -93,19 +160,6 @@ InjectTool TODO
 * Biosample manager user should do:
   - Monitor biosample submission to see if sample are validated or not (by team/user)
   - finalize submission after biosample validation occours.
-  - deal with temporary problems in fetching status
-```
-  Traceback (most recent call last):
-    File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 382, in trace_task
-      R = retval = fun(*args, **kwargs)
-    File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 641, in __protected_call__
-      return self.run(*args, **kwargs)
-    File "/var/uwsgi/image/biosample/tasks.py", line 182, in fetch_status
-      errors = submission.has_errors()
-    File "/usr/local/lib/python3.6/site-packages/pyEBIrest/client.py", line 964, in has_errors
-      "You can check errors after validation is completed")
-  RuntimeError: You can check errors after validation is completed
-```
   - ask for user intervention / notify success
   - fetch biosample id when submission is finalized and completed
   - after submission is completed, don't ask for the same submission
@@ -132,7 +186,6 @@ InjectTool TODO
   - a user can't use an already register email for activation. Test it
   - test each management command, or at least that it works
   - simplify fixture, remove redundancy
-  - `biosample.tests.test_task` is too complex: divide tests into smaller one
 
 * Regarding languages, dictionaries and ontology terms:
   - Where managing tasks like zooma are called? before validation pages?

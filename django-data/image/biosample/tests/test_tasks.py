@@ -18,6 +18,7 @@ from image_app.models import Submission, Person
 
 from ..tasks import submit, fetch_status, get_auth
 from .test_token import generate_token
+from ..models import ManagedTeam
 
 # get available status
 SUBMITTED = Submission.STATUSES.get_value('submitted')
@@ -104,7 +105,7 @@ class SubmitTestCase(TestCase):
         self.assertEqual(res, "success")
 
         # check submission status and message
-        submission = Submission.objects.get(pk=1)
+        submission = Submission.objects.get(pk=self.submission_id)
 
         # check submission.state changed
         self.assertEqual(submission.status, SUBMITTED)
@@ -129,7 +130,9 @@ class GetAuthTestCase(TestCase):
         self.assertTrue(my_auth.called)
 
 
-class FetchStatusTestCase(TestCase):
+class ManagedTeamMixin():
+    """Mixin for teams belonging to user"""
+
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
@@ -140,92 +143,30 @@ class FetchStatusTestCase(TestCase):
         "biosample/managedteam",
     ]
 
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        unmanaged = ManagedTeam.objects.get(pk=2)
+        unmanaged.delete()
+
     def setUp(self):
+        # calling my base setup
+        super().setUp()
+
         # get a submission object
         submission = Submission.objects.get(pk=1)
 
         # set a status which I can fetch_status
         submission.status = SUBMITTED
-        submission.biosample_submission_id = "test-submission1"
-        submission.datasource_version = submission.biosample_submission_id
-        submission.save()
-
-        # duplicating objects: https://stackoverflow.com/a/4736172/4385116
-        submission = Submission.objects.get(pk=1)
-        submission.pk = 3
-        submission.biosample_submission_id = "test-submission3"
-        submission.datasource_version = submission.biosample_submission_id
-        submission.save()
-
-        submission = Submission.objects.get(pk=1)
-        submission.pk = 4
-        submission.biosample_submission_id = "test-submission4"
-        submission.datasource_version = submission.biosample_submission_id
-        submission.save()
-
-        submission = Submission.objects.get(pk=1)
-        submission.status = WAITING
-        submission.pk = 5
-        submission.biosample_submission_id = "test-submission5"
-        submission.datasource_version = submission.biosample_submission_id
+        submission.biosample_submission_id = "test-fetch"
         submission.save()
 
         # track submission ID
         self.submission_id = submission.id
 
-    @patch("biosample.tasks.Root")
-    @patch("biosample.tasks.get_auth")
-    def test_fetch_status(self, my_auth, my_root):
-        # mocking chain. The team for test user
-        my_team1 = Mock()
-        my_team1.name = "subs.test-team-1"
-
-        # a completed submission with two samples
-        my_submission1 = Mock()
-        my_submission1.name = "test-submission1"
-        my_submission1.submissionStatus = 'Completed'
-        my_sample1 = Mock()
-        my_sample1.name = "test-animal"
-        my_sample2 = Mock()
-        my_sample2.name = "test-sample"
-        my_submission1.get_samples.return_value = [my_sample1, my_sample2]
-
-        # mocking submissions. A submission not in db
-        my_submission2 = Mock()
-        my_submission2.name = "not-present-in-db"
-
-        # a draft submission with errors
-        my_submission3 = Mock()
-        my_submission3.name = "test-submission3"
-        my_submission3.submissionStatus = 'Draft'
-        my_submission3.has_errors.return_value = Counter({True: 1})
-
-        # a draft submission without errors
-        my_submission4 = Mock()
-        my_submission4.name = "test-submission4"
-        my_submission4.submissionStatus = 'Draft'
-        my_submission4.has_errors.return_value = Counter({False: 1})
-
-        # a still running submission
-        my_submission5 = Mock()
-        my_submission5.name = "test-submission5"
-        my_submission5.submissionStatus = 'Draft'
-
-        # add submissions to team
-        my_team1.get_submissions.return_value = [
-            my_submission1, my_submission2, my_submission3, my_submission4,
-            my_submission5]
-
-        # a managed team not own by the test user
-        my_team2 = Mock()
-        my_team2.name = "subs.test-team-2"
-        my_team2.get_submissions.return_value = []
-
-        # passing a list to side effect, I iter throgh mock objects in
-        # each mock calls
-        my_root.return_value.get_team_by_name.side_effect = [
-            my_team1, my_team2]
-
+    def common_tests(self, my_auth, my_root, my_team):
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
         res = fetch_status()
@@ -233,18 +174,257 @@ class FetchStatusTestCase(TestCase):
         # assert a success with data uploading
         self.assertEqual(res, "success")
 
-        # assert status for submissions
-        submission = Submission.objects.get(pk=1)
-        self.assertEqual(submission.status, COMPLETED)
-
-        submission = Submission.objects.get(pk=3)
-        self.assertEqual(submission.status, NEED_REVISION)
-
-        submission = Submission.objects.get(pk=5)
-        self.assertEqual(submission.status, WAITING)
-
-        # assert called mock objects
         self.assertTrue(my_auth.called)
         self.assertTrue(my_root.called)
         self.assertTrue(my_root.return_value.get_team_by_name.called)
-        self.assertTrue(my_team1.get_submissions.called)
+        self.assertTrue(my_team.get_submissions.called)
+
+
+class FetchCompletedTestCase(ManagedTeamMixin, TestCase):
+    """a completed submission with two samples"""
+
+    @patch("biosample.tasks.Root")
+    @patch("biosample.tasks.get_auth")
+    def test_fetch_status(self, my_auth, my_root):
+        # mocking chain. The team for test user
+        my_team = Mock()
+        my_team.name = "subs.test-team-1"
+
+        # a completed submission with two samples
+        my_submission = Mock()
+        my_submission.name = "test-fetch"
+        my_submission.submissionStatus = 'Completed'
+        my_sample1 = Mock()
+        my_sample1.name = "test-animal"
+        my_sample2 = Mock()
+        my_sample2.name = "test-sample"
+        my_submission.get_samples.return_value = [my_sample1, my_sample2]
+
+        # add submissions to team
+        my_team.get_submissions.return_value = [my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        my_root.return_value.get_team_by_name.side_effect = [my_team]
+
+        # assert task and mock methods called
+        self.common_tests(my_auth, my_root, my_team)
+
+        # assert status for submissions
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, COMPLETED)
+
+
+class FetchNotInDBTestCase(ManagedTeamMixin, TestCase):
+    """A submission not in db"""
+
+    @patch("biosample.tasks.Root")
+    @patch("biosample.tasks.get_auth")
+    def test_fetch_status(self, my_auth, my_root):
+        # mocking chain. The team for test user
+        my_team = Mock()
+        my_team.name = "subs.test-team-1"
+
+        # mocking submissions. A submission not in db
+        my_submission = Mock()
+        my_submission.name = "not-present-in-db"
+
+        # add submissions to team
+        my_team.get_submissions.return_value = [my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        my_root.return_value.get_team_by_name.side_effect = [my_team]
+
+        # assert task and mock methods called
+        self.common_tests(my_auth, my_root, my_team)
+
+
+class FetchWithErrorsTestCase(ManagedTeamMixin, TestCase):
+    """Test a submission with errors for biosample"""
+
+    @patch("biosample.tasks.Root")
+    @patch("biosample.tasks.get_auth")
+    def test_fetch_status(self, my_auth, my_root):
+        # mocking chain. The team for test user
+        my_team = Mock()
+        my_team.name = "subs.test-team-1"
+
+        # a draft submission with errors
+        my_submission = Mock()
+        my_submission.name = "test-fetch"
+        my_submission.submissionStatus = 'Draft'
+        my_submission.has_errors.return_value = Counter({True: 1})
+        my_submission.get_status.return_value = Counter({'Complete': 1})
+
+        # add submissions to team
+        my_team.get_submissions.return_value = [my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        my_root.return_value.get_team_by_name.side_effect = [my_team]
+
+        # assert task and mock methods called
+        self.common_tests(my_auth, my_root, my_team)
+
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, NEED_REVISION)
+
+
+class FetchDraftTestCase(ManagedTeamMixin, TestCase):
+    """a draft submission without errors"""
+
+    @patch("biosample.tasks.Root")
+    @patch("biosample.tasks.get_auth")
+    def test_fetch_status(self, my_auth, my_root):
+        # mocking chain. The team for test user
+        my_team = Mock()
+        my_team.name = "subs.test-team-1"
+
+        # a draft submission without errors
+        my_submission = Mock()
+        my_submission.name = "test-fetch"
+        my_submission.submissionStatus = 'Draft'
+        my_submission.has_errors.return_value = Counter({False: 1})
+        my_submission.get_status.return_value = Counter({'Complete': 1})
+
+        # add submissions to team
+        my_team.get_submissions.return_value = [my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        my_root.return_value.get_team_by_name.side_effect = [my_team]
+
+        # assert task and mock methods called
+        self.common_tests(my_auth, my_root, my_team)
+
+        # assert status for submissions
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, SUBMITTED)
+
+        # testing a finalized biosample condition
+        self.assertTrue(my_submission.finalize.called)
+
+    @patch("biosample.tasks.Root")
+    @patch("biosample.tasks.get_auth")
+    def test_fetch_status_pending(self, my_auth, my_root):
+        """Testing status with pending validation"""
+
+        # mocking chain. The team for test user
+        my_team = Mock()
+        my_team.name = "subs.test-team-1"
+
+        # a draft submission without errors
+        my_submission = Mock()
+        my_submission.name = "test-fetch"
+        my_submission.submissionStatus = 'Draft'
+        my_submission.has_errors.return_value = Counter({False: 1})
+        my_submission.get_status.return_value = Counter({'Pending': 1})
+
+        # add submissions to team
+        my_team.get_submissions.return_value = [my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        my_root.return_value.get_team_by_name.side_effect = [my_team]
+
+        # assert task and mock methods called
+        self.common_tests(my_auth, my_root, my_team)
+
+        # assert status for submissions
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, SUBMITTED)
+
+        # testing a not finalized biosample condition
+        self.assertFalse(my_submission.finalize.called)
+
+
+class FetchWaitingTestCase(ManagedTeamMixin, TestCase):
+    """a still running submission"""
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # get a submission object
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # change status
+        submission.status = WAITING
+        submission.save()
+
+    @patch("biosample.tasks.Root")
+    @patch("biosample.tasks.get_auth")
+    def test_fetch_status(self, my_auth, my_root):
+        # mocking chain. The team for test user
+        my_team = Mock()
+        my_team.name = "subs.test-team-1"
+
+        # a still running submission
+        my_submission = Mock()
+        my_submission.name = "test-fetch"
+        my_submission.submissionStatus = 'Draft'
+
+        # add submissions to team
+        my_team.get_submissions.return_value = [my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        my_root.return_value.get_team_by_name.side_effect = [my_team]
+
+        # assert task and mock methods called
+        self.common_tests(my_auth, my_root, my_team)
+
+        # assert status for submissions
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, WAITING)
+
+
+class UnManagedTeamMixin():
+    """Mixin for teams not belonging to user"""
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        managed = ManagedTeam.objects.get(pk=1)
+        managed.delete()
+
+    def common_tests(self, my_auth, my_root, my_team):
+        # NOTE that I'm calling the function directly, without delay
+        # (AsyncResult). I've patched the time consuming task
+        res = fetch_status()
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        self.assertTrue(my_auth.called)
+        self.assertTrue(my_root.called)
+        self.assertTrue(my_root.return_value.get_team_by_name.called)
+        self.assertTrue(my_team.get_submissions.called)
+
+
+class FetchUnManagedTestCase(ManagedTeamMixin, TestCase):
+    """Fetching an unmanaged team"""
+
+    @patch("biosample.tasks.Root")
+    @patch("biosample.tasks.get_auth")
+    def test_fetch_status(self, my_auth, my_root):
+        my_team = Mock()
+        my_team.name = "subs.test-team-2"
+
+        # a still running submission
+        my_submission = Mock()
+        my_submission.name = "not-managed"
+        my_submission.submissionStatus = 'Draft'
+
+        # add submissions to team
+        my_team.get_submissions.return_value = [my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        my_root.return_value.get_team_by_name.side_effect = [my_team]
+
+        # assert task and mock methods called
+        self.common_tests(my_auth, my_root, my_team)

@@ -120,6 +120,26 @@ def get_auth(user=None, password=None):
     return Auth(user, password)
 
 
+# a function to finalize a submission
+def finalize(submission, obj):
+    errors = submission.has_errors()
+
+    if True in errors:
+        logger.error("Errors for submission: %s" % (
+                submission))
+        logger.error("Fix them, then finalize")
+
+        # Update status
+        obj.status = NEED_REVISION
+        obj.message = "Error in biosample submission"
+        obj.save()
+
+    else:
+        logger.info("Finalizing submission %s" % (
+            submission.name))
+        submission.finalize()
+
+
 # define a function to get biosample statuses for submissions
 @task(bind=True)
 def fetch_status(self):
@@ -158,7 +178,7 @@ def fetch_status(self):
                 # check submission status. If waiting I'm currentlty submitting
                 if obj.status == WAITING:
                     logger.warning(
-                        "submission '%s' is corrently under submission" % (
+                        "submission '%s' is currently under submission" % (
                             submission.name))
                     continue
 
@@ -177,24 +197,17 @@ def fetch_status(self):
                         # TODO: fetch biosample ID and save them in name table
 
                 elif submission.submissionStatus == 'Draft':
-                    # TODO: check validation. If it is ok, finalize submission
-                    # HINT: can I finalize as a manager user?
-                    errors = submission.has_errors()
+                    # check validation. If it is ok, finalize submission
+                    status = submission.get_status()
 
-                    if True in errors:
-                        logger.error("Errors for submission: %s" % (
-                                submission))
-                        logger.error("Fix them, then finalize")
-
-                        # Update status
-                        obj.status = NEED_REVISION
-                        obj.message = "Error in biosample submission"
-                        obj.save()
+                    if len(status) == 1 and 'Complete' in status:
+                        finalize(submission, obj)
 
                     else:
-                        logger.info("Finalizing submission %s" % (
-                            submission.name))
-                        submission.finalize()
+                        logger.warning(
+                            "Biosample validation is not completed yet (%s)" %
+                            (status))
+                        continue
 
                 else:
                     logger.warning("Unknown status %s for submission %s" % (
