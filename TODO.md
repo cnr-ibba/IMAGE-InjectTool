@@ -11,7 +11,6 @@ InjectTool TODO
   - Need to test if we can migrate to newer django release?
   - waiting for the next LTS version. No stable branch with a non-LTS version
   - celery-flower need to be removed if it is not necessary
-  - Upgrade `docker-compose.yml` to latest version format
 
 * Data export: How data needs to be exported? how IMAGE-metadata works?
   - IMAGE-metadata define fields in .xls used for import. There is a correspondance
@@ -94,7 +93,7 @@ InjectTool TODO
 * Biosample manager user should do:
   - Monitor biosample submission to see if sample are validated or not (by team/user)
   - finalize submission after biosample validation occours.
-  - deal with temporary problems in fetcthing status
+  - deal with temporary problems in fetching status
 ```
   Traceback (most recent call last):
     File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 382, in trace_task
@@ -109,6 +108,7 @@ InjectTool TODO
 ```
   - ask for user intervention / notify success
   - fetch biosample id when submission is finalized and completed
+  - after submission is completed, don't ask for the same submission
 
 * proposed change for `Name` table (that can become a summary table a user will see)
   - all columns: name, biosampleid, status, last_change, last_submitted.
@@ -141,6 +141,7 @@ InjectTool TODO
   - what happens when uploading a submission with no synonim loaded? The loading
     process fails, I need to free staging databases but fill the dictionary tables
     requiring user intervention.
+  - "Semen" has not an ontology term
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,
@@ -162,8 +163,6 @@ InjectTool TODO
   - `contenttypes` framework to model errors?
 
 * create a `commons` library to store all common stuff
-
-* deal with timezone in containers
 
 * regarding `pyEBIrest` library:
   - fetch submission by name: it is possible?

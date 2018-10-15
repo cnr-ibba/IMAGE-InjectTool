@@ -1,137 +1,158 @@
 
-# Create a composed Django-Postgres-NGINX instance
-db:
-  # a custom image for django
-  build: ./postgres
+version: "3.2"
+services:
+  # Create a composed Django-Postgres-NGINX instance
+  db:
+    # a custom image for django
+    build: ./postgres
 
-  # Set db environment
-  environment:
-    # these passwords will be taken from .env file (not tracked in GIT)
-    POSTGRES_PASSWORD: $PGPASSWORD
-    PGPASSWORD: $PGPASSWORD
-    IMAGE_USER: $IMAGE_USER
-    IMAGE_PASSWORD: $IMAGE_PASSWORD
-    CRYOWEB_INSERT_ONLY_PW: $CRYOWEB_INSERT_ONLY_PW
+    # Set db environment
+    environment:
+      # these passwords will be taken from .env file (not tracked in GIT)
+      POSTGRES_PASSWORD: $PGPASSWORD
+      PGPASSWORD: $PGPASSWORD
+      IMAGE_USER: $IMAGE_USER
+      IMAGE_PASSWORD: $IMAGE_PASSWORD
+      CRYOWEB_INSERT_ONLY_PW: $CRYOWEB_INSERT_ONLY_PW
 
-  # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
-  volumes:
-    - "./postgres-data:/var/lib/postgresql/data"
-    # all scripts and sql file inside this directory will be executed after database initialization
-    - "./postgres/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/"
+    # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
+    volumes:
+      - type: bind
+        source: ./postgres-data/
+        target: /var/lib/postgresql/data
 
-  ports:
-    - "25432:5432"
+      # all scripts and sql file inside this directory will be executed after database initialization
+      - type: bind
+        source: ./postgres/docker-entrypoint-initdb.d/
+        target: /docker-entrypoint-initdb.d/
 
-
-redis:
-  # a custom redis image
-  build: ./redis
-
-
-uwsgi:
-  # a custom image for django
-  build: ./uwsgi
-
-  # exec a different command from image
-  command: uwsgi --ini /var/uwsgi/image_uwsgi.ini --memory-report
-
-  # set working dir for uwsgi
-  working_dir: /var/uwsgi/image/
-
-  # define volumes
-  volumes:
-    - "./django-data/:/var/uwsgi/"
-    - "./.git/:/var/uwsgi/.git/:ro"
-
-  # Expose the default port
-
-  # link container to database
-  links:
-    - db
-    - redis
+    ports:
+      - "25432:5432"
 
 
-celery-worker:
-  # the same django image of uwsgi
-  build: ./uwsgi
-
-  # exec a different command uwsgi
-  command: celery -A image worker -l info -E --concurrency 1 --uid www-data --pidfile /var/run/celery/celery.pid
-
-  # set working dir for uwsgi
-  working_dir: /var/uwsgi/image/
-
-  # define volumes
-  volumes:
-    - "./django-data/:/var/uwsgi/"
-
-  # Expose the default port
-
-  # link container to database
-  links:
-    - db
-    - redis
+  redis:
+    # a custom redis image
+    build: ./redis
 
 
-celery-beat:
-  # the same django image of uwsgi
-  build: ./uwsgi
+  uwsgi:
+    # a custom image for django
+    build: ./uwsgi
 
-  command: celery -A image beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --pidfile /var/run/celery/celerybeat.pid
+    # exec a different command from image
+    command: uwsgi --ini /var/uwsgi/image_uwsgi.ini --memory-report
 
-  # set working dir for uwsgi
-  working_dir: /var/uwsgi/image/
+    # set working dir for uwsgi
+    working_dir: /var/uwsgi/image/
 
-  # define volumes
-  volumes:
-    - "./django-data/:/var/uwsgi/"
+    # define volumes
+    volumes:
+      - type: bind
+        source: ./django-data/
+        target: /var/uwsgi/
 
-  # Expose the default port
+      - type: bind
+        source: ./.git/
+        target: /var/uwsgi/.git/
+        read_only: true
 
-  # link container to database
-  links:
-    - db
-    - redis
+    # Expose the default port
 
-
-celery-flower:
-  # the same django image of uwsgi
-  build: ./uwsgi
-
-  command: celery -A image flower --port=5555 --loglevel=info # --persistent=True
-
-  # set working dir for uwsgi
-  working_dir: /var/uwsgi/image/
-
-  # define volumes
-  volumes:
-    - "./django-data/:/var/uwsgi/"
-
-  # Expose flower port
-  # TODO: serve this using nginx under authentication
-  ports:
-    - "5555:5555"
-
-  # link container to database
-  links:
-    - db
-    - redis
+    # link container to database
+    links:
+      - db
+      - redis
 
 
-nginx:
-  # a custom image for NGINX
-  build: ./nginx
+  celery-worker:
+    # the same django image of uwsgi
+    build: ./uwsgi
 
-  volumes:
-    - "./nginx/conf.d/:/etc/nginx/conf.d/"
+    # exec a different command uwsgi
+    command: celery -A image worker -l info -E --concurrency 1 --uid www-data --pidfile /var/run/celery/celery.pid
 
-  # get volumes from uwsgi
-  volumes_from:
-    - uwsgi
+    # set working dir for uwsgi
+    working_dir: /var/uwsgi/image/
 
-  ports:
-    - "26080:80"
+    # define volumes
+    volumes:
+      - type: bind
+        source: ./django-data/
+        target: /var/uwsgi/
 
-  # link container uwsgi
-  links:
-    - uwsgi
+    # Expose the default port
+
+    # link container to database
+    links:
+      - db
+      - redis
+
+
+  celery-beat:
+    # the same django image of uwsgi
+    build: ./uwsgi
+
+    command: celery -A image beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --pidfile /var/run/celery/celerybeat.pid
+
+    # set working dir for uwsgi
+    working_dir: /var/uwsgi/image/
+
+    # define volumes
+    volumes:
+      - type: bind
+        source: ./django-data/
+        target: /var/uwsgi/
+
+    # Expose the default port
+
+    # link container to database
+    links:
+      - db
+      - redis
+
+
+  celery-flower:
+    # the same django image of uwsgi
+    build: ./uwsgi
+
+    command: celery -A image flower --port=5555 --loglevel=info # --persistent=True
+
+    # set working dir for uwsgi
+    working_dir: /var/uwsgi/image/
+
+    # define volumes
+    volumes:
+      - type: bind
+        source: ./django-data/
+        target: /var/uwsgi/
+
+    # Expose flower port
+    # TODO: serve this using nginx under authentication
+    ports:
+      - "5555:5555"
+
+    # link container to database
+    links:
+      - db
+      - redis
+
+
+  nginx:
+    # a custom image for NGINX
+    build: ./nginx
+
+    volumes:
+      - type: bind
+        source: ./nginx/conf.d/
+        target: /etc/nginx/conf.d/
+
+      - type: bind
+        source: ./django-data/
+        target: /var/uwsgi/
+
+    ports:
+      - "26080:80"
+
+    # link container uwsgi
+    links:
+      - uwsgi
