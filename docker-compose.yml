@@ -1,8 +1,8 @@
 
 # Create a composed Django-Postgres-NGINX instance
 db:
-  # get the latest postgres server
-  image: postgres:9.6
+  # a custom image for django
+  build: ./postgres
 
   # Set db environment
   environment:
@@ -16,16 +16,16 @@ db:
   # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
   volumes:
     - "./postgres-data:/var/lib/postgresql/data"
-    - "/etc/localtime:/etc/localtime:ro"
     # all scripts and sql file inside this directory will be executed after database initialization
-    - "./postgres/:/docker-entrypoint-initdb.d/"
+    - "./postgres/docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/"
 
   ports:
     - "25432:5432"
 
 
 redis:
-  image: "redis:alpine"
+  # a custom redis image
+  build: ./redis
 
 
 uwsgi:
@@ -42,7 +42,6 @@ uwsgi:
   volumes:
     - "./django-data/:/var/uwsgi/"
     - "./.git/:/var/uwsgi/.git/:ro"
-    - "/etc/localtime:/etc/localtime:ro"
 
   # Expose the default port
 
@@ -65,7 +64,6 @@ celery-worker:
   # define volumes
   volumes:
     - "./django-data/:/var/uwsgi/"
-    - "/etc/localtime:/etc/localtime:ro"
 
   # Expose the default port
 
@@ -87,7 +85,6 @@ celery-beat:
   # define volumes
   volumes:
     - "./django-data/:/var/uwsgi/"
-    - "/etc/localtime:/etc/localtime:ro"
 
   # Expose the default port
 
@@ -109,7 +106,6 @@ celery-flower:
   # define volumes
   volumes:
     - "./django-data/:/var/uwsgi/"
-    - "/etc/localtime:/etc/localtime:ro"
 
   # Expose flower port
   # TODO: serve this using nginx under authentication
@@ -127,7 +123,6 @@ nginx:
   build: ./nginx
 
   volumes:
-    - "/etc/localtime:/etc/localtime:ro"
     - "./nginx/conf.d/:/etc/nginx/conf.d/"
 
   # get volumes from uwsgi

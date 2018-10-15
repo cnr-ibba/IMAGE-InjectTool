@@ -1,18 +1,20 @@
 
 #
-# VERSION 0.5
-# DOCKER-VERSION  1.9.1
-# AUTHOR:         Paolo Cozzi <paolo.cozzi@ptp.it>
+# VERSION 0.6
+# DOCKER-VERSION  17.05.0-ce
+# AUTHOR:         Paolo Cozzi <cozzi@ibba.cnr.it>
 # DESCRIPTION:    A django container working on LTS django 1.11 on python 3
-# TO_BUILD:       docker build --rm -t django_uwsgi .
-# TO_RUN:         docker run -d -P django_uwsgi
-# TO_TAG:         docker tag django_uwsgi:latest django_uwsgi:0.5
 #
 
 # The official django image is deprecated in favor of the standard python image
 FROM python:3.6
 
 MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
+
+# synchronize timezone for container
+# https://forums.docker.com/t/synchronize-timezone-from-host-to-container/39116
+RUN echo "Europe/Rome" > /etc/timezone
+RUN dpkg-reconfigure -f noninteractive tzdata
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

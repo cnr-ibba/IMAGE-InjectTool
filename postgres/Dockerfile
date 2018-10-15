@@ -1,13 +1,12 @@
-
 #
-# VERSION 0.3
+# VERSION 0.1
 # DOCKER-VERSION  17.05.0-ce
 # AUTHOR:         Paolo Cozzi <cozzi@ibba.cnr.it>
-# DESCRIPTION:    A nginx container to work with django
+# DESCRIPTION:    A postgres container
 #
 
-# Get the last stable nginx image
-FROM nginx:1.15
+# get the latest postgres server
+FROM postgres:9.6
 
 MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
 
@@ -16,8 +15,4 @@ MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
 RUN echo "Europe/Rome" > /etc/timezone
 RUN dpkg-reconfigure -f noninteractive tzdata
 
-# Copy nginx configuration file in conf.d directory
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# define NGINX volume
-VOLUME /etc/nginx/conf.d/
+# commands and ports are the same of the base postgres image
