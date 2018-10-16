@@ -34,6 +34,11 @@ services:
     # a custom redis image
     build: ./redis
 
+    volumes:
+      - type: volume
+        source: redis-data
+        target: /data
+
 
   uwsgi:
     # a custom image for django
@@ -156,3 +161,6 @@ services:
     # link container uwsgi
     links:
       - uwsgi
+
+volumes:
+  redis-data:

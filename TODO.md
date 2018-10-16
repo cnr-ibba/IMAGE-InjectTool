@@ -206,7 +206,6 @@ requests.exceptions.ConnectionError: HTTPSConnectionPool(host='submission-test.e
   - Navbar for tools (zooma, dictionary tables, etc)?
 
 * Issues relative to UID:
-  - check the CASCADE foreign keys
   - `Publication` table is empty at the moment
   - records (like `Name`) need to have a column in which the status is recorded
     (need revisions, submitted, ...)

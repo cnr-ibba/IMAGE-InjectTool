@@ -214,10 +214,14 @@ class DictBreed(BaseMixin, models.Model):
         null=True)
 
     # using a constraint for country.
-    country = models.ForeignKey('DictCountry')
+    country = models.ForeignKey(
+        'DictCountry',
+        on_delete=models.PROTECT)
 
     # using a constraint for specie
-    specie = models.ForeignKey('DictSpecie')
+    specie = models.ForeignKey(
+        'DictSpecie',
+        on_delete=models.PROTECT)
 
     def __str__(self):
         # return mapped breed if defined
@@ -286,9 +290,10 @@ class Name(BaseMixin, models.Model):
             null=False)
 
     submission = models.ForeignKey(
-            'Submission',
-            db_index=True,
-            related_name='name_set')
+        'Submission',
+        db_index=True,
+        related_name='name_set',
+        on_delete=models.CASCADE)
 
     # This need to be assigned after submission
     # HINT: this column should be UNIQUE?
@@ -416,7 +421,7 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
     # an animal name has a entry in name table
     name = models.OneToOneField(
             'Name',
-            on_delete=models.PROTECT)
+            on_delete=models.CASCADE)
 
     # alternative id will store the internal id in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
@@ -430,7 +435,10 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
             editable=False,
             null=True)
 
-    breed = models.ForeignKey('DictBreed', db_index=True)
+    breed = models.ForeignKey(
+        'DictBreed',
+        db_index=True,
+        on_delete=models.PROTECT)
 
     # species is in DictBreed table
 
@@ -439,19 +447,20 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
             'DictSex',
             blank=True,
             null=True,
-            default=-1)
+            default=-1,
+            on_delete=models.PROTECT)
 
     # check that father and mother are defined using Foreign Keys
     # HINT: mother and father are not mandatory in all datasource
     father = models.ForeignKey(
             'Name',
-            on_delete=models.PROTECT,
+            on_delete=models.CASCADE,
             null=True,
             related_name='father_set')
 
     mother = models.ForeignKey(
             'Name',
-            on_delete=models.PROTECT,
+            on_delete=models.CASCADE,
             null=True,
             related_name='mother_set')
 
@@ -573,8 +582,8 @@ class Sample(BioSampleMixin, BaseMixin, models.Model):
     # a sample name has a entry in name table
     # this is a One2One foreign key
     name = models.OneToOneField(
-            'Name',
-            on_delete=models.PROTECT)
+        'Name',
+        on_delete=models.CASCADE)
 
     # db_vessel in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
@@ -589,8 +598,8 @@ class Sample(BioSampleMixin, BaseMixin, models.Model):
         null=True)
 
     animal = models.ForeignKey(
-            'Animal',
-            on_delete=models.PROTECT)
+        'Animal',
+        on_delete=models.CASCADE)
 
     protocol = models.CharField(max_length=255, blank=True, null=True)
 
@@ -788,7 +797,7 @@ class Person(BaseMixin, models.Model):
     affiliation = models.ForeignKey(
         'Organization',
         null=True,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         help_text="The institution you belong to")
 
     # last_name, first_name and email come from User model
@@ -830,15 +839,17 @@ class Organization(BaseMixin, models.Model):
         max_length=255, blank=True, null=True,
         help_text='One line, comma separated')
 
-    country = models.ForeignKey('DictCountry')
+    country = models.ForeignKey(
+        'DictCountry',
+        on_delete=models.PROTECT)
 
     URI = models.URLField(
         max_length=500, blank=True, null=True,
         help_text='Web site')
 
     role = models.ForeignKey(
-            'DictRole',
-            on_delete=models.PROTECT)
+        'DictRole',
+        on_delete=models.PROTECT)
 
     def __str__(self):
         return self.name
@@ -860,14 +871,14 @@ class Publication(BaseMixin, models.Model):
 # HINT: do I need this table?
 class Ontology(BaseMixin, models.Model):
     library_name = models.CharField(
-            max_length=255,
-            help_text='Each value must be unique',
-            unique=True)
+        max_length=255,
+        help_text='Each value must be unique',
+        unique=True)
 
     library_uri = models.URLField(
-            max_length=500, blank=True, null=True,
-            help_text='Each value must be unique ' +
-                      'and with a valid URL')
+        max_length=500, blank=True, null=True,
+        help_text='Each value must be unique ' +
+                  'and with a valid URL')
 
     comment = models.CharField(
             max_length=255, blank=True, null=True)
@@ -897,12 +908,14 @@ class Submission(BaseMixin, models.Model):
 
     # gene bank fields
     gene_bank_name = models.CharField(
-            max_length=255,
-            blank=False,
-            null=False,
-            help_text='example: CryoWeb')
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text='example: CryoWeb')
 
-    gene_bank_country = models.ForeignKey('DictCountry')
+    gene_bank_country = models.ForeignKey(
+        'DictCountry',
+        on_delete=models.PROTECT)
 
     # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
     class TYPES(Enum):
@@ -916,19 +929,19 @@ class Submission(BaseMixin, models.Model):
 
     # datasource field
     datasource_type = models.SmallIntegerField(
-            choices=[x.value for x in TYPES],
-            help_text='example: CryoWeb')
+        choices=[x.value for x in TYPES],
+        help_text='example: CryoWeb')
 
     datasource_version = models.CharField(
-            max_length=255,
-            blank=False,
-            null=False,
-            help_text='examples: "2018-04-27", "version 1.5"')
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text='examples: "2018-04-27", "version 1.5"')
 
     # HINT: can this field be NULL?
     organization = models.ForeignKey(
         'Organization',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         help_text="Who owns the data")
 
     # custom fields for datasource
