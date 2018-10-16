@@ -101,15 +101,17 @@ Traceback (most recent call last):
     raise ConnectionError(e, request=request)
 requests.exceptions.ConnectionError: HTTPSConnectionPool(host='submission-test.ebi.ac.uk', port=443): Max retries exceeded with url: /api/submissions/fcc2fec8-dd03-4cdf-b487-a4a2de737334/contents/samples (Caused by NewConnectionError('<urllib3.connection.VerifiedHTTPSConnection object at 0x7f637fb0acc0>: Failed to establish a new connection: [Errno -2] Name or service not known',))
 ```
+  - check `submission.status` before finalize
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
-    U sing google refine? For the moment, no duplicate can be inserted into database,
+    Using google refine? For the moment, no duplicate can be inserted into database,
     the second occurrence will not be included in database.
   - tag problematic fields?
   - Data need to be isolated from a user POV
   - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
     and its father
+  - check for duplicate breeds - names
 
 * NGINX media folder can serve media files (jpg, etc).
   - Deal with dump files (permissions?)
@@ -149,10 +151,6 @@ requests.exceptions.ConnectionError: HTTPSConnectionPool(host='submission-test.e
   - return a default ontology for breed if non mapping occours
   - model other field types
 
-* Dashboard page: database status and links of all applications developed
-  - report and links for datasource (upload datasource, views datasources etc)
-  - check for duplicate breeds - names
-
 * metadata rules
   - test against example `json` files, don't derive reference on the fly (it
     seems difficult update validation tests)
@@ -165,7 +163,6 @@ requests.exceptions.ConnectionError: HTTPSConnectionPool(host='submission-test.e
   - after submission is completed, don't ask for the same submission
 
 * proposed change for `Name` table (that can become a summary table a user will see)
-  - all columns: name, biosampleid, status, last_change, last_submitted.
   - track status: need to known if a sample has been submitted or need to be submitted
     or updated
   - track time for changes and submission: if I change one sample after submission,
@@ -201,16 +198,11 @@ requests.exceptions.ConnectionError: HTTPSConnectionPool(host='submission-test.e
     there's no difference from a web page, however, is only estetic
   - Add breadcrumb for pages
   - Add messages when views are called or code executed
-  - all GET requests need to be idenpotent
   - Error handling (API?/String messages?)
   - Navbar for tools (zooma, dictionary tables, etc)?
 
 * Issues relative to UID:
-  - `Publication` table is empty at the moment
-  - records (like `Name`) need to have a column in which the status is recorded
-    (need revisions, submitted, ...)
   - rename `image_app` application into `uid`?
-  - More user can belong to same organization?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
 

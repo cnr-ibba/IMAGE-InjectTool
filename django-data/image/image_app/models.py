@@ -305,6 +305,33 @@ class Name(BaseMixin, models.Model):
         related_name='+',
         on_delete=models.CASCADE)
 
+    class STATUSES(Enum):
+        loaded = (0, 'Loaded')
+        ready = (1, "Ready")
+        need_revision = (2, 'Need Revision')
+        submitted = (3, 'Submitted')
+
+        @classmethod
+        def get_value(cls, member):
+            return cls[member].value[0]
+
+    # a column to track submission status
+    status = models.SmallIntegerField(
+            choices=[x.value for x in STATUSES],
+            help_text='example: Waiting',
+            null=True,
+            blank=True,
+            default=0)
+
+    last_changed = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        null=True)
+
+    last_submitted = models.DateTimeField(
+        blank=True,
+        null=True)
+
     class Meta:
         unique_together = (("name", "submission"),)
 
@@ -420,8 +447,8 @@ class ACCURACY(Enum):
 class Animal(BioSampleMixin, BaseMixin, models.Model):
     # an animal name has a entry in name table
     name = models.OneToOneField(
-            'Name',
-            on_delete=models.CASCADE)
+        'Name',
+        on_delete=models.CASCADE)
 
     # alternative id will store the internal id in data source
     alternative_id = models.CharField(max_length=255, blank=True, null=True)
@@ -430,10 +457,10 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
 
     # HINT: link to a term list table?
     material = models.CharField(
-            max_length=255,
-            default="Organism",
-            editable=False,
-            null=True)
+        max_length=255,
+        default="Organism",
+        editable=False,
+        null=True)
 
     breed = models.ForeignKey(
         'DictBreed',
@@ -444,33 +471,33 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
 
     # using a constraint for sex
     sex = models.ForeignKey(
-            'DictSex',
-            blank=True,
-            null=True,
-            default=-1,
-            on_delete=models.PROTECT)
+        'DictSex',
+        blank=True,
+        null=True,
+        default=-1,
+        on_delete=models.PROTECT)
 
     # check that father and mother are defined using Foreign Keys
     # HINT: mother and father are not mandatory in all datasource
     father = models.ForeignKey(
-            'Name',
-            on_delete=models.CASCADE,
-            null=True,
-            related_name='father_set')
+        'Name',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='father_set')
 
     mother = models.ForeignKey(
-            'Name',
-            on_delete=models.CASCADE,
-            null=True,
-            related_name='mother_set')
+        'Name',
+        on_delete=models.CASCADE,
+        null=True,
+        related_name='mother_set')
 
     # HINT: and birth date?
 
     # TODO: need to set this value? How?
     birth_location = models.CharField(
-            max_length=255,
-            blank=True,
-            null=True)
+        max_length=255,
+        blank=True,
+        null=True)
 
     birth_location_latitude = models.FloatField(blank=True, null=True)
     birth_location_longitude = models.FloatField(blank=True, null=True)
@@ -856,16 +883,19 @@ class Organization(BaseMixin, models.Model):
 
 
 class Publication(BaseMixin, models.Model):
-    # id = models.IntegerField(primary_key=True)  # AutoField?
-    pubmed_id = models.CharField(max_length=255,
-                                 help_text='Valid PubMed ID, numeric only')
+    submission = models.ForeignKey(
+        'Submission',
+        db_index=True,
+        related_name='publications',
+        on_delete=models.CASCADE)
 
-    # This column is in submission sheet of template file
-    doi = models.CharField(max_length=255,
-                           help_text='Valid Digital Object Identifier')
+    # this is a non mandatory fields in ruleset
+    doi = models.CharField(
+        max_length=255,
+        help_text='Valid Digital Object Identifier')
 
     def __str__(self):
-        return str(str(self.id) + ", " + str(self.pubmed_id))
+        return self.doi
 
 
 # HINT: do I need this table?

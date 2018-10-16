@@ -20,16 +20,16 @@ class DictBreedAdmin(admin.ModelAdmin):
 class NameAdmin(admin.ModelAdmin):
     """A class to deal with animal names"""
 
+    list_display = (
+        'name', 'submission', 'biosample_id', 'owner', 'status',
+        'last_changed', 'last_submitted')
+
+    list_filter = ('owner', 'submission')
+
     # join immediately name with DataSouce, in order to speed up name rendering
     list_select_related = (
         'submission',
     )
-
-    # remove this admin class from admin page, even if such class is registered
-    # however this class will be editable from classes using Foreign Keys
-    # TODO: expose this class?
-    def get_model_perms(self, request):
-        return {}
 
 
 # redefine form to edit Sample. Link animal to names in order to speed up
@@ -157,9 +157,12 @@ class AnimalAdmin(admin.ModelAdmin):
 
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'submitter', 'team', 'created', 'last_modified', 'status',
-        'owner'
+        'title', 'gene_bank_name', 'gene_bank_country', 'datasource_type',
+        'datasource_version', 'organization', 'status', 'owner',
+        'biosample_submission_id'
     )
+
+    list_filter = ('owner', 'status')
 
 
 class PersonAdmin(admin.ModelAdmin):
@@ -212,13 +215,6 @@ class OrganizationAdmin(admin.ModelAdmin):
     )
 
 
-class PublicationAdmin(admin.ModelAdmin):
-    search_fields = ['pubmed_id']
-    list_display = (
-        'pubmed_id', 'doi',
-    )
-
-
 class OntologyAdmin(admin.ModelAdmin):
     search_fields = ['library_name']
     list_display = (
@@ -234,13 +230,13 @@ class DictSpecieAdmin(admin.ModelAdmin):
     list_display = ('label', 'taxon_id', 'term', 'confidence')
 
 
-### registering applications
+# --- registering applications
 
 # default admin class
 admin.site.register(DictRole, admin.ModelAdmin)
 admin.site.register(DictSpecie, DictSpecieAdmin)
 admin.site.register(DictCountry, DictCountryAdmin)
-admin.site.register(Submission, admin.ModelAdmin)
+admin.site.register(Submission, SubmissionAdmin)
 
 # Custom admin class
 admin.site.register(Animal, AnimalAdmin)
@@ -249,7 +245,7 @@ admin.site.register(Name, NameAdmin)
 admin.site.register(DictBreed, DictBreedAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(Organization, OrganizationAdmin)
-admin.site.register(Publication, PublicationAdmin)
+admin.site.register(Publication, admin.ModelAdmin)
 admin.site.register(Ontology, OntologyAdmin)
 
 # Re-register UserAdmin
