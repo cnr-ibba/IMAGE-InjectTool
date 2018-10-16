@@ -21,11 +21,13 @@ from .test_token import generate_token
 from ..models import ManagedTeam
 
 # get available status
-SUBMITTED = Submission.STATUSES.get_value('submitted')
-NEED_REVISION = Submission.STATUSES.get_value('need_revision')
-COMPLETED = Submission.STATUSES.get_value('completed')
 WAITING = Submission.STATUSES.get_value('waiting')
+LOADED = Submission.STATUSES.get_value('loaded')
+SUBMITTED = Submission.STATUSES.get_value('submitted')
+ERROR = Submission.STATUSES.get_value('error')
+NEED_REVISION = Submission.STATUSES.get_value('need_revision')
 READY = Submission.STATUSES.get_value('ready')
+COMPLETED = Submission.STATUSES.get_value('completed')
 
 
 class SubmitTestCase(TestCase):
@@ -378,6 +380,102 @@ class FetchWaitingTestCase(ManagedTeamMixin, TestCase):
         # assert status for submissions
         submission = Submission.objects.get(pk=self.submission_id)
         self.assertEqual(submission.status, WAITING)
+
+
+class FetchUnsupportedStatusTestCase(ManagedTeamMixin, TestCase):
+    """A submission with a status I can ignore"""
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # adding mock objects
+        cls.my_auth_patcher = patch('biosample.tasks.get_auth')
+        cls.my_auth = cls.my_auth_patcher.start()
+
+        cls.my_root_patcher = patch('biosample.tasks.Root')
+        cls.my_root = cls.my_root_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.my_auth_patcher.stop()
+        cls.my_root_patcher.stop()
+
+        # calling base method
+        super().tearDownClass()
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # mocking chain. The team for test user
+        self.my_team = Mock()
+        self.my_team.name = "subs.test-team-1"
+
+        # a still running submission
+        self.my_submission = Mock()
+        self.my_submission.name = "test-fetch"
+
+        # add submissions to team
+        self.my_team.get_submissions.return_value = [self.my_submission]
+
+        # passing a list to side effect, I iter throgh mock objects in
+        # each mock calls
+        self.my_root.return_value.get_team_by_name.side_effect = [self.my_team]
+
+    def update_status(self, status):
+        # get a submission object
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # change status
+        submission.status = status
+        submission.save()
+
+    # override ManagedTeamMixing methods
+    def common_tests(self, status):
+        # update submission status
+        self.update_status(status)
+
+        # NOTE that I'm calling the function directly, without delay
+        # (AsyncResult). I've patched the time consuming task
+        res = fetch_status()
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        self.assertTrue(self.my_auth.called)
+        self.assertTrue(self.my_root.called)
+        self.assertTrue(self.my_root.return_value.get_team_by_name.called)
+        self.assertTrue(self.my_team.get_submissions.called)
+
+        # assert status for submissions
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, status)
+
+    def test_loaded(self):
+        """Test fecth_status with a loaded submission"""
+
+        # assert task and mock methods called
+        self.common_tests(LOADED)
+
+    def test_need_revision(self):
+        """Test fecth_status with a need_revision submission"""
+
+        # assert task and mock methods called
+        self.common_tests(NEED_REVISION)
+
+    def test_ready(self):
+        """Test fecth_status with a ready submission"""
+
+        # assert task and mock methods called
+        self.common_tests(READY)
+
+    def test_completed(self):
+        """Test fecth_status with a completed submission"""
+
+        # assert task and mock methods called
+        self.common_tests(COMPLETED)
 
 
 class UnManagedTeamMixin():

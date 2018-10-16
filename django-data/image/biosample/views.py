@@ -421,8 +421,8 @@ class SubmitView(LoginRequiredMixin, FormView):
             'pk': self.submission_id})
 
     def redirect_to_token(self):
-        """Save the current submission_id in session, then return a redirect
-        to GenerateTokenView with my current url as next parameter"""
+        """Return a redirect to GenerateTokenView with get_success_url
+        as next parameter"""
 
         # determine next url after token generarion
         next_url = (

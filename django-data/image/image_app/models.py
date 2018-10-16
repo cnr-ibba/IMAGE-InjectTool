@@ -310,6 +310,7 @@ class Name(BaseMixin, models.Model):
         ready = (1, "Ready")
         need_revision = (2, 'Need Revision')
         submitted = (3, 'Submitted')
+        completed = (4, "Completed")
 
         @classmethod
         def get_value(cls, member):

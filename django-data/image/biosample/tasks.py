@@ -164,7 +164,6 @@ def fetch_status(self):
         for submission in submissions:
             # fetch submission in database
             try:
-                # TODO: filter out submission by status
                 obj = Submission.objects.get(
                     biosample_submission_id=submission.name)
 
@@ -182,7 +181,15 @@ def fetch_status(self):
                             submission.name))
                     continue
 
-                logger.info(submission)
+                # check status. If submit, I need to process data. Otherwise
+                # I can ignore this submission
+                if obj.status != SUBMITTED:
+                    logger.info(
+                        "Ignoring submission %s: current status is '%s'" % (
+                            submission.name, obj.get_status_display()))
+                    continue
+
+                logger.info("Processing submission %s" % (submission))
 
                 # Update submission status if completed
                 if submission.submissionStatus == 'Completed':
