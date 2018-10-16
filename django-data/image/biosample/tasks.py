@@ -17,8 +17,9 @@ from pyEBIrest.auth import Auth
 from pyEBIrest.client import Root
 
 from django.conf import settings
+from django.utils import timezone
 
-from image_app.models import Submission, Animal
+from image_app.models import Submission, Animal, Name
 
 from .models import ManagedTeam
 
@@ -29,11 +30,15 @@ logger = get_task_logger(__name__)
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
 
-# Set Submission statuses
+# Get Submission statuses
 SUBMITTED = Submission.STATUSES.get_value('submitted')
 NEED_REVISION = Submission.STATUSES.get_value('need_revision')
 COMPLETED = Submission.STATUSES.get_value('completed')
 WAITING = Submission.STATUSES.get_value('waiting')
+
+# get names statuses
+NAME_READY = Name.STATUSES.get_value('ready')
+NAME_SUBMITTED = Name.STATUSES.get_value('submitted')
 
 
 # a function to submit data into biosample
@@ -76,6 +81,8 @@ def submit(self, submission_id):
 
     # create a submission
     logger.info("Creating a new submission for %s" % (team.name))
+
+    # TODO: if I'm recovering a submission, get the same submission id
     biosample_submission = team.create_submission()
 
     # track submission_id in table
@@ -86,17 +93,28 @@ def submit(self, submission_id):
         biosample_submission.name))
 
     # HINT: what happen if a token expire while submitting?
-    # TODO: deal with submission recovery
-
-    for animal in Animal.objects.filter(name__submission=submission):
+    for animal in Animal.objects.filter(
+            name__submission=submission,
+            name__status=NAME_READY):
         logger.info("Appending animal %s" % (
             animal))
         biosample_submission.create_sample(animal.to_biosample())
 
+        # update animal status
+        animal.name.status = NAME_SUBMITTED
+        animal.name.last_submitted = timezone.now()
+        animal.name.save()
+
         # Add their specimen
-        for sample in animal.sample_set.all():
+        for sample in animal.sample_set.filter(
+                name__status=NAME_READY):
             logger.info("Appending sample %s" % (sample))
             biosample_submission.create_sample(sample.to_biosample())
+
+            # update sample status
+            sample.name.status = NAME_SUBMITTED
+            sample.name.last_submitted = timezone.now()
+            sample.name.save()
 
     logger.info("submission completed")
 

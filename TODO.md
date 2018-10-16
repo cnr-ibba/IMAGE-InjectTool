@@ -101,7 +101,19 @@ Traceback (most recent call last):
     raise ConnectionError(e, request=request)
 requests.exceptions.ConnectionError: HTTPSConnectionPool(host='submission-test.ebi.ac.uk', port=443): Max retries exceeded with url: /api/submissions/fcc2fec8-dd03-4cdf-b487-a4a2de737334/contents/samples (Caused by NewConnectionError('<urllib3.connection.VerifiedHTTPSConnection object at 0x7f637fb0acc0>: Failed to establish a new connection: [Errno -2] Name or service not known',))
 ```
-  - check `submission.status` before finalize
+  - deal with `ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Request","status":400,"instance":"uri=/api/samples","errors":["Error in object 'Sample': codes [already_exists_and_not_completed.Sample,already_exists_and_not_completed]; arguments []; default message [already_exists_and_not_completed]"]}`
+```
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 382, in trace_task
+    R = retval = fun(*args, **kwargs)
+  File "/usr/local/lib/python3.6/site-packages/celery/app/trace.py", line 641, in __protected_call__
+    return self.run(*args, **kwargs)
+  File "/var/uwsgi/image/biosample/tasks.py", line 99, in submit
+    biosample_submission.create_sample(animal.to_biosample())
+  File "/usr/local/lib/python3.6/site-packages/pyEBIrest/client.py", line 878, in create_sample
+    raise ConnectionError(response.text)
+ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Request","status":400,"instance":"uri=/api/samples","errors":["Error in object 'Sample': codes [already_exists_and_not_completed.Sample,already_exists_and_not_completed]; arguments []; default message [already_exists_and_not_completed]"]}
+```
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?

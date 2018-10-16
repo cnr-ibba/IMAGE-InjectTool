@@ -14,13 +14,14 @@ from time import sleep
 from celery import task
 from celery.utils.log import get_task_logger
 
-from image_app.models import Submission
+from image_app.models import Submission, Sample, Animal, Name
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
 # get available statuses
-READY = Submission.STATUSES.get_value('ready')
+SUBMISSION_READY = Submission.STATUSES.get_value('ready')
+NAME_READY = Name.STATUSES.get_value('ready')
 
 
 # a function to perform validation steps
@@ -32,11 +33,23 @@ def validate_submission(self, submission_id):
     submission = Submission.objects.get(pk=submission_id)
 
     # TODO: do stuff
-    sleep(30)
+    sleep(10)
+
+    for sample in Sample.objects.filter(name__submission=submission):
+        logger.debug("Validating %s" % (sample))
+        # TODO: test against sample
+        sample.name.status = NAME_READY
+        sample.name.save()
+
+    for animal in Animal.objects.filter(name__submission=submission):
+        logger.debug("Validating %s" % (animal))
+        # TODO: test agains animal
+        animal.name.status = NAME_READY
+        animal.name.save()
 
     # Update submission status
     # TODO: set a proper value for status (READY or NEED_REVISION)
-    submission.status = READY
+    submission.status = SUBMISSION_READY
     submission.message = "Submission validated with success"
     submission.save()
 

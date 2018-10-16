@@ -14,7 +14,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 from django.conf import settings
 
-from image_app.models import Submission, Person
+from image_app.models import Submission, Person, Name
 
 from ..tasks import submit, fetch_status, get_auth
 from .test_token import generate_token
@@ -28,6 +28,10 @@ ERROR = Submission.STATUSES.get_value('error')
 NEED_REVISION = Submission.STATUSES.get_value('need_revision')
 READY = Submission.STATUSES.get_value('ready')
 COMPLETED = Submission.STATUSES.get_value('completed')
+
+# get names statuses
+NAME_READY = Name.STATUSES.get_value('ready')
+NAME_SUBMITTED = Name.STATUSES.get_value('submitted')
 
 
 class SubmitTestCase(TestCase):
@@ -87,6 +91,9 @@ class SubmitTestCase(TestCase):
         submission.status = READY
         submission.save()
 
+        # set status for names, like validation does
+        Name.objects.all().update(status=NAME_READY)
+
         # track submission ID
         self.submission_id = submission.id
 
@@ -115,6 +122,10 @@ class SubmitTestCase(TestCase):
             submission.message,
             "Waiting for biosample validation")
         self.assertEqual(submission.biosample_submission_id, "test-submission")
+
+        # check name status changed
+        qs = Name.objects.filter(status=NAME_SUBMITTED)
+        self.assertEqual(len(qs), 2)
 
         # assert called mock objects
         self.assertTrue(my_root.called)
