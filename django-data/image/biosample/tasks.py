@@ -158,91 +158,81 @@ def finalize(submission, obj):
         submission.finalize()
 
 
+# a function to retrieve biosample submission
+def fetch_biosample_status(queryset):
+    logger.info("Searching for submissions into biosample")
+
+    # create a new auth object
+    logger.debug("Generate a token for 'USI_MANAGER'")
+    auth = get_auth()
+
+    logger.debug("Getting root")
+    root = Root(auth)
+
+    for subission_obj in queryset:
+        logger.info("Processing submission %s" % (subission_obj))
+
+        # fetch a biosample object
+        submission = root.get_submission_by_name(
+            submission_name=subission_obj.biosample_submission_id)
+
+        # a submission object retrieved by the previous method hasn't the
+        # submission status, so I need to follow submissionStatus link
+        # TODO: update pyUSIrest to fetch submissionStatus value
+        document = submission.follow_url('submissionStatus', auth=auth)
+
+        # Update submission status if completed
+        if document.status == 'Completed':
+            subission_obj.status = COMPLETED
+            subission_obj.message = "Successful submission into biosample"
+            subission_obj.save()
+
+            # cicle along samples
+            for sample in submission.get_samples():
+                logger.info(sample)
+
+                # TODO: fetch biosample ID and save them in name table
+
+        elif document.status == 'Draft':
+            # check validation. If it is ok, finalize submission
+            status = submission.get_status()
+
+            if len(status) == 1 and 'Complete' in status:
+                # check for errors and eventually finalize
+                finalize(submission, subission_obj)
+
+            else:
+                logger.warning(
+                    "Biosample validation is not completed yet (%s)" %
+                    (status))
+
+        else:
+            logger.warning("Unknown status %s for submission %s" % (
+                document.status, submission.name))
+
+        # test for submission status
+
+    # cicle for submission_obj
+
+    logger.info("fetch_biosample_status completed")
+
+
 # define a function to get biosample statuses for submissions
 @task(bind=True)
 def fetch_status(self):
     logger.info("fetch_status started")
 
-    # create a new auth object
-    logger.debug("Generate a token for 'USI_MANAGER'")
+    # search for submission with SUBMITTED status. Other submission are not yet
+    # finalized
+    qs = Submission.objects.filter(status=SUBMITTED)
 
-    auth = get_auth()
+    # check for queryset length
+    if qs.count() != 0:
+        # fetch biosample status
+        fetch_biosample_status(qs)
 
-    logger.debug("Getting root")
-
-    root = Root(auth)
-
-    # fetching managed teams
-    for managed_team in ManagedTeam.objects.all():
-        logger.debug("Fetching submission for %s" % managed_team.name)
-        team = root.get_team_by_name(team_name=managed_team.name)
-
-        submissions = team.get_submissions()
-
-        for submission in submissions:
-            # fetch submission in database
-            try:
-                obj = Submission.objects.get(
-                    biosample_submission_id=submission.name)
-
-            except Submission.DoesNotExist:
-                logger.warning(
-                    "submission '%s' is not present in database" % (
-                        submission.name))
-                continue
-
-            else:
-                # check submission status. If waiting I'm currentlty submitting
-                if obj.status == WAITING:
-                    logger.warning(
-                        "submission '%s' is currently under submission" % (
-                            submission.name))
-                    continue
-
-                # check status. If submit, I need to process data. Otherwise
-                # I can ignore this submission
-                if obj.status != SUBMITTED:
-                    logger.info(
-                        "Ignoring submission %s: current status is '%s'" % (
-                            submission.name, obj.get_status_display()))
-                    continue
-
-                logger.info("Processing submission %s" % (submission))
-
-                # Update submission status if completed
-                if submission.submissionStatus == 'Completed':
-                    obj.status = COMPLETED
-                    obj.message = "Successful submission into biosample"
-                    obj.save()
-
-                    # cicle along samples
-                    for sample in submission.get_samples():
-                        logger.info(sample)
-
-                        # TODO: fetch biosample ID and save them in name table
-
-                elif submission.submissionStatus == 'Draft':
-                    # check validation. If it is ok, finalize submission
-                    status = submission.get_status()
-
-                    if len(status) == 1 and 'Complete' in status:
-                        finalize(submission, obj)
-
-                    else:
-                        logger.warning(
-                            "Biosample validation is not completed yet (%s)" %
-                            (status))
-                        continue
-
-                else:
-                    logger.warning("Unknown status %s for submission %s" % (
-                        submission.submissionStatus, submission.name))
-
-                # submission status condition
-
-            # submission present in database
-
-        # submission retrieved in biosample
+    else:
+        logger.debug("No pending submission in UID database")
 
     # debug
     logger.info("fetch_status completed")

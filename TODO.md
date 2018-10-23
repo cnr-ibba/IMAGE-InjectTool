@@ -171,13 +171,8 @@ ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Re
     seems difficult update validation tests)
 
 * Biosample manager user should do:
-  - Monitor biosample submission to see if sample are validated or not (by team/user)
-  - finalize submission after biosample validation occours.
   - ask for user intervention / notify success
   - fetch biosample id when submission is finalized and completed
-  - after submission is completed, don't ask for the same submission
-  - ask only for InjectTool submission: if all submission are completed, don't
-    generate token nor query for submissions
   - track sample failed if submission fails.
 
 * Regarding table `Name`:
