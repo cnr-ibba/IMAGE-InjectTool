@@ -13,8 +13,8 @@ from decouple import AutoConfig
 from celery import task
 from celery.utils.log import get_task_logger
 
-from pyEBIrest.auth import Auth
-from pyEBIrest.client import Root
+from pyUSIrest.auth import Auth
+from pyUSIrest.client import Root
 
 from django.conf import settings
 from django.utils import timezone

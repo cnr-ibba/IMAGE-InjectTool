@@ -179,7 +179,7 @@ class SuccessFullCreateAuthViewTest(BaseTest):
         # calling my base class setup
         super().setUpClass()
 
-        cls.mock_get_patcher = patch('pyEBIrest.auth.requests.get')
+        cls.mock_get_patcher = patch('pyUSIrest.auth.requests.get')
         cls.mock_get = cls.mock_get_patcher.start()
 
     @classmethod

@@ -16,15 +16,15 @@ from decouple import AutoConfig
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from pyEBIrest.client import User
-from pyEBIrest.auth import Auth
+from pyUSIrest.client import User
+from pyUSIrest.auth import Auth
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-# change the default level for pyEBIrest logging
-logging.getLogger('pyEBIrest.auth').setLevel(logging.INFO)
-logging.getLogger('pyEBIrest.client').setLevel(logging.INFO)
+# change the default level for pyUSIrest logging
+logging.getLogger('pyUSIrest.auth').setLevel(logging.INFO)
+logging.getLogger('pyUSIrest.client').setLevel(logging.INFO)
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')

@@ -13,16 +13,16 @@ import getpass
 
 from django.core.management import BaseCommand
 
-import pyEBIrest
+import pyUSIrest
 
 from image_app.models import Animal
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-# change the default level for pyEBIrest logging
-logging.getLogger('pyEBIrest.auth').setLevel(logging.INFO)
-logging.getLogger('pyEBIrest.client').setLevel(logging.INFO)
+# change the default level for pyUSIrest logging
+logging.getLogger('pyUSIrest.auth').setLevel(logging.INFO)
+logging.getLogger('pyUSIrest.client').setLevel(logging.INFO)
 
 
 # helper function to check for errors
@@ -71,11 +71,11 @@ class Command(BaseCommand):
         if options['token_file']:
             with open(options['token_file']) as infile:
                 token = infile.read()
-                auth = pyEBIrest.Auth(token=token)
+                auth = pyUSIrest.Auth(token=token)
 
         else:
             # creating an authentication object
-            auth = pyEBIrest.Auth(
+            auth = pyUSIrest.Auth(
                 user=options['username'],
                 password=getpass.getpass())
 
@@ -83,7 +83,7 @@ class Command(BaseCommand):
 
         # get root object
         logger.debug("getting biosample root")
-        root = pyEBIrest.Root(auth=auth)
+        root = pyUSIrest.Root(auth=auth)
 
         # get an example team
         team_name = 'subs.test-team-1'

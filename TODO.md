@@ -114,6 +114,9 @@ Traceback (most recent call last):
     raise ConnectionError(response.text)
 ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Request","status":400,"instance":"uri=/api/samples","errors":["Error in object 'Sample': codes [already_exists_and_not_completed.Sample,already_exists_and_not_completed]; arguments []; default message [already_exists_and_not_completed]"]}
 ```
+  - simplify submission form: return form invalid if a token is near to expire;
+    ask for token credentials as non mandatory fields, return to subission:detail
+    after launching task
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -156,7 +159,7 @@ ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Re
     - Add a special confidence status when supplied breed is different from
       mapped_breed (need revisions)
 
-* Regarding data submission into biosample:
+* Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
     values for other data than cryoweb. When they are unknown, they shouldn't be
     exported.
@@ -173,8 +176,11 @@ ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Re
   - ask for user intervention / notify success
   - fetch biosample id when submission is finalized and completed
   - after submission is completed, don't ask for the same submission
+  - ask only for InjectTool submission: if all submission are completed, don't
+    generate token nor query for submissions
+  - track sample failed if submission fails.
 
-* proposed change for `Name` table (that can become a summary table a user will see)
+* Regarding table `Name`:
   - track status: need to known if a sample has been submitted or need to be submitted
     or updated
   - track time for changes and submission: if I change one sample after submission,
@@ -207,7 +213,7 @@ ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Re
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,
-    there's no difference from a web page, however, is only estetic
+    there's no difference from a web page, however, is only aesthetic
   - Add breadcrumb for pages
   - Add messages when views are called or code executed
   - Error handling (API?/String messages?)
@@ -220,6 +226,7 @@ ConnectionError: {"type":"/api/docs/submission_api.html#_errors","title":"Bad Re
 
 * create a `commons` library to store all common stuff
 
-* regarding `pyEBIrest` library:
-  - fetch submission by name: it is possible?
-  - rename library?
+* Think about a message module to store info useful to the user:
+  - The token is expired during submission; resume submission
+  - Submission fails with errors
+  - Validation fails with errors

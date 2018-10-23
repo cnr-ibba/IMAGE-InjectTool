@@ -30,7 +30,7 @@ class Basetest(TestCase):
         super().setUpClass()
 
         # adding mock objects
-        cls.mock_get_patcher = patch('pyEBIrest.auth.requests.get')
+        cls.mock_get_patcher = patch('pyUSIrest.auth.requests.get')
         cls.mock_get = cls.mock_get_patcher.start()
 
     @classmethod

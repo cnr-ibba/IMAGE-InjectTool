@@ -16,8 +16,8 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
 
-from pyEBIrest import Auth
-from pyEBIrest.client import User
+from pyUSIrest.auth import Auth
+from pyUSIrest.client import User
 
 from image_app.models import Submission
 from submissions.templatetags.submissions_tags import can_submit

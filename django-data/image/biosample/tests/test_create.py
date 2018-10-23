@@ -14,7 +14,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from image_app.models import Organization
-from pyEBIrest.auth import Auth
+from pyUSIrest.auth import Auth
 
 from ..forms import CreateUserForm
 from ..views import CreateUserView
@@ -134,11 +134,11 @@ class SuccessfulCreateUserViewTest(Basetest):
                     domains=['subs.test-team-1', 'subs.test-team-3'])
         return Auth(token=token)
 
-    @patch('pyEBIrest.client.User.add_user_to_team')
-    @patch('pyEBIrest.client.User.get_domain_by_name')
-    @patch('pyEBIrest.client.User.create_team')
+    @patch('pyUSIrest.client.User.add_user_to_team')
+    @patch('pyUSIrest.client.User.get_domain_by_name')
+    @patch('pyUSIrest.client.User.create_team')
     @patch('biosample.views.Auth', new=mocked_auth)
-    @patch('pyEBIrest.client.User.create_user',
+    @patch('pyUSIrest.client.User.create_user',
            return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
     def test_user_create(self, create_user, create_team, get_domain_by_name,
                          add_user_to_team):
@@ -165,11 +165,11 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.assertTrue(get_domain_by_name.called)
         self.assertTrue(add_user_to_team.called)
 
-    @patch('pyEBIrest.client.User.add_user_to_team')
-    @patch('pyEBIrest.client.User.get_domain_by_name')
-    @patch('pyEBIrest.client.User.create_team')
+    @patch('pyUSIrest.client.User.add_user_to_team')
+    @patch('pyUSIrest.client.User.get_domain_by_name')
+    @patch('pyUSIrest.client.User.create_team')
     @patch('biosample.views.Auth', new=mocked_auth)
-    @patch('pyEBIrest.client.User.create_user',
+    @patch('pyUSIrest.client.User.create_user',
            side_effect=ConnectionError("test"))
     def test_error_with_biosample(self, create_user, create_team,
                                   get_domain_by_name, add_user_to_team):
