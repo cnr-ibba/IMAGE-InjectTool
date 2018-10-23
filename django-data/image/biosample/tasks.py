@@ -21,8 +21,6 @@ from django.utils import timezone
 
 from image_app.models import Submission, Animal, Name
 
-from .models import ManagedTeam
-
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
@@ -69,6 +67,20 @@ def submit(self, submission_id):
     # getting token from redis db
     token = client.get(key).decode("utf8")
 
+    # call a method to submit data to biosample
+    try:
+        submit_biosample(token, team_name, submission)
+
+    # retry a task under errors
+    # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
+    except ConnectionError as exc:
+        raise self.retry(exc=exc)
+
+    logger.info("database updated and task finished")
+    return "success"
+
+
+def submit_biosample(token, team_name, submission_obj):
     # reading token in auth
     auth = Auth(token=token)
 
@@ -79,53 +91,61 @@ def submit(self, submission_id):
     logger.debug("getting team '%s'" % (team_name))
     team = root.get_team_by_name(team_name)
 
-    # create a submission
-    logger.info("Creating a new submission for %s" % (team.name))
+    # if I'm recovering a submission, get the same submission id
+    if (submission_obj.biosample_submission_id is not None and
+            submission_obj.biosample_submission_id != ''):
 
-    # TODO: if I'm recovering a submission, get the same submission id
-    biosample_submission = team.create_submission()
+        logger.info("Recovering submission %s for team %s" % (
+            submission_obj.biosample_submission_id, team.name))
 
-    # track submission_id in table
-    submission.biosample_submission_id = biosample_submission.name
-    submission.save()
+        # get the same submission object
+        submission = root.get_submission_by_name(
+            submission_name=submission_obj.biosample_submission_id)
+
+    else:
+        # create a new submission
+        logger.info("Creating a new submission for %s" % (team.name))
+        submission = team.create_submission()
+
+        # track submission_id in table
+        submission_obj.biosample_submission_id = submission.name
+        submission_obj.save()
 
     logger.info("Fetching data and add to submission %s" % (
-        biosample_submission.name))
+        submission.name))
 
     # HINT: what happen if a token expire while submitting?
     for animal in Animal.objects.filter(
-            name__submission=submission,
-            name__status=NAME_READY):
-        logger.info("Appending animal %s" % (
-            animal))
-        biosample_submission.create_sample(animal.to_biosample())
+            name__submission=submission_obj):
 
-        # update animal status
-        animal.name.status = NAME_SUBMITTED
-        animal.name.last_submitted = timezone.now()
-        animal.name.save()
+        # add animal if not yet submitted
+        if animal.name.status != NAME_SUBMITTED:
+            logger.info("Appending animal %s" % (animal))
+            submission.create_sample(animal.to_biosample())
+
+            # update animal status
+            animal.name.status = NAME_SUBMITTED
+            animal.name.last_submitted = timezone.now()
+            animal.name.save()
 
         # Add their specimen
-        for sample in animal.sample_set.filter(
-                name__status=NAME_READY):
-            logger.info("Appending sample %s" % (sample))
-            biosample_submission.create_sample(sample.to_biosample())
+        for sample in animal.sample_set.all():
+            # add sample if not yet submitted
+            if sample.name.status != NAME_SUBMITTED:
+                logger.info("Appending sample %s" % (sample))
+                submission.create_sample(sample.to_biosample())
 
-            # update sample status
-            sample.name.status = NAME_SUBMITTED
-            sample.name.last_submitted = timezone.now()
-            sample.name.save()
+                # update sample status
+                sample.name.status = NAME_SUBMITTED
+                sample.name.last_submitted = timezone.now()
+                sample.name.save()
 
     logger.info("submission completed")
 
     # Update submission status: a completed but not yet finalized submission
-    submission.status = SUBMITTED
-    submission.message = "Waiting for biosample validation"
-    submission.save()
-
-    logger.info("database updated and task finished")
-
-    return "success"
+    submission_obj.status = SUBMITTED
+    submission_obj.message = "Waiting for biosample validation"
+    submission_obj.save()
 
 
 # a function to get a valid auth object
@@ -169,12 +189,12 @@ def fetch_biosample_status(queryset):
     logger.debug("Getting root")
     root = Root(auth)
 
-    for subission_obj in queryset:
-        logger.info("Processing submission %s" % (subission_obj))
+    for submission_obj in queryset:
+        logger.info("Processing submission %s" % (submission_obj))
 
         # fetch a biosample object
         submission = root.get_submission_by_name(
-            submission_name=subission_obj.biosample_submission_id)
+            submission_name=submission_obj.biosample_submission_id)
 
         # a submission object retrieved by the previous method hasn't the
         # submission status, so I need to follow submissionStatus link
@@ -183,9 +203,9 @@ def fetch_biosample_status(queryset):
 
         # Update submission status if completed
         if document.status == 'Completed':
-            subission_obj.status = COMPLETED
-            subission_obj.message = "Successful submission into biosample"
-            subission_obj.save()
+            submission_obj.status = COMPLETED
+            submission_obj.message = "Successful submission into biosample"
+            submission_obj.save()
 
             # cicle along samples
             for sample in submission.get_samples():
@@ -199,7 +219,7 @@ def fetch_biosample_status(queryset):
 
             if len(status) == 1 and 'Complete' in status:
                 # check for errors and eventually finalize
-                finalize(submission, subission_obj)
+                finalize(submission, submission_obj)
 
             else:
                 logger.warning(

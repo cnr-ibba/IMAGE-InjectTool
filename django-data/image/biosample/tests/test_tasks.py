@@ -8,8 +8,11 @@ Created on Tue Oct  9 14:51:13 2018
 
 import redis
 
+from pytest import raises
 from collections import Counter
 from unittest.mock import patch, Mock
+
+from celery.exceptions import Retry
 
 from django.test import TestCase
 from django.conf import settings
@@ -97,14 +100,25 @@ class SubmitTestCase(TestCase):
         # track submission ID
         self.submission_id = submission.id
 
-    @patch("biosample.tasks.Root")
-    def test_submit(self, my_root):
-        # mocking chain
-        my_team = my_root.return_value.get_team_by_name.return_value
-        my_team.name = "subs.test-team-1"
+        # starting mocked objects
+        self.mock_root_patcher = patch('biosample.tasks.Root')
+        self.mock_root = self.mock_root_patcher.start()
 
-        my_submission = my_team.create_submission.return_value
-        my_submission.name = "test-submission"
+        # start root object
+        self.my_root = self.mock_root.return_value
+
+        # mocking chain
+        self.my_team = self.my_root.get_team_by_name.return_value
+        self.my_team.name = "subs.test-team-1"
+
+        self.my_submission = self.my_team.create_submission.return_value
+        self.my_submission.name = "test-submission"
+
+        # mocking get_submission_by_name
+        self.my_root.get_submission_by_name.return_value = self.my_submission
+
+    def test_submit(self):
+        """Test submitting into biosample"""
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
@@ -128,10 +142,66 @@ class SubmitTestCase(TestCase):
         self.assertEqual(len(qs), 2)
 
         # assert called mock objects
-        self.assertTrue(my_root.called)
-        self.assertTrue(my_root.return_value.get_team_by_name.called)
-        self.assertTrue(my_team.create_submission.called)
-        self.assertEqual(my_submission.create_sample.call_count, 2)
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertTrue(self.my_team.create_submission.called)
+        self.assertFalse(self.my_root.get_submission_by_name.called)
+        self.assertEqual(self.my_submission.create_sample.call_count, 2)
+
+    # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
+    @patch("biosample.tasks.submit.retry")
+    @patch("biosample.tasks.submit_biosample")
+    def test_submit_retry(self, my_submit, my_retry):
+        """Test submissions with retry"""
+
+        # Set a side effect on the patched methods
+        # so that they raise the errors we want.
+        my_retry.side_effect = Retry()
+        my_submit.side_effect = ConnectionError()
+
+        with raises(Retry):
+            submit(submission_id=1)
+
+    def test_submit_recover(self):
+        """Test submission recovering"""
+
+        # update submission object
+        submission = Submission.objects.get(pk=self.submission_id)
+        submission.biosample_submission_id = "test-submission"
+        submission.save()
+
+        # set one name as uploaded
+        name = Name.objects.get(name='ANIMAL:::ID:::132713')
+        name.status = NAME_SUBMITTED
+        name.save()
+
+        # calling submit
+        res = submit(submission_id=1)
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # check submission.state changed
+        self.assertEqual(submission.status, SUBMITTED)
+        self.assertEqual(
+            submission.message,
+            "Waiting for biosample validation")
+        self.assertEqual(
+            submission.biosample_submission_id, "test-submission")
+
+        # check name status changed
+        qs = Name.objects.filter(status=NAME_SUBMITTED)
+        self.assertEqual(len(qs), 2)
+
+        # assert called mock objects
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertFalse(self.my_team.create_submission.called)
+        self.assertTrue(self.my_root.get_submission_by_name.called)
+        self.assertEqual(self.my_submission.create_sample.call_count, 1)
 
 
 class GetAuthTestCase(TestCase):
