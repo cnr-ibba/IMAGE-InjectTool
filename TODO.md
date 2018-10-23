@@ -29,15 +29,12 @@ InjectTool TODO
   - How I can update an already loaded biosample using a different submission from
     the first one?
   - If data loading fails, were I can fix my data? update submission view?
-  - What I have to do for fails in 3rd party API (ie: temporary issues on biosample
-    site)?
   - what the `edit data` in the submission detail view means? editing data into UID?
     Update submission view? if `uploaded_file` fields changes, what I have
     to do?
   - what happens if I update something after submission to biosample? need I track
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
-  - a partial submission need to be resumed  
   - simplify submission form: return form invalid if a token is near to expire;
     ask for token credentials as non mandatory fields, return to subission:detail
     after launching task
@@ -104,6 +101,7 @@ InjectTool TODO
     or updated
   - track time for changes and submission: if I change one sample after submission,
     i need to patch
+  - define a UID unique ID for samples and animals?
 
 * Regarding django 3rd party modules:
   - Install `django.contrib.sites` (it is useful?)
@@ -142,6 +140,7 @@ InjectTool TODO
   - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
+  - status must be a unique class for all table which need it
 
 * create a `commons` library to store all common stuff
 

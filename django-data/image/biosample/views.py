@@ -170,7 +170,7 @@ class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
             logger.error(repr(e))
 
             # maybe I typed a wrong password or there is an issue in biosample
-            # logg error in message and return form_invalid
+            # log error in message and return form_invalid
             # HINT: deal with two conditions?
 
             # parse error message
@@ -345,6 +345,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         # create a new auth object
         logger.debug("Generate a token for 'USI_MANAGER'")
 
+        # TODO: get an Auth instance from a helpers.method
         auth = Auth(
             user=config('USI_MANAGER'),
             password=config('USI_MANAGER_PASSWORD'))
@@ -355,7 +356,9 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
         # now create a team
         logger.debug("Creating team for %s" % (full_name))
-        team = admin.create_team(description=description)
+        team = admin.create_team(
+            description=description,
+            centreName=affiliation)
 
         logger.info("Team %s generated" % (team.name))
 

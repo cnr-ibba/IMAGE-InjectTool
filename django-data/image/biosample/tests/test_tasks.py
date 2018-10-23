@@ -312,6 +312,20 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         submission = Submission.objects.get(pk=self.submission_id)
         self.assertEqual(submission.status, COMPLETED)
 
+    # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
+    @patch("biosample.tasks.fetch_status.retry")
+    @patch("biosample.tasks.fetch_biosample_status")
+    def test_fetch_status_retry(self, my_fetch_biosample, my_fetch_status):
+        """Test submissions with retry"""
+
+        # Set a side effect on the patched methods
+        # so that they raise the errors we want.
+        my_fetch_status.side_effect = Retry()
+        my_fetch_biosample.side_effect = ConnectionError()
+
+        with raises(Retry):
+            fetch_status()
+
 
 class FetchNotInDBTestCase(FetchMixin, TestCase):
     """A submission not in db"""

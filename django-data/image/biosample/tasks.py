@@ -82,6 +82,7 @@ def submit(self, submission_id):
 
 def submit_biosample(token, team_name, submission_obj):
     # reading token in auth
+    # TODO: get an auth instance from an helpers method
     auth = Auth(token=token)
 
     logger.debug("getting biosample root")
@@ -149,9 +150,14 @@ def submit_biosample(token, team_name, submission_obj):
 
 
 # a function to get a valid auth object
+# TODO: create an Auth instance from a token
+# TODO: move in helpers module
 def get_auth(user=None, password=None):
+    """Returns an Auth instance"""
+
     if not user:
         user = config('USI_MANAGER')
+
     if not password:
         password = config('USI_MANAGER_PASSWORD')
 
@@ -159,7 +165,7 @@ def get_auth(user=None, password=None):
 
 
 # a function to finalize a submission
-def finalize(submission, obj):
+def finalize(submission, submission_obj):
     errors = submission.has_errors()
 
     if True in errors:
@@ -168,9 +174,9 @@ def finalize(submission, obj):
         logger.error("Fix them, then finalize")
 
         # Update status
-        obj.status = NEED_REVISION
-        obj.message = "Error in biosample submission"
-        obj.save()
+        submission_obj.status = NEED_REVISION
+        submission_obj.message = "Error in biosample submission"
+        submission_obj.save()
 
     else:
         logger.info("Finalizing submission %s" % (
@@ -248,8 +254,14 @@ def fetch_status(self):
 
     # check for queryset length
     if qs.count() != 0:
-        # fetch biosample status
-        fetch_biosample_status(qs)
+        try:
+            # fetch biosample status
+            fetch_biosample_status(qs)
+
+        # retry a task under errors
+        # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
+        except ConnectionError as exc:
+            raise self.retry(exc=exc)
 
     else:
         logger.debug("No pending submission in UID database")
