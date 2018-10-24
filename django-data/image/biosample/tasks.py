@@ -19,7 +19,7 @@ from pyUSIrest.client import Root
 from django.conf import settings
 from django.utils import timezone
 
-from image_app.models import Submission, Animal, Name
+from image_app.models import Submission, Animal, Name, Sample
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -37,6 +37,8 @@ WAITING = Submission.STATUSES.get_value('waiting')
 # get names statuses
 NAME_READY = Name.STATUSES.get_value('ready')
 NAME_SUBMITTED = Name.STATUSES.get_value('submitted')
+NAME_REVISION = Name.STATUSES.get_value('need_revision')
+NAME_COMPLETED = Name.STATUSES.get_value('completed')
 
 
 # a function to submit data into biosample
@@ -169,11 +171,33 @@ def finalize(submission, submission_obj):
     errors = submission.has_errors()
 
     if True in errors:
-        logger.error("Errors for submission: %s" % (
-                submission))
+        # get sample with errors then update database
+        samples = submission.get_samples(has_errors=True)
+
+        for sample in samples:
+            # derive pk and table from alias
+            table, pk = sample.alias.split("_")
+            table, pk = table.capitalize(), int(pk)
+
+            logger.debug("%s in table %s has errors!!!" % (sample, table))
+
+            if table == 'Sample':
+                sample_obj = Sample.objects.get(pk=pk)
+                sample_obj.name.status = NAME_REVISION
+                sample_obj.name.save()
+
+            elif table == 'Animal':
+                animal_obj = Animal.objects.get(pk=pk)
+                animal_obj.name.status = NAME_REVISION
+                animal_obj.name.save()
+
+            else:
+                raise Exception("Unknown table %s" % (table))
+
+        logger.error("Errors for submission: %s" % (submission))
         logger.error("Fix them, then finalize")
 
-        # Update status
+        # Update status for submission
         submission_obj.status = NEED_REVISION
         submission_obj.message = "Error in biosample submission"
         submission_obj.save()
@@ -209,15 +233,31 @@ def fetch_biosample_status(queryset):
 
         # Update submission status if completed
         if document.status == 'Completed':
+            # cicle along samples
+            for sample in submission.get_samples():
+                # derive pk and table from alias
+                table, pk = sample.alias.split("_")
+                table, pk = table.capitalize(), int(pk)
+
+                if table == 'Sample':
+                    sample_obj = Sample.objects.get(pk=pk)
+                    sample_obj.name.status = NAME_COMPLETED
+                    sample_obj.name.biosample_id = sample.accession
+                    sample_obj.name.save()
+
+                elif table == 'Animal':
+                    animal_obj = Animal.objects.get(pk=pk)
+                    animal_obj.name.status = NAME_COMPLETED
+                    animal_obj.name.biosample_id = sample.accession
+                    animal_obj.name.save()
+
+                else:
+                    raise Exception("Unknown table %s" % (table))
+
+            # update submission
             submission_obj.status = COMPLETED
             submission_obj.message = "Successful submission into biosample"
             submission_obj.save()
-
-            # cicle along samples
-            for sample in submission.get_samples():
-                logger.info(sample)
-
-                # TODO: fetch biosample ID and save them in name table
 
         elif document.status == 'Draft':
             # check validation. If it is ok, finalize submission

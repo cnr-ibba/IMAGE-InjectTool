@@ -319,7 +319,7 @@ class Name(BaseMixin, models.Model):
     # a column to track submission status
     status = models.SmallIntegerField(
             choices=[x.value for x in STATUSES],
-            help_text='example: Waiting',
+            help_text='example: Submitted',
             null=True,
             blank=True,
             default=0)
@@ -346,12 +346,6 @@ class BioSampleMixin(object):
 
     def __str__(self):
         return str(self.name)
-
-    def get_biosample_id(self):
-        """Get the biosample id or a temporary name"""
-
-        return self.name.biosample_id or "animal_%s" % (
-                self.id)
 
     def to_validation(self):
         """Common features to both Sample and Animal"""

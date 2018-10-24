@@ -35,6 +35,8 @@ COMPLETED = Submission.STATUSES.get_value('completed')
 # get names statuses
 NAME_READY = Name.STATUSES.get_value('ready')
 NAME_SUBMITTED = Name.STATUSES.get_value('submitted')
+NAME_REVISION = Name.STATUSES.get_value('need_revision')
+NAME_COMPLETED = Name.STATUSES.get_value('completed')
 
 
 class SubmitTestCase(TestCase):
@@ -287,6 +289,22 @@ class FetchMixin():
 class FetchCompletedTestCase(FetchMixin, TestCase):
     """a completed submission with two samples"""
 
+    fixtures = [
+        "submissions/user",
+        "submissions/dictcountry",
+        "submissions/dictrole",
+        "submissions/organization",
+        "submissions/submission",
+        "biosample/account",
+        "biosample/managedteam",
+        "image_app/dictsex",
+        "image_app/dictspecie",
+        "image_app/dictbreed",
+        "image_app/name",
+        "image_app/animal",
+        "image_app/sample"
+    ]
+
     def test_fetch_status(self):
         # a completed submission with two samples
         my_submission = Mock()
@@ -301,8 +319,12 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         # Add samples
         my_sample1 = Mock()
         my_sample1.name = "test-animal"
+        my_sample1.alias = "animal_1"
+        my_sample1.accession = "SAMEA0000001"
         my_sample2 = Mock()
         my_sample2.name = "test-sample"
+        my_sample2.alias = "sample_1"
+        my_sample2.accession = "SAMEA0000002"
         my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
         # assert task and mock methods called
@@ -311,6 +333,17 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         # assert status for submissions
         submission = Submission.objects.get(pk=self.submission_id)
         self.assertEqual(submission.status, COMPLETED)
+
+        # check name status changed
+        qs = Name.objects.filter(status=NAME_COMPLETED)
+        self.assertEqual(len(qs), 2)
+
+        # fetch two name objects
+        name = Name.objects.get(name='ANIMAL:::ID:::132713')
+        self.assertEqual(name.biosample_id, "SAMEA0000001")
+
+        name = Name.objects.get(name='Siems_0722_393449')
+        self.assertEqual(name.biosample_id, "SAMEA0000002")
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
     @patch("biosample.tasks.fetch_status.retry")
@@ -342,6 +375,22 @@ class FetchNotInDBTestCase(FetchMixin, TestCase):
 class FetchWithErrorsTestCase(FetchMixin, TestCase):
     """Test a submission with errors for biosample"""
 
+    fixtures = [
+        "submissions/user",
+        "submissions/dictcountry",
+        "submissions/dictrole",
+        "submissions/organization",
+        "submissions/submission",
+        "biosample/account",
+        "biosample/managedteam",
+        "image_app/dictsex",
+        "image_app/dictspecie",
+        "image_app/dictbreed",
+        "image_app/name",
+        "image_app/animal",
+        "image_app/sample"
+    ]
+
     def test_fetch_status(self):
         # a draft submission with errors
         my_submission = Mock()
@@ -355,11 +404,27 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         my_document.status = 'Draft'
         my_submission.follow_url.return_value = my_document
 
+        # Add samples
+        my_sample1 = Mock()
+        my_sample1.name = "test-animal"
+        my_sample1.alias = "animal_1"
+        my_sample2 = Mock()
+        my_sample2.name = "test-sample"
+        my_sample2.alias = "sample_1"
+
+        # simulate that animal_1 has errors
+        my_submission.get_samples.return_value = [my_sample1, my_sample2]
+
         # assert task and mock methods called
         self.common_tests(my_submission)
 
+        # assert submission status
         submission = Submission.objects.get(pk=self.submission_id)
         self.assertEqual(submission.status, NEED_REVISION)
+
+        # check name status changed
+        qs = Name.objects.filter(status=NAME_REVISION)
+        self.assertEqual(len(qs), 2)
 
 
 class FetchDraftTestCase(FetchMixin, TestCase):
