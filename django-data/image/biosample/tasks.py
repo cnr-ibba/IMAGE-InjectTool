@@ -8,6 +8,7 @@ Created on Tue Oct  2 16:07:58 2018
 
 import os
 import redis
+import celery
 
 from decouple import AutoConfig
 from celery import task
@@ -33,6 +34,7 @@ SUBMITTED = Submission.STATUSES.get_value('submitted')
 NEED_REVISION = Submission.STATUSES.get_value('need_revision')
 COMPLETED = Submission.STATUSES.get_value('completed')
 WAITING = Submission.STATUSES.get_value('waiting')
+ERROR = Submission.STATUSES.get_value('error')
 
 # get names statuses
 NAME_READY = Name.STATUSES.get_value('ready')
@@ -41,8 +43,25 @@ NAME_REVISION = Name.STATUSES.get_value('need_revision')
 NAME_COMPLETED = Name.STATUSES.get_value('completed')
 
 
+class SubmitTask(celery.Task):
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
+
+        # get submission_id from task arguments
+        submission_id = args[0]
+
+        # get submissio object
+        submission_obj = Submission.objects.get(pk=submission_id)
+
+        submission_obj.status = ERROR
+        submission_obj.message = "Error in biosample submission: %s" % str(exc)
+        submission_obj.save()
+
+        # TODO: send a mail to the user with the stacktrace (einfo)
+
+
 # a function to submit data into biosample
-@task(bind=True)
+@task(bind=True, base=SubmitTask)
 def submit(self, submission_id):
     # get submissio object
     submission = Submission.objects.get(pk=submission_id)
@@ -258,6 +277,10 @@ def fetch_biosample_status(queryset):
             submission_obj.status = COMPLETED
             submission_obj.message = "Successful submission into biosample"
             submission_obj.save()
+
+            logger.info(
+                "Submission %s is now completed and recorded into UID" % (
+                    submission))
 
         elif document.status == 'Draft':
             # check validation. If it is ok, finalize submission

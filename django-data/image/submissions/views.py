@@ -91,7 +91,7 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
         elif self.object.status == ERROR:
             messages.error(
                 request=self.request,
-                message='Error in importing data: %s' % self.object.message,
+                message=self.object.message,
                 extra_tags="alert alert-dismissible alert-danger")
 
         # TODO: add a message for a SUBMITTED status

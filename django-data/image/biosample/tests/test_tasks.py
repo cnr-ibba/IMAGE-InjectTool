@@ -8,6 +8,7 @@ Created on Tue Oct  9 14:51:13 2018
 
 import redis
 
+from billiard.einfo import ExceptionInfo
 from pytest import raises
 from collections import Counter
 from unittest.mock import patch, Mock
@@ -204,6 +205,27 @@ class SubmitTestCase(TestCase):
         self.assertFalse(self.my_team.create_submission.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
         self.assertEqual(self.my_submission.create_sample.call_count, 1)
+
+    def test_on_failure(self):
+        """Testing on failure methods"""
+
+        exc = Exception("Test")
+        task_id = "test_task_id"
+        args = [self.submission_id]
+        kwargs = {}
+        einfo = ExceptionInfo
+
+        # call on_failure method
+        submit.on_failure(exc, task_id, args, kwargs, einfo)
+
+        # check submission status and message
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # check submission.state changed
+        self.assertEqual(submission.status, ERROR)
+        self.assertEqual(
+            submission.message,
+            "Error in biosample submission: Test")
 
 
 class GetAuthTestCase(TestCase):

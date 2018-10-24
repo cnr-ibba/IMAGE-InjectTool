@@ -136,7 +136,7 @@ def upload_cryoweb(submission_id):
 
         # update submission status
         submission.status = ERROR
-        submission.message = "Cryoweb has data"
+        submission.message = "Error in importing data: Cryoweb has data"
         submission.save()
 
         raise CryoWebImportError("Cryoweb has data!")
@@ -169,7 +169,7 @@ def upload_cryoweb(submission_id):
     except Exception as exc:
         # save a message in database
         submission.status = ERROR
-        submission.message = str(exc)
+        submission.message = "Error in importing data: %s" % (str(exc))
         submission.save()
 
         # debug
@@ -412,7 +412,7 @@ def cryoweb_import(submission):
     except Exception as exc:
         # save a message in database
         submission.status = ERROR
-        submission.message = str(exc)
+        submission.message = "Error in importing data: %s" % (str(exc))
         submission.save()
 
         # debug

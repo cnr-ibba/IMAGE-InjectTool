@@ -143,4 +143,4 @@ class DetailSubmissionViewTest(TestCase):
         self.check_messages(
             response,
             "error",
-            "Error in importing data")
+            "Fake Error")
