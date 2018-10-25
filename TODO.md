@@ -95,8 +95,6 @@ InjectTool TODO
   - ask for user intervention / notify success
 
 * Regarding table `Name`:
-  - track status: need to known if a sample has been submitted or need to be submitted
-    or updated
   - track time for changes and submission: if I change one sample after submission,
     i need to patch
   - define a UID unique ID for samples and animals?
@@ -138,7 +136,7 @@ InjectTool TODO
   - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
-  
+
 * create a `commons` library to store all common stuff
 
 * Think about a message module to store info useful to the user:
@@ -146,5 +144,6 @@ InjectTool TODO
   - Submission fails with errors
   - Validation fails with errors
 
-* Performance Issues
+* Related to celery
   - Write celery tasks as classes
+  - consider using `celery-once` to do exclusive tasks

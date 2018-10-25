@@ -12,7 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.urls import reverse
 
-from image_app.models import Submission
+from image_app.models import Submission, STATUSES
 from submissions.templatetags.submissions_tags import can_validate
 
 from .forms import ValidateForm
@@ -22,7 +22,7 @@ from .tasks import validate_submission
 logger = logging.getLogger(__name__)
 
 # reading statuses
-WAITING = Submission.STATUSES.get_value('waiting')
+WAITING = STATUSES.get_value('waiting')
 
 
 class ValidateView(LoginRequiredMixin, FormView):

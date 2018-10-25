@@ -19,7 +19,7 @@ from django.contrib import messages
 from pyUSIrest.auth import Auth
 from pyUSIrest.client import User
 
-from image_app.models import Submission
+from image_app.models import Submission, STATUSES
 from submissions.templatetags.submissions_tags import can_submit
 
 from .forms import (
@@ -28,7 +28,7 @@ from .models import Account, ManagedTeam
 from .tasks import submit
 
 # get available statuses
-WAITING = Submission.STATUSES.get_value('waiting')
+WAITING = STATUSES.get_value('waiting')
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

@@ -16,8 +16,9 @@ import subprocess
 from django.conf import settings
 
 from decouple import AutoConfig
-from image_app.models import (Animal, DictBreed, DictCountry, DictSex,
-                              DictSpecie, Name, Sample, Submission, ACCURACY)
+from image_app.models import (
+    Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
+    Submission, ACCURACIES, STATUSES)
 from language.models import SpecieSynonim
 
 from .models import db_has_data as cryoweb_has_data
@@ -27,12 +28,12 @@ from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
 logger = logging.getLogger(__name__)
 
 # Set Submission statuses
-LOADED = Submission.STATUSES.get_value('loaded')
-ERROR = Submission.STATUSES.get_value('error')
+LOADED = STATUSES.get_value('loaded')
+ERROR = STATUSES.get_value('error')
 
 # get accuracy levels
-MISSING = ACCURACY.get_value('missing')
-UNKNOWN = ACCURACY.get_value('unknown')
+MISSING = ACCURACIES.get_value('missing')
+UNKNOWN = ACCURACIES.get_value('unknown')
 
 
 # --- check functions

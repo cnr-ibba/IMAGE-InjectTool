@@ -14,6 +14,8 @@ import urllib
 
 import requests
 
+from image_app.models import CONFIDENCES
+
 from .constants import ZOOMA_URL, ONTOLOGIES, TAXONOMY_URL
 
 
@@ -214,7 +216,7 @@ def annotate_country(country_obj):
         country_obj.term = term
 
         # get an int object for such confidence
-        confidence = country_obj.CONFIDENCE.get_value(
+        confidence = CONFIDENCES.get_value(
             result["confidence"].lower())
 
         country_obj.confidence = confidence
@@ -254,7 +256,7 @@ def annotate_breed(breed_obj):
         breed_obj.mapped_breed = result['text']
 
         # get an int object for such confidence
-        confidence = breed_obj.CONFIDENCE.get_value(
+        confidence = CONFIDENCES.get_value(
             result["confidence"].lower())
 
         breed_obj.confidence = confidence
@@ -292,7 +294,7 @@ def annotate_specie(specie_obj):
         specie_obj.term = term
 
         # get an int object for such confidence
-        confidence = specie_obj.CONFIDENCE.get_value(
+        confidence = CONFIDENCES.get_value(
             result["confidence"].lower())
 
         specie_obj.confidence = confidence

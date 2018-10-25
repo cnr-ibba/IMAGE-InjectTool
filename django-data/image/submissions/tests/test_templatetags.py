@@ -9,16 +9,16 @@ Created on Wed Sep 19 16:51:05 2018
 from django.test import TestCase
 from django.template import Template, Context
 
-from image_app.models import Submission
+from image_app.models import Submission, STATUSES
 
 
-WAITING = Submission.STATUSES.get_value('waiting')
-LOADED = Submission.STATUSES.get_value('loaded')
-ERROR = Submission.STATUSES.get_value('error')
-READY = Submission.STATUSES.get_value('ready')
-NEED_REVISION = Submission.STATUSES.get_value('need_revision')
-SUBMITTED = Submission.STATUSES.get_value('submitted')
-COMPLETED = Submission.STATUSES.get_value('completed')
+WAITING = STATUSES.get_value('waiting')
+LOADED = STATUSES.get_value('loaded')
+ERROR = STATUSES.get_value('error')
+READY = STATUSES.get_value('ready')
+NEED_REVISION = STATUSES.get_value('need_revision')
+SUBMITTED = STATUSES.get_value('submitted')
+COMPLETED = STATUSES.get_value('completed')
 
 
 class CommonTestCase():

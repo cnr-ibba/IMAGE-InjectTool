@@ -10,7 +10,7 @@ from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-from image_app.models import Submission
+from image_app.models import Submission, STATUSES
 
 from ..views import DetailSubmissionView
 
@@ -83,7 +83,7 @@ class DetailSubmissionViewTest(TestCase):
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.status = Submission.STATUSES.get_value('loaded')
+        submission.status = STATUSES.get_value('loaded')
         submission.save()
 
         # get a new response
@@ -100,7 +100,7 @@ class DetailSubmissionViewTest(TestCase):
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.status = Submission.STATUSES.get_value('submitted')
+        submission.status = STATUSES.get_value('submitted')
         submission.message = "submitted"
         submission.save()
 
@@ -118,7 +118,7 @@ class DetailSubmissionViewTest(TestCase):
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.status = Submission.STATUSES.get_value('completed')
+        submission.status = STATUSES.get_value('completed')
         submission.save()
 
         # get a new response
@@ -134,7 +134,7 @@ class DetailSubmissionViewTest(TestCase):
         # set loaded flag
         submission = Submission.objects.get(pk=1)
         submission.message = "Fake Error"
-        submission.status = Submission.STATUSES.get_value('error')
+        submission.status = STATUSES.get_value('error')
         submission.save()
 
         # get a new response

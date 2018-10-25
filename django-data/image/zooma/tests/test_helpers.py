@@ -10,15 +10,14 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from image_app.models import DictBreed, DictSpecie, DictCountry
+from image_app.models import DictBreed, DictSpecie, DictCountry, CONFIDENCES
 
 from ..helpers import (
     to_camel_case, from_camel_case, useZooma, get_taxonID_by_scientific_name,
     annotate_breed, annotate_specie, annotate_country)
 
 # some statuses. Confidence could be a inherithed object
-# TODO: one attribute for each confidence
-GOOD = DictBreed.CONFIDENCE.get_value('good')
+GOOD = CONFIDENCES.get_value('good')
 
 
 class TestCamelCase(TestCase):

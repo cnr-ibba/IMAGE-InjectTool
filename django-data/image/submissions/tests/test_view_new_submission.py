@@ -13,7 +13,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 import cryoweb.tests
-from image_app.models import DictCountry, Organization, Submission
+from image_app.models import DictCountry, Organization, Submission, STATUSES
 
 from ..forms import SubmissionForm
 from ..views import CreateSubmissionView
@@ -25,7 +25,7 @@ TEMPLATE_TYPE = Submission.TYPES.get_value('template')
 CRB_ANIM_TYPE = Submission.TYPES.get_value('crb_anim')
 
 # get submission status
-ERROR = Submission.STATUSES.get_value('error')
+ERROR = STATUSES.get_value('error')
 
 
 class Initialize(TestCase):

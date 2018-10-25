@@ -14,7 +14,7 @@ from django.http import HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, ListView
 
 from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission
+from image_app.models import Submission, STATUSES
 
 from .forms import SubmissionForm
 
@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 # reading statuses
-WAITING = Submission.STATUSES.get_value('waiting')
-ERROR = Submission.STATUSES.get_value('error')
-SUBMITTED = Submission.STATUSES.get_value('submitted')
+WAITING = STATUSES.get_value('waiting')
+ERROR = STATUSES.get_value('error')
+SUBMITTED = STATUSES.get_value('submitted')
 
 CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
 

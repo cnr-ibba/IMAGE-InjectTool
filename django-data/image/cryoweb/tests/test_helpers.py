@@ -18,7 +18,7 @@ from django.test import TestCase
 
 from language.models import SpecieSynonim
 from image_app.models import (
-    Submission, DictBreed, Name, Animal, Sample, DictSex)
+    Submission, DictBreed, Name, Animal, Sample, DictSex, STATUSES)
 
 from ..helpers import (
     upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
@@ -196,7 +196,7 @@ class UploadCryoweb(BaseTestCase, TestCase):
 
         self.assertEqual(
             self.submission.status,
-            Submission.STATUSES.get_value('error'))
+            STATUSES.get_value('error'))
 
         self.assertIn(
             "Cryoweb has data",
@@ -216,7 +216,7 @@ class UploadCryoweb(BaseTestCase, TestCase):
 
             self.assertEqual(
                 self.submission.status,
-                Submission.STATUSES.get_value('error'))
+                STATUSES.get_value('error'))
 
             self.assertIn(
                 "Test upload failed",
@@ -265,7 +265,7 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
 
         self.assertEqual(
             self.submission.status,
-            Submission.STATUSES.get_value('error'))
+            STATUSES.get_value('error'))
 
         self.assertIn(
             "Test message",

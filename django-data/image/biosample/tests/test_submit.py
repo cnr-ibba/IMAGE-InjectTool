@@ -16,7 +16,7 @@ from django.conf import settings
 from django.contrib.messages import get_messages
 from django.utils import timezone
 
-from image_app.models import Submission
+from image_app.models import Submission, STATUSES
 
 from ..forms import SubmitForm
 from ..views import SubmitView
@@ -26,12 +26,12 @@ from .test_token import generate_token
 
 
 # get available status
-READY = Submission.STATUSES.get_value('ready')
-WAITING = Submission.STATUSES.get_value('waiting')
-ERROR = Submission.STATUSES.get_value('error')
-SUBMITTED = Submission.STATUSES.get_value('submitted')
-LOADED = Submission.STATUSES.get_value('loaded')
-COMPLETED = Submission.STATUSES.get_value('completed')
+READY = STATUSES.get_value('ready')
+WAITING = STATUSES.get_value('waiting')
+ERROR = STATUSES.get_value('error')
+SUBMITTED = STATUSES.get_value('submitted')
+LOADED = STATUSES.get_value('loaded')
+COMPLETED = STATUSES.get_value('completed')
 
 
 class TestMixin(object):

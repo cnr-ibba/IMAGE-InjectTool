@@ -20,7 +20,7 @@ from pyUSIrest.client import Root
 from django.conf import settings
 from django.utils import timezone
 
-from image_app.models import Submission, Animal, Name, Sample
+from image_app.models import Submission, Animal, Sample, STATUSES
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -30,17 +30,12 @@ settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
 
 # Get Submission statuses
-SUBMITTED = Submission.STATUSES.get_value('submitted')
-NEED_REVISION = Submission.STATUSES.get_value('need_revision')
-COMPLETED = Submission.STATUSES.get_value('completed')
-WAITING = Submission.STATUSES.get_value('waiting')
-ERROR = Submission.STATUSES.get_value('error')
-
-# get names statuses
-NAME_READY = Name.STATUSES.get_value('ready')
-NAME_SUBMITTED = Name.STATUSES.get_value('submitted')
-NAME_REVISION = Name.STATUSES.get_value('need_revision')
-NAME_COMPLETED = Name.STATUSES.get_value('completed')
+SUBMITTED = STATUSES.get_value('submitted')
+NEED_REVISION = STATUSES.get_value('need_revision')
+COMPLETED = STATUSES.get_value('completed')
+WAITING = STATUSES.get_value('waiting')
+ERROR = STATUSES.get_value('error')
+READY = STATUSES.get_value('ready')
 
 
 class SubmitTask(celery.Task):
@@ -141,24 +136,24 @@ def submit_biosample(token, team_name, submission_obj):
             name__submission=submission_obj):
 
         # add animal if not yet submitted
-        if animal.name.status != NAME_SUBMITTED:
+        if animal.name.status != SUBMITTED:
             logger.info("Appending animal %s" % (animal))
             submission.create_sample(animal.to_biosample())
 
             # update animal status
-            animal.name.status = NAME_SUBMITTED
+            animal.name.status = SUBMITTED
             animal.name.last_submitted = timezone.now()
             animal.name.save()
 
         # Add their specimen
         for sample in animal.sample_set.all():
             # add sample if not yet submitted
-            if sample.name.status != NAME_SUBMITTED:
+            if sample.name.status != SUBMITTED:
                 logger.info("Appending sample %s" % (sample))
                 submission.create_sample(sample.to_biosample())
 
                 # update sample status
-                sample.name.status = NAME_SUBMITTED
+                sample.name.status = SUBMITTED
                 sample.name.last_submitted = timezone.now()
                 sample.name.save()
 
@@ -202,12 +197,12 @@ def finalize(submission, submission_obj):
 
             if table == 'Sample':
                 sample_obj = Sample.objects.get(pk=pk)
-                sample_obj.name.status = NAME_REVISION
+                sample_obj.name.status = NEED_REVISION
                 sample_obj.name.save()
 
             elif table == 'Animal':
                 animal_obj = Animal.objects.get(pk=pk)
-                animal_obj.name.status = NAME_REVISION
+                animal_obj.name.status = NEED_REVISION
                 animal_obj.name.save()
 
             else:
@@ -260,13 +255,13 @@ def fetch_biosample_status(queryset):
 
                 if table == 'Sample':
                     sample_obj = Sample.objects.get(pk=pk)
-                    sample_obj.name.status = NAME_COMPLETED
+                    sample_obj.name.status = COMPLETED
                     sample_obj.name.biosample_id = sample.accession
                     sample_obj.name.save()
 
                 elif table == 'Animal':
                     animal_obj = Animal.objects.get(pk=pk)
-                    animal_obj.name.status = NAME_COMPLETED
+                    animal_obj.name.status = COMPLETED
                     animal_obj.name.biosample_id = sample.accession
                     animal_obj.name.save()
 

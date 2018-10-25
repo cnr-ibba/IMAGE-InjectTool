@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # --- Enums
 
 
-class ACCURACY(Enum):
+class ACCURACIES(Enum):
     missing = (0, 'missing geographic information')
     country = (1, 'country level')
     region = (2, 'region level')
@@ -33,7 +33,7 @@ class ACCURACY(Enum):
 
 
 # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-class CONFIDENCE(Enum):
+class CONFIDENCES(Enum):
     high = (0, 'High')
     good = (1, 'Good')
     medium = (2, 'Medium')
@@ -53,7 +53,7 @@ class CONFIDENCE(Enum):
 # need_revision: validated data need checks before submission
 # submitted: submitted to biosample
 # completed: finalized submission with biosample id
-class STATUS(Enum):
+class STATUSES(Enum):
     waiting = (0, 'Waiting')
     loaded = (1, 'Loaded')
     submitted = (2, 'Submitted')
@@ -230,7 +230,7 @@ class Confidence(BaseMixin, models.Model):
 
     # confidence field (enum)
     confidence = models.SmallIntegerField(
-        choices=[x.value for x in CONFIDENCE],
+        choices=[x.value for x in CONFIDENCES],
         help_text='example: Manually Curated',
         null=True)
 
@@ -261,9 +261,6 @@ class DictCountry(DictBase, Confidence):
 
     # TODO: fk with Ontology table
 
-    # TODO: remove
-    CONFIDENCE = CONFIDENCE
-
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "country"
@@ -284,9 +281,6 @@ class DictSpecie(DictBase, Confidence):
 
     # TODO: fk with Ontology table
 
-    # TODO: remove
-    CONFIDENCE = CONFIDENCE
-
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "specie"
@@ -304,9 +298,6 @@ class DictBreed(Confidence):
     # this was the description field in cryoweb v_breeds_species tables
     supplied_breed = models.CharField(max_length=255, blank=False)
     mapped_breed = models.CharField(max_length=255, blank=False, null=True)
-
-    # TODO: remove
-    CONFIDENCE = CONFIDENCE
 
     # TODO add Mapped breed ontology library FK To Ontology
 #    mapped_breed_ontology_library = models.ForeignKey(
@@ -399,16 +390,11 @@ class Name(BaseMixin, models.Model):
         related_name='+',
         on_delete=models.CASCADE)
 
-    # TODO: remove
-    STATUSES = STATUS
-
     # a column to track submission status
     status = models.SmallIntegerField(
-            choices=[x.value for x in STATUS if x.name in NAME_STATUSES],
+            choices=[x.value for x in STATUSES if x.name in NAME_STATUSES],
             help_text='example: Submitted',
-            null=True,
-            blank=True,
-            default=0)
+            default=STATUSES.get_value('loaded'))
 
     last_changed = models.DateTimeField(
         auto_now_add=True,
@@ -487,11 +473,11 @@ class Animal(BioSampleMixin, models.Model):
 
     # accuracy field (enum)
     birth_location_accuracy = models.SmallIntegerField(
-        choices=[x.value for x in ACCURACY],
+        choices=[x.value for x in ACCURACIES],
         help_text='example: unknown accuracy level, country level',
         null=False,
         blank=False,
-        default=ACCURACY.get_value('missing'))
+        default=ACCURACIES.get_value('missing'))
 
     owner = models.ForeignKey(
         User,
@@ -620,11 +606,11 @@ class Sample(BioSampleMixin, models.Model):
 
     # accuracy field (enum)
     collection_place_accuracy = models.SmallIntegerField(
-        choices=[x.value for x in ACCURACY],
+        choices=[x.value for x in ACCURACIES],
         help_text='example: unknown accuracy level, country level',
         null=False,
         blank=False,
-        default=ACCURACY.get_value('missing'))
+        default=ACCURACIES.get_value('missing'))
 
     # TODO: move those fields to dictionary tables
     organism_part = models.CharField(max_length=255, blank=True, null=True)
@@ -948,16 +934,11 @@ class Submission(BaseMixin, models.Model):
 
     # TODO: add a field for last update
 
-    # TODO: remove
-    STATUSES = STATUS
-
     # a column to track submission status
     status = models.SmallIntegerField(
-            choices=[x.value for x in STATUS],
+            choices=[x.value for x in STATUSES],
             help_text='example: Waiting',
-            null=True,
-            blank=True,
-            default=0)
+            default=STATUSES.get_value('waiting'))
 
     # a field to track errors in UID loading. Should be blank if no errors
     # are found

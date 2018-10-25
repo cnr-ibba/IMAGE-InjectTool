@@ -18,26 +18,20 @@ from celery.exceptions import Retry
 from django.test import TestCase
 from django.conf import settings
 
-from image_app.models import Submission, Person, Name
+from image_app.models import Submission, Person, Name, STATUSES
 
 from ..tasks import submit, fetch_status, get_auth
 from .test_token import generate_token
 from ..models import ManagedTeam
 
 # get available status
-WAITING = Submission.STATUSES.get_value('waiting')
-LOADED = Submission.STATUSES.get_value('loaded')
-SUBMITTED = Submission.STATUSES.get_value('submitted')
-ERROR = Submission.STATUSES.get_value('error')
-NEED_REVISION = Submission.STATUSES.get_value('need_revision')
-READY = Submission.STATUSES.get_value('ready')
-COMPLETED = Submission.STATUSES.get_value('completed')
-
-# get names statuses
-NAME_READY = Name.STATUSES.get_value('ready')
-NAME_SUBMITTED = Name.STATUSES.get_value('submitted')
-NAME_REVISION = Name.STATUSES.get_value('need_revision')
-NAME_COMPLETED = Name.STATUSES.get_value('completed')
+WAITING = STATUSES.get_value('waiting')
+LOADED = STATUSES.get_value('loaded')
+SUBMITTED = STATUSES.get_value('submitted')
+ERROR = STATUSES.get_value('error')
+NEED_REVISION = STATUSES.get_value('need_revision')
+READY = STATUSES.get_value('ready')
+COMPLETED = STATUSES.get_value('completed')
 
 
 class SubmitTestCase(TestCase):
@@ -98,7 +92,7 @@ class SubmitTestCase(TestCase):
         submission.save()
 
         # set status for names, like validation does
-        Name.objects.all().update(status=NAME_READY)
+        Name.objects.all().update(status=READY)
 
         # track submission ID
         self.submission_id = submission.id
@@ -141,7 +135,7 @@ class SubmitTestCase(TestCase):
         self.assertEqual(submission.biosample_submission_id, "test-submission")
 
         # check name status changed
-        qs = Name.objects.filter(status=NAME_SUBMITTED)
+        qs = Name.objects.filter(status=SUBMITTED)
         self.assertEqual(len(qs), 2)
 
         # assert called mock objects
@@ -175,7 +169,7 @@ class SubmitTestCase(TestCase):
 
         # set one name as uploaded
         name = Name.objects.get(name='ANIMAL:::ID:::132713')
-        name.status = NAME_SUBMITTED
+        name.status = SUBMITTED
         name.save()
 
         # calling submit
@@ -196,7 +190,7 @@ class SubmitTestCase(TestCase):
             submission.biosample_submission_id, "test-submission")
 
         # check name status changed
-        qs = Name.objects.filter(status=NAME_SUBMITTED)
+        qs = Name.objects.filter(status=SUBMITTED)
         self.assertEqual(len(qs), 2)
 
         # assert called mock objects
@@ -357,7 +351,7 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         self.assertEqual(submission.status, COMPLETED)
 
         # check name status changed
-        qs = Name.objects.filter(status=NAME_COMPLETED)
+        qs = Name.objects.filter(status=COMPLETED)
         self.assertEqual(len(qs), 2)
 
         # fetch two name objects
@@ -445,7 +439,7 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         self.assertEqual(submission.status, NEED_REVISION)
 
         # check name status changed
-        qs = Name.objects.filter(status=NAME_REVISION)
+        qs = Name.objects.filter(status=NEED_REVISION)
         self.assertEqual(len(qs), 2)
 
 

@@ -13,7 +13,7 @@ from django.views.generic import TemplateView
 
 from cryoweb.models import db_has_data as cryoweb_has_data
 
-from ..models import Submission, uid_report
+from ..models import Submission, STATUSES, uid_report
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -57,9 +57,9 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         context['datasource_count'] = Submission.objects.count()
 
         # count loaded objects into biosample
-        completed = Submission.STATUSES.get_value('completed')
+        COMPLETED = STATUSES.get_value('completed')
         context['datasource_completed'] = Submission.objects.filter(
-            status=completed).count()
+            status=COMPLETED).count()
 
         # add info for cryoweb db
         context["cryoweb_hasdata"] = False
