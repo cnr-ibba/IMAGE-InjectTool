@@ -8,7 +8,7 @@ Created on Tue Sep 11 14:34:27 2018
 
 import os
 
-from celery import Celery, Task
+from celery import Celery
 from celery.utils.log import get_task_logger
 from celery.signals import setup_logging
 
@@ -37,7 +37,7 @@ def configure_logging(sender=None, **kwargs):
     logging.config.dictConfig(settings.LOGGING)
 
 
-class MyTask(Task):
+class MyTask(app.Task):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 

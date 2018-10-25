@@ -181,3 +181,119 @@ def get_taxonID_by_scientific_name(scientific_name):
     logger.debug("Got taxonId %s for %s" % (taxonId, scientific_name))
 
     return taxonId
+
+
+def annotatate_country(country_obj):
+    """Annotate a country object using Zooma"""
+
+    logger.debug("Processing %s" % (country_obj))
+
+    result = useZooma(country_obj.label, "country")
+
+    # update object (if possible)
+    if result:
+        url = result['ontologyTerms']
+        # https://stackoverflow.com/a/7253830
+        term = url.rsplit('/', 1)[-1]
+
+        # check that term have a correct ontology
+        # TODO: move this check in useZooma and relate with Ontology
+        # table
+        if term.split("_")[0] != "GAZ":
+            logger.error(
+                "Got an unexpected term for %s: %s" % (
+                    country_obj, term))
+
+            # ignore such term
+            return
+
+        # The ontology seems correct. Annotate!
+        logger.info("Updating %s with %s" % (country_obj, result))
+        url = result['ontologyTerms']
+
+        country_obj.term = term
+
+        # get an int object for such confidence
+        confidence = country_obj.CONFIDENCE.get_value(
+            result["confidence"].lower())
+
+        country_obj.confidence = confidence
+        country_obj.save()
+
+
+def annotate_breed(breed_obj):
+    """Annotate a breed object using Zooma"""
+
+    logger.debug("Processing %s" % (breed_obj))
+
+    result = useZooma(
+        breed_obj.supplied_breed, "breed")
+
+    # update object (if possible)
+    if result:
+        url = result['ontologyTerms']
+        # https://stackoverflow.com/a/7253830
+        term = url.rsplit('/', 1)[-1]
+
+        # check that term have a correct ontology
+        # TODO: move this check in useZooma and relate with Ontology
+        # table
+        if term.split("_")[0] != "LBO":
+            logger.error(
+                "Got an unexpected term for %s: %s" % (
+                    breed_obj, term))
+
+            # ignore such term
+            return
+
+        # The ontology seems correct. Annotate!
+        logger.info("Updating %s with %s" % (breed_obj, result))
+        url = result['ontologyTerms']
+
+        breed_obj.mapped_breed_term = term
+        breed_obj.mapped_breed = result['text']
+
+        # get an int object for such confidence
+        confidence = breed_obj.CONFIDENCE.get_value(
+            result["confidence"].lower())
+
+        breed_obj.confidence = confidence
+        breed_obj.save()
+
+
+def annotate_specie(specie_obj):
+    """Annotate a specie object using Zooma"""
+
+    logger.debug("getting ontology term for %s" % (specie_obj))
+
+    result = useZooma(specie_obj.label, "species")
+
+    # update object (if possible)
+    if result:
+        url = result['ontologyTerms']
+        # https://stackoverflow.com/a/7253830
+        term = url.rsplit('/', 1)[-1]
+
+        # check that term have a correct ontology
+        # TODO: move this check in useZooma and relate with Ontology
+        # table
+        if term.split("_")[0] != "NCBITaxon":
+            logger.error(
+                "Got an unexpected term for %s: %s" % (
+                    specie_obj, term))
+
+            # ignore such term
+            return
+
+        # The ontology seems correct. Annotate!
+        logger.info("Updating %s with %s" % (specie_obj, result))
+        url = result['ontologyTerms']
+
+        specie_obj.term = term
+
+        # get an int object for such confidence
+        confidence = specie_obj.CONFIDENCE.get_value(
+            result["confidence"].lower())
+
+        specie_obj.confidence = confidence
+        specie_obj.save()

@@ -307,6 +307,7 @@ def fetch_biosample_status(queryset):
 
 
 # define a function to get biosample statuses for submissions
+# TODO: ensure one process running with locking
 @task(bind=True)
 def fetch_status(self):
     logger.info("fetch_status started")

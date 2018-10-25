@@ -93,8 +93,6 @@ InjectTool TODO
 
 * Biosample manager user should do:
   - ask for user intervention / notify success
-  - fetch biosample id when submission is finalized and completed
-  - track sample failed if submission fails.
 
 * Regarding table `Name`:
   - track status: need to known if a sample has been submitted or need to be submitted
@@ -148,3 +146,6 @@ InjectTool TODO
   - The token is expired during submission; resume submission
   - Submission fails with errors
   - Validation fails with errors
+
+* Performance Issues
+  - Write celery tasks as classes
