@@ -170,16 +170,6 @@ EMAIL_PORT = <your smtp port>
 > NOTE: Your email provider (ie Gmail) could untrust email sent from an unkwnown
 address, you need to log in and authorize email sent from a new address
 
-### Start composed image
-
-Pages are served by an nginx docker container controlled by Docker Compose
-(see the docker-compose.yml file content). In order to start the service:
-
-```bash
-# cd <working directory>
-$ docker-compose up -d
-```
-
 The Inject Tool interface is available for a local access through Internet browser at the URL:
 `http://localhost:26080/image/`.
 
@@ -216,6 +206,16 @@ folder:
 ```
 $ docker-compose run --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media'
 $ docker-compose run --rm uwsgi sh -c 'chmod -R g+rwx media && chgrp -R www-data .'
+```
+
+### Start composed image
+
+Pages are served by an nginx docker container controlled by Docker Compose
+(see the docker-compose.yml file content). In order to start the service:
+
+```bash
+# cd <project directory>
+$ docker-compose up -d
 ```
 
 ### Other useful commands

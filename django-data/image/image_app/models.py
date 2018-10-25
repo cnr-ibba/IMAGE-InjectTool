@@ -17,9 +17,72 @@ from .helpers import format_attribute
 logger = logging.getLogger(__name__)
 
 
+# --- Enums
+
+
+class ACCURACY(Enum):
+    missing = (0, 'missing geographic information')
+    country = (1, 'country level')
+    region = (2, 'region level')
+    precise = (3, 'precise coordinates')
+    unknown = (4, 'unknown accuracy level')
+
+    @classmethod
+    def get_value(cls, member):
+        return cls[member].value[0]
+
+
+# 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+class CONFIDENCE(Enum):
+    high = (0, 'High')
+    good = (1, 'Good')
+    medium = (2, 'Medium')
+    low = (3, 'Low')
+    curated = (4, 'Manually Curated')
+
+    @classmethod
+    def get_value(cls, member):
+        return cls[member].value[0]
+
+
+# 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+# waiting: waiting to upload data (or process them!)
+# loaded: data loaded into UID, can validate
+# error: error in uploading data into UID or in submission
+# ready: validated data ready for submission
+# need_revision: validated data need checks before submission
+# submitted: submitted to biosample
+# completed: finalized submission with biosample id
+class STATUS(Enum):
+    waiting = (0, 'Waiting')
+    loaded = (1, 'Loaded')
+    submitted = (2, 'Submitted')
+    error = (3, 'Error')
+    need_revision = (4, 'Need Revision')
+    ready = (5, "Ready")
+    completed = (6, "Completed")
+
+    @classmethod
+    def get_value(cls, member):
+        return cls[member].value[0]
+
+
+# a list of a valid statuse for names
+NAME_STATUSES = [
+    'loaded',
+    'ready',
+    'need_revision',
+    'submitted',
+    'completed'
+]
+
+
+# --- Mixins
+
+
 # Adding a classmethod to Category if you want to enable truncate
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/truncate.html
-class BaseMixin():
+class BaseMixin(object):
     "Base class for cryoweb tables"
 
     @classmethod
@@ -35,313 +98,7 @@ class BaseMixin():
             cursor.execute(statement)
 
 
-# helper classes
-class DictMixin():
-    """Base class for dictionary tables"""
-
-    def __str__(self):
-        return "{label} ({term})".format(
-                label=self.label,
-                term=self.term)
-
-    def to_validation(self):
-        biosample = dict(text=self.label)
-
-        if self.term:
-            biosample["ontologyTerms"] = "/".join([
-                OBO_URL,
-                self.term]
-            )
-
-        return biosample
-
-
-class DictRole(DictMixin, BaseMixin, models.Model):
-    """A class to model roles defined as childs of
-    http://www.ebi.ac.uk/efo/EFO_0002012"""
-
-    # if not defined, this table will have an own primary key
-    label = models.CharField(
-            max_length=255,
-            blank=False,
-            help_text="Example: submitter")
-
-    term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: EFO_0001741")
-
-    # TODO: fk with Ontology table
-
-    class Meta:
-        # db_table will be <app_name>_<classname>
-        verbose_name = "role"
-        unique_together = (("label", "term"),)
-
-
-class DictCountry(DictMixin, BaseMixin, models.Model):
-    """A class to model contries defined by Gazetteer
-    https://www.ebi.ac.uk/ols/ontologies/gaz"""
-
-    # if not defined, this table will have an own primary key
-    label = models.CharField(
-            max_length=255,
-            blank=False,
-            help_text="Example: Germany")
-
-    term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: GAZ_00002646")
-
-    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-    class CONFIDENCE(Enum):
-        high = (0, 'High')
-        good = (1, 'Good')
-        medium = (2, 'Medium')
-        low = (3, 'Low')
-        curated = (4, 'Manually Curated')
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
-
-    # confidence field (enum)
-    confidence = models.SmallIntegerField(
-        choices=[x.value for x in CONFIDENCE],
-        help_text='example: Manually Curated',
-        null=True)
-
-    # TODO: fk with Ontology table
-
-    class Meta:
-        # db_table will be <app_name>_<classname>
-        verbose_name = "country"
-        verbose_name_plural = "countries"
-        unique_together = (("label", "term"),)
-
-
-class DictSpecie(DictMixin, BaseMixin, models.Model):
-    """A class to model species defined by NCBI organismal classification
-    http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
-
-    # if not defined, this table will have an own primary key
-    label = models.CharField(
-        max_length=255,
-        blank=False,
-        help_text="Example: Sus scrofa")
-
-    @property
-    def taxon_id(self):
-        if not self.term or self.term == '':
-            return None
-
-        return int(self.term.split("_")[-1])
-
-    term = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text="Example: NCBITaxon_9823")
-
-    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-    class CONFIDENCE(Enum):
-        high = (0, 'High')
-        good = (1, 'Good')
-        medium = (2, 'Medium')
-        low = (3, 'Low')
-        curated = (4, 'Manually Curated')
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
-
-    # confidence field (enum)
-    confidence = models.SmallIntegerField(
-        choices=[x.value for x in CONFIDENCE],
-        help_text='example: Manually Curated',
-        null=True)
-
-    # TODO: fk with Ontology table
-
-    class Meta:
-        # db_table will be <app_name>_<classname>
-        verbose_name = "specie"
-        unique_together = (("label", "term"),)
-
-    @classmethod
-    def get_by_synonim(cls, synonim, language):
-        # return an object
-        return cls.objects.get(
-            speciesynonim__word=synonim,
-            speciesynonim__language__label=language)
-
-
-class DictBreed(BaseMixin, models.Model):
-    # this was the description field in cryoweb v_breeds_species tables
-    supplied_breed = models.CharField(max_length=255, blank=False)
-    mapped_breed = models.CharField(max_length=255, blank=False, null=True)
-
-    # TODO add Mapped breed ontology library FK To Ontology
-#    mapped_breed_ontology_library = models.ForeignKey(
-#            'Ontology',
-#            db_index=True)
-
-    mapped_breed_term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: LBO_0000347")
-
-    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-    class CONFIDENCE(Enum):
-        high = (0, 'High')
-        good = (1, 'Good')
-        medium = (2, 'Medium')
-        low = (3, 'Low')
-        curated = (4, 'Manually Curated')
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
-
-    # confidence field (enum)
-    confidence = models.SmallIntegerField(
-        choices=[x.value for x in CONFIDENCE],
-        help_text='example: Manually Curated',
-        null=True)
-
-    # using a constraint for country.
-    country = models.ForeignKey(
-        'DictCountry',
-        on_delete=models.PROTECT)
-
-    # using a constraint for specie
-    specie = models.ForeignKey(
-        'DictSpecie',
-        on_delete=models.PROTECT)
-
-    def __str__(self):
-        # return mapped breed if defined
-        if self.mapped_breed:
-            return str(self.mapped_breed)
-
-        else:
-            return str(self.supplied_breed)
-
-    def to_validation(self):
-        result = {}
-
-        result['suppliedBreed'] = self.supplied_breed
-
-        # Add mapped breed and its term if I have them
-        if self.mapped_breed and self.mapped_breed_term:
-            result['mappedBreed'] = {
-                    'text': self.mapped_breed,
-                    'ontologyTerms': "/".join([
-                        OBO_URL,
-                        self.mapped_breed_term]
-                    ),
-            }
-
-        result['country'] = self.country.to_validation()
-        return result
-
-    class Meta:
-        verbose_name = 'Breed'
-
-        # HINT: would mapped_breed ba a better choice to define a unique key
-        # using breed and species? in that case, mapped breed need to have a
-        # default value, ex the descricption (supplied_breed)
-        unique_together = (("supplied_breed", "specie"),)
-
-
-class DictSex(DictMixin, BaseMixin, models.Model):
-    """A class to model sex as defined in PATO"""
-
-    label = models.CharField(
-            max_length=255,
-            blank=False,
-            unique=True,
-            help_text="Example: male")
-
-    term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: PATO_0000384")
-
-    class Meta:
-        verbose_name = 'sex'
-        verbose_name_plural = 'sex'
-
-
-class Name(BaseMixin, models.Model):
-    """Model UID names: define a name (sample or animal) unique for each
-    data submission"""
-
-    # two different animal may have the same name. Its unicity depens on
-    # data source name and version
-    name = models.CharField(
-            max_length=255,
-            blank=False,
-            null=False)
-
-    submission = models.ForeignKey(
-        'Submission',
-        db_index=True,
-        related_name='name_set',
-        on_delete=models.CASCADE)
-
-    # This need to be assigned after submission
-    # HINT: this column should be UNIQUE?
-    biosample_id = models.CharField(max_length=255, blank=True, null=True)
-
-    # '+' instructs Django that we don’t need this reverse relationship
-    owner = models.ForeignKey(
-        User,
-        related_name='+',
-        on_delete=models.CASCADE)
-
-    class STATUSES(Enum):
-        loaded = (0, 'Loaded')
-        ready = (1, "Ready")
-        need_revision = (2, 'Need Revision')
-        submitted = (3, 'Submitted')
-        completed = (4, "Completed")
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
-
-    # a column to track submission status
-    status = models.SmallIntegerField(
-            choices=[x.value for x in STATUSES],
-            help_text='example: Submitted',
-            null=True,
-            blank=True,
-            default=0)
-
-    last_changed = models.DateTimeField(
-        auto_now_add=True,
-        blank=True,
-        null=True)
-
-    last_submitted = models.DateTimeField(
-        blank=True,
-        null=True)
-
-    class Meta:
-        unique_together = (("name", "submission"),)
-
-    def __str__(self):
-        # HINT: should I return biosampleid if defined?
-        return "%s (Submission: %s)" % (self.name, self.submission_id)
-
-
-class BioSampleMixin(object):
+class BioSampleMixin(BaseMixin):
     """Common methods for animal and samples"""
 
     def __str__(self):
@@ -427,19 +184,250 @@ class BioSampleMixin(object):
         return attributes
 
 
-class ACCURACY(Enum):
-        missing = (0, 'missing geographic information')
-        country = (1, 'country level')
-        region = (2, 'region level')
-        precise = (3, 'precise coordinates')
-        unknown = (4, 'unknown accuracy level')
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
+# --- Abstract classes
 
 
-class Animal(BioSampleMixin, BaseMixin, models.Model):
+# helper classes
+class DictBase(BaseMixin, models.Model):
+    """Base class for dictionary tables"""
+
+    # if not defined, this table will have an own primary key
+    label = models.CharField(
+            max_length=255,
+            blank=False,
+            help_text="Example: submitter")
+
+    term = models.CharField(
+            max_length=255,
+            blank=False,
+            null=True,
+            help_text="Example: EFO_0001741")
+
+    class Meta:
+        # Abstract base classes are useful when you want to put some common
+        # information into a number of other models
+        abstract = True
+
+    def __str__(self):
+        return "{label} ({term})".format(
+                label=self.label,
+                term=self.term)
+
+    def to_validation(self):
+        biosample = dict(text=self.label)
+
+        if self.term:
+            biosample["ontologyTerms"] = "/".join([
+                OBO_URL,
+                self.term]
+            )
+
+        return biosample
+
+
+class Confidence(BaseMixin, models.Model):
+    """Add confidence to models"""
+
+    # confidence field (enum)
+    confidence = models.SmallIntegerField(
+        choices=[x.value for x in CONFIDENCE],
+        help_text='example: Manually Curated',
+        null=True)
+
+    class Meta:
+        # Abstract base classes are useful when you want to put some common
+        # information into a number of other models
+        abstract = True
+
+
+# --- database models
+
+
+class DictRole(DictBase):
+    """A class to model roles defined as childs of
+    http://www.ebi.ac.uk/efo/EFO_0002012"""
+
+    # TODO: fk with Ontology table
+
+    class Meta:
+        # db_table will be <app_name>_<classname>
+        verbose_name = "role"
+        unique_together = (("label", "term"),)
+
+
+class DictCountry(DictBase, Confidence):
+    """A class to model contries defined by Gazetteer
+    https://www.ebi.ac.uk/ols/ontologies/gaz"""
+
+    # TODO: fk with Ontology table
+
+    # TODO: remove
+    CONFIDENCE = CONFIDENCE
+
+    class Meta:
+        # db_table will be <app_name>_<classname>
+        verbose_name = "country"
+        verbose_name_plural = "countries"
+        unique_together = (("label", "term"),)
+
+
+class DictSpecie(DictBase, Confidence):
+    """A class to model species defined by NCBI organismal classification
+    http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
+
+    @property
+    def taxon_id(self):
+        if not self.term or self.term == '':
+            return None
+
+        return int(self.term.split("_")[-1])
+
+    # TODO: fk with Ontology table
+
+    # TODO: remove
+    CONFIDENCE = CONFIDENCE
+
+    class Meta:
+        # db_table will be <app_name>_<classname>
+        verbose_name = "specie"
+        unique_together = (("label", "term"),)
+
+    @classmethod
+    def get_by_synonim(cls, synonim, language):
+        # return an object
+        return cls.objects.get(
+            speciesynonim__word=synonim,
+            speciesynonim__language__label=language)
+
+
+class DictBreed(Confidence):
+    # this was the description field in cryoweb v_breeds_species tables
+    supplied_breed = models.CharField(max_length=255, blank=False)
+    mapped_breed = models.CharField(max_length=255, blank=False, null=True)
+
+    # TODO: remove
+    CONFIDENCE = CONFIDENCE
+
+    # TODO add Mapped breed ontology library FK To Ontology
+#    mapped_breed_ontology_library = models.ForeignKey(
+#            'Ontology',
+#            db_index=True)
+
+    mapped_breed_term = models.CharField(
+            max_length=255,
+            blank=False,
+            null=True,
+            help_text="Example: LBO_0000347")
+
+    # using a constraint for country.
+    country = models.ForeignKey(
+        'DictCountry',
+        on_delete=models.PROTECT)
+
+    # using a constraint for specie
+    specie = models.ForeignKey(
+        'DictSpecie',
+        on_delete=models.PROTECT)
+
+    def __str__(self):
+        # return mapped breed if defined
+        if self.mapped_breed:
+            return str(self.mapped_breed)
+
+        else:
+            return str(self.supplied_breed)
+
+    def to_validation(self):
+        result = {}
+
+        result['suppliedBreed'] = self.supplied_breed
+
+        # Add mapped breed and its term if I have them
+        if self.mapped_breed and self.mapped_breed_term:
+            result['mappedBreed'] = {
+                    'text': self.mapped_breed,
+                    'ontologyTerms': "/".join([
+                        OBO_URL,
+                        self.mapped_breed_term]
+                    ),
+            }
+
+        result['country'] = self.country.to_validation()
+        return result
+
+    class Meta:
+        verbose_name = 'Breed'
+
+        # HINT: would mapped_breed ba a better choice to define a unique key
+        # using breed and species? in that case, mapped breed need to have a
+        # default value, ex the descricption (supplied_breed)
+        unique_together = (("supplied_breed", "specie"),)
+
+
+class DictSex(DictBase):
+    """A class to model sex as defined in PATO"""
+
+    class Meta:
+        verbose_name = 'sex'
+        verbose_name_plural = 'sex'
+
+
+class Name(BaseMixin, models.Model):
+    """Model UID names: define a name (sample or animal) unique for each
+    data submission"""
+
+    # two different animal may have the same name. Its unicity depens on
+    # data source name and version
+    name = models.CharField(
+            max_length=255,
+            blank=False,
+            null=False)
+
+    submission = models.ForeignKey(
+        'Submission',
+        db_index=True,
+        related_name='name_set',
+        on_delete=models.CASCADE)
+
+    # This need to be assigned after submission
+    # HINT: this column should be UNIQUE?
+    biosample_id = models.CharField(max_length=255, blank=True, null=True)
+
+    # '+' instructs Django that we don’t need this reverse relationship
+    owner = models.ForeignKey(
+        User,
+        related_name='+',
+        on_delete=models.CASCADE)
+
+    # TODO: remove
+    STATUSES = STATUS
+
+    # a column to track submission status
+    status = models.SmallIntegerField(
+            choices=[x.value for x in STATUS if x.name in NAME_STATUSES],
+            help_text='example: Submitted',
+            null=True,
+            blank=True,
+            default=0)
+
+    last_changed = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        null=True)
+
+    last_submitted = models.DateTimeField(
+        blank=True,
+        null=True)
+
+    class Meta:
+        unique_together = (("name", "submission"),)
+
+    def __str__(self):
+        # HINT: should I return biosampleid if defined?
+        return "%s (Submission: %s)" % (self.name, self.submission_id)
+
+
+class Animal(BioSampleMixin, models.Model):
     # an animal name has a entry in name table
     name = models.OneToOneField(
         'Name',
@@ -600,7 +588,7 @@ class Animal(BioSampleMixin, BaseMixin, models.Model):
         return result
 
 
-class Sample(BioSampleMixin, BaseMixin, models.Model):
+class Sample(BioSampleMixin, models.Model):
     # a sample name has a entry in name table
     # this is a One2One foreign key
     name = models.OneToOneField(
@@ -836,24 +824,6 @@ class Person(BaseMixin, models.Model):
                 affiliation=self.affiliation)
 
 
-# https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
-# we will now define signals so our Person model will be automatically
-# created/updated when we create/update User instances.
-# Basically we are hooking the create_user_person and save_user_person
-# methods to the User model, whenever a save event occurs. This kind of signal
-# is called post_save.
-# TODO: add default values when creating a superuser
-@receiver(post_save, sender=User)
-def create_user_person(sender, instance, created, **kwargs):
-    if created:
-        Person.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_person(sender, instance, **kwargs):
-    instance.person.save()
-
-
 class Organization(BaseMixin, models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     name = models.CharField(max_length=255)
@@ -978,30 +948,12 @@ class Submission(BaseMixin, models.Model):
 
     # TODO: add a field for last update
 
-    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-    # waiting: waiting to upload data (or process them!)
-    # loaded: data loaded into UID, can validate
-    # error: error in uploading data into UID
-    # ready: validated data ready for submission
-    # need_revision: validated data need checks before submission
-    # submitted: submitted to biosample
-    # completed: finalized submission with biosample id
-    class STATUSES(Enum):
-        waiting = (0, 'Waiting')
-        loaded = (1, 'Loaded')
-        submitted = (2, 'Submitted')
-        error = (3, 'Error')
-        need_revision = (4, 'Need Revision')
-        ready = (5, "Ready")
-        completed = (6, "Completed")
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
+    # TODO: remove
+    STATUSES = STATUS
 
     # a column to track submission status
     status = models.SmallIntegerField(
-            choices=[x.value for x in STATUSES],
+            choices=[x.value for x in STATUS],
             help_text='example: Waiting',
             null=True,
             blank=True,
@@ -1053,6 +1005,24 @@ class Submission(BaseMixin, models.Model):
 
 
 # --- Custom functions
+
+
+# https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html#onetoone
+# we will now define signals so our Person model will be automatically
+# created/updated when we create/update User instances.
+# Basically we are hooking the create_user_person and save_user_person
+# methods to the User model, whenever a save event occurs. This kind of signal
+# is called post_save.
+# TODO: add default values when creating a superuser
+@receiver(post_save, sender=User)
+def create_user_person(sender, instance, created, **kwargs):
+    if created:
+        Person.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_person(sender, instance, **kwargs):
+    instance.person.save()
 
 
 # A method to truncate database
