@@ -12,7 +12,7 @@ from celery.utils.log import get_task_logger
 from image.celery import app as celery_app, MyTask
 from image_app.models import DictCountry, DictBreed, DictSpecie
 
-from .helpers import annotatate_country, annotate_breed, annotate_specie
+from .helpers import annotate_country, annotate_breed, annotate_specie
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -29,7 +29,7 @@ class AnnotateCountries(MyTask):
 
         # get all countries without a term
         for country in DictCountry.objects.filter(term__isnull=True):
-            annotatate_country(country)
+            annotate_country(country)
 
         logger.debug("Annotate countries completed")
 
@@ -74,7 +74,7 @@ class AnnotateSpecies(MyTask):
 # --- task registering
 
 
-# register explicitly task
+# register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(AnnotateCountries)
 celery_app.tasks.register(AnnotateBreeds)

@@ -10,7 +10,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 from image_app.models import DictCountry
-from zooma.helpers import annotatate_country
+from zooma.helpers import annotate_country
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -22,4 +22,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # get all countries without a term
         for country in DictCountry.objects.filter(term__isnull=True):
-            annotatate_country(country)
+            annotate_country(country)

@@ -10,11 +10,17 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
+from image_app.models import DictBreed, DictSpecie, DictCountry
+
 from ..helpers import (
-    to_camel_case, from_camel_case, useZooma, get_taxonID_by_scientific_name)
+    to_camel_case, from_camel_case, useZooma, get_taxonID_by_scientific_name,
+    annotate_breed, annotate_specie, annotate_country)
+
+# some statuses. Confidence could be a inherithed object
+# TODO: one attribute for each confidence
+GOOD = DictBreed.CONFIDENCE.get_value('good')
 
 
-# Create your tests here.
 class TestCamelCase(TestCase):
     def test_to_camel_case(self):
         data = [
@@ -272,3 +278,196 @@ class TestTaxon(TestCase):
             test = get_taxonID_by_scientific_name("Homo sapiens")
             self.assertEqual(test, 9606)
             self.assertTrue(mock_get.called)
+
+
+class TestAnnotateBreed(TestCase):
+    """A class to test annotate breeds"""
+
+    fixtures = [
+        "image_app/dictbreed",
+        "image_app/dictcountry",
+        "image_app/dictspecie"
+    ]
+
+    def setUp(self):
+        # get a breed object
+        self.breed = DictBreed.objects.get(pk=1)
+
+        # erase attributes
+        self.breed.mapped_breed = None
+        self.breed.mapped_breed_term = None
+        self.breed.confidence = None
+        self.breed.save()
+
+    @patch("zooma.helpers.useZooma")
+    def test_annotate_breed(self, my_zooma):
+        """Testing annotate breed"""
+
+        my_zooma.return_value = {
+            'type': 'breed',
+            'confidence': 'Good',
+            'text': 'Bentheim Black Pied',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
+        }
+
+        # call my method
+        annotate_breed(self.breed)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.breed.refresh_from_db()
+
+        self.assertEqual(self.breed.mapped_breed, "Bentheim Black Pied")
+        self.assertEqual(self.breed.mapped_breed_term, "LBO_0000347")
+        self.assertEqual(self.breed.confidence, GOOD)
+
+    @patch("zooma.helpers.useZooma")
+    def test_no_annotation(self, my_zooma):
+        """Ignore terms with non expected ontology"""
+
+        # a fake object
+        my_zooma.return_value = {
+            'type': 'breed',
+            'confidence': 'Good',
+            'text': 'Bentheim Black Pied',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002646'
+        }
+
+        # call my method
+        annotate_breed(self.breed)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.breed.refresh_from_db()
+
+        self.assertIsNone(self.breed.mapped_breed)
+        self.assertIsNone(self.breed.mapped_breed_term)
+        self.assertIsNone(self.breed.confidence)
+
+
+class TestAnnotateCountry(TestCase):
+    """A class to test annotate countries"""
+
+    fixtures = [
+        "image_app/dictcountry",
+    ]
+
+    def setUp(self):
+        # get a country object
+        self.country = DictCountry.objects.get(pk=1)
+
+        # erase attributes
+        self.country.term = None
+        self.country.confidence = None
+        self.country.save()
+
+    @patch("zooma.helpers.useZooma")
+    def test_annotate_country(self, my_zooma):
+        """Testing annotate country"""
+
+        my_zooma.return_value = {
+            'type': 'country',
+            'confidence': 'Good',
+            'text': 'Germany',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002646'
+        }
+
+        # call my method
+        annotate_country(self.country)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.country.refresh_from_db()
+
+        self.assertEqual(self.country.label, "Germany")
+        self.assertEqual(self.country.term, "GAZ_00002646")
+        self.assertEqual(self.country.confidence, GOOD)
+
+    @patch("zooma.helpers.useZooma")
+    def test_no_annotation(self, my_zooma):
+        """Ignore terms with non expected ontology"""
+
+        # a fake object
+        my_zooma.return_value = {
+            'type': 'country',
+            'confidence': 'Good',
+            'text': 'Germany',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
+        }
+
+        # call my method
+        annotate_country(self.country)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.country.refresh_from_db()
+
+        self.assertIsNone(self.country.term)
+        self.assertIsNone(self.country.confidence)
+
+
+class TestAnnotateSpecie(TestCase):
+    """A class to test annotate species"""
+
+    fixtures = [
+        "image_app/dictspecie",
+    ]
+
+    def setUp(self):
+        # get a specie object
+        self.specie = DictSpecie.objects.get(pk=1)
+
+        # erase attributes
+        self.specie.term = None
+        self.specie.confidence = None
+        self.specie.save()
+
+    @patch("zooma.helpers.useZooma")
+    def test_annotate_specie(self, my_zooma):
+        """Testing annotate specie"""
+
+        my_zooma.return_value = {
+            'type': 'specie',
+            'confidence': 'Good',
+            'text': 'Sus scrofa',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/NCBITaxon_9823'
+        }
+
+        # call my method
+        annotate_specie(self.specie)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.specie.refresh_from_db()
+
+        self.assertEqual(self.specie.label, "Sus scrofa")
+        self.assertEqual(self.specie.term, "NCBITaxon_9823")
+        self.assertEqual(self.specie.confidence, GOOD)
+
+    @patch("zooma.helpers.useZooma")
+    def test_no_annotation(self, my_zooma):
+        """Ignore terms with non expected ontology"""
+
+        # a fake object
+        my_zooma.return_value = {
+            'type': 'specie',
+            'confidence': 'Good',
+            'text': 'Germany',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
+        }
+
+        # call my method
+        annotate_specie(self.specie)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.specie.refresh_from_db()
+
+        self.assertIsNone(self.specie.term)
+        self.assertIsNone(self.specie.confidence)

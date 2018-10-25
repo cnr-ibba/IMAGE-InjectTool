@@ -139,6 +139,7 @@ InjectTool TODO
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
   - status must be a unique class for all table which need it
+  - confidence must be a unique class for all tables which need it
 
 * create a `commons` library to store all common stuff
 

@@ -183,7 +183,7 @@ def get_taxonID_by_scientific_name(scientific_name):
     return taxonId
 
 
-def annotatate_country(country_obj):
+def annotate_country(country_obj):
     """Annotate a country object using Zooma"""
 
     logger.debug("Processing %s" % (country_obj))
