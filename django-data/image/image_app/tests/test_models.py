@@ -146,7 +146,7 @@ class DictCountryTestCase(TestCase):
     def setUp(self):
         # my attributes
         self.label = 'Germany'
-        self.term = 'NCIT_C16636'
+        self.term = 'GAZ_00002646'
 
     def test_to_validation(self):
         """Testing specie to biosample json"""
@@ -206,7 +206,7 @@ class DictBreedTestCase(TestCase):
                 "text": "Germany",
                 "ontologyTerms": "/".join([
                     OBO_URL,
-                    "NCIT_C16636"]
+                    "GAZ_00002646"]
                 ),
             },
             "mappedBreed": {
@@ -239,7 +239,7 @@ class DictBreedTestCase(TestCase):
                 "text": "Germany",
                 "ontologyTerms": "/".join([
                     OBO_URL,
-                    "NCIT_C16636"]
+                    "GAZ_00002646"]
                 ),
             },
         }
@@ -351,7 +351,7 @@ class AnimalTestCase(TestCase):
                     "text": "Germany",
                     "ontologyTerms": "/".join([
                         OBO_URL,
-                        "NCIT_C16636"]
+                        "GAZ_00002646"]
                     ),
                 },
                 "mappedBreed": {
@@ -411,7 +411,7 @@ class AnimalTestCase(TestCase):
                     "text": "Germany",
                     "ontologyTerms": "/".join([
                         OBO_URL,
-                        "NCIT_C16636"]
+                        "GAZ_00002646"]
                     ),
                 },
                 "mappedBreed": {

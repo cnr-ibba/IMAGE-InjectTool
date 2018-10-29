@@ -21,7 +21,7 @@ from django.conf import settings
 
 class ActivationTest(TestCase):
     fixtures = [
-        "accounts/dictcountry.json",
+        "image_app/dictcountry.json",
         "image_app/dictrole.json",
         "accounts/organization.json"
     ]

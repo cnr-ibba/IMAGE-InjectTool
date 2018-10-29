@@ -75,7 +75,7 @@
         "value": "Germany",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/NCIT_C16636"
+            "url": "http://purl.obolibrary.org/obo/GAZ_00002646"
           }
         ]
       }
@@ -120,7 +120,7 @@
         "value": "Germany",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/NCIT_C16636"
+            "url": "http://purl.obolibrary.org/obo/GAZ_00002646"
           }
         ]
       }

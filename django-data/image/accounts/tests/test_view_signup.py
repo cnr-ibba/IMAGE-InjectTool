@@ -44,7 +44,7 @@ class SignUpTests(TestCase):
 
 class SuccessfulSignUpTests(TestCase):
     fixtures = [
-        "accounts/dictcountry.json",
+        "image_app/dictcountry.json",
         "image_app/dictrole.json",
         "accounts/organization.json"
     ]

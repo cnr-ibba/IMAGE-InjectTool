@@ -54,7 +54,7 @@ class ResendActivationViewTest(TestCase):
 
 class BaseTest(TestCase):
     fixtures = [
-        "accounts/dictcountry.json",
+        "image_app/dictcountry.json",
         "image_app/dictrole.json",
         "accounts/organization.json"
     ]
