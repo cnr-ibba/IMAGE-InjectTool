@@ -18,11 +18,11 @@ class ImportCryowebTest(TestCase):
     # import this file and populate database once
     fixtures = [
         "cryoweb/user",
-        "cryoweb/dictrole",
+        "image_app/dictrole",
         "cryoweb/organization",
         "cryoweb/dictcountry",
-        "cryoweb/submission",
-        "cryoweb/dictsex",
+        "image_app/submission",
+        "image_app/dictsex",
         "cryoweb/dictspecie",
         "cryoweb/speciesynonim"
     ]

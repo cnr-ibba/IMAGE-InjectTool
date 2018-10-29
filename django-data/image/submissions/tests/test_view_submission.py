@@ -21,9 +21,9 @@ class DetailSubmissionViewTest(TestCase):
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
-        "submissions/dictrole",
+        "image_app/dictrole",
         "submissions/organization",
-        "submissions/submission"
+        "image_app/submission"
     ]
 
     def check_messages(self, response, tag, message_text):

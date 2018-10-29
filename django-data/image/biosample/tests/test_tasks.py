@@ -38,9 +38,9 @@ class SubmitTestCase(TestCase):
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
-        "submissions/dictrole",
+        "image_app/dictrole",
         "submissions/organization",
-        "submissions/submission",
+        "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
         "image_app/dictsex",
@@ -237,9 +237,9 @@ class FetchMixin():
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
-        "submissions/dictrole",
+        "image_app/dictrole",
         "submissions/organization",
-        "submissions/submission",
+        "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
     ]
@@ -308,9 +308,9 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
-        "submissions/dictrole",
+        "image_app/dictrole",
         "submissions/organization",
-        "submissions/submission",
+        "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
         "image_app/dictsex",
@@ -394,9 +394,9 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
-        "submissions/dictrole",
+        "image_app/dictrole",
         "submissions/organization",
-        "submissions/submission",
+        "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
         "image_app/dictsex",

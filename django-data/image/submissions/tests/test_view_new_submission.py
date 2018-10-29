@@ -33,7 +33,7 @@ class Initialize(TestCase):
 
     fixtures = [
         "submissions/user",
-        "submissions/dictrole",
+        "image_app/dictrole",
         "submissions/dictcountry",
         "submissions/organization",
     ]

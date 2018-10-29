@@ -27,9 +27,9 @@ class CommonTestCase():
     fixtures = [
         "submissions/user",
         "submissions/dictcountry",
-        "submissions/dictrole",
+        "image_app/dictrole",
         "submissions/organization",
-        "submissions/submission"
+        "image_app/submission"
     ]
 
     def setUp(self):

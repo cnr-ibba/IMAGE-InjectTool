@@ -89,7 +89,7 @@ class MyAccountViewTest(Basetest):
 class SuccessfulMyAccountViewTests(Basetest):
     fixtures = [
         "accounts/dictcountry.json",
-        "accounts/dictrole.json",
+        "image_app/dictrole.json",
         "accounts/organization.json"
     ]
 

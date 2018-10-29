@@ -98,7 +98,7 @@ class CreateUserViewTest(Basetest):
 class SuccessfulCreateUserViewTest(Basetest):
     fixtures = [
         "biosample/dictcountry.json",
-        "biosample/dictrole.json",
+        "image_app/dictrole.json",
         "biosample/organization.json"
     ]
 
