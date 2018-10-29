@@ -113,7 +113,6 @@ InjectTool TODO
   - implement functional testing
   - a user can't use an already register email for activation. Test it
   - test each management command, or at least that it works
-  - simplify fixture, remove redundancy
 
 * Regarding languages, dictionaries and ontology terms:
   - Where managing tasks like zooma are called? before validation pages?

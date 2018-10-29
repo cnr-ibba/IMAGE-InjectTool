@@ -19,10 +19,10 @@ class DetailSubmissionViewTest(TestCase):
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "submissions/user",
-        "submissions/dictcountry",
+        "image_app/user",
+        "image_app/dictcountry",
         "image_app/dictrole",
-        "submissions/organization",
+        "image_app/organization",
         "image_app/submission"
     ]
 

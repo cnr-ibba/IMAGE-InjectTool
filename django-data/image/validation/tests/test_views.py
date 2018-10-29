@@ -28,10 +28,10 @@ class TestMixin(object):
     """Base class for validation tests"""
 
     fixtures = [
-        "submissions/user",
-        "submissions/dictcountry",
+        "image_app/user",
+        "image_app/dictcountry",
         "image_app/dictrole",
-        "submissions/organization",
+        "image_app/organization",
         "image_app/submission"
     ]
 

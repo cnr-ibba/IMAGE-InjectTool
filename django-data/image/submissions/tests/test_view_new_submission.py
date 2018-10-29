@@ -32,10 +32,10 @@ class Initialize(TestCase):
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "submissions/user",
+        "image_app/user",
         "image_app/dictrole",
-        "submissions/dictcountry",
-        "submissions/organization",
+        "image_app/dictcountry",
+        "image_app/organization",
     ]
 
     def setUp(self):
