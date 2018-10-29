@@ -147,3 +147,6 @@ InjectTool TODO
 * Related to celery
   - Write celery tasks as classes
   - consider using `celery-once` to do exclusive tasks
+  - test celery task against these [rules](https://blog.daftcode.pl/working-with-asynchronous-celery-tasks-lessons-learned-32bb7495586b):
+    - idenpotence (select_for_update)
+    - acks late

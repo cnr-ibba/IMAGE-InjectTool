@@ -17,6 +17,7 @@ from celery.utils.log import get_task_logger
 from pyUSIrest.auth import Auth
 from pyUSIrest.client import Root
 
+from django.db import transaction
 from django.conf import settings
 from django.utils import timezone
 
@@ -302,14 +303,17 @@ def fetch_biosample_status(queryset):
 
 
 # define a function to get biosample statuses for submissions
-# TODO: ensure one process running with locking
+# transaction atomic in order to prevent two fetch_status task run in the same
+# time, using select_for_update
 @task(bind=True)
+@transaction.atomic
 def fetch_status(self):
     logger.info("fetch_status started")
 
     # search for submission with SUBMITTED status. Other submission are not yet
-    # finalized
-    qs = Submission.objects.filter(status=SUBMITTED)
+    # finalized. Ensure one process running with locking:
+    qs = Submission.objects.select_for_update(
+        nowait=True).filter(status=SUBMITTED)
 
     # check for queryset length
     if qs.count() != 0:
