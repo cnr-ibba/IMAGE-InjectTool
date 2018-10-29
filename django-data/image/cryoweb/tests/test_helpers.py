@@ -29,10 +29,10 @@ from ..models import db_has_data, truncate_database, BreedsSpecies
 class BaseTestCase():
     # import this file and populate database once
     fixtures = [
-        "cryoweb/user",
+        "image_app/user",
         "image_app/dictrole",
-        "cryoweb/organization",
-        "cryoweb/dictcountry",
+        "image_app/organization",
+        "image_app/dictcountry",
         "image_app/submission",
         "image_app/dictsex",
         "cryoweb/dictspecie",
