@@ -97,9 +97,9 @@ class CreateUserViewTest(Basetest):
 
 class SuccessfulCreateUserViewTest(Basetest):
     fixtures = [
-        "biosample/dictcountry.json",
+        "image_app/dictcountry.json",
         "image_app/dictrole.json",
-        "biosample/organization.json"
+        "image_app/organization.json"
     ]
 
     def setUp(self):

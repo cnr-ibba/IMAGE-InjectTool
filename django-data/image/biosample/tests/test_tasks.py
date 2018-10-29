@@ -36,10 +36,10 @@ COMPLETED = STATUSES.get_value('completed')
 
 class SubmitTestCase(TestCase):
     fixtures = [
-        "submissions/user",
-        "submissions/dictcountry",
+        "image_app/user",
+        "image_app/dictcountry",
         "image_app/dictrole",
-        "submissions/organization",
+        "image_app/organization",
         "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
@@ -235,10 +235,10 @@ class FetchMixin():
     """Mixin for fetching status"""
 
     fixtures = [
-        "submissions/user",
-        "submissions/dictcountry",
+        "image_app/user",
+        "image_app/dictcountry",
         "image_app/dictrole",
-        "submissions/organization",
+        "image_app/organization",
         "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
@@ -306,10 +306,10 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
     """a completed submission with two samples"""
 
     fixtures = [
-        "submissions/user",
-        "submissions/dictcountry",
+        "image_app/user",
+        "image_app/dictcountry",
         "image_app/dictrole",
-        "submissions/organization",
+        "image_app/organization",
         "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
@@ -392,10 +392,10 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
     """Test a submission with errors for biosample"""
 
     fixtures = [
-        "submissions/user",
-        "submissions/dictcountry",
+        "image_app/user",
+        "image_app/dictcountry",
         "image_app/dictrole",
-        "submissions/organization",
+        "image_app/organization",
         "image_app/submission",
         "biosample/account",
         "biosample/managedteam",
