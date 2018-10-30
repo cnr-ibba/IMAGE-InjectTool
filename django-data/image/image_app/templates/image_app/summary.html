@@ -27,6 +27,7 @@
   </ul>
 
   <p class="lead">
+    {# submission list must be active if I have submission. Make a templatetag #}
     <a class="btn btn-primary btn-lg" href="{% url 'submissions:list' %}" role="button">Submissions List</a>
     <a class="btn btn-secondary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
   </p>

@@ -11,6 +11,7 @@ import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
 
 from image_app.models import Submission, STATUSES
 from submissions.templatetags.submissions_tags import can_validate
@@ -36,7 +37,10 @@ class ValidateView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         submission_id = form.cleaned_data['submission_id']
-        submission = Submission.objects.get(pk=submission_id)
+        submission = get_object_or_404(
+            Submission,
+            pk=submission_id,
+            owner=self.request.user)
 
         # track submission id in order to render page
         self.submission_id = submission_id

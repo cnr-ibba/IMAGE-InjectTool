@@ -337,3 +337,53 @@ class InvalidSubmitViewTest(TestMixin, TestCase):
         """Invalid post data returns the form"""
 
         self.assertEqual(self.response.status_code, 200)
+
+
+class ErrorSubmitViewtest(TestMixin, TestCase):
+    """A class to test submission not belonging to the user or which doesn't
+    exists"""
+
+    @patch('biosample.views.submit.delay')
+    def setUp(self, my_submit):
+        self.client = Client()
+        self.client.login(username='test2', password='test2')
+
+        # get a submission object
+        submission = Submission.objects.get(pk=1)
+
+        # set a status which I can ready
+        submission.status = READY
+        submission.save()
+
+        # track submission ID
+        self.submission_id = submission.id
+
+        # get the url for dashboard
+        self.url = reverse('biosample:submit')
+
+        # track my patched function
+        self.my_submit = my_submit
+
+    def test_ownership(self):
+        """Test a non-owner having a 404 response"""
+
+        response = self.client.post(
+            self.url, {
+                'submission_id': self.submission_id
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(self.my_submit.called)
+
+    def test_does_not_exists(self):
+        """Test a submission which doesn't exists"""
+
+        response = self.client.post(
+            self.url, {
+                'submission_id': 99
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(self.my_submit.called)

@@ -9,7 +9,7 @@ from django.conf import settings
 from django.urls import reverse_lazy, reverse
 from django.utils.crypto import get_random_string
 from django.utils.http import is_safe_url
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
@@ -437,7 +437,10 @@ class SubmitView(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         submission_id = form.cleaned_data['submission_id']
-        submission = Submission.objects.get(pk=submission_id)
+        submission = get_object_or_404(
+            Submission,
+            pk=submission_id,
+            owner=self.request.user)
 
         # track submission id in order to render page
         self.submission_id = submission_id

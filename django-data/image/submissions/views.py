@@ -15,6 +15,7 @@ from django.views.generic import CreateView, DetailView, ListView
 
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, STATUSES
+from common.views import OwnerMixin
 
 from .forms import SubmissionForm
 
@@ -26,6 +27,7 @@ logger = logging.getLogger(__name__)
 WAITING = STATUSES.get_value('waiting')
 ERROR = STATUSES.get_value('error')
 SUBMITTED = STATUSES.get_value('submitted')
+NEED_REVISION = STATUSES.get_value('need_revision')
 
 CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
 
@@ -70,7 +72,7 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DetailSubmissionView(LoginRequiredMixin, DetailView):
+class DetailSubmissionView(OwnerMixin, DetailView):
     model = Submission
     template_name = "submissions/submission_detail.html"
 
@@ -88,15 +90,11 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
                 message=message,
                 extra_tags="alert alert-dismissible alert-warning")
 
-        elif self.object.status == ERROR:
+        elif self.object.status in [ERROR, NEED_REVISION]:
             messages.error(
                 request=self.request,
                 message=self.object.message,
                 extra_tags="alert alert-dismissible alert-danger")
-
-        # TODO: add a message for a SUBMITTED status
-
-        # TODO: add a message for NEED_REVISION status
 
         elif self.object.message is not None and self.object.message != '':
             messages.debug(
@@ -107,7 +105,7 @@ class DetailSubmissionView(LoginRequiredMixin, DetailView):
         return data
 
 
-class ListSubmissionsView(LoginRequiredMixin, ListView):
+class ListSubmissionsView(OwnerMixin, ListView):
     model = Submission
     template_name = "submissions/submission_list.html"
     ordering = ['-created_at']

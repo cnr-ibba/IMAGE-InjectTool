@@ -37,10 +37,10 @@ class DashBoardView(LoginRequiredMixin, TemplateView):
     # I will check if I have submissions or not. If yes, I will set True
     # to a context variable. In the dashboard template I will render the link
     # active only if I have submissions
-    # TODO: update for user submission
     # HINT: render this with a custom template tags
     def get_context_data(self, **kwargs):
-        kwargs['have_submission'] = Submission.objects.exists()
+        kwargs['have_submission'] = Submission.objects.filter(
+            owner=self.request.user).exists()
         return super().get_context_data(**kwargs)
 
 

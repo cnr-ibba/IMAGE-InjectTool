@@ -223,3 +223,53 @@ class InvalidValidateViewTest(TestMixin, TestCase):
         """check no validation process started"""
 
         self.assertFalse(self.my_validation.called)
+
+
+class ErrorValidateViewtest(TestMixin, TestCase):
+    """A class to test submission not belonging to the user or which doesn't
+    exists"""
+
+    @patch('validation.views.validate_submission.delay')
+    def setUp(self, my_validation):
+        self.client = Client()
+        self.client.login(username='test2', password='test2')
+
+        # get a submission object
+        submission = Submission.objects.get(pk=1)
+
+        # set a status which I can validate
+        submission.status = LOADED
+        submission.save()
+
+        # track submission ID
+        self.submission_id = submission.id
+
+        # get the url for dashboard
+        self.url = reverse('validation:validate')
+
+        # track my patched function
+        self.my_validation = my_validation
+
+    def test_ownership(self):
+        """Test a non-owner having a 404 response"""
+
+        response = self.client.post(
+            self.url, {
+                'submission_id': self.submission_id
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(self.my_validation.called)
+
+    def test_does_not_exists(self):
+        """Test a submission which doesn't exists"""
+
+        response = self.client.post(
+            self.url, {
+                'submission_id': 99
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(self.my_validation.called)

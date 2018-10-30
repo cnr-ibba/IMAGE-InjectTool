@@ -16,7 +16,7 @@ from ..views import DetailSubmissionView
 
 
 class DetailSubmissionViewTest(TestCase):
-    """Does the common stuff when testing cases are run"""
+    """Test Submission DetailView"""
 
     fixtures = [
         "image_app/user",
@@ -64,6 +64,15 @@ class DetailSubmissionViewTest(TestCase):
 
     def test_status_code(self):
         self.assertEqual(self.response.status_code, 200)
+
+    def test_ownership(self):
+        """Test a non-owner having a 404 response"""
+
+        client = Client()
+        client.login(username='test2', password='test2')
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 404)
 
     def test_url_resolves_view(self):
         view = resolve('/submissions/1/')
