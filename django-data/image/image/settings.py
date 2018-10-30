@@ -262,6 +262,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 #     STATIC_ROOT,
 # ]
 
+# restrict access to media URLs
+# https://gist.github.com/cobusc/ea1d01611ef05dacb0f33307e292abf4
+PROTECTED_MEDIA_ROOT = os.path.join(BASE_DIR, "protected/")
+PROTECTED_MEDIA_URL = "/image/protected/"
+
+# Prefix used in nginx config
+PROTECTED_MEDIA_LOCATION_PREFIX = "/image/internal/"
+
 # Django registration redux. One-week activation window;
 ACCOUNT_ACTIVATION_DAYS = 7
 

@@ -18,7 +18,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # get the file list from the filesystem
         data_source_dir = os.path.join(
-                settings.MEDIA_ROOT,
+                settings.PROTECTED_MEDIA_ROOT,
                 Submission.upload_dir)
 
         data_source_files = os.listdir(data_source_dir)
@@ -38,7 +38,7 @@ class Command(BaseCommand):
         for datasource_file in data_source_files:
             if datasource_file not in database_files:
                 to_remove = os.path.join(
-                        settings.MEDIA_ROOT,
+                        settings.PROTECTED_MEDIA_ROOT,
                         datasource_file)
 
                 # debug

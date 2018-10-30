@@ -10,6 +10,8 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 
+from common.fields import ProtectedFileField
+
 from .constants import OBO_URL
 from .helpers import format_attribute
 
@@ -927,7 +929,10 @@ class Submission(BaseMixin, models.Model):
 
     # custom fields for datasource
     upload_dir = 'data_source/'
-    uploaded_file = models.FileField(upload_to=upload_dir)
+
+    # File will be stored to PROTECTED_MEDIA_ROOT + upload_to
+    # https://gist.github.com/cobusc/ea1d01611ef05dacb0f33307e292abf4
+    uploaded_file = ProtectedFileField(upload_to=upload_dir)
 
     # when submission is created
     created_at = models.DateTimeField(auto_now_add=True)

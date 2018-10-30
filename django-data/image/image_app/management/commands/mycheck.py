@@ -41,7 +41,7 @@ class TestDB(unittest.TestCase):
 
         # get the file list from the filesystem
         data_source_dir = os.path.join(
-                settings.MEDIA_ROOT,
+                settings.PROTECTED_MEDIA_ROOT,
                 Submission.upload_dir)
 
         data_source_files = os.listdir(data_source_dir)
@@ -70,4 +70,4 @@ class TestDB(unittest.TestCase):
             "\n in {}"
             "\n try "
             "\n $ ...manage.py clean_backup command "
-            "".format(settings.MEDIA_ROOT))
+            "".format(settings.PROTECTED_MEDIA_ROOT))

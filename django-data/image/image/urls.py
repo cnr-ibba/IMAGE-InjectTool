@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 # importing image views
-from image_app.views import AboutView, IndexView
+from image_app.views import AboutView, IndexView, protected_view
 
 # renaming admin app (login, admin brand and page title)
 # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/change_text.html
@@ -59,6 +59,8 @@ urlpatterns = [
             namespace="submissions")),
     url(r'^admin/', admin.site.urls),
     url(r'^about/$', AboutView.as_view(), name='about'),
+    url(r"^protected/(?P<path>.*)$",
+        protected_view)
 ]
 
 # Activate django-debug-toolbar only when settings.DEBUG is True

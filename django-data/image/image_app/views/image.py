@@ -6,10 +6,15 @@ Created on Tue Feb  6 15:04:07 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
+import os
 import logging
 
+from django.utils.encoding import smart_str
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
+from django.conf import settings
+from django.http import HttpResponse
 
 from cryoweb.models import db_has_data as cryoweb_has_data
 
@@ -71,3 +76,25 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         context["uid_report"] = uid_report()
 
         return context
+
+
+# https://gist.github.com/cobusc/ea1d01611ef05dacb0f33307e292abf4
+@login_required
+def protected_view(request, path):
+    """
+    Redirect the request to the path used by nginx for protected media.
+    """
+
+    # derive useful stuff
+    full_path = os.path.join(
+        settings.PROTECTED_MEDIA_LOCATION_PREFIX, path
+    )
+    file_name = os.path.basename(path)
+
+    # force django to attach file in response
+    # https://stackoverflow.com/a/1158750/4385116
+    response = HttpResponse(content_type='application/force-download')
+    response["X-Accel-Redirect"] = smart_str(full_path)
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+        file_name)
+    return response
