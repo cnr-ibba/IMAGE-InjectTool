@@ -1,6 +1,8 @@
 
 {% extends "base.html" %}
 
+{% load submissions_tags %}
+
 {% block title %}
   InjectTool Data Summary
 {% endblock title %}
@@ -11,13 +13,7 @@
 
   <ul>
     <li>You have {{datasource_count}} data sources loaded
-      ({{datasource_completed}} uploaded into biosample)</li>
-    <li>
-      {% if cryoweb_hasdata %}
-        You have data in cryoweb staging area
-      {% else %}
-        Your cryoweb staging area is empty
-      {% endif %}
+      ({{datasource_completed}} uploaded into biosample)
     </li>
     <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
     <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
@@ -27,8 +23,11 @@
   </ul>
 
   <p class="lead">
-    {# submission list must be active if I have submission. Make a templatetag #}
-    <a class="btn btn-primary btn-lg" href="{% url 'submissions:list' %}" role="button">Submissions List</a>
+    {# call a custom templatetag and send result into a variable #}
+    {% have_submission user as submissions %}
+
+    {# submission list must be active if I have submission #}
+    <a class="btn btn-primary btn-lg {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">Submissions List</a>
     <a class="btn btn-secondary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
   </p>
 

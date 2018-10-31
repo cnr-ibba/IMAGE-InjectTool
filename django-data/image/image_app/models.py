@@ -1062,17 +1062,21 @@ def truncate_filled_tables():
     logger.warning("All filled tables were truncated")
 
 
-def uid_report():
-    """Performs a statistic on UID database to find issues"""
+def uid_report(user):
+    """Performs a statistic on UID database to find issues. require user as
+    request.user"""
 
-    # TODO: act for a user
     report = {}
 
     # get n_of_animals
-    report['n_of_animals'] = Animal.objects.count()
+    report['n_of_animals'] = Animal.objects.filter(
+        owner=user).count()
 
     # get n_of_samples
-    report['n_of_samples'] = Sample.objects.count()
+    report['n_of_samples'] = Sample.objects.filter(
+        owner=user).count()
+
+    # HINT: have they sense in a per user statistic?
 
     # check breeds without ontologies
     breed = DictBreed.objects.filter(mapped_breed_term=None)

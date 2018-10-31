@@ -17,7 +17,6 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.http import HttpResponse
 
-from cryoweb.models import db_has_data as cryoweb_has_data
 from common.storage import ProtectedFileSystemStorage
 
 from ..models import Submission, STATUSES, uid_report
@@ -41,15 +40,6 @@ class AboutView(TemplateView):
 class DashBoardView(LoginRequiredMixin, TemplateView):
     template_name = "image_app/dashboard.html"
 
-    # I will check if I have submissions or not. If yes, I will set True
-    # to a context variable. In the dashboard template I will render the link
-    # active only if I have submissions
-    # HINT: render this with a custom template tags
-    def get_context_data(self, **kwargs):
-        kwargs['have_submission'] = Submission.objects.filter(
-            owner=self.request.user).exists()
-        return super().get_context_data(**kwargs)
-
 
 class SummaryView(LoginRequiredMixin, TemplateView):
     template_name = "image_app/summary.html"
@@ -60,22 +50,17 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         # add content to context
 
         # Add info for datasource
-        # TODO: count object for a certain user
-        context['datasource_count'] = Submission.objects.count()
+        # count object for a certain user
+        context['datasource_count'] = Submission.objects.filter(
+            owner=self.request.user).count()
 
         # count loaded objects into biosample
         COMPLETED = STATUSES.get_value('completed')
         context['datasource_completed'] = Submission.objects.filter(
-            status=COMPLETED).count()
-
-        # add info for cryoweb db
-        context["cryoweb_hasdata"] = False
-        if cryoweb_has_data():
-            logger.debug("Cryoweb has data!")
-            context["cryoweb_hasdata"] = True
+            status=COMPLETED, owner=self.request.user).count()
 
         # call report from UID model
-        context["uid_report"] = uid_report()
+        context["uid_report"] = uid_report(self.request.user)
 
         return context
 

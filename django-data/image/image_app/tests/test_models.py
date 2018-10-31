@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
-                              Person)
+                              Person, User)
 
 from validation.helpers.biosample import AnimalValidator, SampleValidator
 
@@ -657,6 +657,8 @@ class SampleTestCase(TestCase):
                 'species_without_ontology': 0,
                 }
 
-        test = uid_report()
+        user = User.objects.get(pk=1)
+
+        test = uid_report(user)
 
         self.assertEqual(reference, test)

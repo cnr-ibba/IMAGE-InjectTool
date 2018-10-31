@@ -7,7 +7,7 @@ Created on Wed Sep 19 15:48:51 2018
 """
 
 from django import template
-from image_app.models import STATUSES
+from image_app.models import STATUSES, Submission
 
 register = template.Library()
 
@@ -44,3 +44,8 @@ def can_submit(submission):
         return True
     else:
         return False
+
+
+@register.simple_tag
+def have_submission(user):
+    return Submission.objects.filter(owner=user).exists()

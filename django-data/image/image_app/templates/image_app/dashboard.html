@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load submissions_tags %}
+
 {% block title %}
   Dashboard
 {% endblock title %}
@@ -23,13 +25,16 @@
       </div>
     </div> <!-- card submit -->
 
+    {# call a custom templatetag and send result into a variable #}
+    {% have_submission user as submissions %}
+
     <div class="card border-primary mb-3" style="">
       <div class="card-header">Resume</div>
       <div class="card-body">
         <h4 class="card-title">Resume Your Submissions</h4>
         <p class="card-text">Fix errors an validate your data in order to countinue submission</p>
         <p class="lead text-center">
-          <a class="btn btn-secondary btn-lg {% if not have_submission %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">Resume</a>
+          <a class="btn btn-secondary btn-lg {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">Resume</a>
         </p>
       </div>
     </div>

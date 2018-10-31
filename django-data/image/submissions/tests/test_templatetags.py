@@ -9,7 +9,7 @@ Created on Wed Sep 19 16:51:05 2018
 from django.test import TestCase
 from django.template import Template, Context
 
-from image_app.models import Submission, STATUSES
+from image_app.models import Submission, STATUSES, User
 
 
 WAITING = STATUSES.get_value('waiting')
@@ -148,4 +148,30 @@ class CanSubmitTest(CommonTestCase, TestCase):
 
     def test_is_completed(self):
         rendered = self.render_status(COMPLETED)
+        self.assertEqual(rendered, "False")
+
+
+class HaveSubmissionTest(CommonTestCase, TestCase):
+    TEMPLATE = Template(
+        "{% load submissions_tags %}{% have_submission user %}"
+    )
+
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        self.user = User.objects.get(pk=1)
+
+    def test_have_submission(self):
+        rendered = self.TEMPLATE.render(
+            Context({'user': self.user}))
+        self.assertEqual(rendered, "True")
+
+    def test_ownership(self):
+        """Check a user with no submissions"""
+
+        user = User.objects.get(pk=2)
+
+        rendered = self.TEMPLATE.render(
+            Context({'user': user}))
         self.assertEqual(rendered, "False")
