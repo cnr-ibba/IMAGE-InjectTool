@@ -9,7 +9,7 @@ Created on Wed Apr  4 16:11:23 2018
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-from ..models import User
+from ..models import User, Submission
 from ..views import DashBoardView, SummaryView
 
 
@@ -114,3 +114,59 @@ class SummaryViewTest(Initialize):
         self.assertIsInstance(view.func.view_class(), SummaryView)
 
     # TODO: test summary after data load
+
+
+class ProtectedViewTest(TestCase):
+    """A class to test protected view"""
+
+    fixtures = [
+        "image_app/user",
+        "image_app/dictcountry",
+        "image_app/dictrole",
+        "image_app/organization",
+        "image_app/submission"
+    ]
+
+    def setUp(self):
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        self.submission_id = 1
+        self.submission = Submission.objects.get(pk=self.submission_id)
+
+        self.file_name = self.submission.get_uploaded_file_basename()
+
+        # define url
+        self.url = "/protected/%s" % (self.submission.uploaded_file)
+
+    def test_redirection(self):
+        '''Non Authenticated user are directed to login page'''
+
+        login_url = reverse("login")
+        client = Client()
+        response = client.get(self.url)
+
+        self.assertRedirects(
+            response, '{login_url}?next={url}'.format(
+                login_url=login_url, url=self.url)
+        )
+
+    def test_response(self):
+        # get a response
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.get('Content-Disposition'),
+            'attachment; filename="{}"'.format(
+                self.file_name)
+        )
+
+    def test_ownership(self):
+        """Test a non-owner having a 404 response"""
+
+        client = Client()
+        client.login(username='test2', password='test2')
+
+        response = client.get(self.url)
+
+        self.assertEqual(response.status_code, 404)

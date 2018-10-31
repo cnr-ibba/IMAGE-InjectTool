@@ -12,11 +12,13 @@ import logging
 from django.utils.encoding import smart_str
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.http import HttpResponse
 
 from cryoweb.models import db_has_data as cryoweb_has_data
+from common.storage import ProtectedFileSystemStorage
 
 from ..models import Submission, STATUSES, uid_report
 
@@ -85,11 +87,30 @@ def protected_view(request, path):
     Redirect the request to the path used by nginx for protected media.
     """
 
-    # derive useful stuff
+    logger.debug("Received path %s for download" % (path))
+
+    # test for submission ownership
+    dirname = os.path.dirname(path)
+
+    if dirname == 'data_source':
+        # I got a submission. Get a submission belonging to owner or 404
+        submission = get_object_or_404(
+            Submission,
+            owner=request.user,
+            uploaded_file=path)
+
+        logger.debug("Got submission %s" % (submission))
+
+    # derive downloadable path. Applies to any protected file
     full_path = os.path.join(
         settings.PROTECTED_MEDIA_LOCATION_PREFIX, path
     )
+
     file_name = os.path.basename(path)
+
+    # get file size using protected storage
+    storage = ProtectedFileSystemStorage()
+    file_size = storage.size(path)
 
     # force django to attach file in response
     # https://stackoverflow.com/a/1158750/4385116
@@ -97,4 +118,6 @@ def protected_view(request, path):
     response["X-Accel-Redirect"] = smart_str(full_path)
     response['Content-Disposition'] = 'attachment; filename="{}"'.format(
         file_name)
+    response['Content-Length'] = file_size
+
     return response

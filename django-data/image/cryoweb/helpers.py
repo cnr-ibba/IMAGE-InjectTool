@@ -143,10 +143,7 @@ def upload_cryoweb(submission_id):
         raise CryoWebImportError("Cryoweb has data!")
 
     # this is the full path in docker container
-    fullpath = submission.uploaded_file.file
-
-    # get a string and quote fullpath
-    fullpath = shlex.quote(str(fullpath))
+    fullpath = submission.get_uploaded_file_path()
 
     # define command line
     cmd_line = "/usr/bin/psql -U {user} -h db {database}".format(

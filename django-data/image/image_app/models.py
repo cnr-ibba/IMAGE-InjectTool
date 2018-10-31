@@ -1,6 +1,7 @@
 
 import logging
 import os
+import shlex
 from enum import Enum
 
 from django.contrib.auth.models import User
@@ -985,6 +986,15 @@ class Submission(BaseMixin, models.Model):
 
     def get_uploaded_file_basename(self):
         return os.path.basename(self.uploaded_file.name)
+
+    def get_uploaded_file_path(self):
+        """Return uploaded file path in docker container"""
+
+        # this is the full path in docker container
+        fullpath = self.uploaded_file.file
+
+        # get a string and quote fullpath
+        return shlex.quote(str(fullpath))
 
     def get_absolute_url(self):
         return reverse("submissions:detail", kwargs={"pk": self.pk})
