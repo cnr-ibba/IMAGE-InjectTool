@@ -180,6 +180,7 @@ LOGGING = {
             'level': 'INFO',
             'handlers': ['console'],
         },
+        # HINT: sort applications by name?
         'image_app': {
             'level': 'DEBUG',
             'handlers': ['console'],

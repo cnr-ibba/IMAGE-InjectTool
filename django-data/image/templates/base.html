@@ -60,7 +60,7 @@
                   <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
                 </li>
               {% endif %}
-              <li class="nav-item">
+              <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <a class="nav-link" href="{% url 'image_app:dashboard' %}">Dashboard</a>
               </li>
             {% endif %}

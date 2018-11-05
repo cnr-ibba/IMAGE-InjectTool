@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Species List
+{% endblock title %}
+
+{% block content %}
+
+<h1>Review species translation table</h1>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">Word</th>
+      <th scope="col">Language</th>
+      <th scope="col">Specie</th>
+      <th scope="col">Term</th>
+      <th scope="col">Confidence</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for speciesynonim in object_list %}
+      <tr class="{% cycle 'table-primary' 'table-secondary' %}">
+        <th><a href="#">{{ speciesynonim.word }}</a></th>
+        <td>{{ speciesynonim.language.label }}</td>
+        <td>{{ speciesynonim.dictspecie.label }}</td>
+        <td>{{ speciesynonim.dictspecie.term }}</td>
+        <td>{{ speciesynonim.dictspecie.get_confidence_display }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{# {% include 'includes/pagination.html' %} #}
+
+{% if is_paginated %}
+  <nav aria-label="Topics pagination" class="mb-4">
+    <ul class="pagination">
+      {% if page_obj.number > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="?page=1{% if country %}&country={{country.label}}{% endif%}">First</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">First</span>
+        </li>
+      {% endif %}
+
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if country %}&country={{country.label}}{% endif%}">Previous</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Previous</span>
+        </li>
+      {% endif %}
+
+      {% for page_num in paginator.page_range %}
+        {% if page_obj.number == page_num %}
+          <li class="page-item active">
+            <span class="page-link">
+              {{ page_num }}
+              <span class="sr-only">(current)</span>
+            </span>
+          </li>
+        {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_num }}{% if country %}&country={{country.label}}{% endif%}">{{ page_num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if country %}&country={{country.label}}{% endif%}">Next</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Next</span>
+        </li>
+      {% endif %}
+
+      {% if page_obj.number != paginator.num_pages %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ paginator.num_pages }}{% if country %}&country={{country.label}}{% endif%}">Last</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">Last</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+
+<p class="lead">
+  <a class="btn btn-primary btn-lg" href="#" role="button">Call Zooma</a>
+  <a class="btn btn-secondary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+</p>
+
+{% endblock %}

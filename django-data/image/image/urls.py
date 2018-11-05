@@ -41,6 +41,10 @@ urlpatterns = [
         include(
             ('image_app.urls', 'image_app'),
             namespace="image_app")),
+    url(r'^language/',
+        include(
+            ('language.urls', 'language'),
+            namespace="language")),
     url(r'^biosample/',
         include(
             ('biosample.urls', 'biosample'),
