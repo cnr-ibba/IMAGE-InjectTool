@@ -14,4 +14,8 @@ urlpatterns = [
     url(r'^species/$',
         views.ListSpeciesView.as_view(),
         name='species'),
+
+    url(r'species/(?P<pk>[-\w]+)/update/$',
+        views.UpdateSpeciesView.as_view(),
+        name='species-update'),
 ]

@@ -21,7 +21,7 @@
   <tbody>
     {% for speciesynonim in object_list %}
       <tr class="{% cycle 'table-primary' 'table-secondary' %}">
-        <th><a href="#">{{ speciesynonim.word }}</a></th>
+        <th><a href="{% url 'language:species-update' pk=speciesynonim.pk %}{% if country %}?country={{country.label}}{% endif%}">{{ speciesynonim.word }}</a></th>
         <td>{{ speciesynonim.language.label }}</td>
         <td>{{ speciesynonim.dictspecie.label }}</td>
         <td>{{ speciesynonim.dictspecie.term }}</td>

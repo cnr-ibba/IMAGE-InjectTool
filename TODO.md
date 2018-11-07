@@ -64,6 +64,8 @@ InjectTool TODO
     [cit needed] and [here](https://stackoverflow.com/questions/28035119/should-i-be-adding-the-django-migration-files-in-the-gitignore-file)
   - django `contettype` framework to model relations between Name and Sample and
     animal
+  - see [django_filters](https://django-filter.readthedocs.io/) and [django_tables](https://django-tables2.readthedocs.io/en/latest/).
+    For an example tutorial see [here](https://www.craigderington.me/generic-list-view-with-django-tables/)
 
 * import June code:
   - geo standardization
@@ -143,3 +145,10 @@ InjectTool TODO
   - test celery task against these [rules](https://blog.daftcode.pl/working-with-asynchronous-celery-tasks-lessons-learned-32bb7495586b):
     - idenpotence (select_for_update)
     - acks late
+
+* Relate to templatetags
+  - process and render pagination with get parameters. See:
+    - https://simpleisbetterthancomplex.com/snippet/2016/08/22/dealing-with-querystring-parameters.html
+    - https://gist.github.com/benbacardi/d6cd0fb8c85e1547c3c60f95f5b2d5e1
+  - [customize queryset](https://stackoverflow.com/questions/22902457/django-listview-customising-queryset)
+  - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)

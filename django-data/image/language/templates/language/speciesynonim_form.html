@@ -1,0 +1,33 @@
+
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+  Set Translation for {{ speciesynonim.word  }}
+{% endblock title %}
+
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock custom-css %}
+
+{% block content %}
+  <h1 class="text-center logo my-4">
+    Set Translation for {{ speciesynonim.word  }}
+  </h1>
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10 col-sm-12">
+      <div class="card">
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" novalidate>
+              {% csrf_token %}
+              {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
+              {% include 'includes/form.html' %}
+              <button type="submit" class="btn btn-success">Update specie</button>
+              <a href="{% url 'language:species' %}{% if country %}?country={{country.label}}{% endif%}" class="btn btn-secondary" role="button">Return to translation table</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
