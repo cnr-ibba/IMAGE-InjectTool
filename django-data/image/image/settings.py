@@ -213,6 +213,10 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console'],
         },
+        'common': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
     },
 }
 

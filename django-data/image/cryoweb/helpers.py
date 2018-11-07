@@ -55,9 +55,13 @@ def check_species(language):
     # debug
     logger.debug("Got %s species from %s" % (species, database_name))
 
+    # get a language. Must be present in database (it shuld be, since I
+    # select it through a dropdown list when creating a submission)
+    country = DictCountry.objects.get(label=language)
+
     # get a queryset for each
     synonims = SpecieSynonim.objects.filter(
-        word__in=species, language__label=language)
+        word__in=species, language=country, dictspecie__isnull=False)
 
     # check that numbers are equal
     if len(species) == synonims.count():
@@ -66,12 +70,25 @@ def check_species(language):
 
     elif len(species) > synonims.count():
         logger.warning(
-            "Some species haven't a synonim for language: %s!" % (language))
+            "Some species haven't a synonim for language: '%s'!" % (language))
         logger.debug("Following terms lack of synonim:")
+
         for specie in species:
             if not SpecieSynonim.objects.filter(
-                    word=specie, language__label=language).exists():
-                logger.debug(specie)
+                    word=specie,
+                    language=country,
+                    dictspecie__isnull=False).exists():
+                logger.debug("%s has no specie related" % (specie))
+
+                # add specie in speciesynonym table
+                synonym, created = SpecieSynonim.objects.get_or_create(
+                    word=specie,
+                    language=country)
+
+                if created:
+                    logger.debug("Added synonym %s" % (synonym))
+
+        # check_specie fails, since there are words not related to species
         return False
 
     # may I see this case? For instance when filling synonims?

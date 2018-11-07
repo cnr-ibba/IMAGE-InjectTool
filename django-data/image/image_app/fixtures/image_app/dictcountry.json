@@ -6,5 +6,13 @@
     "label": "Germany",
     "term": "GAZ_00002646"
   }
+},
+{
+  "model": "image_app.dictcountry",
+  "pk": 2,
+  "fields": {
+    "label": "Italy",
+    "term": "GAZ_00002650"
+  }
 }
 ]

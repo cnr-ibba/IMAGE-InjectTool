@@ -98,6 +98,13 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
 
         self.assertFalse(check_species("Germany"))
 
+        # assert a record in database
+        synonim = SpecieSynonim.objects.get(
+            language__label='Germany',
+            word='Cattle')
+
+        self.assertIsNone(synonim.dictspecie)
+
     def test_no_species(self):
         """Test no species in cryoweb database"""
 

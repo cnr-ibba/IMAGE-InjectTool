@@ -14,7 +14,8 @@ class SpecieSynonim(models.Model):
     # linking to others modules
     dictspecie = models.ForeignKey(
         'image_app.DictSpecie',
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE,
+        null=True)
 
     language = models.ForeignKey(
         'image_app.DictCountry',
