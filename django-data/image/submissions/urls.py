@@ -22,4 +22,8 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/$',
         views.DetailSubmissionView.as_view(),
         name='detail'),
+
+    url(r'^(?P<pk>[-\w]+)/edit/$',
+        views.EditView.as_view(),
+        name='edit'),
 ]

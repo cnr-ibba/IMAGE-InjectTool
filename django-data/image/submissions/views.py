@@ -110,3 +110,9 @@ class ListSubmissionsView(OwnerMixin, ListView):
     template_name = "submissions/submission_list.html"
     ordering = ['-created_at']
     paginate_by = 10
+
+
+# a detail view since I need to operate on a submission object
+class EditView(OwnerMixin, DetailView):
+    model = Submission
+    template_name = "submissions/submission_edit.html"
