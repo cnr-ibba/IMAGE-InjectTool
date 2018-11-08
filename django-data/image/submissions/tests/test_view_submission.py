@@ -78,6 +78,11 @@ class DetailSubmissionViewTest(TestCase):
         view = resolve('/submissions/1/')
         self.assertIsInstance(view.func.view_class(), DetailSubmissionView)
 
+    def test_new_not_found_status_code(self):
+        url = reverse('submissions:detail', kwargs={'pk': 99})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
     # TODO: test links for data edit, validate and submit
 
     # simulate data loaded and unloaded with messages

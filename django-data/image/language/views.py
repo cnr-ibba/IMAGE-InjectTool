@@ -36,12 +36,7 @@ class CountryMixin(object):
         # call super method
         queryset = super(CountryMixin, self).get_queryset()
 
-        # TODO: remove this
-        logger.debug(self.kwargs)
-        logger.debug(self.args)
-        logger.debug(self.request.GET)
-        logger.debug(self.request.GET.urlencode())
-
+        # get country or none from a get request
         country = self.request.GET.get('country')
 
         if country:
@@ -57,7 +52,7 @@ class CountryMixin(object):
         # Call the base implementation first to get a context
         context = super(CountryMixin, self).get_context_data(**kwargs)
 
-        # Add in the country
+        # Add my country attribute to context
         context['country'] = self.country
 
         return context

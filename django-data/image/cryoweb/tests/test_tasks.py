@@ -23,8 +23,8 @@ class ImportCryowebTest(TestCase):
         "image_app/dictcountry",
         "image_app/submission",
         "image_app/dictsex",
-        "cryoweb/dictspecie",
-        "cryoweb/speciesynonim"
+        "language/dictspecie",
+        "language/speciesynonim"
     ]
 
     # patching upload_cryoweb and truncate database

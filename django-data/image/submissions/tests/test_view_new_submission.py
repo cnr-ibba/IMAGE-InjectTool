@@ -146,11 +146,6 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
         self.assertRedirects(self.response, url)
 
-    def test_new_not_found_status_code(self):
-        url = reverse('submissions:detail', kwargs={'pk': 99})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
-
     def test_task_called(self):
         self.my_task.assert_called_with(self.submission.pk)
 

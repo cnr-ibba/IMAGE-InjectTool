@@ -35,8 +35,8 @@ class BaseTestCase():
         "image_app/dictcountry",
         "image_app/submission",
         "image_app/dictsex",
-        "cryoweb/dictspecie",
-        "cryoweb/speciesynonim"
+        "language/dictspecie",
+        "language/speciesynonim"
     ]
 
     # By default, fixtures are only loaded into the default database. If you
