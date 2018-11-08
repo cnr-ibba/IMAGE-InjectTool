@@ -8,7 +8,7 @@ Created on Tue Jul 24 16:55:56 2018
 
 from django.test import TestCase
 
-from ..forms import SubmissionForm
+from ..forms import SubmissionForm, ReloadForm
 
 
 class SubmissionFormTest(TestCase):
@@ -23,6 +23,17 @@ class SubmissionFormTest(TestCase):
             'datasource_type',
             'datasource_version',
             'uploaded_file'
+        ]
+        actual = list(form.fields)
+        self.assertSequenceEqual(expected, actual)
+
+
+class ReloadFormTest(TestCase):
+    def test_form_has_fields(self):
+        form = ReloadForm()
+        expected = [
+            'uploaded_file',
+            'agree_reload',
         ]
         actual = list(form.fields)
         self.assertSequenceEqual(expected, actual)

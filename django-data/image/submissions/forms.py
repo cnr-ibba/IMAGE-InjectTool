@@ -37,7 +37,7 @@ class SubmissionForm(forms.ModelForm):
 # and I can't use it with a modelform
 class ReloadForm(forms.ModelForm):
     # custom attributes
-    agree_gdpr = forms.BooleanField(
+    agree_reload = forms.BooleanField(
         label="That's fine. Replace my submission data with this file",
         help_text="You have to check this box to reload your data")
 
