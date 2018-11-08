@@ -9,10 +9,14 @@ Created on Tue Oct 30 13:51:17 2018
 from django.urls import resolve, reverse
 from django.test import Client, TestCase
 
+from common.tests import GeneralMixinTestCase
+
 from ..views import ListSubmissionsView
 
 
-class ListSubmissionViewTest(TestCase):
+class ListSubmissionViewTest(
+        GeneralMixinTestCase, TestCase):
+
     """Test Submission ListView"""
 
     fixtures = [
@@ -31,28 +35,13 @@ class ListSubmissionViewTest(TestCase):
         self.url = reverse('submissions:list')
         self.response = self.client.get(self.url)
 
-    def test_redirection(self):
-        '''Non Authenticated user are directed to login page'''
-
-        login_url = reverse("login")
-        client = Client()
-        response = client.get(self.url)
-
-        self.assertRedirects(
-            response, '{login_url}?next={url}'.format(
-                login_url=login_url, url=self.url)
-        )
-
-    def test_status_code(self):
-        self.assertEqual(self.response.status_code, 200)
-
     def test_content(self):
         """Assert submission in list"""
 
         self.assertContains(self.response, "image test data")
 
     def test_ownership(self):
-        """Test a non-owner have no submission"""
+        """Test a non-owner have no submission. But I can access the page"""
 
         client = Client()
         client.login(username='test2', password='test2')

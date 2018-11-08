@@ -29,6 +29,17 @@ class LoginMixinTestCase(object):
         )
 
 
+class OwnerMixinTestCase(LoginMixinTestCase):
+    def test_ownership(self):
+        """Test a non-owner having a 404 response"""
+
+        client = Client()
+        client.login(username='test2', password='test2')
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+
 class StatusMixinTestCase(object):
     response = None
 
@@ -66,5 +77,8 @@ class FormMixinTestCase(GeneralMixinTestCase):
         self.assertContains(self.response, 'csrfmiddlewaretoken')
 
     def test_contains_form(self):
+        if not self.form_class:
+            raise Exception("Please set 'form_class' attribute")
+
         form = self.response.context.get('form')
         self.assertIsInstance(form, self.form_class)

@@ -14,6 +14,7 @@ from django.urls import resolve, reverse
 
 import cryoweb.tests
 from image_app.models import DictCountry, Organization, Submission, STATUSES
+from common.tests import FormMixinTestCase
 
 from ..forms import SubmissionForm
 from ..views import CreateSubmissionView
@@ -74,32 +75,12 @@ class Initialize(TestCase):
         return data
 
 
-class CreateSubmissionViewTest(Initialize):
-    def test_redirection(self):
-        '''Non Authenticated user are directed to login page'''
-
-        login_url = reverse("login")
-        client = Client()
-        response = client.get(self.url)
-
-        self.assertRedirects(
-            response, '{login_url}?next={url}'.format(
-                login_url=login_url, url=self.url)
-        )
-
-    def test_status_code(self):
-        self.assertEqual(self.response.status_code, 200)
+class CreateSubmissionViewTest(FormMixinTestCase, Initialize):
+    form_class = SubmissionForm
 
     def test_url_resolves_view(self):
         view = resolve('/submissions/create/')
         self.assertIsInstance(view.func.view_class(), CreateSubmissionView)
-
-    def test_csrf(self):
-        self.assertContains(self.response, 'csrfmiddlewaretoken')
-
-    def test_contains_form(self):
-        form = self.response.context.get('form')
-        self.assertIsInstance(form, SubmissionForm)
 
     def test_form_inputs(self):
 

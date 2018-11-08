@@ -11,11 +11,14 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from image_app.models import Submission, STATUSES
+from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
 
 from ..views import DetailSubmissionView
 
 
-class DetailSubmissionViewTest(TestCase):
+class DetailSubmissionViewTest(
+        GeneralMixinTestCase, OwnerMixinTestCase, TestCase):
+
     """Test Submission DetailView"""
 
     fixtures = [
@@ -26,22 +29,6 @@ class DetailSubmissionViewTest(TestCase):
         "image_app/submission"
     ]
 
-    def check_messages(self, response, tag, message_text):
-        """Check that a response has warnings"""
-
-        # each element is an instance
-        # of django.contrib.messages.storage.base.Message
-        all_messages = [msg for msg in get_messages(response.wsgi_request)]
-
-        found = False
-
-        # I can have moltiple message, and maybe I need to find a specific one
-        for message in all_messages:
-            if tag in message.tags and message_text in message.message:
-                found = True
-
-        self.assertTrue(found)
-
     def setUp(self):
         # login a test user (defined in fixture)
         self.client = Client()
@@ -49,30 +36,6 @@ class DetailSubmissionViewTest(TestCase):
 
         self.url = reverse('submissions:detail', kwargs={'pk': 1})
         self.response = self.client.get(self.url)
-
-    def test_redirection(self):
-        '''Non Authenticated user are directed to login page'''
-
-        login_url = reverse("login")
-        client = Client()
-        response = client.get(self.url)
-
-        self.assertRedirects(
-            response, '{login_url}?next={url}'.format(
-                login_url=login_url, url=self.url)
-        )
-
-    def test_status_code(self):
-        self.assertEqual(self.response.status_code, 200)
-
-    def test_ownership(self):
-        """Test a non-owner having a 404 response"""
-
-        client = Client()
-        client.login(username='test2', password='test2')
-
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, 404)
 
     def test_url_resolves_view(self):
         view = resolve('/submissions/1/')
