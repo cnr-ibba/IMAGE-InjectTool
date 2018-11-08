@@ -8,8 +8,10 @@ Created on Thu Nov  8 10:27:48 2018
 
 from django.test import Client, TestCase
 from django.urls import reverse, resolve
+from django.utils.http import urlquote
 
-from common.tests import GeneralMixinTestCase, FormMixinTestCase
+from common.tests import (
+    GeneralMixinTestCase, FormMixinTestCase, InvalidFormMixinTestCase)
 from image_app.models import DictCountry, DictSpecie
 
 from ..views import ListSpeciesView, UpdateSpeciesView
@@ -53,7 +55,7 @@ class ListSpeciesViewTest(GeneralMixinTestCase, BaseTest):
     """Test ListSpeciesView"""
 
     def setUp(self):
-        """call base method"""
+        # call base method
         super().setUp()
 
         self.url = reverse("language:species")
@@ -145,7 +147,7 @@ class SuccessfulUpdateSpeciesViewTest(BaseTest):
 
         self.url = reverse(
             "language:species-update",
-            kwargs={'pk': synonim.id}) + "?country={}".format("Italy")
+            kwargs={'pk': synonim.id}) + "?country=Italy"
 
         self.response = self.client.post(
             self.url,
@@ -153,7 +155,7 @@ class SuccessfulUpdateSpeciesViewTest(BaseTest):
             follow=True)
 
     def test_redirect(self):
-        url = reverse("language:species") + "?country={}".format("Italy")
+        url = reverse("language:species") + "?country=Italy"
         self.assertRedirects(self.response, url)
 
     def test_specie_updated(self):
@@ -164,7 +166,8 @@ class SuccessfulUpdateSpeciesViewTest(BaseTest):
         self.assertEqual(synonim.dictspecie, self.specie)
 
 
-class InvalidUpdateSpeciesViewTest(BaseTest):
+class InvalidUpdateSpeciesViewTest(InvalidFormMixinTestCase, BaseTest):
+
     def setUp(self):
         """call base method"""
         super().setUp()
@@ -174,20 +177,9 @@ class InvalidUpdateSpeciesViewTest(BaseTest):
 
         self.url = reverse(
             "language:species-update",
-            kwargs={'pk': synonim.id}) + "?country={}".format("Italy")
+            kwargs={'pk': synonim.id})
 
         self.response = self.client.post(self.url, {})
-
-    def test_status_code(self):
-        '''
-        An invalid form submission should return to the same page
-        '''
-
-        self.assertEqual(self.response.status_code, 200)
-
-    def test_form_errors(self):
-        form = self.response.context.get('form')
-        self.assertGreater(len(form.errors), 0)
 
     def test_no_update(self):
         # get a speciesynonim object

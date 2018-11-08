@@ -14,7 +14,7 @@ from django.urls import resolve, reverse
 
 import cryoweb.tests
 from image_app.models import DictCountry, Organization, Submission, STATUSES
-from common.tests import FormMixinTestCase
+from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
 from ..forms import SubmissionForm
 from ..views import CreateSubmissionView
@@ -131,24 +131,14 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         self.my_task.assert_called_with(self.submission.pk)
 
 
-class InvalidCreateSubmissionViewTest(Initialize):
+class InvalidCreateSubmissionViewTest(InvalidFormMixinTestCase, Initialize):
+
     def setUp(self):
         # create a test user
         super().setUp()
 
         # submit an empty dictionary
         self.response = self.client.post(self.url, {})
-
-    def test_status_code(self):
-        '''
-        An invalid form submission should return to the same page
-        '''
-
-        self.assertEqual(self.response.status_code, 200)
-
-    def test_form_errors(self):
-        form = self.response.context.get('form')
-        self.assertGreater(len(form.errors), 0)
 
     def test_no_new_obj(self):
         self.assertFalse(Submission.objects.exists())

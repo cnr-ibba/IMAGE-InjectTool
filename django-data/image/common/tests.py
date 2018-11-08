@@ -82,3 +82,11 @@ class FormMixinTestCase(GeneralMixinTestCase):
 
         form = self.response.context.get('form')
         self.assertIsInstance(form, self.form_class)
+
+
+# methods like test_unathenticated need to be called with FormMixinTestCase
+class InvalidFormMixinTestCase(StatusMixinTestCase, MessageMixinTestCase):
+
+    def test_form_errors(self):
+        form = self.response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
