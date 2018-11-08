@@ -113,6 +113,6 @@ class ListSubmissionsView(OwnerMixin, ListView):
 
 
 # a detail view since I need to operate on a submission object
-class EditView(OwnerMixin, DetailView):
+class EditSubmissionView(OwnerMixin, DetailView):
     model = Submission
     template_name = "submissions/submission_edit.html"

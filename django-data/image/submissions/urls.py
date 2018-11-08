@@ -24,6 +24,6 @@ urlpatterns = [
         name='detail'),
 
     url(r'^(?P<pk>[-\w]+)/edit/$',
-        views.EditView.as_view(),
+        views.EditSubmissionView.as_view(),
         name='edit'),
 ]
