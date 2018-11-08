@@ -31,3 +31,10 @@ class SubmissionForm(forms.ModelForm):
             'datasource_version',
             'uploaded_file'
         )
+
+
+# I use forms.Form since I need to pass primary key as a field,
+# and I can't use it with a modelform
+class ReloadForm(forms.Form):
+    submission_id = forms.IntegerField(
+        required=True)

@@ -11,13 +11,15 @@ import logging
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, FormView
+from django.urls import reverse
+from django.shortcuts import get_object_or_404
 
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, STATUSES
 from common.views import OwnerMixin
 
-from .forms import SubmissionForm
+from .forms import SubmissionForm, ReloadForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -116,3 +118,36 @@ class ListSubmissionsView(OwnerMixin, ListView):
 class EditSubmissionView(OwnerMixin, DetailView):
     model = Submission
     template_name = "submissions/submission_edit.html"
+
+
+class ReloadSubmissionView(LoginRequiredMixin, FormView):
+    form_class = ReloadForm
+    template_name = 'submissions/submission_reload.html'
+    submission_id = None
+
+    def get_success_url(self):
+        return reverse('submissions:detail', kwargs={
+            'pk': self.submission_id})
+
+    def form_valid(self, form):
+        submission_id = form.cleaned_data['submission_id']
+        submission = get_object_or_404(
+            Submission,
+            pk=submission_id,
+            owner=self.request.user)
+
+        # track submission id in order to render page
+        self.submission_id = submission_id
+
+        # update object and force status
+        submission.message = "waiting for data loading"
+        submission.status = WAITING
+        submission.save()
+
+        # a valid submission start a task
+        res = import_from_cryoweb.delay(submission.pk)
+        logger.info(
+            "Start cryoweb reload process with task %s" % res.task_id)
+
+        # a redirect to self.get_absolute_url()
+        return HttpResponseRedirect(self.get_success_url())

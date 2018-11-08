@@ -7,7 +7,7 @@
 {% block content %}
   <h1>Edit Submission Data for <em>{{ submission.title }}</em></h1>
   <p>
-    Check my <a href="{% url 'language:species' %}?country={{ submission.gene_bank_country.label }}" target="_blank">Species Translation Table</a>
+    Check my <a href="{% url 'language:species' %}?country={{ submission.gene_bank_country.label }}">Species Translation Table</a>
   </p>
   <p class="lead">
     <a class="btn btn-primary btn-lg" href="{% url 'submissions:detail' pk=submission.pk %}" role="button">Back to Submission Detail</a>
