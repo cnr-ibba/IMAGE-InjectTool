@@ -116,6 +116,8 @@ class SampleAdmin(admin.ModelAdmin):
     # the categories one by one
     list_select_related = ('name', 'animal__name')
 
+    list_filter = ('owner', 'name__submission')
+
     fields = (
         ('name', 'alternative_id', 'description', 'owner'),
         ('animal', 'protocol', 'organism_part', 'organism_part_term'),
@@ -141,6 +143,8 @@ class AnimalAdmin(admin.ModelAdmin):
         'father', 'mother', 'birth_location', 'birth_location_latitude',
         'birth_location_longitude', 'description', 'owner'
         )
+
+    list_filter = ('owner', 'name__submission')
 
     fields = (
         'name', 'alternative_id', 'breed', 'sex', 'father',

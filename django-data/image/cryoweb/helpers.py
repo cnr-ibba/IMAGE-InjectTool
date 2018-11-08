@@ -331,25 +331,30 @@ def fill_uid_animals(submission):
         if v_animal.latitude and v_animal.longitude:
             accuracy = UNKNOWN
 
-        # create a new object
-        animal, created = Animal.objects.get_or_create(
+        # create a new object. Using defaults to avoid collisions when
+        # updating data
+        defaults = {
+            'alternative_id': v_animal.db_animal,
+            'breed': breed,
+            'sex': sex,
+            'father': father,
+            'mother': mother,
+            'birth_location_latitude': v_animal.latitude,
+            'birth_location_longitude': v_animal.longitude,
+            'birth_location_accuracy': accuracy,
+            'description': v_animal.comment,
+            'owner': submission.owner
+        }
+
+        animal, created = Animal.objects.update_or_create(
             name=name,
-            alternative_id=v_animal.db_animal,
-            breed=breed,
-            sex=sex,
-            father=father,
-            mother=mother,
-            birth_location_latitude=v_animal.latitude,
-            birth_location_longitude=v_animal.longitude,
-            birth_location_accuracy=accuracy,
-            description=v_animal.comment,
-            owner=submission.owner)
+            defaults=defaults)
 
         if created:
             logger.info("Created %s" % animal)
 
         else:
-            logger.debug("Found %s" % animal)
+            logger.debug("Updating %s" % animal)
 
     # debug
     logger.info("fill_uid_animals() completed")
@@ -379,21 +384,27 @@ def fill_uid_samples(submission):
             name__name=v_vessel.ext_animal,
             name__submission=submission)
 
-        sample, created = Sample.objects.get_or_create(
+        # create a new object. Using defaults to avoid collisions when
+        # updating data
+        defaults = {
+            'alternative_id': v_vessel.db_vessel,
+            'collection_date': v_vessel.production_dt,
+            'protocol': v_vessel.get_protocol_name(),
+            'organism_part': v_vessel.get_organism_part(),
+            'animal': animal,
+            'description': v_vessel.comment,
+            'owner': submission.owner
+        }
+
+        sample, created = Sample.objects.update_or_create(
             name=name,
-            alternative_id=v_vessel.db_vessel,
-            collection_date=v_vessel.production_dt,
-            protocol=v_vessel.get_protocol_name(),
-            organism_part=v_vessel.get_organism_part(),
-            animal=animal,
-            description=v_vessel.comment,
-            owner=submission.owner)
+            defaults=defaults)
 
         if created:
             logger.info("Created %s" % sample)
 
         else:
-            logger.debug("Found %s" % sample)
+            logger.debug("Updating %s" % sample)
 
     # debug
     logger.info("fill_uid_samples() completed")
