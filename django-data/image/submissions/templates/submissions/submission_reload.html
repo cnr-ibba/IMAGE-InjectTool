@@ -1,15 +1,37 @@
 
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block title %}
-  Reload Submission
+  Reload Data for {{ submission.title }}
 {% endblock title %}
 
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock custom-css %}
+
 {% block content %}
-  <form method="post" novalidate>
-      {% csrf_token %}
-      {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
-      {% include 'includes/form.html' %}
-      <button type="submit" class="btn btn-success">Reload</button>
-  </form>
+  <h1 class="text-center logo my-4">
+    Reload Data for <em>{{ submission.title }}</em>
+  </h1>
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10 col-sm-12">
+      <div class="card">
+        <div class="card-body">
+          <p class="text-warning">
+            <strong>Warning! by reloading data you will replace existing data. Old data
+            not described in the new file will remain unchanged</strong>
+          </p>
+          <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
+              {% include 'includes/form.html' %}
+              <button type="submit" class="btn btn-danger">Reload Datasource</button>
+              <a href="{% url 'submissions:detail' pk=submission.pk %}" class="btn btn-secondary" role="button">Back</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock content %}

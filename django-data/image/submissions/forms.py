@@ -35,6 +35,12 @@ class SubmissionForm(forms.ModelForm):
 
 # I use forms.Form since I need to pass primary key as a field,
 # and I can't use it with a modelform
-class ReloadForm(forms.Form):
-    submission_id = forms.IntegerField(
-        required=True)
+class ReloadForm(forms.ModelForm):
+    # custom attributes
+    agree_gdpr = forms.BooleanField(
+        label="That's fine. Replace my submission data with this file",
+        help_text="You have to check this box to reload your data")
+
+    class Meta:
+        model = Submission
+        fields = ('uploaded_file',)

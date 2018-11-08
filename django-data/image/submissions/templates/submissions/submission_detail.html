@@ -57,9 +57,6 @@
   </tbody>
 </table>
 
-<a href="javascript:{document.getElementById('reload')}.submit()">Reload datasource</a>
-<a href="javascript:{document.getElementById('validate').submit()}">Validate</a>
-
 {# call a custom templatetag and send result into a variable #}
 {% can_edit submission as edit %}
 {% can_validate submission as validate %}
@@ -80,7 +77,7 @@
     <div class="col-sm-4 lead text-center btn-group">
       <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not edit %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Danger Zone</button>
       <div class="dropdown-menu">
-        <a class="dropdown-item" href="javascript:{document.getElementById('reload').submit()}">Reload datasource</a>
+        <a class="dropdown-item" href="{% url 'submissions:reload' pk=submission.pk %}">Reload datasource</a>
         <a class="dropdown-item" href="#">Update submission</a>
         <a class="dropdown-item" href="#">Delete submission</a>
       </div>
@@ -94,11 +91,6 @@
 </form>
 
 <form id='submit' action="{% url 'biosample:submit' %}" method="POST">
-  {% csrf_token %}
-  <input type="hidden" name="submission_id" value="{{ submission.pk }}">
-</form>
-
-<form id='reload' action="{% url 'submissions:reload' %}" method="POST">
   {% csrf_token %}
   <input type="hidden" name="submission_id" value="{{ submission.pk }}">
 </form>

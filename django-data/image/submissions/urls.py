@@ -19,10 +19,6 @@ urlpatterns = [
         views.ListSubmissionsView.as_view(),
         name='list'),
 
-    url(r'^reload/$',
-        views.ReloadSubmissionView.as_view(),
-        name='reload'),
-
     url(r'^(?P<pk>[-\w]+)/$',
         views.DetailSubmissionView.as_view(),
         name='detail'),
@@ -30,4 +26,8 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/edit/$',
         views.EditSubmissionView.as_view(),
         name='edit'),
+
+    url(r'^(?P<pk>[-\w]+)/reload/$',
+        views.ReloadSubmissionView.as_view(),
+        name='reload'),
 ]
