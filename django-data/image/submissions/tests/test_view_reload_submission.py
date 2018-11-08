@@ -6,6 +6,8 @@ Created on Thu Nov  8 16:35:48 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import os
+
 from unittest.mock import patch
 
 from django.test import TestCase, Client
@@ -13,6 +15,7 @@ from django.urls import resolve, reverse
 
 from common.tests import (
     FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase)
+import cryoweb.tests
 
 from ..views import ReloadSubmissionView
 from ..forms import ReloadForm
@@ -33,6 +36,23 @@ class TestBase(TestCase):
         self.client.login(username='test', password='test')
 
         self.url = reverse('submissions:reload', kwargs={'pk': 1})
+
+    def get_data(self):
+        """Get data dictionary"""
+
+        # get data source path
+        ds_path = os.path.join(
+            cryoweb.tests.__path__[0],
+            "cryoweb_test_data_only.sql"
+        )
+
+        # define test data
+        data = {
+            'uploaded_file': open(ds_path),
+            'agree_reload': True
+        }
+
+        return data
 
 
 class ReloadSubmissionViewTest(
@@ -67,6 +87,24 @@ class ReloadSubmissionViewTest(
 
         link = reverse('submissions:detail', kwargs={'pk': 1})
         self.assertContains(self.response, 'href="{0}"'.format(link))
+
+
+class SuccessfulReloadSubmissionViewTest(OwnerMixinTestCase, TestBase):
+    # patch to simulate data load
+    @patch('cryoweb.tasks.import_from_cryoweb.delay')
+    def setUp(self, my_task):
+        # call base method
+        super().setUp()
+
+        self.response = self.client.post(self.url, self.get_data())
+        self.my_task = my_task
+
+    def test_redirect(self):
+        url = reverse('submissions:detail', kwargs={'pk': 1})
+        self.assertRedirects(self.response, url)
+
+    def test_task_called(self):
+        self.assertTrue(self.my_task.called)
 
 
 class InvalidReloadSubmissionViewTest(
