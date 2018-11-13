@@ -104,28 +104,30 @@ class DataSourceMixinTestCase():
     dst_path = None
     model = None
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         """Place test data in data source if needed"""
 
-        # calling base methods
-        super().setUp()
+        # calling my base class setup
+        super().setUpClass()
 
         # ensuring that file cryoweb_test_data_only.sql is present
-        submission = self.model.objects.get(pk=1)
-        self.dst_path = submission.uploaded_file.path
+        submission = cls.model.objects.get(pk=1)
+        cls.dst_path = submission.uploaded_file.path
 
-        if not os.path.exists(self.dst_path):
+        if not os.path.exists(cls.dst_path):
             base_dir = os.path.dirname(os.path.abspath(__file__))
             src_path = os.path.join(base_dir, "cryoweb_test_data_only.sql")
-            shutil.copy(src_path, self.dst_path)
-            self.uploaded_file = True
+            shutil.copy(src_path, cls.dst_path)
+            cls.uploaded_file = True
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         """Remove test data from data source if needed"""
 
         # remove file if I placed it for tests
-        if self.uploaded_file:
-            os.remove(self.dst_path)
+        if cls.uploaded_file:
+            os.remove(cls.dst_path)
 
         # calling my base class teardown class
-        super().tearDown()
+        super().tearDownClass()
