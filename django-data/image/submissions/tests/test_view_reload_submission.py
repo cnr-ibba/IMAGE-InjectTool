@@ -14,14 +14,19 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
 from common.tests import (
-    FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase)
+    FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase,
+    DataSourceMixinTestCase)
 import common
+from image_app.models import Submission
 
 from ..views import ReloadSubmissionView
 from ..forms import ReloadForm
 
 
-class TestBase(TestCase):
+class TestBase(DataSourceMixinTestCase, TestCase):
+    # define attribute in DataSourceMixinTestCase
+    model = Submission
+
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",
@@ -31,6 +36,9 @@ class TestBase(TestCase):
     ]
 
     def setUp(self):
+        # call base method
+        super().setUp()
+
         # login a test user (defined in fixture)
         self.client = Client()
         self.client.login(username='test', password='test')
@@ -96,8 +104,21 @@ class SuccessfulReloadSubmissionViewTest(OwnerMixinTestCase, TestBase):
         # call base method
         super().setUp()
 
+        # this post request create a new data_source file
         self.response = self.client.post(self.url, self.get_data())
         self.my_task = my_task
+
+        # get submission, with the new data_source file
+        submission = Submission.objects.get(pk=1)
+        self.to_remove = submission.uploaded_file.path
+
+    def tearDown(self):
+        """Remove last uploaded file if present"""
+
+        if os.path.exists(self.to_remove):
+            os.remove(self.to_remove)
+
+        super().tearDown()
 
     def test_redirect(self):
         url = reverse('submissions:detail', kwargs={'pk': 1})
