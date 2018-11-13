@@ -12,7 +12,7 @@ from unittest.mock import patch
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-import cryoweb.tests
+import common
 from image_app.models import DictCountry, Organization, Submission, STATUSES
 from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
@@ -52,7 +52,7 @@ class Initialize(TestCase):
 
         # get data source path
         ds_path = os.path.join(
-            cryoweb.tests.__path__[0],
+            common.__path__[0],
             "cryoweb_test_data_only.sql"
         )
 

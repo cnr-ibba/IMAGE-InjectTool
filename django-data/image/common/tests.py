@@ -8,6 +8,9 @@ Created on Thu Nov  8 10:32:38 2018
 Common tests mixins
 """
 
+import os
+import shutil
+
 from django.urls import reverse
 from django.test import Client
 from django.contrib.messages import get_messages
@@ -90,3 +93,39 @@ class InvalidFormMixinTestCase(StatusMixinTestCase, MessageMixinTestCase):
     def test_form_errors(self):
         form = self.response.context.get('form')
         self.assertGreater(len(form.errors), 0)
+
+
+# a mixin to ensure that datasource is in place
+class DataSourceMixinTestCase():
+    """Place file in data source directory"""
+
+    # class attributes
+    uploaded_file = False
+    dst_path = None
+    model = None
+
+    def setUp(self):
+        """Place test data in data source if needed"""
+
+        # calling base methods
+        super().setUp()
+
+        # ensuring that file cryoweb_test_data_only.sql is present
+        submission = self.model.objects.get(pk=1)
+        self.dst_path = submission.uploaded_file.path
+
+        if not os.path.exists(self.dst_path):
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            src_path = os.path.join(base_dir, "cryoweb_test_data_only.sql")
+            shutil.copy(src_path, self.dst_path)
+            self.uploaded_file = True
+
+    def tearDown(self):
+        """Remove test data from data source if needed"""
+
+        # remove file if I placed it for tests
+        if self.uploaded_file:
+            os.remove(self.dst_path)
+
+        # calling my base class teardown class
+        super().tearDown()

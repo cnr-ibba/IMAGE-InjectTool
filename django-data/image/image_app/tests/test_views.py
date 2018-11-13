@@ -9,6 +9,8 @@ Created on Wed Apr  4 16:11:23 2018
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
+from common.tests import DataSourceMixinTestCase
+
 from ..models import User, Submission
 from ..views import DashBoardView, SummaryView
 
@@ -116,8 +118,11 @@ class SummaryViewTest(Initialize):
     # TODO: test summary after data load
 
 
-class ProtectedViewTest(TestCase):
+class ProtectedViewTest(DataSourceMixinTestCase, TestCase):
     """A class to test protected view"""
+
+    # define attribute in DataSourceMixinTestCase
+    model = Submission
 
     fixtures = [
         "image_app/user",
@@ -128,6 +133,8 @@ class ProtectedViewTest(TestCase):
     ]
 
     def setUp(self):
+        super().setUp()
+
         self.client = Client()
         self.client.login(username='test', password='test')
 

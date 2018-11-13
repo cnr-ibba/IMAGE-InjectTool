@@ -7,9 +7,6 @@ Created on Thu Sep 20 16:01:04 2018
 """
 
 # --- import
-import os
-import shutil
-
 from unittest.mock import patch
 
 from django.conf import settings
@@ -19,6 +16,7 @@ from django.test import TestCase
 from language.models import SpecieSynonim
 from image_app.models import (
     Submission, DictBreed, Name, Animal, Sample, DictSex, STATUSES)
+from common.tests import DataSourceMixinTestCase
 
 from ..helpers import (
     upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
@@ -147,23 +145,9 @@ class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):
         self.assertTrue(check_UID(self.submission))
 
 
-class UploadCryoweb(BaseTestCase, TestCase):
-    uploaded_file = False
-    dst_path = None
-
-    def setUp(self):
-        # calling my base class setup
-        super().setUp()
-
-        # ensuring that file cryoweb_test_data_only.sql is present
-        submission = Submission.objects.get(pk=1)
-        self.dst_path = submission.uploaded_file.path
-
-        if not os.path.exists(self.dst_path):
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            src_path = os.path.join(base_dir, "cryoweb_test_data_only.sql")
-            shutil.copy(src_path, self.dst_path)
-            self.uploaded_file = True
+class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
+    # define attribute in DataSourceMixinTestCase
+    model = Submission
 
     # need to clean database after testing import. Can't use CryowebMixin
     # since i need to test cryoweb import
@@ -173,10 +157,6 @@ class UploadCryoweb(BaseTestCase, TestCase):
         # truncate cryoweb database after loading
         if db_has_data():
             truncate_database()
-
-        # remove file if I placed it for tests
-        if self.uploaded_file:
-            os.remove(self.dst_path)
 
         # calling my base class teardown class
         super().tearDown()

@@ -15,7 +15,7 @@ from django.urls import resolve, reverse
 
 from common.tests import (
     FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase)
-import cryoweb.tests
+import common
 
 from ..views import ReloadSubmissionView
 from ..forms import ReloadForm
@@ -42,7 +42,7 @@ class TestBase(TestCase):
 
         # get data source path
         ds_path = os.path.join(
-            cryoweb.tests.__path__[0],
+            common.__path__[0],
             "cryoweb_test_data_only.sql"
         )
 
