@@ -1,8 +1,9 @@
 
-from django.contrib.messages import get_messages
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import resolve, reverse
+
+from common.tests import MessageMixinTestCase
 
 from ..forms import SignUpForm
 from ..views import SignUpView
@@ -42,7 +43,7 @@ class SignUpTests(TestCase):
         self.assertContains(self.response, 'type="password"', 2)
 
 
-class SuccessfulSignUpTests(TestCase):
+class SuccessfulSignUpTests(MessageMixinTestCase, TestCase):
     fixtures = [
         "image_app/dictcountry.json",
         "image_app/dictrole.json",
@@ -96,21 +97,32 @@ class SuccessfulSignUpTests(TestCase):
         user = response.context.get('user')
         self.assertFalse(user.is_authenticated)
 
+    def test_already_used_email(self):
+        """Registering a new user with an alreay used email throws an error"""
 
-class InvalidSignUpTests(TestCase):
-    def check_messages(self, response, tag, message_text):
-        """Check that a response has warnings"""
+        data = {
+            'user-username': 'test',
+            'user-first_name': 'John',
+            'user-last_name': 'Doe',
+            'user-email': 'john@doe.com',
+            'user-password1': 'abcdef123456',
+            'user-password2': 'abcdef123456',
+            'person-affiliation': 1,
+            'person-role': 1,
+            'person-agree_gdpr': True
+        }
 
-        # each element is an instance
-        # of django.contrib.messages.storage.base.Message
-        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+        self.response = self.client.post(self.url, data)
+        self.assertEqual(self.response.status_code, 200)
 
-        for message in all_messages:
-            self.assertTrue(tag in message.tags)
-            self.assertEqual(
-                message.message,
-                message_text)
+        # function defined in MessageMixinTestCase
+        self.check_messages(
+            self.response,
+            "error",
+            "email already used for registration")
 
+
+class InvalidSignUpTests(MessageMixinTestCase, TestCase):
     def setUp(self):
         url = reverse('accounts:registration_register')
         self.response = self.client.post(url, {})  # submit an empty dictionary
@@ -127,6 +139,7 @@ class InvalidSignUpTests(TestCase):
         for form in multi_form.forms.values():
             self.assertGreater(len(form.errors), 0)
 
+    # function defined in MessageMixinTestCase
     def test_form_messages(self):
         self.check_messages(
             self.response,

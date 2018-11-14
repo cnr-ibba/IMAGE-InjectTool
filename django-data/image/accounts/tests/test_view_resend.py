@@ -130,28 +130,19 @@ class InvalidResendActivationViewTest(BaseTest):
         # no mail are sent
         self.assertEqual(len(mail.outbox), n_of_messages)
 
-    # HINT: need this be avoided during registration?
+    # This will be avoided during registration
     def test_double_email(self):
         """test email used two times"""
 
-        # register another user with the same email
-        url = reverse('accounts:registration_register')
+        # create a user with the same email as the registered one
+        user = User.objects.create_user(
+            username='test',
+            password='test',
+            email="john@doe.com")
 
-        # SignUpForm is a multiform object, so input type name has the name of
-        # the base form and the name of the input type
-        data = {
-            'user-username': 'test',
-            'user-first_name': 'John',
-            'user-last_name': 'Doe',
-            'user-email': 'john@doe.com',
-            'user-password1': 'abcdef123456',
-            'user-password2': 'abcdef123456',
-            'person-affiliation': 1,
-            'person-role': 1,
-            'person-agree_gdpr': True
-        }
-
-        self.client.post(url, data, follow=True)
+        # I need to add a registrationProfile record
+        profile = MyRegistrationProfile(user=user)
+        profile.save()
 
         # consider email for activation
         n_of_messages = len(mail.outbox)

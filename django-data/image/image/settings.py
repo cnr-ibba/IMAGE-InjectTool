@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'debug_toolbar',
     'django_celery_beat',
+    'djcelery_email',
     'image_app',
     'cryoweb',
     'zooma',
@@ -291,6 +292,10 @@ REGISTRATION_EMAIL_HTML = False
 # https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-guide-to-django-part-4.html#console-email-backend
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend')
+
+CELERY_EMAIL_BACKEND = config(
+    'CELERY_EMAIL_BACKEND',
     default='django.core.mail.backends.console.EmailBackend')
 
 # email backend parameters

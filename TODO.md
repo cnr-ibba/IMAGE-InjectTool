@@ -107,17 +107,13 @@ InjectTool TODO
 
 * Regarding tests:
   - implement functional testing
-  - a user can't use an already register email for activation. Test it
   - test each management command, or at least that it works
 
 * Regarding languages, dictionaries and ontology terms:
   - Where managing tasks like zooma are called? before validation pages?
   - species and countries need to be validated against dictionary tables
-  - check for synonim before cryoweb insert into dictspecie table.
-  - what happens when uploading a submission with no synonim loaded? The loading
-    process fails, I need to free staging databases but fill the dictionary tables
-    requiring user intervention.
   - "Semen" has not an ontology term
+  - english as default term (user intervention is required if nothing could be done)
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,
@@ -131,8 +127,6 @@ InjectTool TODO
   - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
-
-* create a `commons` library to store all common stuff
 
 * Think about a message module to store info useful to the user:
   - The token is expired during submission; resume submission

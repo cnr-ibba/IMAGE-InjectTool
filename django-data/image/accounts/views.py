@@ -36,6 +36,11 @@ from .models import MyRegistrationProfile
 logger = logging.getLogger(__name__)
 
 
+# a custom exception
+class MailAlreadyRegisteredException(Exception):
+    pass
+
+
 class SignUpView(RegistrationView):
     form_class = SignUpForm
     template_name = 'accounts/signup.html'
@@ -52,7 +57,17 @@ class SignUpView(RegistrationView):
         # Save the user first, because the profile needs a user before it
         # can be saved. When I save user, I save also person since is related
         # to user. Calling register custom method
-        user = self.register(form['user'])
+        try:
+            user = self.register(form['user'])
+
+        except MailAlreadyRegisteredException as e:
+            # mail is already registered (I can't resend mail to an already
+            # registered one) so:
+            messages.error(
+                self.request,
+                message=str(e),
+                extra_tags="alert alert-dismissible alert-danger")
+            return self.form_invalid(form)
 
         # I re-initialize the form with user.username (from database)
         # maybe I can use get_or_create to get a person object then update it
@@ -108,6 +123,24 @@ class SignUpView(RegistrationView):
         class of this backend as the sender.
         """
         site = get_current_site(self.request)
+
+        # get email from form
+        email = form.cleaned_data['email']
+
+        # get user model
+        User = get_user_model()
+
+        # check if email exists:
+        if User.objects.filter(email=email, is_superuser=False).exists():
+            # this email is already used so throw an error
+            form.add_error(
+                'email',
+                "email already used for registration")
+
+            # I can't return a page from here, since I'm called through
+            # form_valid, so:
+            raise MailAlreadyRegisteredException(
+                    "email already used for registration")
 
         new_user_instance = form.save()
 

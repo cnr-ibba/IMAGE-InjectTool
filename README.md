@@ -158,7 +158,8 @@ USI_MANAGER_PASSWORD=<usi_manager_password>
 You can set email activation backend parameters:
 
 ```
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND=djcelery_email.backends.CeleryEmailBackend
+CELERY_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 DEFAULT_FROM_EMAIL = <from email>
 EMAIL_HOST = <your smtp host>
 EMAIL_HOST_USER = <your email host user>
