@@ -409,7 +409,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         return super(CreateUserView, self).form_valid(form)
 
 
-class SubmitView(LoginRequiredMixin, FormView):
+class SubmitView(LoginRequiredMixin, MyFormMixin, FormView):
     form_class = SubmitForm
     template_name = 'biosample/submit.html'
     submission_id = None

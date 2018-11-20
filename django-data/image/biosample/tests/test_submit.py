@@ -8,7 +8,7 @@ Created on Tue Oct  9 16:05:54 2018
 
 import redis
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
@@ -222,7 +222,54 @@ class ExpiredTokenViewTest(SubmitMixin):
             "Your token is expired or near to expire")
 
 
-# TODO: test submission providing credentials
+class CreateTokenSubmitViewTest(SuccessfulSubmitViewTest):
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        cls.mock_get_patcher = patch('pyUSIrest.auth.requests.get')
+        cls.mock_get = cls.mock_get_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_get_patcher.stop()
+        super().tearDownClass()
+
+    @patch('biosample.views.submit.delay')
+    def setUp(self, my_submit):
+        # call base methods
+        super(SubmitMixin, self).setUp()
+
+        # get a submission object
+        submission = Submission.objects.get(pk=1)
+
+        # set a status which I can submit
+        submission.status = READY
+        submission.save()
+
+        # track submission ID
+        self.submission_id = submission.id
+
+        # track owner
+        self.owner = submission.owner
+
+        # generate token
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.text = generate_token()
+        self.mock_get.return_value.status_code = 200
+
+        self.data = {
+            'password': 'image-password',
+            'submission_id': self.submission_id
+        }
+
+        # get the url for dashboard (make request)
+        self.url = reverse('biosample:submit')
+        self.response = self.client.post(self.url, self.data)
+
+        # track my patched function
+        self.my_submit = my_submit
 
 
 class NoSubmitViewTest(TestMixin, MessageMixinTestCase, TestCase):
