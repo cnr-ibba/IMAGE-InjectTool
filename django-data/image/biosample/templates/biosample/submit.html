@@ -1,15 +1,33 @@
 
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block title %}
   Start Submission
 {% endblock title %}
 
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock custom-css %}
+
 {% block content %}
-  <form method="post" novalidate>
-      {% csrf_token %}
-      {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
-      {% include 'includes/form.html' %}
-      <button type="submit" class="btn btn-success">Submit to biosample</button>
-  </form>
+  <h1 class="text-center logo my-4">
+    Submit to biosample
+  </h1>
+  <div class="row justify-content-center">
+    <div class="card col-lg-8 col-md-10 col-sm-12">
+      <div class="card-body">
+        <h4 class="card-title">Please generate a new token</h4>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
+            {% include 'includes/form.html' %}
+            <button type="submit" class="btn btn-success">Submit to biosample</button>
+            <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock content %}
