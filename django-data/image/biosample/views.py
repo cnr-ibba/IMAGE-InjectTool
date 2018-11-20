@@ -127,8 +127,41 @@ class MyFormMixin(object):
 
         return super(MyFormMixin, self).form_invalid(form)
 
+    def generate_token(self, form):
+        """Generate token from form instance"""
 
-class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
+        # operate on form data
+        user = form.cleaned_data['user']
+        password = form.cleaned_data['password']
+
+        try:
+            auth = Auth(user=user, password=password)
+
+        except ConnectionError as e:
+            # logger exception. With repr() the exception name is rendered
+            logger.error(repr(e))
+
+            # maybe I typed a wrong password or there is an issue in biosample
+            # log error in message and return form_invalid
+            # HINT: deal with two conditions?
+
+            # parse error message
+            messages.error(
+                self.request,
+                "Unable to generate token: %s" % str(e),
+                extra_tags="alert alert-dismissible alert-danger")
+
+            # return invalid form
+            return self.form_invalid(form)
+
+        else:
+            self.request.session['token'] = auth.token
+
+        # return an auth object
+        return auth
+
+
+class GenerateTokenView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
     template_name = 'biosample/generate_token.html'
     form_class = GenerateTokenForm
     success_url_message = 'Token generated!'
@@ -159,32 +192,11 @@ class GenerateTokenView(LoginRequiredMixin, MyFormMixin, TokenMixin, FormView):
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        user = form.cleaned_data['user']
-        password = form.cleaned_data['password']
 
-        try:
-            auth = Auth(user=user, password=password)
+        # call AuthMixin method and generate token. Check user/password
+        self.generate_token(form)
 
-        except ConnectionError as e:
-            # logger exception. With repr() the exception name is rendered
-            logger.error(repr(e))
-
-            # maybe I typed a wrong password or there is an issue in biosample
-            # log error in message and return form_invalid
-            # HINT: deal with two conditions?
-
-            # parse error message
-            messages.error(
-                self.request,
-                "Unable to generate token: %s" % str(e),
-                extra_tags="alert alert-dismissible alert-danger")
-
-            # return invalid form
-            return self.form_invalid(form)
-
-        else:
-            self.request.session['token'] = auth.token
-            return super(GenerateTokenView, self).form_valid(form)
+        return redirect(self.get_success_url())
 
 
 class TokenView(LoginRequiredMixin, TokenMixin, TemplateView):
@@ -232,24 +244,10 @@ class RegisterUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin,
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
-        name = form.cleaned_data['name']
-        password = form.cleaned_data['password']
         team = form.cleaned_data['team']
 
-        try:
-            auth = Auth(user=name, password=password)
-
-        except ConnectionError as e:
-            # logger exception. With repr() the exception name is rendered
-            logger.error(repr(e))
-
-            messages.error(
-                self.request,
-                "Unable to generate token: %s" % str(e),
-                extra_tags="alert alert-dismissible alert-danger")
-
-            # return invalid form
-            return self.form_invalid(form)
+        # call AuthMixin method and generate token. Check user/password
+        auth = self.generate_token(form)
 
         if team.name not in auth.claims['domains']:
             messages.error(
@@ -259,9 +257,6 @@ class RegisterUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin,
 
             # return invalid form
             return self.form_invalid(form)
-
-        # record token in session
-        self.request.session['token'] = auth.token
 
         # add a user to object (comes from section not from form)
         self.object = form.save(commit=False)
@@ -423,20 +418,22 @@ class SubmitView(LoginRequiredMixin, FormView):
         return reverse('submissions:detail', kwargs={
             'pk': self.submission_id})
 
-    def redirect_to_token(self):
-        """Return a redirect to GenerateTokenView with get_success_url
-        as next parameter"""
+    def get_initial(self):
+        """
+        Returns the initial data to use for forms on this view.
+        """
 
-        # determine next url after token generarion
-        next_url = (
-            reverse("biosample:token-generation") +
-            "?next=%s" % self.get_success_url())
+        initial = super(SubmitView, self).get_initial()
+        initial['user'] = self.request.user.biosample_account.name
 
-        # redirect to my new url
-        return redirect(next_url)
+        return initial
 
     def form_valid(self, form):
         submission_id = form.cleaned_data['submission_id']
+        user = form.cleaned_data['user']
+        password = form.cleaned_data['password']
+
+        # get a submission object
         submission = get_object_or_404(
             Submission,
             pk=submission_id,
@@ -453,9 +450,13 @@ class SubmitView(LoginRequiredMixin, FormView):
                     submission, submission.get_status_display()))
             return super(SubmitView, self).form_valid(form)
 
-        # check token: if expired or near to expiring, call
-        # generate token with a redirect to generate-token
-        if 'token' in self.request.session:
+        # create an auth object if credentials are provided
+        if user and password:
+            # call AuthMixin method and generate token. Check user/password
+            auth = self.generate_token(form)
+
+        # check token: if expired or near to expiring, return form
+        elif 'token' in self.request.session:
             auth = Auth(token=self.request.session['token'])
 
         else:
@@ -468,8 +469,8 @@ class SubmitView(LoginRequiredMixin, FormView):
                  "then resubmit"),
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # redirect to token-generation
-            return self.redirect_to_token()
+            # redirect to this form
+            return self.form_invalid(form)
 
         # check tocken expiration
         if auth.is_expired() or auth.get_duration().seconds < 1800:
@@ -482,8 +483,8 @@ class SubmitView(LoginRequiredMixin, FormView):
                  "one, then resubmit"),
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # redirect to token-generation
-            return self.redirect_to_token()
+            # redirect to this form
+            return self.form_invalid(form)
 
         # start the submission with a valid token
         self.start_submission(auth, submission)

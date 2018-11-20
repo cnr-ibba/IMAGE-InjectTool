@@ -79,8 +79,7 @@ class SubmitViewTest(TestMixin, FormMixinTestCase, TestCase):
         self.assertContains(self.response, 'type="password"', 1)
 
 
-class SuccessfulSubmitViewTest(TestMixin, MessageMixinTestCase,
-                               SessionEnabledTestCase):
+class SubmitMixin(TestMixin, MessageMixinTestCase, SessionEnabledTestCase):
     @classmethod
     def setUpClass(cls):
         # calling my base class setup
@@ -103,7 +102,7 @@ class SuccessfulSubmitViewTest(TestMixin, MessageMixinTestCase,
     @patch('biosample.views.submit.delay')
     def setUp(self, my_submit):
         # call base methods
-        super(SuccessfulSubmitViewTest, self).setUp()
+        super(SubmitMixin, self).setUp()
 
         # get a submission object
         submission = Submission.objects.get(pk=1)
@@ -119,10 +118,7 @@ class SuccessfulSubmitViewTest(TestMixin, MessageMixinTestCase,
         self.owner = submission.owner
 
         # generate a valid token
-        session = self.get_session()
-        session['token'] = generate_token()
-        session.save()
-        self.set_session_cookies(session)
+        self.generate_token()
 
         # get the url for dashboard (make request)
         self.url = reverse('biosample:submit')
@@ -134,6 +130,20 @@ class SuccessfulSubmitViewTest(TestMixin, MessageMixinTestCase,
 
         # track my patched function
         self.my_submit = my_submit
+
+    def generate_token(self):
+        """Placeholder for token generation"""
+
+        self.fail("Please define this method")
+
+
+class SuccessfulSubmitViewTest(SubmitMixin):
+    def generate_token(self):
+        """generate a valid token"""
+        session = self.get_session()
+        session['token'] = generate_token()
+        session.save()
+        self.set_session_cookies(session)
 
     def test_redirect(self):
         """test redirection after submission occurs"""
@@ -165,47 +175,35 @@ class SuccessfulSubmitViewTest(TestMixin, MessageMixinTestCase,
 
         self.assertIsNotNone(self.redis.get(key))
 
-    def __common_redirect(self):
-        """Common stuff called when there are problems with tocken"""
 
-        # get submission object
-        submission = Submission.objects.get(pk=self.submission_id)
+class NoTokenSubmitViewTest(SubmitMixin):
+    """Do a submission without a token"""
 
-        # set a status which I can submit
-        submission.status = READY
-        submission.save()
-
-        # make request
-        self.response = self.client.post(
-            self.url, {
-                'submission_id': self.submission_id
-            }
-        )
-
-        # assert a redirect
-        next_url = reverse('biosample:token-generation') + "?next=%s" % (
-            reverse('submissions:detail', kwargs={'pk': self.submission_id}))
-        self.assertRedirects(self.response, next_url)
-
-    def test_no_token(self):
-        """check no token redirects to token:generate"""
+    def generate_token(self):
+        """remove token from session if present """
 
         # get session and remove token
         session = self.get_session()
-        del(session['token'])
-        session.save()
-        self.set_session_cookies(session)
 
-        # test redirect to token generation
-        self.__common_redirect()
+        if 'token' in session:
+            del(session['token'])
+            session.save()
+            self.set_session_cookies(session)
+
+    def test_no_token(self):
+        """check no token redirects to form"""
+
+        self.assertEqual(self.response.status_code, 200)
 
         self.check_messages(
             self.response,
             "error",
             "You haven't generated any token yet")
 
-    def test_expired_token(self):
-        """check that an expired token redirects to token:generate"""
+
+class ExpiredTokenViewTest(SubmitMixin):
+    def generate_token(self):
+        """generate an expired token"""
 
         session = self.get_session()
         now = int(timezone.now().timestamp())
@@ -213,13 +211,18 @@ class SuccessfulSubmitViewTest(TestMixin, MessageMixinTestCase,
         session.save()
         self.set_session_cookies(session)
 
-        # test redirect to token generation
-        self.__common_redirect()
+    def test_expired_token(self):
+        """check that an expired token redirects to form"""
+
+        self.assertEqual(self.response.status_code, 200)
 
         self.check_messages(
             self.response,
             "error",
             "Your token is expired or near to expire")
+
+
+# TODO: test submission providing credentials
 
 
 class NoSubmitViewTest(TestMixin, MessageMixinTestCase, TestCase):

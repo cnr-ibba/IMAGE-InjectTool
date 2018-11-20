@@ -7,5 +7,14 @@
     "name": "image-test",
     "team": 1
   }
+},
+{
+  "model": "biosample.account",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "name": "image-test2",
+    "team": 2
+  }
 }
 ]
