@@ -13,10 +13,11 @@ from unittest.mock import patch
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 from django.conf import settings
-from django.contrib.messages import get_messages
 from django.utils import timezone
 
 from image_app.models import Submission, STATUSES
+from common.tests import (
+        FormMixinTestCase, MessageMixinTestCase, InvalidFormMixinTestCase)
 
 from ..forms import SubmitForm
 from ..views import SubmitView
@@ -51,24 +52,10 @@ class TestMixin(object):
         self.client = Client()
         self.client.login(username='test', password='test')
 
-    def check_messages(self, response, tag, message_text):
-        """Check that a response has warnings"""
 
-        # each element is an instance
-        # of django.contrib.messages.storage.base.Message
-        all_messages = [msg for msg in get_messages(response.wsgi_request)]
+class SubmitViewTest(TestMixin, FormMixinTestCase, TestCase):
+    form_class = SubmitForm
 
-        found = False
-
-        # I can have moltiple message, and maybe I need to find a specific one
-        for message in all_messages:
-            if tag in message.tags and message_text in message.message:
-                found = True
-
-        self.assertTrue(found)
-
-
-class SubmitViewTest(TestMixin, TestCase):
     def setUp(self):
         # call base methods
         super(SubmitViewTest, self).setUp()
@@ -77,32 +64,9 @@ class SubmitViewTest(TestMixin, TestCase):
         self.url = reverse('biosample:submit')
         self.response = self.client.get(self.url)
 
-    def test_redirection(self):
-        '''Non Authenticated user are directed to login page'''
-
-        login_url = reverse("login")
-        client = Client()
-        response = client.get(self.url)
-
-        self.assertRedirects(
-            response, '{login_url}?next={url}'.format(
-                login_url=login_url, url=self.url)
-        )
-
-    def test_status_code(self):
-        self.assertEqual(self.response.status_code, 200)
-
     def test_url_resolves_view(self):
         view = resolve('/biosample/submit/')
         self.assertIsInstance(view.func.view_class(), SubmitView)
-
-    def test_csrf(self):
-        self.assertContains(self.response, 'csrfmiddlewaretoken')
-
-    def test_contains_form(self):
-        form = self.response.context.get('form')
-
-        self.assertIsInstance(form, SubmitForm)
 
     def test_form_inputs(self):
         '''
@@ -110,10 +74,13 @@ class SubmitViewTest(TestMixin, TestCase):
         '''
 
         # total input is n of form fields + (CSRF)
-        self.assertContains(self.response, '<input', 2)
+        self.assertContains(self.response, '<input', 4)
+        self.assertContains(self.response, 'type="text"', 1)
+        self.assertContains(self.response, 'type="password"', 1)
 
 
-class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
+class SuccessfulSubmitViewTest(TestMixin, MessageMixinTestCase,
+                               SessionEnabledTestCase):
     @classmethod
     def setUpClass(cls):
         # calling my base class setup
@@ -255,7 +222,7 @@ class SuccessfulSubmitViewTest(TestMixin, SessionEnabledTestCase):
             "Your token is expired or near to expire")
 
 
-class NoSubmitViewTest(TestMixin, TestCase):
+class NoSubmitViewTest(TestMixin, MessageMixinTestCase, TestCase):
     """No submission if status is not OK"""
 
     @patch('biosample.views.submit.delay')
@@ -324,7 +291,7 @@ class NoSubmitViewTest(TestMixin, TestCase):
         self.__common_stuff(COMPLETED)
 
 
-class InvalidSubmitViewTest(TestMixin, TestCase):
+class InvalidSubmitViewTest(TestMixin, InvalidFormMixinTestCase, TestCase):
     def setUp(self):
         # call base methods
         super(InvalidSubmitViewTest, self).setUp()

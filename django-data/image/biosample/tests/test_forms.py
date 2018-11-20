@@ -39,6 +39,6 @@ class CreateUserFormTest(TestCase):
 class SubmitFormTest(TestCase):
     def test_form_has_fields(self):
         form = SubmitForm()
-        expected = ['submission_id']
+        expected = ['submission_id', 'user', 'password']
         actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)

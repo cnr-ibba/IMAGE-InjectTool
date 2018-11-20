@@ -9,10 +9,12 @@ Created on Mon Jun 11 17:20:12 2018
 from django import forms
 from django.contrib.auth import password_validation
 
+from common.forms import RequestFormMixin
+
 from .models import Account
 
 
-class GenerateTokenForm(forms.Form):
+class GenerateTokenForm(RequestFormMixin, forms.Form):
     user = forms.CharField(
         help_text="Your Biosample User id",
         disabled=True)
@@ -21,14 +23,8 @@ class GenerateTokenForm(forms.Form):
         widget=forms.PasswordInput(),
         help_text="Your Biosample User password")
 
-    # the request is now available, add it to the instance data
-    def __init__(self, *args, **kwargs):
-        if 'request' in kwargs:
-            self.request = kwargs.pop('request')
-        super(GenerateTokenForm, self).__init__(*args, **kwargs)
 
-
-class RegisterUserForm(forms.ModelForm):
+class RegisterUserForm(RequestFormMixin, forms.ModelForm):
     name = forms.SlugField(
         help_text="Your Biosample User id")
 
@@ -36,18 +32,12 @@ class RegisterUserForm(forms.ModelForm):
         widget=forms.PasswordInput(),
         help_text="Your Biosample User password")
 
-    # the request is now available, add it to the instance data
-    def __init__(self, *args, **kwargs):
-        if 'request' in kwargs:
-            self.request = kwargs.pop('request')
-        super(RegisterUserForm, self).__init__(*args, **kwargs)
-
     class Meta:
         model = Account
         fields = ('name', 'team')
 
 
-class CreateUserForm(forms.Form):
+class CreateUserForm(RequestFormMixin, forms.Form):
     """Based on django.contrib.ath.form"""
 
     error_messages = {
@@ -67,11 +57,8 @@ class CreateUserForm(forms.Form):
         help_text="Enter the same password as before, for verification.",
     )
 
-    # the request is now available, add it to the instance data
     def __init__(self, *args, **kwargs):
-        if 'request' in kwargs:
-            self.request = kwargs.pop('request')
-
+        # remove username, request will be removed bu super() method
         if 'username' in kwargs:
             self.username = kwargs.pop('username')
 
@@ -96,12 +83,17 @@ class CreateUserForm(forms.Form):
 
 # I use forms.Form since I need to pass primary key as a field,
 # and I can't use it with a modelform
-class SubmitForm(forms.Form):
+class SubmitForm(RequestFormMixin, forms.Form):
     submission_id = forms.IntegerField(
-        required=True)
+        required=True,
+        widget=forms.HiddenInput)
 
-    # the request is now available, add it to the instance data
-    def __init__(self, *args, **kwargs):
-        if 'request' in kwargs:
-            self.request = kwargs.pop('request')
-        super(SubmitForm, self).__init__(*args, **kwargs)
+    user = forms.CharField(
+        help_text="Your Biosample User id",
+        disabled=True,
+        required=False)
+
+    password = forms.CharField(
+        widget=forms.PasswordInput(),
+        required=False,
+        help_text="Your Biosample User password")
