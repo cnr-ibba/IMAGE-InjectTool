@@ -12,11 +12,10 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
-from django.urls import reverse
 from django.shortcuts import get_object_or_404
 
 from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission, STATUSES
+from image_app.models import Submission, STATUSES, Name
 from common.views import OwnerMixin
 
 from .forms import SubmissionForm, ReloadForm
@@ -115,9 +114,28 @@ class ListSubmissionsView(OwnerMixin, ListView):
 
 
 # a detail view since I need to operate on a submission object
-class EditSubmissionView(OwnerMixin, DetailView):
-    model = Submission
+# LoginRequiredMixin instead of OwnerMixin since I will define wonership
+# in get_queryset method
+# HINT: rename to a more informative name?
+class EditSubmissionView(LoginRequiredMixin, ListView):
     template_name = "submissions/submission_edit.html"
+
+    def get_queryset(self):
+        """Subsetting names relying submission id"""
+        self.submission = get_object_or_404(
+            Submission,
+            pk=self.kwargs['pk'],
+            owner=self.request.user)
+        return Name.objects.filter(submission=self.submission)
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(EditSubmissionView, self).get_context_data(**kwargs)
+
+        # add submission to context
+        context["submission"] = self.submission
+
+        return context
 
 
 class ReloadSubmissionView(OwnerMixin, UpdateView):

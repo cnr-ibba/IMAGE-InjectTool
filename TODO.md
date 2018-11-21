@@ -39,6 +39,7 @@ InjectTool TODO
   - what happens if I update something after submission to biosample? need I track
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
+  - Think about renaming EditSubmissionView with a more useful name
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -77,6 +78,9 @@ InjectTool TODO
     - Add a special confidence status when supplied breed is different from
       mapped_breed (need revisions)
 
+* Data validation:
+  - if no taxonomy is defined, biosample submission will fail
+
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
     values for other data than cryoweb. When they are unknown, they shouldn't be
@@ -95,6 +99,7 @@ InjectTool TODO
   - track time for changes and submission: if I change one sample after submission,
     i need to patch
   - define a UID unique ID for samples and animals?
+  - track biosample errors (validationResults) in name table?
 
 * Regarding django 3rd party modules:
   - Install `django.contrib.sites` (it is useful?)
@@ -114,7 +119,7 @@ InjectTool TODO
   - Where managing tasks like zooma are called? before validation pages?
   - species and countries need to be validated against dictionary tables
   - "Semen" has not an ontology term
-  - english as default term (user intervention is required if nothing could be done)
+  - browse by languages, see all synonym in every language (add navigation links)
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,
@@ -129,7 +134,7 @@ InjectTool TODO
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
 
-* Think about a message module to store info useful to the user:
+* Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission
   - Submission fails with errors
   - Validation fails with errors
