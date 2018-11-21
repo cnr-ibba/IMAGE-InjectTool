@@ -291,10 +291,19 @@ class DictSpecie(DictBase, Confidence):
 
     @classmethod
     def get_by_synonim(cls, synonim, language):
-        # return an object
-        return cls.objects.get(
-            speciesynonim__word=synonim,
-            speciesynonim__language__label=language)
+        """return an instance by synonim in supplied language or default one"""
+
+        try:
+            specie = cls.objects.get(
+                speciesynonim__word=synonim,
+                speciesynonim__language__label=language)
+
+        except cls.DoesNotExist:
+            specie = cls.objects.get(
+                speciesynonim__word=synonim,
+                speciesynonim__language__label="England")
+
+        return specie
 
 
 class DictBreed(Confidence):
@@ -557,7 +566,7 @@ class Animal(BioSampleMixin, models.Model):
         result['title'] = self.name.name
 
         if release_date:
-            result['releaseDate'] = None
+            result['releaseDate'] = release_date
         else:
             now = timezone.now()
             result['releaseDate'] = str(now.date())
@@ -764,7 +773,7 @@ class Sample(BioSampleMixin, models.Model):
         result['title'] = self.name.name
 
         if release_date:
-            result['releaseDate'] = None
+            result['releaseDate'] = release_date
         else:
             now = timezone.now()
             result['releaseDate'] = str(now.date())

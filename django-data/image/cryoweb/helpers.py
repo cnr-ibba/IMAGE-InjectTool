@@ -37,52 +37,47 @@ UNKNOWN = ACCURACIES.get_value('unknown')
 
 
 # --- check functions
+
+
 # a function to detect if cryoweb species have synonims or not
-def check_species(language):
-    """Check specie for a language, ie: check_species(language='Germany').
-    Language is image_app.models.DictCountry.label"""
+def check_species(country):
+    """Check all cryoweb species for a synonim in a supplied language or
+    the default one, ie: check_species(country). country is an
+    image_app.models.DictCountry.label"""
 
     # get all species using view
-    species = VBreedsSpecies.get_all_species()
+    words = VBreedsSpecies.get_all_species()
 
     # for logging purposes
     database_name = settings.DATABASES['cryoweb']['NAME']
 
-    if len(species) == 0:
+    if len(words) == 0:
         raise CryoWebImportError(
             "You have no species in %s database" % database_name)
 
     # debug
-    logger.debug("Got %s species from %s" % (species, database_name))
+    logger.debug("Got %s species from %s" % (words, database_name))
 
-    # get a language. Must be present in database (it shuld be, since I
-    # select it through a dropdown list when creating a submission)
-    country = DictCountry.objects.get(label=language)
-
-    # get a queryset for each
-    synonims = SpecieSynonim.objects.filter(
-        word__in=species, language=country, dictspecie__isnull=False)
+    # test with language.models.SpecieSynonim methods
+    synonims = SpecieSynonim.check_synonims(words, country)
 
     # check that numbers are equal
-    if len(species) == synonims.count():
-        logger.debug("Each species has a synonim in %s language" % (language))
+    if len(words) == synonims.count():
+        logger.debug("Each species has a synonim in %s language" % (country))
         return True
 
-    elif len(species) > synonims.count():
+    elif len(words) > synonims.count():
         logger.warning(
-            "Some species haven't a synonim for language: '%s'!" % (language))
+            "Some species haven't a synonim for language: '%s'!" % (country))
         logger.debug("Following terms lack of synonim:")
 
-        for specie in species:
-            if not SpecieSynonim.objects.filter(
-                    word=specie,
-                    language=country,
-                    dictspecie__isnull=False).exists():
-                logger.debug("%s has no specie related" % (specie))
+        for word in words:
+            if not SpecieSynonim.check_specie_by_synonim(word, country):
+                logger.debug("%s has no specie related" % (word))
 
                 # add specie in speciesynonym table
                 synonym, created = SpecieSynonim.objects.get_or_create(
-                    word=specie,
+                    word=word,
                     language=country)
 
                 if created:
@@ -109,8 +104,9 @@ def check_UID(submission):
     if len(DictSex.objects.all()) == 0:
         raise CryoWebImportError("You have to upload DictSex data")
 
-    # HINT: if I don't have a synonim, what I need to do?
-    if not check_species(submission.gene_bank_country.label):
+    # test for specie synonims in submission language or defaul one
+    # otherwise, fill synonim table with new terms then throw exception
+    if not check_species(submission.gene_bank_country):
         raise CryoWebImportError("Some species haven't a synonim!")
 
     # return a status

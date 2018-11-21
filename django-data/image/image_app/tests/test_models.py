@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
-                              Person, User)
+                              Person, User, db_has_data)
 
 from validation.helpers.biosample import AnimalValidator, SampleValidator
 
@@ -129,6 +129,12 @@ class DictSpecieTestCase(TestCase):
         """Getting specie using synonim"""
 
         sus = DictSpecie.get_by_synonim('Pig', 'England')
+
+        self.assertEqual(sus.label, self.label)
+        self.assertEqual(sus.term, self.term)
+
+        # assert a specie in a different language (synonim not defined)
+        sus = DictSpecie.get_by_synonim('Pig', 'Italy')
 
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)
@@ -662,3 +668,9 @@ class SampleTestCase(TestCase):
         test = uid_report(user)
 
         self.assertEqual(reference, test)
+
+    def test_uid_has_data(self):
+        """testing db_has_data for image_app"""
+
+        self.assertTrue(db_has_data())
+

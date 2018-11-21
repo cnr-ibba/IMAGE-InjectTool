@@ -15,7 +15,8 @@ from django.test import TestCase
 
 from language.models import SpecieSynonim
 from image_app.models import (
-    Submission, DictBreed, Name, Animal, Sample, DictSex, STATUSES)
+    Submission, DictBreed, Name, Animal, Sample, DictSex, STATUSES,
+    DictCountry)
 from common.tests import DataSourceMixinTestCase
 
 from ..helpers import (
@@ -83,10 +84,13 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
     def test_check_species(self):
         """Testing species and synonims"""
 
-        self.assertTrue(check_species("England"))
+        italy = DictCountry.objects.get(label="Italy")
+        england = DictCountry.objects.get(label="England")
 
-        # no species for this language
-        self.assertFalse(check_species("Italy"))
+        self.assertTrue(check_species(england))
+
+        # no species for this language, but using the default synonims
+        self.assertTrue(check_species(italy))
 
         # now delete a synonim
         synonim = SpecieSynonim.objects.get(
@@ -94,7 +98,8 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
             word='Cattle')
         synonim.delete()
 
-        self.assertFalse(check_species("England"))
+        self.assertFalse(check_species(england))
+        self.assertFalse(check_species(italy))
 
         # assert a record in database
         synonim = SpecieSynonim.objects.get(
