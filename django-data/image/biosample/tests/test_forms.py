@@ -15,7 +15,7 @@ from ..forms import (
 class GenerateTokenFormTest(TestCase):
     def test_form_has_fields(self):
         form = GenerateTokenForm()
-        expected = ['user', 'password']
+        expected = ['name', 'password']
         actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)
 
@@ -39,6 +39,6 @@ class CreateUserFormTest(TestCase):
 class SubmitFormTest(TestCase):
     def test_form_has_fields(self):
         form = SubmitForm()
-        expected = ['submission_id', 'user', 'password']
+        expected = ['submission_id', 'name', 'password']
         actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)

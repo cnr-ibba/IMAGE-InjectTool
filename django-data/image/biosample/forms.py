@@ -15,7 +15,7 @@ from .models import Account
 
 
 class GenerateTokenForm(RequestFormMixin, forms.Form):
-    user = forms.CharField(
+    name = forms.CharField(
         help_text="Your Biosample User id",
         disabled=True)
 
@@ -88,7 +88,7 @@ class SubmitForm(RequestFormMixin, forms.Form):
         required=True,
         widget=forms.HiddenInput)
 
-    user = forms.CharField(
+    name = forms.CharField(
         help_text="Your Biosample User id",
         disabled=True,
         required=False)

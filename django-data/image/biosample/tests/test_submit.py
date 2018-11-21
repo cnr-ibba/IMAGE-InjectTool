@@ -79,6 +79,9 @@ class SubmitViewTest(TestMixin, FormMixinTestCase, TestCase):
         self.assertContains(self.response, 'type="password"', 1)
 
 
+# --- testing view
+
+
 class SubmitMixin(TestMixin, MessageMixinTestCase, SessionEnabledTestCase):
     @classmethod
     def setUpClass(cls):
@@ -176,6 +179,9 @@ class SuccessfulSubmitViewTest(SubmitMixin):
         self.assertIsNotNone(self.redis.get(key))
 
 
+# --- issues with token
+
+
 class NoTokenSubmitViewTest(SubmitMixin):
     """Do a submission without a token"""
 
@@ -223,6 +229,9 @@ class ExpiredTokenViewTest(SubmitMixin):
 
 
 class CreateTokenSubmitViewTest(SuccessfulSubmitViewTest):
+    """Test that by providing submission id and password I can do a
+    submission"""
+
     @classmethod
     def setUpClass(cls):
         # calling my base class setup
@@ -238,8 +247,10 @@ class CreateTokenSubmitViewTest(SuccessfulSubmitViewTest):
 
     @patch('biosample.views.submit.delay')
     def setUp(self, my_submit):
-        # call base methods
-        super(SubmitMixin, self).setUp()
+        """Custom setUp"""
+
+        self.client = Client()
+        self.client.login(username='test', password='test')
 
         # get a submission object
         submission = Submission.objects.get(pk=1)
@@ -270,6 +281,52 @@ class CreateTokenSubmitViewTest(SuccessfulSubmitViewTest):
 
         # track my patched function
         self.my_submit = my_submit
+
+
+class ErrorTokenSubmitViewTest(SubmitMixin):
+    @patch("biosample.views.Auth", side_effect=ConnectionError("test"))
+    def setUp(self, my_auth):
+        """Custom setUp"""
+
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        # get a submission object
+        submission = Submission.objects.get(pk=1)
+
+        # set a status which I can submit
+        submission.status = READY
+        submission.save()
+
+        # track submission ID
+        self.submission_id = submission.id
+
+        # track owner
+        self.owner = submission.owner
+
+        self.data = {
+            'password': 'image-password',
+            'submission_id': self.submission_id
+        }
+
+        # get the url for dashboard (make request)
+        self.url = reverse('biosample:submit')
+        self.response = self.client.post(self.url, self.data)
+
+        # track my patched function
+        self.my_auth = my_auth
+
+    def test_issue_with_biosample(self):
+        """check that issues with biosample redirects to form"""
+
+        self.assertEqual(self.response.status_code, 200)
+
+        self.check_messages(
+            self.response,
+            "error",
+            "Unable to generate token")
+
+# --- check status before submission
 
 
 class NoSubmitViewTest(TestMixin, MessageMixinTestCase, TestCase):
@@ -341,6 +398,9 @@ class NoSubmitViewTest(TestMixin, MessageMixinTestCase, TestCase):
         self.__common_stuff(COMPLETED)
 
 
+# errors with form
+
+
 class InvalidSubmitViewTest(TestMixin, InvalidFormMixinTestCase, TestCase):
     def setUp(self):
         # call base methods
@@ -354,6 +414,9 @@ class InvalidSubmitViewTest(TestMixin, InvalidFormMixinTestCase, TestCase):
         """Invalid post data returns the form"""
 
         self.assertEqual(self.response.status_code, 200)
+
+
+# --- submission owenership
 
 
 class ErrorSubmitViewtest(TestMixin, TestCase):

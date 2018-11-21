@@ -46,6 +46,16 @@ config = AutoConfig(search_path=settings_dir)
 class TokenMixin(object):
     """Register account if a biosample account is not registered"""
 
+    def get_initial(self):
+        """
+        Returns the initial data to use for forms on this view.
+        """
+
+        initial = super(TokenMixin, self).get_initial()
+        initial['name'] = self.request.user.biosample_account.name
+
+        return initial
+
     def dispatch(self, request, *args, **kwargs):
         # get user from request and user model. This could be also Anonymous
         # user:however with metod decorator a login is required before dispatch
@@ -57,6 +67,7 @@ class TokenMixin(object):
             user.biosample_account
 
         except User.biosample_account.RelatedObjectDoesNotExist:
+            logger.warning("Error for user:%s: not managed" % user)
             messages.warning(
                 request=self.request,
                 message='You need to register a valid biosample account',
@@ -89,6 +100,7 @@ class RegisterMixin(object):
                 RegisterMixin, self).dispatch(request, *args, **kwargs)
 
         else:
+            logger.warning("Error for user:%s: Already rtegistered" % user)
             messages.warning(
                 request=self.request,
                 message='Your biosample account is already registered',
@@ -131,11 +143,11 @@ class MyFormMixin(object):
         """Generate token from form instance"""
 
         # operate on form data
-        user = form.cleaned_data['user']
+        name = form.cleaned_data['name']
         password = form.cleaned_data['password']
 
         try:
-            auth = Auth(user=user, password=password)
+            auth = Auth(user=name, password=password)
 
         except ConnectionError as e:
             # logger exception. With repr() the exception name is rendered
@@ -151,14 +163,16 @@ class MyFormMixin(object):
                 "Unable to generate token: %s" % str(e),
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # return invalid form
-            return self.form_invalid(form)
+            # cant't return form_invalid here, since i need to process auth
+            return None
 
         else:
+            logger.debug("Token generated for user:%s" % name)
+
             self.request.session['token'] = auth.token
 
-        # return an auth object
-        return auth
+            # return an auth object
+            return auth
 
 
 class GenerateTokenView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
@@ -179,22 +193,13 @@ class GenerateTokenView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
         return super(
             GenerateTokenView, self).dispatch(request, *args, **kwargs)
 
-    def get_initial(self):
-        """
-        Returns the initial data to use for forms on this view.
-        """
-
-        initial = super(GenerateTokenView, self).get_initial()
-        initial['user'] = self.request.user.biosample_account.name
-
-        return initial
-
     def form_valid(self, form):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
 
         # call AuthMixin method and generate token. Check user/password
-        self.generate_token(form)
+        if not self.generate_token(form):
+            return self.form_invalid(form)
 
         return redirect(self.get_success_url())
 
@@ -248,6 +253,9 @@ class RegisterUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin,
 
         # call AuthMixin method and generate token. Check user/password
         auth = self.generate_token(form)
+
+        if not auth:
+            return self.form_invalid(form)
 
         if team.name not in auth.claims['domains']:
             messages.error(
@@ -409,7 +417,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         return super(CreateUserView, self).form_valid(form)
 
 
-class SubmitView(LoginRequiredMixin, MyFormMixin, FormView):
+class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
     form_class = SubmitForm
     template_name = 'biosample/submit.html'
     submission_id = None
@@ -418,19 +426,9 @@ class SubmitView(LoginRequiredMixin, MyFormMixin, FormView):
         return reverse('submissions:detail', kwargs={
             'pk': self.submission_id})
 
-    def get_initial(self):
-        """
-        Returns the initial data to use for forms on this view.
-        """
-
-        initial = super(SubmitView, self).get_initial()
-        initial['user'] = self.request.user.biosample_account.name
-
-        return initial
-
     def form_valid(self, form):
         submission_id = form.cleaned_data['submission_id']
-        user = form.cleaned_data['user']
+        name = form.cleaned_data['name']
         password = form.cleaned_data['password']
 
         # get a submission object
@@ -451,9 +449,12 @@ class SubmitView(LoginRequiredMixin, MyFormMixin, FormView):
             return super(SubmitView, self).form_valid(form)
 
         # create an auth object if credentials are provided
-        if user and password:
+        if name and password:
             # call AuthMixin method and generate token. Check user/password
             auth = self.generate_token(form)
+
+            if not auth:
+                return self.form_invalid(form)
 
         # check token: if expired or near to expiring, return form
         elif 'token' in self.request.session:
