@@ -128,14 +128,14 @@ class DictSpecieTestCase(TestCase):
     def test_get_specie_by_synonim(self):
         """Getting specie using synonim"""
 
-        sus = DictSpecie.get_by_synonim('Pig', 'Germany')
+        sus = DictSpecie.get_by_synonim('Pig', 'England')
 
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)
 
         # using a word not registered returns no data
         with self.assertRaises(DictSpecie.DoesNotExist):
-            DictSpecie.get_by_synonim('Foo', 'Germany')
+            DictSpecie.get_by_synonim('Foo', 'England')
 
 
 class DictCountryTestCase(TestCase):
@@ -145,8 +145,8 @@ class DictCountryTestCase(TestCase):
 
     def setUp(self):
         # my attributes
-        self.label = 'Germany'
-        self.term = 'GAZ_00002646'
+        self.label = 'England'
+        self.term = 'GAZ_00002641'
 
     def test_to_validation(self):
         """Testing specie to biosample json"""
@@ -159,17 +159,17 @@ class DictCountryTestCase(TestCase):
             ),
         }
 
-        germany = DictCountry.objects.get(label=self.label)
-        test = germany.to_validation()
+        England = DictCountry.objects.get(label=self.label)
+        test = England.to_validation()
 
         self.assertEqual(reference, test)
 
     def test_to_validation_with_none(self):
         """Test to biosample conversion without term"""
 
-        germany = DictCountry.objects.get(label=self.label)
-        germany.term = None
-        test = germany.to_validation()
+        England = DictCountry.objects.get(label=self.label)
+        England.term = None
+        test = England.to_validation()
 
         reference = {
             "text": self.label
@@ -180,9 +180,9 @@ class DictCountryTestCase(TestCase):
     def test_str(self):
         """Testing str representation"""
 
-        germany = DictCountry.objects.get(label=self.label)
+        England = DictCountry.objects.get(label=self.label)
         self.assertEqual(
-                str(germany),
+                str(England),
                 "{label} ({term})".format(
                         label=self.label,
                         term=self.term))
@@ -203,10 +203,10 @@ class DictBreedTestCase(TestCase):
         reference = {
             "suppliedBreed": "Bunte Bentheimer",
             "country": {
-                "text": "Germany",
+                "text": "England",
                 "ontologyTerms": "/".join([
                     OBO_URL,
-                    "GAZ_00002646"]
+                    "GAZ_00002641"]
                 ),
             },
             "mappedBreed": {
@@ -236,10 +236,10 @@ class DictBreedTestCase(TestCase):
         reference = {
             "suppliedBreed": "Bunte Bentheimer",
             "country": {
-                "text": "Germany",
+                "text": "England",
                 "ontologyTerms": "/".join([
                     OBO_URL,
-                    "GAZ_00002646"]
+                    "GAZ_00002641"]
                 ),
             },
         }
@@ -265,7 +265,7 @@ class SubmissionTestCase(TestCase):
 
     def test_str(self):
         test = str(self.submission)
-        reference = "Cryoweb (Germany, test)"
+        reference = "Cryoweb (England, test)"
 
         self.assertEqual(reference, test)
 
@@ -334,7 +334,7 @@ class AnimalTestCase(TestCase):
             },
             "name": "ANIMAL:::ID:::132713",
             "geneBankName": "Cryoweb",
-            "geneBankCountry": "Germany",
+            "geneBankCountry": "England",
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "test",
             "dataSourceId": "11",
@@ -348,10 +348,10 @@ class AnimalTestCase(TestCase):
             "breed": {
                 "suppliedBreed": "Bunte Bentheimer",
                 "country": {
-                    "text": "Germany",
+                    "text": "England",
                     "ontologyTerms": "/".join([
                         OBO_URL,
-                        "GAZ_00002646"]
+                        "GAZ_00002641"]
                     ),
                 },
                 "mappedBreed": {
@@ -394,7 +394,7 @@ class AnimalTestCase(TestCase):
             },
             "name": "ANIMAL:::ID:::132713",
             "geneBankName": "Cryoweb",
-            "geneBankCountry": "Germany",
+            "geneBankCountry": "England",
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "test",
             "dataSourceId": "11",
@@ -408,10 +408,10 @@ class AnimalTestCase(TestCase):
             "breed": {
                 "suppliedBreed": "Bunte Bentheimer",
                 "country": {
-                    "text": "Germany",
+                    "text": "England",
                     "ontologyTerms": "/".join([
                         OBO_URL,
-                        "GAZ_00002646"]
+                        "GAZ_00002641"]
                     ),
                 },
                 "mappedBreed": {
@@ -540,7 +540,7 @@ class SampleTestCase(TestCase):
             },
             "name": "Siems_0722_393449",
             "geneBankName": "Cryoweb",
-            "geneBankCountry": "Germany",
+            "geneBankCountry": "England",
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "test",
             "dataSourceId": "Siems_0722_393449",
@@ -592,7 +592,7 @@ class SampleTestCase(TestCase):
             },
             "name": "Siems_0722_393449",
             "geneBankName": "Cryoweb",
-            "geneBankCountry": "Germany",
+            "geneBankCountry": "England",
             "dataSourceType": "CryoWeb",
             "dataSourceVersion": "test",
             "dataSourceId": "Siems_0722_393449",

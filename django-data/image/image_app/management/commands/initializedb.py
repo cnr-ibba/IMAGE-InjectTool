@@ -122,8 +122,8 @@ def fill_Species():
 def fill_Countries():
     # define germany
     country, created = DictCountry.objects.get_or_create(
-        label='Germany',
-        term='GAZ_00002646',
+        label='England',
+        term='GAZ_00002641',
         confidence=CONFIDENCES.get_value('curated'))
 
     if created is True:

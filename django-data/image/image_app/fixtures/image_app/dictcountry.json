@@ -3,8 +3,8 @@
   "model": "image_app.dictcountry",
   "pk": 1,
   "fields": {
-    "label": "Germany",
-    "term": "GAZ_00002646"
+    "label": "England",
+    "term": "GAZ_00002641"
   }
 },
 {

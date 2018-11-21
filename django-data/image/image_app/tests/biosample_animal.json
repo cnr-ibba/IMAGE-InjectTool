@@ -72,10 +72,10 @@
     ],
     "Gene bank country": [
       {
-        "value": "Germany",
+        "value": "England",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/GAZ_00002646"
+            "url": "http://purl.obolibrary.org/obo/GAZ_00002641"
           }
         ]
       }
@@ -117,10 +117,10 @@
     ],
     "EFABIS Breed country": [
       {
-        "value": "Germany",
+        "value": "England",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/GAZ_00002646"
+            "url": "http://purl.obolibrary.org/obo/GAZ_00002641"
           }
         ]
       }

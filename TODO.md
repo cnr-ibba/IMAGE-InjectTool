@@ -39,9 +39,6 @@ InjectTool TODO
   - what happens if I update something after submission to biosample? need I track
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
-  - simplify submission form: return form invalid if a token is near to expire;
-    ask for token credentials as non mandatory fields, return to subission:detail
-    after launching task
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?

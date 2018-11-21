@@ -93,8 +93,8 @@ class TestZooma(TestCase):
     def test_medium_confidence(self, mock_get):
         reference = {
             'confidence': 'Medium',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002646',
-            'text': 'Germany',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002641',
+            'text': 'England',
             'type': 'country'
         }
 
@@ -330,7 +330,7 @@ class TestAnnotateBreed(TestCase):
             'type': 'breed',
             'confidence': 'Good',
             'text': 'Bentheim Black Pied',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002646'
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002641'
         }
 
         # call my method
@@ -369,8 +369,8 @@ class TestAnnotateCountry(TestCase):
         my_zooma.return_value = {
             'type': 'country',
             'confidence': 'Good',
-            'text': 'Germany',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002646'
+            'text': 'England',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002641'
         }
 
         # call my method
@@ -381,8 +381,8 @@ class TestAnnotateCountry(TestCase):
         # ensure annotation
         self.country.refresh_from_db()
 
-        self.assertEqual(self.country.label, "Germany")
-        self.assertEqual(self.country.term, "GAZ_00002646")
+        self.assertEqual(self.country.label, "England")
+        self.assertEqual(self.country.term, "GAZ_00002641")
         self.assertEqual(self.country.confidence, GOOD)
 
     @patch("zooma.helpers.useZooma")
@@ -393,7 +393,7 @@ class TestAnnotateCountry(TestCase):
         my_zooma.return_value = {
             'type': 'country',
             'confidence': 'Good',
-            'text': 'Germany',
+            'text': 'England',
             'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
         }
 
@@ -456,7 +456,7 @@ class TestAnnotateSpecie(TestCase):
         my_zooma.return_value = {
             'type': 'specie',
             'confidence': 'Good',
-            'text': 'Germany',
+            'text': 'England',
             'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
         }
 

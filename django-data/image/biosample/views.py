@@ -466,8 +466,7 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
 
             messages.error(
                 self.request,
-                ("You haven't generated any token yet. Generate a new one, "
-                 "then resubmit"),
+                ("You haven't generated any token yet. Generate a new one"),
                 extra_tags="alert alert-dismissible alert-danger")
 
             # redirect to this form
@@ -481,7 +480,7 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
             messages.error(
                 self.request,
                 ("Your token is expired or near to expire. Generate a new "
-                 "one, then resubmit"),
+                 "one"),
                 extra_tags="alert alert-dismissible alert-danger")
 
             # redirect to this form

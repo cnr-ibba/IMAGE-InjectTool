@@ -8,7 +8,6 @@ Created on Thu Nov  8 10:27:48 2018
 
 from django.test import Client, TestCase
 from django.urls import reverse, resolve
-from django.utils.http import urlquote
 
 from common.tests import (
     GeneralMixinTestCase, FormMixinTestCase, InvalidFormMixinTestCase)
@@ -97,7 +96,7 @@ class ListSpeciesViewTest(GeneralMixinTestCase, BaseTest):
     def test_contains_navigation_links_with_parameters(self):
         """Contain links to UpdateSpeciesView with get parameters"""
 
-        country = "Germany"
+        country = "England"
 
         url = self.url + "?country={}".format(country)
         bos_url = self.bos_url + "?country={}".format(country)

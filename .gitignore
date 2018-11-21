@@ -11,7 +11,6 @@ tmp/
 *tgz
 *tar.gz
 *.tar
-*.csv
 .pytest_cache/
 django-data/image/dumps/
 django-data/image/protected/

@@ -45,5 +45,5 @@ class EditSubmissionViewTest(
     def test_contains_navigation_links(self):
         """Contain links to ListSpeciesView"""
 
-        link = reverse("language:species") + "?country=Germany"
+        link = reverse("language:species") + "?country=England"
         self.assertContains(self.response, 'href="{0}"'.format(link))
