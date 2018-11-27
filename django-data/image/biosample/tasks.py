@@ -53,7 +53,12 @@ class SubmitTask(celery.Task):
         submission_obj.message = "Error in biosample submission: %s" % str(exc)
         submission_obj.save()
 
-        # TODO: send a mail to the user with the stacktrace (einfo)
+        # send a mail to the user with the stacktrace (einfo)
+        submission_obj.owner.email_user(
+            "Error in biosample submission %s" % (submission_id),
+            ("Something goes wrong with biosample submission. Please report "
+             "this to InjectTool team\n\n %s" % str(exc)),
+        )
 
 
 # a function to submit data into biosample

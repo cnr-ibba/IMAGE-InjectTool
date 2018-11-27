@@ -40,6 +40,10 @@ InjectTool TODO
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
+  - Test ownership for submission edit
+  - remove unknown animals from submission edit
+  - when submission is finalized, I can't recover or patch a submission. I need
+    to create a new submission id.
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -96,8 +100,6 @@ InjectTool TODO
   - ask for user intervention / notify success
 
 * Regarding table `Name`:
-  - track time for changes and submission: if I change one sample after submission,
-    i need to patch
   - define a UID unique ID for samples and animals?
   - track biosample errors (validationResults) in name table?
 
@@ -117,7 +119,9 @@ InjectTool TODO
 
 * Regarding languages, dictionaries and ontology terms:
   - Where managing tasks like zooma are called? before validation pages?
-  - species and countries need to be validated against dictionary tables
+    - breed and species annotation could start after loading data. Check for
+      celery chains
+  - breeds and countries need to be validated against dictionary tables
   - "Semen" has not an ontology term
   - browse by languages, see all synonym in every language (add navigation links)
 

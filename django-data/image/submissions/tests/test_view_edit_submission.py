@@ -47,3 +47,9 @@ class EditSubmissionViewTest(
 
         link = reverse("language:species") + "?country=England"
         self.assertContains(self.response, 'href="{0}"'.format(link))
+
+
+# TODO: test ownership
+
+
+# TODO: test name table

@@ -114,10 +114,8 @@ class ListSubmissionsView(OwnerMixin, ListView):
 
 
 # a detail view since I need to operate on a submission object
-# LoginRequiredMixin instead of OwnerMixin since I will define wonership
-# in get_queryset method
 # HINT: rename to a more informative name?
-class EditSubmissionView(LoginRequiredMixin, ListView):
+class EditSubmissionView(OwnerMixin, ListView):
     template_name = "submissions/submission_edit.html"
 
     def get_queryset(self):

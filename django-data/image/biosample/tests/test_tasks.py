@@ -17,6 +17,7 @@ from celery.exceptions import Retry
 
 from django.test import TestCase
 from django.conf import settings
+from django.core import mail
 
 from image_app.models import Submission, Person, Name, STATUSES
 
@@ -220,6 +221,16 @@ class SubmitTestCase(TestCase):
         self.assertEqual(
             submission.message,
             "Error in biosample submission: Test")
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission %s" % self.submission_id,
+            email.subject)
 
 
 class GetAuthTestCase(TestCase):
