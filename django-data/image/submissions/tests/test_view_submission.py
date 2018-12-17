@@ -46,7 +46,37 @@ class DetailSubmissionViewTest(
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    # TODO: test links for data edit, validate and submit
+    def test_ownership(self):
+        """Test ownership for a submissions"""
+
+        client = Client()
+        client.login(username='test2', password='test2')
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_contains_navigation_links(self):
+        """test links for data edit, validate and submit"""
+
+        # HINT: button unactive class is renderd by template and template_tags
+        edit_url = reverse('submissions:edit', kwargs={'pk': 1})
+        validate_url = ("javascript:{document.getElementById('validate')."
+                        "submit()}")
+        submit_url = "javascript:{document.getElementById('submit').submit()}"
+        list_url = reverse('submissions:list')
+        dashboard_url = reverse('image_app:dashboard')
+        reload_url = reverse('submissions:reload', kwargs={'pk': 1})
+
+        self.assertContains(self.response, 'href="{0}"'.format(edit_url))
+        self.assertContains(self.response, 'href="{0}"'.format(validate_url))
+        self.assertContains(self.response, 'href="{0}"'.format(submit_url))
+        self.assertContains(self.response, 'href="{0}"'.format(list_url))
+        self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))
+        self.assertContains(self.response, 'href="{0}"'.format(reload_url))
+
+        # check template form parameters
+        param = '<input type="hidden" name="submission_id" value="1"'
+        self.assertContains(self.response, param, count=2)
 
     # simulate data loaded and unloaded with messages
     def test_unloaded(self):

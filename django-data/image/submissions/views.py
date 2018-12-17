@@ -10,6 +10,7 @@ import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.shortcuts import get_object_or_404
@@ -124,7 +125,13 @@ class EditSubmissionView(OwnerMixin, ListView):
             Submission,
             pk=self.kwargs['pk'],
             owner=self.request.user)
-        return Name.objects.filter(submission=self.submission)
+
+        # unknown animals should be removed from a submission. They have no
+        # data in animal table nor sample
+        return Name.objects.filter(
+            Q(submission=self.submission) & (
+                Q(animal__isnull=False) | Q(sample__isnull=False))
+            )
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context

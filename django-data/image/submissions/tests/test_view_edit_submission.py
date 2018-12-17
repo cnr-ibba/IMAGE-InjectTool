@@ -21,8 +21,14 @@ class EditSubmissionViewTest(
         "image_app/user",
         "image_app/dictcountry",
         "image_app/dictrole",
+        "image_app/dictspecie",
+        "image_app/dictbreed",
+        "image_app/dictsex",
         "image_app/organization",
-        "image_app/submission"
+        "image_app/submission",
+        "image_app/name",
+        "image_app/animal",
+        "image_app/sample",
     ]
 
     def setUp(self):
@@ -43,13 +49,39 @@ class EditSubmissionViewTest(
         self.assertEqual(response.status_code, 404)
 
     def test_contains_navigation_links(self):
-        """Contain links to ListSpeciesView"""
+        """Contain links to ListSpeciesView, and submissions links"""
 
         link = reverse("language:species") + "?country=England"
         self.assertContains(self.response, 'href="{0}"'.format(link))
 
+        detail_url = reverse('submissions:detail', kwargs={'pk': 1})
+        list_url = reverse('submissions:list')
+        dashboard_url = reverse('image_app:dashboard')
 
-# TODO: test ownership
+        self.assertContains(self.response, 'href="{0}"'.format(detail_url))
+        self.assertContains(self.response, 'href="{0}"'.format(list_url))
+        self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))
 
+    def test_ownership(self):
+        """Test ownership for a submissions"""
 
-# TODO: test name table
+        client = Client()
+        client.login(username='test2', password='test2')
+
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_name_data(self):
+        """Test submission has data"""
+
+        # test for animal name in submission
+        names = ['ANIMAL:::ID:::132713', 'Siems_0722_393449']
+
+        for name in names:
+            self.assertContains(self.response, name)
+
+        # unknown animals should be removed from a submission
+        names = ['ANIMAL:::ID:::unknown_sire', 'ANIMAL:::ID:::unknown_dam']
+
+        for name in names:
+            self.assertNotContains(self.response, name)

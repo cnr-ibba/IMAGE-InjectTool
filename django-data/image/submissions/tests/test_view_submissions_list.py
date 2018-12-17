@@ -47,6 +47,8 @@ class ListSubmissionViewTest(
         client.login(username='test2', password='test2')
 
         response = client.get(self.url)
+
+        # I will get a submission list, but I won't see loaded data
         self.assertNotContains(response, "image test data")
 
     def test_url_resolves_view(self):
