@@ -25,7 +25,7 @@ from submissions.templatetags.submissions_tags import can_submit
 from .forms import (
     GenerateTokenForm, RegisterUserForm, CreateUserForm, SubmitForm)
 from .models import Account, ManagedTeam
-from .tasks import submit
+from .tasks import SubmitTask
 
 # get available statuses
 WAITING = STATUSES.get_value('waiting')
@@ -516,7 +516,8 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
         submission.save()
 
         # a valid submission start a task
-        res = submit.delay(submission.id)
+        submit_task = SubmitTask()
+        res = submit_task.delay(submission.id)
         logger.info(
             "Start submission process for %s with task %s" % (
                 submission,

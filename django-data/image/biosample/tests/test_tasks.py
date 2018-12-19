@@ -21,7 +21,7 @@ from django.core import mail
 
 from image_app.models import Submission, Person, Name, STATUSES
 
-from ..tasks import submit, fetch_status, get_auth
+from ..tasks import SubmitTask, fetch_status, get_auth
 from .test_token import generate_token
 from ..models import ManagedTeam
 
@@ -86,17 +86,17 @@ class SubmitTestCase(TestCase):
 
     def setUp(self):
         # get a submission object
-        submission = Submission.objects.get(pk=1)
+        self.submission_obj = Submission.objects.get(pk=1)
 
         # set a status which I can submit
-        submission.status = READY
-        submission.save()
+        self.submission_obj.status = READY
+        self.submission_obj.save()
 
         # set status for names, like validation does
         Name.objects.all().update(status=READY)
 
         # track submission ID
-        self.submission_id = submission.id
+        self.submission_id = self.submission_obj.id
 
         # starting mocked objects
         self.mock_root_patcher = patch('biosample.tasks.Root')
@@ -115,25 +115,30 @@ class SubmitTestCase(TestCase):
         # mocking get_submission_by_name
         self.my_root.get_submission_by_name.return_value = self.my_submission
 
+        # setting tasks
+        self.my_task = SubmitTask()
+
     def test_submit(self):
         """Test submitting into biosample"""
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
-        res = submit(submission_id=1)
+        res = self.my_task.run(submission_id=self.submission_id)
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
 
         # check submission status and message
-        submission = Submission.objects.get(pk=self.submission_id)
+        self.submission_obj.refresh_from_db()
 
         # check submission.state changed
-        self.assertEqual(submission.status, SUBMITTED)
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
         self.assertEqual(
-            submission.message,
+            self.submission_obj.message,
             "Waiting for biosample validation")
-        self.assertEqual(submission.biosample_submission_id, "test-submission")
+        self.assertEqual(
+            self.submission_obj.biosample_submission_id,
+            "test-submission")
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
@@ -147,8 +152,8 @@ class SubmitTestCase(TestCase):
         self.assertEqual(self.my_submission.create_sample.call_count, 2)
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
-    @patch("biosample.tasks.submit.retry")
-    @patch("biosample.tasks.submit_biosample")
+    @patch("biosample.tasks.SubmitTask.retry")
+    @patch("biosample.tasks.SubmitTask.submit_biosample")
     def test_submit_retry(self, my_submit, my_retry):
         """Test submissions with retry"""
 
@@ -158,7 +163,7 @@ class SubmitTestCase(TestCase):
         my_submit.side_effect = ConnectionError()
 
         with raises(Retry):
-            submit(submission_id=1)
+            self.my_task.run(submission_id=1)
 
     def test_submit_recover(self):
         """Test submission recovering"""
@@ -174,7 +179,7 @@ class SubmitTestCase(TestCase):
         name.save()
 
         # calling submit
-        res = submit(submission_id=1)
+        res = self.my_task.run(submission_id=1)
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
@@ -210,8 +215,12 @@ class SubmitTestCase(TestCase):
         kwargs = {}
         einfo = ExceptionInfo
 
+        # initialize object with submission_obj
+        self.my_task.submission_id = self.submission_id
+        self.my_task.submission_obj = self.submission_obj
+
         # call on_failure method
-        submit.on_failure(exc, task_id, args, kwargs, einfo)
+        self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
 
         # check submission status and message
         submission = Submission.objects.get(pk=self.submission_id)

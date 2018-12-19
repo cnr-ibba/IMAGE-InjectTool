@@ -8,7 +8,6 @@ Created on Thu Oct 25 11:27:52 2018
 
 from celery.utils.log import get_task_logger
 
-# TODO: MyTask need to be moved into common library
 from image.celery import app as celery_app, MyTask
 from image_app.models import DictCountry, DictBreed, DictSpecie
 

@@ -40,8 +40,7 @@ InjectTool TODO
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
-  - Test ownership for submission edit
-  - remove unknown animals from submission edit
+  - submission:edit should be rendered as listview
   - when submission is finalized, I can't recover or patch a submission. I need
     to create a new submission id.
 

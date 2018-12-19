@@ -102,7 +102,7 @@ class SubmitMixin(TestMixin, MessageMixinTestCase, SessionEnabledTestCase):
 
         super().tearDownClass()
 
-    @patch('biosample.views.submit.delay')
+    @patch('biosample.views.SubmitTask.delay')
     def setUp(self, my_submit):
         # call base methods
         super(SubmitMixin, self).setUp()
@@ -245,7 +245,7 @@ class CreateTokenSubmitViewTest(SuccessfulSubmitViewTest):
         cls.mock_get_patcher.stop()
         super().tearDownClass()
 
-    @patch('biosample.views.submit.delay')
+    @patch('biosample.views.SubmitTask.delay')
     def setUp(self, my_submit):
         """Custom setUp"""
 
@@ -332,7 +332,7 @@ class ErrorTokenSubmitViewTest(SubmitMixin):
 class NoSubmitViewTest(TestMixin, MessageMixinTestCase, TestCase):
     """No submission if status is not OK"""
 
-    @patch('biosample.views.submit.delay')
+    @patch('biosample.views.SubmitTask.delay')
     def setUp(self, my_submit):
         # call base methods
         super(NoSubmitViewTest, self).setUp()
@@ -423,7 +423,7 @@ class ErrorSubmitViewtest(TestMixin, TestCase):
     """A class to test submission not belonging to the user or which doesn't
     exists"""
 
-    @patch('biosample.views.submit.delay')
+    @patch('biosample.views.SubmitTask.delay')
     def setUp(self, my_submit):
         self.client = Client()
         self.client.login(username='test2', password='test2')
