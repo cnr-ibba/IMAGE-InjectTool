@@ -34,13 +34,11 @@ InjectTool TODO
     the first one?
   - If data loading fails, were I can fix my data? update submission view?
   - what the `edit data` in the submission detail view means? editing data into UID?
-    Update submission view? if `uploaded_file` fields changes, what I have
-    to do?
+    Update submission view?
   - what happens if I update something after submission to biosample? need I track
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
-  - submission:edit should be rendered as listview
   - when submission is finalized, I can't recover or patch a submission. I need
     to create a new submission id.
 
@@ -155,3 +153,7 @@ InjectTool TODO
     - https://gist.github.com/benbacardi/d6cd0fb8c85e1547c3c60f95f5b2d5e1
   - [customize queryset](https://stackoverflow.com/questions/22902457/django-listview-customising-queryset)
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
+
+* Issues related to USI:
+  - if USI validation fails for taxonomy, it will remain failed even patching
+    samples with a taxonomy id

@@ -53,6 +53,12 @@ class SubmitTask(MyTask):
         self.token = None
         self.team_name = None
 
+        # here I will store samples already submitted
+        self.submitted_samples = {}
+
+        # here I will track a USI submission
+        self.usi_submission = None
+
     # Ovverride default on failure method
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
@@ -138,38 +144,41 @@ class SubmitTask(MyTask):
                 self.submission_obj.biosample_submission_id, team.name))
 
             # get the same submission object
-            submission = root.get_submission_by_name(
-                submission_name=self.submission_obj.biosample_submission_id)
+            usi_submission_name = self.submission_obj.biosample_submission_id
 
-            # TODO: read already submitted samples
+            self.usi_submission = root.get_submission_by_name(
+                submission_name=usi_submission_name)
+
+            # read already submitted samples
+            samples = self.usi_submission.get_samples()
+
+            for sample in samples:
+                self.submitted_samples[sample.alias] = sample
 
         else:
             # create a new submission
             logger.info("Creating a new submission for %s" % (team.name))
-            submission = team.create_submission()
+            self.usi_submission = team.create_submission()
 
             # track submission_id in table
-            self.submission_obj.biosample_submission_id = submission.name
+            usi_submission_name = self.usi_submission.name
+
+            self.submission_obj.biosample_submission_id = usi_submission_name
             self.submission_obj.save()
 
         logger.info("Fetching data and add to submission %s" % (
-            submission.name))
+            usi_submission_name))
 
         # HINT: what happen if a token expire while submitting?
         for animal in Animal.objects.filter(
                 name__submission=self.submission_obj):
 
-            # add animal if not yet submitted
+            # add animal if not yet submitted, or patch it
             if animal.name.status != SUBMITTED:
                 logger.info("Appending animal %s" % (animal))
 
-                # TODO: check if animal is already submitted, otherwise patch
-                submission.create_sample(animal.to_biosample())
-
-                # update animal status
-                animal.name.status = SUBMITTED
-                animal.name.last_submitted = timezone.now()
-                animal.name.save()
+                # check if animal is already submitted, otherwise patch
+                self.__create_or_update(animal)
 
             # Add their specimen
             for sample in animal.sample_set.all():
@@ -177,14 +186,8 @@ class SubmitTask(MyTask):
                 if sample.name.status != SUBMITTED:
                     logger.info("Appending sample %s" % (sample))
 
-                    # TODO: check if sample is already submitted, otherwise
-                    # patch
-                    submission.create_sample(sample.to_biosample())
-
-                    # update sample status
-                    sample.name.status = SUBMITTED
-                    sample.name.last_submitted = timezone.now()
-                    sample.name.save()
+                    # check if sample is already submitted, otherwise patch
+                    self.__create_or_update(sample)
 
         logger.info("submission completed")
 
@@ -193,6 +196,30 @@ class SubmitTask(MyTask):
         self.submission_obj.status = SUBMITTED
         self.submission_obj.message = "Waiting for biosample validation"
         self.submission_obj.save()
+
+    # helper function to create or update a biosample record
+    def __create_or_update(self, sample_obj):
+        """Create or update a sample (or a animal) in USI"""
+
+        # alias could be animal_XXX or a biosample id
+        alias = sample_obj.get_biosample_id()
+
+        # check in my submitted samples
+        if alias in self.submitted_samples:
+            # TODO: patch sample
+            logger.info("Patching %s" % (alias))
+
+            # get usi sample
+            sample = self.submitted_samples[alias]
+            sample.patch(sample_obj.to_biosample())
+
+        else:
+            self.usi_submission.create_sample(sample_obj.to_biosample())
+
+        # update sample status
+        sample_obj.name.status = SUBMITTED
+        sample_obj.name.last_submitted = timezone.now()
+        sample_obj.name.save()
 
 
 # a function to get a valid auth object

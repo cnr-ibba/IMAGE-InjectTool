@@ -118,6 +118,8 @@ class ListSubmissionsView(OwnerMixin, ListView):
 # HINT: rename to a more informative name?
 class EditSubmissionView(OwnerMixin, ListView):
     template_name = "submissions/submission_edit.html"
+    ordering = ['id']
+    paginate_by = 10
 
     def get_queryset(self):
         """Subsetting names relying submission id"""

@@ -169,9 +169,8 @@ class SubmitTestCase(TestCase):
         """Test submission recovering"""
 
         # update submission object
-        submission = Submission.objects.get(pk=self.submission_id)
-        submission.biosample_submission_id = "test-submission"
-        submission.save()
+        self.submission_obj.biosample_submission_id = "test-submission"
+        self.submission_obj.save()
 
         # set one name as uploaded
         name = Name.objects.get(name='ANIMAL:::ID:::132713')
@@ -179,21 +178,19 @@ class SubmitTestCase(TestCase):
         name.save()
 
         # calling submit
-        res = self.my_task.run(submission_id=1)
+        res = self.my_task.run(submission_id=self.submission_id)
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
 
-        # check submission status and message
-        submission = Submission.objects.get(pk=self.submission_id)
+        # reload submission
+        self.submission_obj.refresh_from_db()
 
         # check submission.state changed
-        self.assertEqual(submission.status, SUBMITTED)
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
         self.assertEqual(
-            submission.message,
+            self.submission_obj.message,
             "Waiting for biosample validation")
-        self.assertEqual(
-            submission.biosample_submission_id, "test-submission")
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
@@ -205,6 +202,54 @@ class SubmitTestCase(TestCase):
         self.assertFalse(self.my_team.create_submission.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
         self.assertEqual(self.my_submission.create_sample.call_count, 1)
+
+    def test_submit_patch(self):
+        """Test patching submission"""
+
+        # creating mock samples
+        my_samples = [
+            Mock(**{'alias': 'animal_1',
+                    'title': 'a 4-year old pig organic fed'}),
+            Mock(**{'alias': 'sample_1',
+                    'title': 'semen collected when the animal turns to 4'}),
+        ]
+
+        # mocking set samples
+        self.my_submission.get_samples.return_value = my_samples
+
+        # update submission object
+        self.submission_obj.biosample_submission_id = "test-submission"
+        self.submission_obj.save()
+
+        # calling submit
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        # reload submission
+        self.submission_obj.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        self.assertEqual(
+            self.submission_obj.message,
+            "Waiting for biosample validation")
+
+        # check name status changed
+        qs = Name.objects.filter(status=SUBMITTED)
+        self.assertEqual(len(qs), 2)
+
+        # assert called mock objects
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertFalse(self.my_team.create_submission.called)
+        self.assertTrue(self.my_root.get_submission_by_name.called)
+        self.assertEqual(self.my_submission.create_sample.call_count, 0)
+
+        # testing patch
+        for sample in my_samples:
+            self.assertTrue(sample.patch.called)
 
     def test_on_failure(self):
         """Testing on failure methods"""
