@@ -118,7 +118,6 @@ class ListSubmissionsView(OwnerMixin, ListView):
 # HINT: rename to a more informative name?
 class EditSubmissionView(OwnerMixin, ListView):
     template_name = "submissions/submission_edit.html"
-    ordering = ['id']
     paginate_by = 10
 
     def get_queryset(self):
@@ -133,7 +132,7 @@ class EditSubmissionView(OwnerMixin, ListView):
         return Name.objects.filter(
             Q(submission=self.submission) & (
                 Q(animal__isnull=False) | Q(sample__isnull=False))
-            )
+            ).order_by('id')
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
