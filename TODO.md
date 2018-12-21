@@ -155,5 +155,5 @@ InjectTool TODO
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
 
 * Issues related to USI:
-  - if USI validation fails for taxonomy, it will remain failed even patching
-    samples with a taxonomy id
+  - USI was updated: no longer 'Completed' as submissionStatus. I don't see
+    accessions for a submitted sample

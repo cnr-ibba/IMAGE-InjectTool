@@ -72,7 +72,7 @@ class DateDecoder(json.JSONDecoder):
             return d
 
 
-def format_attribute(value, terms=None, units=None):
+def format_attribute(value, terms=None, obo_url=OBO_URL, units=None):
     """Format a generic attribute into biosample dictionary"""
 
     if value is None:
@@ -86,7 +86,7 @@ def format_attribute(value, terms=None, units=None):
     if terms:
         result["terms"] = [{
             "url": "/".join([
-                OBO_URL,
+                obo_url,
                 terms])
         }]
 

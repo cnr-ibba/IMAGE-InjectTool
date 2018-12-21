@@ -394,7 +394,7 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
 
         # model follow link to get a document with status 'Completed'
         my_document = Mock()
-        my_document.status = 'Completed'
+        my_document.status = 'Submitted'
         my_submission.follow_url.return_value = my_document
 
         # Add samples

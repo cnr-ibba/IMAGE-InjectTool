@@ -3,6 +3,7 @@
   "title": "ANIMAL:::ID:::132713",
   "releaseDate": "2018-10-08",
   "taxonId": 9823,
+  "taxon": "Sus scrofa",
   "description": "a 4-year old pig organic fed",
   "attributes": {
     "Project": [
@@ -45,7 +46,7 @@
         "value": "submitter",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/EFO_0001741"
+            "url": "http://www.ebi.ac.uk/efo/EFO_0001741"
           }
         ]
       }
@@ -60,7 +61,7 @@
         "value": "submitter",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/EFO_0001741"
+            "url": "http://www.ebi.ac.uk/efo/EFO_0001741"
           }
         ]
       }

@@ -303,7 +303,7 @@ def fetch_biosample_status(queryset):
         document = submission.follow_url('submissionStatus', auth=auth)
 
         # Update submission status if completed
-        if document.status == 'Completed':
+        if document.status == 'Submitted':
             # cicle along samples
             for sample in submission.get_samples():
                 # derive pk and table from alias

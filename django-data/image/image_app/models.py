@@ -162,6 +162,7 @@ class BioSampleMixin(BaseMixin):
 
         attributes['Person role'] = format_attribute(
             value=self.owner.person.role.label,
+            obo_url="http://www.ebi.ac.uk/efo",
             terms=self.owner.person.role.term)
 
         attributes['Organization name'] = format_attribute(
@@ -169,6 +170,7 @@ class BioSampleMixin(BaseMixin):
 
         attributes['Organization role'] = format_attribute(
             value=self.name.submission.organization.role.label,
+            obo_url="http://www.ebi.ac.uk/efo",
             terms=self.name.submission.organization.role.term)
 
         attributes['Gene bank name'] = format_attribute(
@@ -573,6 +575,8 @@ class Animal(BioSampleMixin, models.Model):
 
         result['taxonId'] = self.breed.specie.taxon_id
 
+        result['taxon'] = self.breed.specie.label
+
         # define optinal fields
         if self.description:
             result['description'] = self.description
@@ -779,6 +783,8 @@ class Sample(BioSampleMixin, models.Model):
             result['releaseDate'] = str(now.date())
 
         result['taxonId'] = self.animal.breed.specie.taxon_id
+
+        result['taxon'] = self.animal.breed.specie.label
 
         # define optinal fields
         if self.description:

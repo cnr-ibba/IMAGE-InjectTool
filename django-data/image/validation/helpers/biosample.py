@@ -35,7 +35,7 @@ key2key = {
 
 # set the biosample mandatory keys
 mandatory_keys = [
-    'alias', 'title', 'releaseDate', 'taxonId', 'description']
+    'alias', 'title', 'releaseDate', 'taxon', 'taxonId', 'description']
 
 
 # scan and search mandatory fields for each rule group
