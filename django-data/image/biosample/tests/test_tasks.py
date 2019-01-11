@@ -11,7 +11,7 @@ import redis
 from billiard.einfo import ExceptionInfo
 from pytest import raises
 from collections import Counter
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, PropertyMock
 
 from celery.exceptions import Retry
 
@@ -109,11 +109,22 @@ class SubmitTestCase(TestCase):
         self.my_team = self.my_root.get_team_by_name.return_value
         self.my_team.name = "subs.test-team-1"
 
-        self.my_submission = self.my_team.create_submission.return_value
-        self.my_submission.name = "test-submission"
+        # mocking a new submission
+        self.new_submission = self.my_team.create_submission.return_value
+        self.new_submission.name = "new-submission"
+
+        # set status. Because of the way mock attributes are stored you can’t
+        # directly attach a PropertyMock to a mock object. Instead you can
+        # attach it to the mock type object:
+        self.new_submission.propertymock = PropertyMock(return_value='Draft')
+        type(self.new_submission).status = self.new_submission.propertymock
 
         # mocking get_submission_by_name
-        self.my_root.get_submission_by_name.return_value = self.my_submission
+        self.my_submission = self.my_root.get_submission_by_name.return_value
+        self.my_submission.name = "test-submission"
+
+        self.my_submission.propertymock = PropertyMock(return_value='Draft')
+        type(self.my_submission).status = self.my_submission.propertymock
 
         # setting tasks
         self.my_task = SubmitTask()
@@ -138,7 +149,7 @@ class SubmitTestCase(TestCase):
             "Waiting for biosample validation")
         self.assertEqual(
             self.submission_obj.biosample_submission_id,
-            "test-submission")
+            "new-submission")
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
@@ -149,7 +160,8 @@ class SubmitTestCase(TestCase):
         self.assertTrue(self.my_root.get_team_by_name.called)
         self.assertTrue(self.my_team.create_submission.called)
         self.assertFalse(self.my_root.get_submission_by_name.called)
-        self.assertEqual(self.my_submission.create_sample.call_count, 2)
+        self.assertEqual(self.new_submission.create_sample.call_count, 2)
+        self.assertFalse(self.new_submission.propertymock.called)
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
     @patch("biosample.tasks.SubmitTask.retry")
@@ -198,10 +210,55 @@ class SubmitTestCase(TestCase):
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
-        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertFalse(self.my_root.get_team_by_name.called)
         self.assertFalse(self.my_team.create_submission.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
         self.assertEqual(self.my_submission.create_sample.call_count, 1)
+        self.assertTrue(self.my_submission.propertymock.called)
+
+    def test_submit_no_recover(self):
+        """Test submission recovering with a closed submission"""
+
+        # update submission status
+        self.my_submission.propertymock = PropertyMock(
+            return_value='Completed')
+        type(self.my_submission).status = self.my_submission.propertymock
+
+        # update submission object
+        self.submission_obj.biosample_submission_id = "test-submission"
+        self.submission_obj.save()
+
+        # calling submit
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        # reload submission
+        self.submission_obj.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(
+            self.submission_obj.biosample_submission_id,
+            "new-submission")
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        self.assertEqual(
+            self.submission_obj.message,
+            "Waiting for biosample validation")
+
+        # check name status changed
+        qs = Name.objects.filter(status=SUBMITTED)
+        self.assertEqual(len(qs), 2)
+
+        # assert called mock objects
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertTrue(self.my_root.get_submission_by_name.called)
+        self.assertTrue(self.my_team.create_submission.called)
+        self.assertFalse(self.my_submission.create_sample.called)
+        self.assertEqual(self.new_submission.create_sample.call_count, 2)
+        self.assertTrue(self.my_submission.propertymock.called)
+        self.assertFalse(self.new_submission.propertymock.called)
 
     def test_submit_patch(self):
         """Test patching submission"""
@@ -242,10 +299,11 @@ class SubmitTestCase(TestCase):
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
-        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertFalse(self.my_root.get_team_by_name.called)
         self.assertFalse(self.my_team.create_submission.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
         self.assertEqual(self.my_submission.create_sample.call_count, 0)
+        self.assertTrue(self.my_submission.propertymock.called)
 
         # testing patch
         for sample in my_samples:

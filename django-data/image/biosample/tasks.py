@@ -58,6 +58,7 @@ class SubmitTask(MyTask):
 
         # here I will track a USI submission
         self.usi_submission = None
+        self.usi_root = None
 
     # Ovverride default on failure method
     def on_failure(self, exc, task_id, args, kwargs, einfo):
@@ -130,43 +131,17 @@ class SubmitTask(MyTask):
         auth = Auth(token=self.token)
 
         logger.debug("getting biosample root")
-        root = Root(auth=auth)
-
-        # getting team
-        logger.debug("getting team '%s'" % (self.team_name))
-        team = root.get_team_by_name(self.team_name)
+        self.usi_root = Root(auth=auth)
 
         # if I'm recovering a submission, get the same submission id
         if (self.submission_obj.biosample_submission_id is not None and
                 self.submission_obj.biosample_submission_id != ''):
 
-            logger.info("Recovering submission %s for team %s" % (
-                self.submission_obj.biosample_submission_id, team.name))
-
-            # get the same submission object
-            usi_submission_name = self.submission_obj.biosample_submission_id
-
-            self.usi_submission = root.get_submission_by_name(
-                submission_name=usi_submission_name)
-
-            # TODO: check that a submission is still editable
-
-            # read already submitted samples
-            samples = self.usi_submission.get_samples()
-
-            for sample in samples:
-                self.submitted_samples[sample.alias] = sample
+            usi_submission_name = self.__recover_submission()
 
         else:
-            # create a new submission
-            logger.info("Creating a new submission for %s" % (team.name))
-            self.usi_submission = team.create_submission()
-
-            # track submission_id in table
-            usi_submission_name = self.usi_submission.name
-
-            self.submission_obj.biosample_submission_id = usi_submission_name
-            self.submission_obj.save()
+            # get a new USI submission
+            usi_submission_name = self.__create_submission()
 
         logger.info("Fetching data and add to submission %s" % (
             usi_submission_name))
@@ -222,6 +197,54 @@ class SubmitTask(MyTask):
         sample_obj.name.status = SUBMITTED
         sample_obj.name.last_submitted = timezone.now()
         sample_obj.name.save()
+
+    def __recover_submission(self):
+        logger.info("Recovering submission %s for team %s" % (
+            self.submission_obj.biosample_submission_id, self.team_name))
+
+        # get the same submission object
+        usi_submission_name = self.submission_obj.biosample_submission_id
+
+        self.usi_submission = self.usi_root.get_submission_by_name(
+            submission_name=usi_submission_name)
+
+        # check that a submission is still editable
+        if self.usi_submission.status != "Draft":
+            logger.warning(
+                "Error for submission '%s': current status is '%s'" % (
+                    usi_submission_name, self.usi_submission.status))
+
+            # I can't modify this submission so:
+            return self.__create_submission()
+
+        # read already submitted samples
+        logger.debug("Getting info on samples...")
+        samples = self.usi_submission.get_samples()
+        logger.debug("Got %s samples" % (len(samples)))
+
+        for sample in samples:
+            self.submitted_samples[sample.alias] = sample
+
+        # return usi biosample id
+        return usi_submission_name
+
+    def __create_submission(self):
+        # getting team
+        logger.debug("getting team '%s'" % (self.team_name))
+        team = self.usi_root.get_team_by_name(self.team_name)
+
+        # create a new submission
+        logger.info("Creating a new submission for %s" % (team.name))
+        self.usi_submission = team.create_submission()
+
+        # track submission_id in table
+        usi_submission_name = self.usi_submission.name
+
+        self.submission_obj.biosample_submission_id = usi_submission_name
+        self.submission_obj.save()
+
+        # return usi biosample id
+        return usi_submission_name
 
 
 # a function to get a valid auth object
