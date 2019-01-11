@@ -72,7 +72,7 @@ class SubmitTask(MyTask):
         self.submission_obj.owner.email_user(
             "Error in biosample submission %s" % (self.submission_id),
             ("Something goes wrong with biosample submission. Please report "
-             "this to InjectTool team\n\n %s" % str(exc)),
+             "this to InjectTool team\n\n %s" % str(einfo)),
         )
 
     def run(self, submission_id):
@@ -148,6 +148,8 @@ class SubmitTask(MyTask):
 
             self.usi_submission = root.get_submission_by_name(
                 submission_name=usi_submission_name)
+
+            # TODO: check that a submission is still editable
 
             # read already submitted samples
             samples = self.usi_submission.get_samples()

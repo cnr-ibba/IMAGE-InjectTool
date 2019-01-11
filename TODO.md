@@ -22,6 +22,8 @@ InjectTool TODO
   - Data will be exported using JSON (preferably).
   - Exporting data in IMAGE-metadata excel template, could be useful for data
     cleaning?
+  - links for data export need to be protected and tested for ownership
+  - links for data export should return biosample json
 
 * Openrefine integration:
   - need to place Openrefine in docker compose?
@@ -41,6 +43,7 @@ InjectTool TODO
   - Think about renaming EditSubmissionView with a more useful name
   - when submission is finalized, I can't recover or patch a submission. I need
     to create a new submission id.
+  - send a mail when USI report an error while finalizing
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -81,6 +84,7 @@ InjectTool TODO
 
 * Data validation:
   - if no taxonomy is defined, biosample submission will fail
+  - taxon and taxonId seem to be mandatory attributes
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -109,6 +113,7 @@ InjectTool TODO
     documentation
   - read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - [django-crispy-forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html)
+  - add cookie agreement (external module or custom one?)
 
 * Regarding tests:
   - implement functional testing
@@ -121,6 +126,7 @@ InjectTool TODO
   - breeds and countries need to be validated against dictionary tables
   - "Semen" has not an ontology term
   - browse by languages, see all synonym in every language (add navigation links)
+  - update ontology urls (see Jun's code)
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,
