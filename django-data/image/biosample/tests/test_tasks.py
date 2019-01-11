@@ -364,7 +364,6 @@ class FetchMixin():
         self.assertTrue(self.mock_auth.called)
         self.assertTrue(self.mock_root.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
-        self.assertTrue(my_submission.follow_url.called)
 
 
 class FetchCompletedTestCase(FetchMixin, TestCase):
@@ -390,12 +389,7 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         # a completed submission with two samples
         my_submission = Mock()
         my_submission.name = "test-fetch"
-        my_submission.submissionStatus = 'Completed'
-
-        # model follow link to get a document with status 'Completed'
-        my_document = Mock()
-        my_document.status = 'Submitted'
-        my_submission.follow_url.return_value = my_document
+        my_submission.status = 'Submitted'
 
         # Add samples
         my_sample1 = Mock()
@@ -476,14 +470,9 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         # a draft submission with errors
         my_submission = Mock()
         my_submission.name = "test-fetch"
-        my_submission.submissionStatus = 'Draft'
+        my_submission.status = 'Draft'
         my_submission.has_errors.return_value = Counter({True: 1})
         my_submission.get_status.return_value = Counter({'Complete': 1})
-
-        # model follow link to get a document with status 'Draft'
-        my_document = Mock()
-        my_document.status = 'Draft'
-        my_submission.follow_url.return_value = my_document
 
         # Add samples
         my_sample1 = Mock()
@@ -515,14 +504,9 @@ class FetchDraftTestCase(FetchMixin, TestCase):
         # a draft submission without errors
         my_submission = Mock()
         my_submission.name = "test-fetch"
-        my_submission.submissionStatus = 'Draft'
+        my_submission.status = 'Draft'
         my_submission.has_errors.return_value = Counter({False: 1})
         my_submission.get_status.return_value = Counter({'Complete': 1})
-
-        # model follow link to get a document with status 'Draft'
-        my_document = Mock()
-        my_document.status = 'Draft'
-        my_submission.follow_url.return_value = my_document
 
         # assert task and mock methods called
         self.common_tests(my_submission)
@@ -544,14 +528,9 @@ class FetchDraftTestCase(FetchMixin, TestCase):
         # a draft submission without errors
         my_submission = Mock()
         my_submission.name = "test-fetch"
-        my_submission.submissionStatus = 'Draft'
+        my_submission.status = 'Draft'
         my_submission.has_errors.return_value = Counter({False: 1})
         my_submission.get_status.return_value = Counter({'Pending': 1})
-
-        # model follow link to get a document with status 'Draft'
-        my_document = Mock()
-        my_document.status = 'Draft'
-        my_submission.follow_url.return_value = my_document
 
         # assert task and mock methods called
         self.common_tests(my_submission)

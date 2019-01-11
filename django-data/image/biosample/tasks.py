@@ -208,7 +208,7 @@ class SubmitTask(MyTask):
 
         # check in my submitted samples
         if alias in self.submitted_samples:
-            # TODO: patch sample
+            # patch sample
             logger.info("Patching %s" % (alias))
 
             # get usi sample
@@ -299,13 +299,8 @@ def fetch_biosample_status(queryset):
         submission = root.get_submission_by_name(
             submission_name=submission_obj.biosample_submission_id)
 
-        # a submission object retrieved by the previous method hasn't the
-        # submission status, so I need to follow submissionStatus link
-        # TODO: update pyUSIrest to fetch submissionStatus value
-        document = submission.follow_url('submissionStatus', auth=auth)
-
         # Update submission status if completed
-        if document.status == 'Submitted':
+        if submission.status == 'Submitted':
             # cicle along samples
             for sample in submission.get_samples():
                 # derive pk and table from alias
@@ -336,7 +331,7 @@ def fetch_biosample_status(queryset):
                 "Submission %s is now completed and recorded into UID" % (
                     submission))
 
-        elif document.status == 'Draft':
+        elif submission.status == 'Draft':
             # check validation. If it is ok, finalize submission
             status = submission.get_status()
 
@@ -351,7 +346,7 @@ def fetch_biosample_status(queryset):
 
         else:
             logger.warning("Unknown status %s for submission %s" % (
-                document.status, submission.name))
+                submission.status, submission.name))
 
         # test for submission status
 
