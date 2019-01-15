@@ -14,7 +14,7 @@ InjectTool TODO
 
 * regarding docker configuration:
   - move flower to another port (eg 15555; however is flower needed?)
-  - move /image/ location to injecttool
+  - move /image/ location to injecttool (or use a CNAME domain)
 
 * Data export: How data needs to be exported? how IMAGE-metadata works?
   - IMAGE-metadata define fields in .xls used for import. There is a correspondance
@@ -41,9 +41,8 @@ InjectTool TODO
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
-  - when submission is finalized, I can't recover or patch a submission. I need
-    to create a new submission id.
   - send a mail when USI report an error while finalizing
+  - throw an error if no biosample-accession is retrieved after a submission
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -135,6 +134,7 @@ InjectTool TODO
   - Add messages when views are called or code executed
   - Error handling (API?/String messages?)
   - Navbar for tools (zooma, dictionary tables, etc)?
+  - `.table-responsive` class in order to render HTML tables
 
 * Issues relative to UID:
   - rename `image_app` application into `uid`?
@@ -161,5 +161,7 @@ InjectTool TODO
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
 
 * Issues related to USI:
-  - USI was updated: no longer 'Completed' as submissionStatus. I don't see
-    accessions for a submitted sample
+  - USI was updated: when I "finalize" a submission, and I check submissionStatus,
+    I will see before the 'Submitted' state (if no errors occour), where no accession
+    is found. Then I will see "Completed" submissionStatus and after I could
+    get my Biosample accession

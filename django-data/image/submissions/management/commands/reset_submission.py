@@ -43,7 +43,8 @@ class Command(BaseCommand):
 
         # logging info
         logger.info(
-            "Resetting submission %s and its animals/samples to 'LOADED'")
+            "Resetting submission %s and its animals/samples to 'LOADED'"
+            % (submission))
 
         # get all names for a submissions
         names = Name.objects.filter(submission=submission)

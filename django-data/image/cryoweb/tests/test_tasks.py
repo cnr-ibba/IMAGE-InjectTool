@@ -104,7 +104,7 @@ class ImportCryowebTest(TestCase):
         self.assertTrue(my_truncate.called)
 
     # Test a non blocking instance
-    @patch("redis.lock.LuaLock.acquire", return_value=False)
+    @patch("redis.lock.Lock.acquire", return_value=False)
     @patch("cryoweb.helpers.cryoweb_import")
     @patch("cryoweb.helpers.upload_cryoweb", return_value=True)
     @patch("cryoweb.models.db_has_data", return_value=False)
@@ -123,5 +123,6 @@ class ImportCryowebTest(TestCase):
         self.assertFalse(my_truncate.called)
         self.assertFalse(my_upload.called)
         self.assertFalse(my_import.called)
+        self.assertTrue(my_lock.called)
 
     # HINT: Uploading the same submission fails or overwrite?

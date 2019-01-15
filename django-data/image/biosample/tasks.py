@@ -323,6 +323,9 @@ def fetch_biosample_status(queryset):
             submission_name=submission_obj.biosample_submission_id)
 
         # Update submission status if completed
+        # FIXME: the corrected status is completed, if not yet completed
+        # I don't have accessions. See
+        # https://submission-dev.ebi.ac.uk/api/docs/guide_getting_started.html#_tracking_progress
         if submission.status == 'Submitted':
             # cicle along samples
             for sample in submission.get_samples():
@@ -358,6 +361,8 @@ def fetch_biosample_status(queryset):
             # check validation. If it is ok, finalize submission
             status = submission.get_status()
 
+            # this mean validation statuses, I want to see completed in all
+            # samples
             if len(status) == 1 and 'Complete' in status:
                 # check for errors and eventually finalize
                 finalize(submission, submission_obj)
@@ -368,6 +373,7 @@ def fetch_biosample_status(queryset):
                     (status))
 
         else:
+            # TODO: thrown an exception
             logger.warning("Unknown status %s for submission %s" % (
                 submission.status, submission.name))
 
