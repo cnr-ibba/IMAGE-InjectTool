@@ -15,7 +15,6 @@ Including another URLconf
 """
 
 from django.conf.urls import url
-from django.contrib.auth.decorators import login_required
 
 from . import views
 
@@ -31,28 +30,4 @@ urlpatterns = [
     url(r'^summary/$',
         views.SummaryView.as_view(),
         name='summary'),
-
-    url(r'^sample/(?P<pk>[0-9]+)/json/$',
-        login_required(views.SampleJSON.as_view()),
-        name='sample-json'),
-
-    url(r'^samples/json/$',
-        login_required(views.SampleListJSON.as_view()),
-        name='samplelist-json'),
-
-    url(r'^animal/(?P<pk>[0-9]+)/json/$',
-        login_required(views.AnimalJSON.as_view()),
-        name='animal-json'),
-
-    url(r'^animals/json/$',
-        login_required(views.AnimalListJSON.as_view()),
-        name='animallist-json'),
-
-    url(r'^animal/(?P<pk>[0-9]+)/biosample/$',
-        login_required(views.BioSampleJSON.as_view()),
-        name='animal-biosample'),
-
-    url(r'^animals/biosample/$',
-        login_required(views.BioSampleListJSON.as_view()),
-        name='animallist-biosample'),
 ]
