@@ -42,7 +42,9 @@ class MyTask(app.Task):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
     def debug_task(self):
-        logger.debug('Request: {0!r}'.format(self.request))
+        # this does't throw an error when debugging a task called with run()
+        if self.request_stack:
+            logger.debug('Request: {0!r}'.format(self.request))
 
 
 # https://stackoverflow.com/a/51429597

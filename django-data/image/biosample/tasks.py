@@ -22,6 +22,7 @@ from django.utils import timezone
 
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Animal, Sample, STATUSES
+from common.tasks import redis_lock
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -247,6 +248,66 @@ class SubmitTask(MyTask):
         return usi_submission_name
 
 
+class FetchTask(MyTask):
+    name = "Fetch USI status"
+    description = """Fetch biosample using USI API"""
+
+    # define my class attributes
+    def __init__(self, *args, **kwargs):
+        super(FetchTask, self).__init__(*args, **kwargs)
+
+        # ok those are my default class attributes
+
+    def run(self):
+        """This function is called when delay is called"""
+
+        # debugging instance
+        self.debug_task()
+
+        # the id used for locking task
+        lock_id = self.name
+
+        # forcing blocking condition: Wait until a get a lock object
+        with redis_lock(lock_id, blocking=False) as acquired:
+            if acquired:
+                # do stuff and return something
+                return self.fetch_status()
+
+        logger.warning(
+            "'%s' already running!" % (self.name))
+
+        return "'%s' already running!" % (self.name)
+
+    def fetch_status(self):
+        """Fetch status from pending submissions"""
+
+        logger.info("fetch_status started")
+
+        # search for submission with SUBMITTED status. Other submission are
+        # not yet finalized. This function need to be called by exclusives
+        # tasks
+        qs = Submission.objects.filter(status=SUBMITTED)
+
+        # check for queryset length
+        if qs.count() != 0:
+            try:
+                # fetch biosample status
+                fetch_biosample_status(qs)
+
+            # retry a task under errors
+            # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
+            except ConnectionError as exc:
+                raise self.retry(exc=exc)
+
+        else:
+            logger.debug("No pending submission in UID database")
+
+        # debug
+        logger.info("fetch_status completed")
+
+        return "success"
+
+
 # a function to get a valid auth object
 # TODO: create an Auth instance from a token
 # TODO: move in helpers module
@@ -420,3 +481,4 @@ def fetch_status(self):
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(SubmitTask)
+celery_app.tasks.register(FetchTask)

@@ -325,7 +325,7 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=12, minute=0),
     },
     'fetch_biosample_status': {
-        'task': 'biosample.tasks.fetch_status',
+        'task': "Fetch USI status",
         'schedule': crontab(hour="*", minute='*/15'),
     }
 }

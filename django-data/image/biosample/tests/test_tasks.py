@@ -21,7 +21,7 @@ from django.core import mail
 
 from image_app.models import Submission, Person, Name, STATUSES
 
-from ..tasks import SubmitTask, fetch_status, get_auth
+from ..tasks import SubmitTask, FetchTask, get_auth
 from .test_token import generate_token
 from ..models import ManagedTeam
 
@@ -408,13 +408,16 @@ class FetchMixin():
         # start root object
         self.my_root = self.mock_root.return_value
 
+        # define my task
+        self.my_task = FetchTask()
+
     def common_tests(self, my_submission):
         # passing submission to Mocked Root
         self.my_root.get_submission_by_name.return_value = my_submission
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
-        res = fetch_status()
+        res = self.my_task.run()
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
@@ -479,10 +482,10 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         self.assertEqual(name.biosample_id, "SAMEA0000002")
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
-    @patch("biosample.tasks.fetch_status.retry")
+    @patch("biosample.tasks.FetchTask.retry")
     @patch("biosample.tasks.fetch_biosample_status")
     def test_fetch_status_retry(self, my_fetch_biosample, my_fetch_status):
-        """Test submissions with retry"""
+        """Test fetch status with retry"""
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
@@ -490,7 +493,7 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         my_fetch_biosample.side_effect = ConnectionError()
 
         with raises(Retry):
-            fetch_status()
+            self.my_task.run()
 
 
 class FetchNotInDBTestCase(FetchMixin, TestCase):
@@ -630,7 +633,7 @@ class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
-        res = fetch_status()
+        res = self.my_task.run()
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
