@@ -9,7 +9,7 @@ InjectTool TODO
 
 * Regarding libraries upgrades and downgrades
   - Need to test if we can migrate to newer django release?
-  - waiting for the next LTS version. No stable branch with a non-LTS version
+  - waiting for the next LTS version (April 2019). No stable branch with a non-LTS version
   - celery-flower need to be removed if it is not necessary
 
 * regarding docker configuration:
@@ -41,7 +41,6 @@ InjectTool TODO
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
-  - send a mail when USI report an error while finalizing
   - throw an error if no biosample-accession is retrieved after a submission
 
 * regarding issues in data into UID:
@@ -82,6 +81,7 @@ InjectTool TODO
       mapped_breed (need revisions)
 
 * Data validation:
+  - integrate with Jun code
   - if no taxonomy is defined, biosample submission will fail
   - taxon and taxonId seem to be mandatory attributes
 
@@ -159,9 +159,3 @@ InjectTool TODO
     - https://gist.github.com/benbacardi/d6cd0fb8c85e1547c3c60f95f5b2d5e1
   - [customize queryset](https://stackoverflow.com/questions/22902457/django-listview-customising-queryset)
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
-
-* Issues related to USI:
-  - USI was updated: when I "finalize" a submission, and I check submissionStatus,
-    I will see before the 'Submitted' state (if no errors occour), where no accession
-    is found. Then I will see "Completed" submissionStatus and after I could
-    get my Biosample accession

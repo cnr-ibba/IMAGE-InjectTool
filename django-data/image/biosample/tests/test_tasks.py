@@ -539,7 +539,10 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         "image_app/sample"
     ]
 
-    def test_fetch_status(self):
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
         # a draft submission with errors
         my_submission = Mock()
         my_submission.name = "test-fetch"
@@ -558,8 +561,12 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         # simulate that animal_1 has errors
         my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
+        # track object
+        self.my_submission = my_submission
+
+    def test_fetch_status(self):
         # assert task and mock methods called
-        self.common_tests(my_submission)
+        self.common_tests(self.my_submission)
 
         # assert submission status
         submission = Submission.objects.get(pk=self.submission_id)
@@ -568,6 +575,20 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         # check name status changed
         qs = Name.objects.filter(status=NEED_REVISION)
         self.assertEqual(len(qs), 2)
+
+    def test_email_sent(self):
+        # assert task and mock methods called
+        self.common_tests(self.my_submission)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission %s" % self.submission_id,
+            email.subject)
 
 
 class FetchDraftTestCase(FetchMixin, TestCase):
@@ -594,10 +615,6 @@ class FetchDraftTestCase(FetchMixin, TestCase):
     def test_fetch_status_pending(self):
         """Testing status with pending validation"""
 
-        # mocking chain. The team for test user
-        my_team = Mock()
-        my_team.name = "subs.test-team-1"
-
         # a draft submission without errors
         my_submission = Mock()
         my_submission.name = "test-fetch"
@@ -615,9 +632,29 @@ class FetchDraftTestCase(FetchMixin, TestCase):
         # testing a not finalized biosample condition
         self.assertFalse(my_submission.finalize.called)
 
+    def test_fetch_status_completed(self):
+        """Testing status durign biosample submission"""
+
+        # a draft submission without errors
+        my_submission = Mock()
+        my_submission.name = "test-fetch"
+        my_submission.status = 'Completed'
+        my_submission.has_errors.return_value = Counter({False: 1})
+        my_submission.get_status.return_value = Counter({'Complete': 1})
+
+        # assert task and mock methods called
+        self.common_tests(my_submission)
+
+        # assert status for submissions
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, SUBMITTED)
+
+        # testing a not finalized biosample condition
+        self.assertFalse(my_submission.finalize.called)
+
 
 class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
-    """A submission with a status I can ignore"""
+    """A submission object with a status I can ignore"""
 
     def setUp(self):
         # calling my base setup

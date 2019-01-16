@@ -325,15 +325,14 @@ class FetchTask(MyTask):
                 submission_name=submission_obj.biosample_submission_id)
 
             # Update submission status if completed
-            # FIXME: the corrected status is completed, if not yet completed
-            # I don't have accessions. See
-            # https://submission-dev.ebi.ac.uk/api/docs/guide_getting_started.html#_tracking_progress
             if submission.status == 'Submitted':
                 # cicle along samples
                 for sample in submission.get_samples():
                     # derive pk and table from alias
                     table, pk = sample.alias.split("_")
                     table, pk = table.capitalize(), int(pk)
+
+                    # HINT: if no accession, what shoul I do?
 
                     if table == 'Sample':
                         sample_obj = Sample.objects.get(pk=pk)
@@ -374,8 +373,21 @@ class FetchTask(MyTask):
                         "Biosample validation is not completed yet (%s)" %
                         (status))
 
+            elif submission.status == 'Completed':
+                logger.info(
+                    "Submission %s is 'Completed'. Waiting for biosample "
+                    "ids" % (submission.id))
+
+                # debug submission status
+                document = submission.follow_url(
+                    "processingStatusSummary", auth)
+
+                logger.debug(
+                    "Current status for submission %s is %s" % (
+                        submission.id, document.data))
+
             else:
-                # TODO: thrown an exception
+                # HINT: thrown an exception?
                 logger.warning("Unknown status %s for submission %s" % (
                     submission.status, submission.name))
 
@@ -416,6 +428,12 @@ class FetchTask(MyTask):
 
             logger.error("Errors for submission: %s" % (submission))
             logger.error("Fix them, then finalize")
+
+            # send a mail for this submission
+            submission_obj.owner.email_user(
+                "Error in biosample submission %s" % (submission_obj.id),
+                "Some items needs revision",
+            )
 
             # Update status for submission
             submission_obj.status = NEED_REVISION
