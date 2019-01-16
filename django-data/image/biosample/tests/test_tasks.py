@@ -21,7 +21,7 @@ from django.core import mail
 
 from image_app.models import Submission, Person, Name, STATUSES
 
-from ..tasks import SubmitTask, FetchTask, get_auth
+from ..tasks import SubmitTask, FetchTask
 from .test_token import generate_token
 from ..models import ManagedTeam
 
@@ -176,6 +176,9 @@ class SubmitTestCase(TestCase):
 
         with raises(Retry):
             self.my_task.run(submission_id=1)
+
+        self.assertTrue(my_submit.called)
+        self.assertTrue(my_retry.called)
 
     def test_submit_recover(self):
         """Test submission recovering"""
@@ -345,15 +348,6 @@ class SubmitTestCase(TestCase):
             email.subject)
 
 
-class GetAuthTestCase(TestCase):
-    @patch("biosample.tasks.Auth")
-    def test_get_auth(self, my_auth):
-        """Testing get_auth method"""
-
-        get_auth()
-        self.assertTrue(my_auth.called)
-
-
 class FetchMixin():
     """Mixin for fetching status"""
 
@@ -379,7 +373,7 @@ class FetchMixin():
         cls.mock_root_patcher = patch('biosample.tasks.Root')
         cls.mock_root = cls.mock_root_patcher.start()
 
-        cls.mock_auth_patcher = patch('biosample.tasks.get_auth')
+        cls.mock_auth_patcher = patch('biosample.tasks.Auth')
         cls.mock_auth = cls.mock_auth_patcher.start()
 
     @classmethod
@@ -410,6 +404,9 @@ class FetchMixin():
 
         # define my task
         self.my_task = FetchTask()
+
+        # change lock_id (useful when running test during cron)
+        self.my_task.lock_id = "test-FetchTask"
 
     def common_tests(self, my_submission):
         # passing submission to Mocked Root
@@ -483,17 +480,32 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
     @patch("biosample.tasks.FetchTask.retry")
-    @patch("biosample.tasks.fetch_biosample_status")
-    def test_fetch_status_retry(self, my_fetch_biosample, my_fetch_status):
+    @patch("biosample.tasks.FetchTask.fetch_biosample_status")
+    def test_fetch_status_retry(self, my_fetch, my_retry):
         """Test fetch status with retry"""
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
-        my_fetch_status.side_effect = Retry()
-        my_fetch_biosample.side_effect = ConnectionError()
+        my_retry.side_effect = Retry()
+        my_fetch.side_effect = ConnectionError()
 
         with raises(Retry):
             self.my_task.run()
+
+        self.assertTrue(my_fetch.called)
+        self.assertTrue(my_retry.called)
+
+    # Test a non blocking instance
+    @patch("biosample.tasks.FetchTask.fetch_biosample_status")
+    @patch("redis.lock.Lock.acquire", return_value=False)
+    def test_fetch_status_nb(self, my_lock, my_fetch):
+        """Test FetchSTatus while a lock is present"""
+
+        res = self.my_task.run()
+
+        # assert database is locked
+        self.assertEqual(res, "%s already running!" % (self.my_task.name))
+        self.assertFalse(my_fetch.called)
 
 
 class FetchNotInDBTestCase(FetchMixin, TestCase):
