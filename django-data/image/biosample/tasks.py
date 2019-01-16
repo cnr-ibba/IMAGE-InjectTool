@@ -246,16 +246,18 @@ class SubmitTask(MyTask):
         return usi_submission_name
 
 
-class FetchTask(MyTask):
+class FetchStatusTask(MyTask):
     name = "Fetch USI status"
     description = """Fetch biosample using USI API"""
-    lock_id = "FecthTask"
+    lock_id = "FetchStatusTask"
 
     # define my class attributes
     def __init__(self, *args, **kwargs):
-        super(FetchTask, self).__init__(*args, **kwargs)
+        super(FetchStatusTask, self).__init__(*args, **kwargs)
 
         # ok those are my default class attributes
+        self.root = None
+        self.auth = None
 
     def run(self):
         """This function is called when delay is called"""
@@ -289,7 +291,7 @@ class FetchTask(MyTask):
         if qs.count() != 0:
             try:
                 # fetch biosample status
-                self.fetch_biosample_status(qs)
+                self.fetch_queryset(qs)
 
             # retry a task under errors
             # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
@@ -305,97 +307,104 @@ class FetchTask(MyTask):
         return "success"
 
     # a function to retrieve biosample submission
-    def fetch_biosample_status(self, queryset):
+    def fetch_queryset(self, queryset):
+        """Fetch biosample against a queryset"""
+
         logger.info("Searching for submissions into biosample")
 
         # create a new auth object
         logger.debug("Generate a token for 'USI_MANAGER'")
-        auth = Auth(
+        self.auth = Auth(
             user=config('USI_MANAGER'),
             password=config('USI_MANAGER_PASSWORD'))
 
         logger.debug("Getting root")
-        root = Root(auth)
+        self.root = Root(self.auth)
 
         for submission_obj in queryset:
-            logger.info("Processing submission %s" % (submission_obj))
+            self.fetch_submission_obj(submission_obj)
 
-            # fetch a biosample object
-            submission = root.get_submission_by_name(
-                submission_name=submission_obj.biosample_submission_id)
+        logger.info("fetch_queryset completed")
 
-            # Update submission status if completed
-            if submission.status == 'Submitted':
-                # cicle along samples
-                for sample in submission.get_samples():
-                    # derive pk and table from alias
-                    table, pk = sample.alias.split("_")
-                    table, pk = table.capitalize(), int(pk)
+    def fetch_submission_obj(self, submission_obj):
+        """Fetch USI from a biosample object"""
 
-                    # HINT: if no accession, what shoul I do?
+        logger.info("Processing submission %s" % (submission_obj))
 
-                    if table == 'Sample':
-                        sample_obj = Sample.objects.get(pk=pk)
-                        sample_obj.name.status = COMPLETED
-                        sample_obj.name.biosample_id = sample.accession
-                        sample_obj.name.save()
+        # fetch a biosample object
+        submission = self.root.get_submission_by_name(
+            submission_name=submission_obj.biosample_submission_id)
 
-                    elif table == 'Animal':
-                        animal_obj = Animal.objects.get(pk=pk)
-                        animal_obj.name.status = COMPLETED
-                        animal_obj.name.biosample_id = sample.accession
-                        animal_obj.name.save()
+        # Update submission status if completed
+        if submission.status == 'Submitted':
+            # cicle along samples
+            for sample in submission.get_samples():
+                # derive pk and table from alias
+                table, pk = sample.alias.split("_")
+                table, pk = table.capitalize(), int(pk)
 
-                    else:
-                        raise Exception("Unknown table %s" % (table))
+                # if no accession, return without doing anything
+                if sample.accession is None:
+                    logger.error("No accession found for sample %s" % (sample))
+                    logger.error("Ignoring submission %s" % (submission))
+                    return
 
-                # update submission
-                submission_obj.status = COMPLETED
-                submission_obj.message = "Successful submission into biosample"
-                submission_obj.save()
+                if table == 'Sample':
+                    sample_obj = Sample.objects.get(pk=pk)
+                    sample_obj.name.status = COMPLETED
+                    sample_obj.name.biosample_id = sample.accession
+                    sample_obj.name.save()
 
-                logger.info(
-                    "Submission %s is now completed and recorded into UID" % (
-                        submission))
-
-            elif submission.status == 'Draft':
-                # check validation. If it is ok, finalize submission
-                status = submission.get_status()
-
-                # this mean validation statuses, I want to see completed in all
-                # samples
-                if len(status) == 1 and 'Complete' in status:
-                    # check for errors and eventually finalize
-                    self.finalize(submission, submission_obj)
+                elif table == 'Animal':
+                    animal_obj = Animal.objects.get(pk=pk)
+                    animal_obj.name.status = COMPLETED
+                    animal_obj.name.biosample_id = sample.accession
+                    animal_obj.name.save()
 
                 else:
-                    logger.warning(
-                        "Biosample validation is not completed yet (%s)" %
-                        (status))
+                    raise Exception("Unknown table %s" % (table))
 
-            elif submission.status == 'Completed':
-                logger.info(
-                    "Submission %s is 'Completed'. Waiting for biosample "
-                    "ids" % (submission.id))
+            # update submission
+            submission_obj.status = COMPLETED
+            submission_obj.message = "Successful submission into biosample"
+            submission_obj.save()
 
-                # debug submission status
-                document = submission.follow_url(
-                    "processingStatusSummary", auth)
+            logger.info(
+                "Submission %s is now completed and recorded into UID" % (
+                    submission))
 
-                logger.debug(
-                    "Current status for submission %s is %s" % (
-                        submission.id, document.data))
+        elif submission.status == 'Draft':
+            # check validation. If it is ok, finalize submission
+            status = submission.get_status()
+
+            # this mean validation statuses, I want to see completed in all
+            # samples
+            if len(status) == 1 and 'Complete' in status:
+                # check for errors and eventually finalize
+                self.finalize(submission, submission_obj)
 
             else:
-                # HINT: thrown an exception?
-                logger.warning("Unknown status %s for submission %s" % (
-                    submission.status, submission.name))
+                logger.warning(
+                    "Biosample validation is not completed yet (%s)" %
+                    (status))
 
-            # test for submission status
+        elif submission.status == 'Completed':
+            logger.info(
+                "Submission %s is 'Completed'. Waiting for biosample "
+                "ids" % (submission.id))
 
-        # cicle for submission_obj
+            # debug submission status
+            document = submission.follow_url(
+                "processingStatusSummary", self.auth)
 
-        logger.info("fetch_biosample_status completed")
+            logger.debug(
+                "Current status for submission %s is %s" % (
+                    submission.id, document.data))
+
+        else:
+            # HINT: thrown an exception?
+            logger.warning("Unknown status %s for submission %s" % (
+                submission.status, submission.name))
 
     # a function to finalize a submission
     def finalize(self, submission, submission_obj):
@@ -449,4 +458,4 @@ class FetchTask(MyTask):
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(SubmitTask)
-celery_app.tasks.register(FetchTask)
+celery_app.tasks.register(FetchStatusTask)

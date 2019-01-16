@@ -21,7 +21,7 @@ from django.core import mail
 
 from image_app.models import Submission, Person, Name, STATUSES
 
-from ..tasks import SubmitTask, FetchTask
+from ..tasks import SubmitTask, FetchStatusTask
 from .test_token import generate_token
 from ..models import ManagedTeam
 
@@ -396,6 +396,10 @@ class FetchMixin():
         submission.biosample_submission_id = "test-fetch"
         submission.save()
 
+        # set status for names, like submittask does. Only sample not unknown
+        # are submitted
+        Name.objects.exclude(name__contains="unknown").update(status=SUBMITTED)
+
         # track submission ID
         self.submission_id = submission.id
 
@@ -403,10 +407,10 @@ class FetchMixin():
         self.my_root = self.mock_root.return_value
 
         # define my task
-        self.my_task = FetchTask()
+        self.my_task = FetchStatusTask()
 
         # change lock_id (useful when running test during cron)
-        self.my_task.lock_id = "test-FetchTask"
+        self.my_task.lock_id = "test-FetchStatusTask"
 
     def common_tests(self, my_submission):
         # passing submission to Mocked Root
@@ -478,9 +482,37 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         name = Name.objects.get(name='Siems_0722_393449')
         self.assertEqual(name.biosample_id, "SAMEA0000002")
 
+    def test_fetch_status_no_accession(self):
+        # a completed submission with two samples
+        my_submission = Mock()
+        my_submission.name = "test-fetch"
+        my_submission.status = 'Submitted'
+
+        # Add samples
+        my_sample1 = Mock()
+        my_sample1.name = "test-animal"
+        my_sample1.alias = "animal_1"
+        my_sample1.accession = None
+        my_sample2 = Mock()
+        my_sample2.name = "test-sample"
+        my_sample2.alias = "sample_1"
+        my_sample2.accession = None
+        my_submission.get_samples.return_value = [my_sample1, my_sample2]
+
+        # assert task and mock methods called
+        self.common_tests(my_submission)
+
+        # assert status for submissions
+        submission = Submission.objects.get(pk=self.submission_id)
+        self.assertEqual(submission.status, SUBMITTED)
+
+        # check name status changed
+        qs = Name.objects.filter(status=SUBMITTED)
+        self.assertEqual(len(qs), 2)
+
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
-    @patch("biosample.tasks.FetchTask.retry")
-    @patch("biosample.tasks.FetchTask.fetch_biosample_status")
+    @patch("biosample.tasks.FetchStatusTask.retry")
+    @patch("biosample.tasks.FetchStatusTask.fetch_queryset")
     def test_fetch_status_retry(self, my_fetch, my_retry):
         """Test fetch status with retry"""
 
@@ -496,7 +528,7 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         self.assertTrue(my_retry.called)
 
     # Test a non blocking instance
-    @patch("biosample.tasks.FetchTask.fetch_biosample_status")
+    @patch("biosample.tasks.FetchStatusTask.fetch_queryset")
     @patch("redis.lock.Lock.acquire", return_value=False)
     def test_fetch_status_nb(self, my_lock, my_fetch):
         """Test FetchSTatus while a lock is present"""

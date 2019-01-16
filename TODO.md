@@ -41,7 +41,6 @@ InjectTool TODO
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
-  - throw an error if no biosample-accession is retrieved after a submission
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
