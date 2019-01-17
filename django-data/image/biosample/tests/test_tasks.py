@@ -49,7 +49,8 @@ class SubmitTestCase(TestCase):
         "image_app/dictbreed",
         "image_app/name",
         "image_app/animal",
-        "image_app/sample"
+        "image_app/sample",
+        "image_app/ontology"
     ]
 
     submission_key = "token:submission:1:test"

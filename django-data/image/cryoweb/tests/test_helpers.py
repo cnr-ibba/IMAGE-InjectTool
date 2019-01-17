@@ -85,25 +85,25 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
         """Testing species and synonims"""
 
         italy = DictCountry.objects.get(label="Italy")
-        england = DictCountry.objects.get(label="England")
+        united_kingdom = DictCountry.objects.get(label="United Kingdom")
 
-        self.assertTrue(check_species(england))
+        self.assertTrue(check_species(united_kingdom))
 
         # no species for this language, but using the default synonims
         self.assertTrue(check_species(italy))
 
         # now delete a synonim
         synonim = SpecieSynonim.objects.get(
-            language__label='England',
+            language__label='United Kingdom',
             word='Cattle')
         synonim.delete()
 
-        self.assertFalse(check_species(england))
+        self.assertFalse(check_species(united_kingdom))
         self.assertFalse(check_species(italy))
 
         # assert a record in database
         synonim = SpecieSynonim.objects.get(
-            language__label='England',
+            language__label='United Kingdom',
             word='Cattle')
 
         self.assertIsNone(synonim.dictspecie)
@@ -117,7 +117,7 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
         self.assertRaisesRegex(
             CryoWebImportError,
             "You have no species",
-            check_species, "England")
+            check_species, "United Kingdom")
 
 
 class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):
@@ -135,7 +135,7 @@ class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):
     def test_no_synonim(self):
         # now delete a synonim
         synonim = SpecieSynonim.objects.get(
-            language__label='England',
+            language__label='United Kingdom',
             word='Cattle')
         synonim.delete()
 

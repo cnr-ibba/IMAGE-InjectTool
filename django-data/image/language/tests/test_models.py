@@ -23,7 +23,7 @@ class SpecieSynonimTest(TestCase):
     def setUp(self):
         # setting languages
         self.italy = DictCountry.objects.get(label="Italy")
-        self.england = DictCountry.objects.get(label="England")
+        self.england = DictCountry.objects.get(label="United Kingdom")
 
     def test_check_synonims(self):
         """Check for synonym in my language"""
@@ -37,7 +37,7 @@ class SpecieSynonimTest(TestCase):
 
         # check that I got the default eglis term for italy
         test = qs.first()
-        self.assertEqual(test.language.label, "England")
+        self.assertEqual(test.language.label, "United Kingdom")
 
         # search for bos taurus in italian language (no map)
         qs = SpecieSynonim.check_synonims(["Mucca"], self.italy)

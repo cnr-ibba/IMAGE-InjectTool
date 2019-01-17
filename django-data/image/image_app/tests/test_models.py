@@ -46,7 +46,8 @@ class DictSpecieTestCase(TestCase):
     fixtures = [
         "image_app/dictspecie",
         "image_app/dictcountry",
-        "image_app/speciesynonim"]
+        "image_app/speciesynonim",
+        "image_app/ontology"]
 
     def setUp(self):
         # my attributes
@@ -66,7 +67,7 @@ class DictSpecieTestCase(TestCase):
     def test_get_specie_by_synonim(self):
         """Getting specie using synonim"""
 
-        sus = DictSpecie.get_by_synonim('Pig', 'England')
+        sus = DictSpecie.get_by_synonim('Pig', 'United Kingdom')
 
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)
@@ -79,25 +80,27 @@ class DictSpecieTestCase(TestCase):
 
         # using a word not registered returns no data
         with self.assertRaises(DictSpecie.DoesNotExist):
-            DictSpecie.get_by_synonim('Foo', 'England')
+            DictSpecie.get_by_synonim('Foo', 'United Kingdom')
 
 
 class DictCountryTestCase(TestCase):
     """Testing DictCountry class"""
 
-    fixtures = ["image_app/dictcountry"]
+    fixtures = [
+        "image_app/dictcountry",
+        "image_app/ontology"]
 
     def setUp(self):
         # my attributes
-        self.label = 'England'
-        self.term = 'GAZ_00002641'
+        self.label = 'United Kingdom'
+        self.term = 'NCIT_C17233'
 
     def test_str(self):
         """Testing str representation"""
 
-        England = DictCountry.objects.get(label=self.label)
+        uk = DictCountry.objects.get(label=self.label)
         self.assertEqual(
-                str(England),
+                str(uk),
                 "{label} ({term})".format(
                         label=self.label,
                         term=self.term))
@@ -109,7 +112,8 @@ class DictBreedTestCase(TestCase):
     fixtures = [
         "image_app/dictbreed",
         "image_app/dictcountry",
-        "image_app/dictspecie"
+        "image_app/dictspecie",
+        "image_app/ontology"
     ]
 
     def test_str(self):
@@ -134,7 +138,8 @@ class SubmissionTestCase(TestCase):
         "image_app/dictcountry",
         "image_app/submission",
         "image_app/dictrole",
-        "image_app/organization"
+        "image_app/organization",
+        "image_app/ontology"
     ]
 
     def setUp(self):
@@ -142,7 +147,7 @@ class SubmissionTestCase(TestCase):
 
     def test_str(self):
         test = str(self.submission)
-        reference = "Cryoweb (England, test)"
+        reference = "Cryoweb (United Kingdom, test)"
 
         self.assertEqual(reference, test)
 
@@ -161,6 +166,7 @@ class AnimalTestCase(TestCase):
         "image_app/animal",
         "image_app/organization",
         "image_app/dictrole",
+        "image_app/ontology"
     ]
 
     @classmethod
@@ -243,6 +249,7 @@ class SampleTestCase(TestCase):
         "image_app/sample",
         "image_app/organization",
         "image_app/dictrole",
+        "image_app/ontology"
     ]
 
     @classmethod
@@ -333,4 +340,3 @@ class SampleTestCase(TestCase):
         """testing db_has_data for image_app"""
 
         self.assertTrue(db_has_data())
-

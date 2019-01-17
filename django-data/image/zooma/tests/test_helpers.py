@@ -369,9 +369,8 @@ class TestAnnotateCountry(TestCase):
         my_zooma.return_value = {
             'type': 'country',
             'confidence': 'Good',
-            'text': 'England',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002641'
-        }
+            'text': 'United Kingdom',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/NCIT_C17233'}
 
         # call my method
         annotate_country(self.country)
@@ -381,8 +380,8 @@ class TestAnnotateCountry(TestCase):
         # ensure annotation
         self.country.refresh_from_db()
 
-        self.assertEqual(self.country.label, "England")
-        self.assertEqual(self.country.term, "GAZ_00002641")
+        self.assertEqual(self.country.label, "United Kingdom")
+        self.assertEqual(self.country.term, "NCIT_C17233")
         self.assertEqual(self.country.confidence, GOOD)
 
     @patch("zooma.helpers.useZooma")

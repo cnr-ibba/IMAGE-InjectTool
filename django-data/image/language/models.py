@@ -42,7 +42,7 @@ class SpecieSynonim(models.Model):
         """Map words to country language or default one"""
 
         # get defaul language
-        default = DictCountry.objects.get(label="England")
+        default = DictCountry.objects.get(label="United Kingdom")
 
         # get synonims in my language
         qs = cls.objects.filter(
@@ -58,7 +58,7 @@ class SpecieSynonim(models.Model):
         """Test for a word in supplied language or default one"""
 
         # get defaul language
-        default = DictCountry.objects.get(label="England")
+        default = DictCountry.objects.get(label="United Kingdom")
 
         # test if term is defined in supplied language
         if SpecieSynonim.objects.filter(

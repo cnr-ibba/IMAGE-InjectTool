@@ -8,6 +8,7 @@ Created on Thu Nov  8 12:59:41 2018
 
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
+from django.utils.http import urlquote
 
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
 
@@ -51,7 +52,8 @@ class EditSubmissionViewTest(
     def test_contains_navigation_links(self):
         """Contain links to ListSpeciesView, and submissions links"""
 
-        link = reverse("language:species") + "?country=England"
+        country = urlquote("United Kingdom")
+        link = reverse("language:species") + "?country=%s" % country
         self.assertContains(self.response, 'href="{0}"'.format(link))
 
         detail_url = reverse('submissions:detail', kwargs={'pk': 1})

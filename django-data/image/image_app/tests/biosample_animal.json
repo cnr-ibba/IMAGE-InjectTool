@@ -73,10 +73,10 @@
     ],
     "Gene bank country": [
       {
-        "value": "England",
+        "value": "United Kingdom",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/GAZ_00002641"
+            "url": "http://purl.obolibrary.org/obo/NCIT_C17233"
           }
         ]
       }
@@ -118,10 +118,10 @@
     ],
     "EFABIS Breed country": [
       {
-        "value": "England",
+        "value": "United Kingdom",
         "terms": [
           {
-            "url": "http://purl.obolibrary.org/obo/GAZ_00002641"
+            "url": "http://purl.obolibrary.org/obo/NCIT_C17233"
           }
         ]
       }

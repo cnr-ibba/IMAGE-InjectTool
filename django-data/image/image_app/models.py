@@ -284,7 +284,7 @@ class DictSpecie(DictBase, Confidence):
         except cls.DoesNotExist:
             specie = cls.objects.get(
                 speciesynonim__word=synonim,
-                speciesynonim__language__label="England")
+                speciesynonim__language__label="United Kingdom")
 
         return specie
 

@@ -1,0 +1,74 @@
+[
+{
+  "model": "image_app.ontology",
+  "pk": 1,
+  "fields": {
+    "library_name": "PATO",
+    "library_uri": "http://www.ebi.ac.uk/ols/ontologies/pato",
+    "comment": "Phenotype And Trait Ontology"
+  }
+},
+{
+  "model": "image_app.ontology",
+  "pk": 2,
+  "fields": {
+    "library_name": "LBO",
+    "library_uri": "http://www.ebi.ac.uk/ols/ontologies/lbo",
+    "comment": "Livestock Breed Ontology"
+  }
+},
+{
+  "model": "image_app.ontology",
+  "pk": 3,
+  "fields": {
+    "library_name": "EFO",
+    "library_uri": "http://www.ebi.ac.uk/efo",
+    "comment": "Experimental Factor Ontology"
+  }
+},
+{
+  "model": "image_app.ontology",
+  "pk": 4,
+  "fields": {
+    "library_name": "OBI",
+    "library_uri": "http://www.ebi.ac.uk/ols/ontologies/obi",
+    "comment": "Ontology for Biomedical Investigations"
+  }
+},
+{
+  "model": "image_app.ontology",
+  "pk": 5,
+  "fields": {
+    "library_name": "NCBITaxon",
+    "library_uri": "http://www.ebi.ac.uk/ols/ontologies/ncbitaxon",
+    "comment": "NCBI Taxonomy"
+  }
+},
+{
+  "model": "image_app.ontology",
+  "pk": 6,
+  "fields": {
+    "library_name": "UBERON",
+    "library_uri": "http://www.ebi.ac.uk/ols/ontologies/uberon",
+    "comment": "cross-species ontology covering anatomical structures in animals"
+  }
+},
+{
+  "model": "image_app.ontology",
+  "pk": 7,
+  "fields": {
+    "library_name": "GAZ",
+    "library_uri": "https://www.ebi.ac.uk/ols/ontologies/gaz",
+    "comment": "A gazetteer constructed on ontological principles"
+  }
+},
+{
+  "model": "image_app.ontology",
+  "pk": 10,
+  "fields": {
+    "library_name": "NCIT",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "NCI Thesaurus OBO Edition"
+  }
+}
+]

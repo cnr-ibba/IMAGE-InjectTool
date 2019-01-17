@@ -23,7 +23,7 @@ class BaseTest(TestCase):
         "image_app/user",
         "image_app/dictcountry",
         "language/dictspecie",
-        "language/speciesynonim"
+        "language/speciesynonim",
     ]
 
     def setUp(self):
@@ -96,7 +96,7 @@ class ListSpeciesViewTest(GeneralMixinTestCase, BaseTest):
     def test_contains_navigation_links_with_parameters(self):
         """Contain links to UpdateSpeciesView with get parameters"""
 
-        country = "England"
+        country = "United Kingdom"
 
         url = self.url + "?country={}".format(country)
         bos_url = self.bos_url + "?country={}".format(country)
