@@ -3,8 +3,8 @@
   "model": "image_app.dictcountry",
   "pk": 1,
   "fields": {
-    "label": "England",
-    "term": "GAZ_00002641"
+    "label": "United Kingdom",
+    "term": "NCIT_C17233"
   }
 },
 {
@@ -12,7 +12,7 @@
   "pk": 2,
   "fields": {
     "label": "Italy",
-    "term": "GAZ_00002650"
+    "term": "NCIT_C16761"
   }
 }
 ]

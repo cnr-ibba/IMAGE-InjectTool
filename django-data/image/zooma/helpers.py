@@ -70,7 +70,7 @@ def useZooma(term, category):
 
     elif (category == "country"):
         # country, only search GAZ Ontology
-        params["filter"] = "required:[ena],ontologies:[gaz]"
+        params["filter"] = "required:[ena],ontologies:[ncit]"
     else:
         # according to IMAGE ruleset, only these ontology libraries are
         # allowed in the ruleset, so not search others, gaz is for countries
@@ -201,7 +201,7 @@ def annotate_country(country_obj):
         # check that term have a correct ontology
         # TODO: move this check in useZooma and relate with Ontology
         # table
-        if term.split("_")[0] != "GAZ":
+        if term.split("_")[0] != "NCIT":
             logger.error(
                 "Got an unexpected term for %s: %s" % (
                     country_obj, term))

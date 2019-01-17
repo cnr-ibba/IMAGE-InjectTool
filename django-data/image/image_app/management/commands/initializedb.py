@@ -30,11 +30,12 @@ def fill_ontology():
     data = """Library name;Library URI;Comment
 PATO;http://www.ebi.ac.uk/ols/ontologies/pato;Phenotype And Trait Ontology
 LBO;http://www.ebi.ac.uk/ols/ontologies/lbo;Livestock Breed Ontology
-EFO;http://www.ebi.ac.uk/ols/ontologies/efo;Experimental Factor Ontology
+EFO;http://www.ebi.ac.uk/efo;Experimental Factor Ontology
 OBI;http://www.ebi.ac.uk/ols/ontologies/obi;Ontology for Biomedical Investigations
 NCBITaxon;http://www.ebi.ac.uk/ols/ontologies/ncbitaxon;NCBI Taxonomy
 UBERON;http://www.ebi.ac.uk/ols/ontologies/uberon;cross-species ontology covering anatomical structures in animals
 GAZ;https://www.ebi.ac.uk/ols/ontologies/gaz;A gazetteer constructed on ontological principles
+NCIT;http://purl.obolibrary.org/obo;NCI Thesaurus OBO Edition
 """
 
     handle = io.StringIO(data)
@@ -48,7 +49,10 @@ GAZ;https://www.ebi.ac.uk/ols/ontologies/gaz;A gazetteer constructed on ontologi
     Data = collections.namedtuple('Data', header)
 
     for row in map(Data._make, reader):
-        ontology, created = Ontology.objects.get_or_create(**row._asdict())
+        # update objects
+        ontology, created = Ontology.objects.update_or_create(
+                library_name=row.library_name,
+                defaults=row._asdict())
 
         if created is True:
             logger.info("Created: %s" % (ontology))
@@ -120,10 +124,10 @@ def fill_Species():
 
 
 def fill_Countries():
-    # define germany
+    # define the default country for the default language
     country, created = DictCountry.objects.get_or_create(
-        label='England',
-        term='GAZ_00002641',
+        label='United Kingdom',
+        term='NCIT_C17233',
         confidence=CONFIDENCES.get_value('curated'))
 
     if created is True:

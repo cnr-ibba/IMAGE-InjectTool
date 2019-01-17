@@ -106,6 +106,18 @@ class BioSampleMixin(BaseMixin):
     def __str__(self):
         return str(self.name)
 
+    @property
+    def person(self):
+        return self.owner.person
+
+    @property
+    def organization(self):
+        return self.name.submission.organization
+
+    @property
+    def gene_bank_country(self):
+        return self.name.submission.gene_bank_country
+
     def get_attributes(self):
         """Common attribute definition. Attribute name is the name in
         metadata rules"""
@@ -133,25 +145,19 @@ class BioSampleMixin(BaseMixin):
         attributes['Person affiliation'] = format_attribute(
             value=self.owner.person.affiliation.name)
 
-        attributes['Person role'] = format_attribute(
-            value=self.owner.person.role.label,
-            obo_url="http://www.ebi.ac.uk/efo",
-            terms=self.owner.person.role.term)
+        attributes['Person role'] = self.person.role.format_attribute()
 
         attributes['Organization name'] = format_attribute(
             value=self.name.submission.organization.name)
 
-        attributes['Organization role'] = format_attribute(
-            value=self.name.submission.organization.role.label,
-            obo_url="http://www.ebi.ac.uk/efo",
-            terms=self.name.submission.organization.role.term)
+        attributes[
+            'Organization role'] = self.organization.role.format_attribute()
 
         attributes['Gene bank name'] = format_attribute(
             value=self.name.submission.gene_bank_name)
 
-        attributes['Gene bank country'] = format_attribute(
-            value=self.name.submission.gene_bank_country.label,
-            terms=self.name.submission.gene_bank_country.term)
+        attributes[
+            'Gene bank country'] = self.gene_bank_country.format_attribute()
 
         attributes['Data source type'] = format_attribute(
             value=self.name.submission.get_datasource_type_display())
@@ -168,6 +174,8 @@ class BioSampleMixin(BaseMixin):
 # helper classes
 class DictBase(BaseMixin, models.Model):
     """Base class for dictionary tables"""
+
+    library_name = None
 
     # if not defined, this table will have an own primary key
     label = models.CharField(
@@ -190,6 +198,17 @@ class DictBase(BaseMixin, models.Model):
         return "{label} ({term})".format(
                 label=self.label,
                 term=self.term)
+
+    def format_attribute(self):
+        if self.library_name is None:
+            raise Exception("library_name not defined")
+
+        library = Ontology.objects.get(library_name=self.library_name)
+
+        return format_attribute(
+            value=self.label,
+            obo_url=library.library_uri,
+            terms=self.term)
 
 
 class Confidence(BaseMixin, models.Model):
@@ -214,7 +233,7 @@ class DictRole(DictBase):
     """A class to model roles defined as childs of
     http://www.ebi.ac.uk/efo/EFO_0002012"""
 
-    # TODO: fk with Ontology table
+    library_name = 'EFO'
 
     class Meta:
         # db_table will be <app_name>_<classname>
@@ -226,7 +245,7 @@ class DictCountry(DictBase, Confidence):
     """A class to model contries defined by Gazetteer
     https://www.ebi.ac.uk/ols/ontologies/gaz"""
 
-    # TODO: fk with Ontology table
+    library_name = 'NCIT'
 
     class Meta:
         # db_table will be <app_name>_<classname>
@@ -463,9 +482,8 @@ class Animal(BioSampleMixin, models.Model):
         attributes['Supplied breed'] = format_attribute(
             value=self.breed.supplied_breed)
 
-        attributes['EFABIS Breed country'] = format_attribute(
-            value=self.breed.country.label,
-            terms=self.breed.country.term)
+        attributes[
+            'EFABIS Breed country'] = self.breed.country.format_attribute()
 
         attributes['Sex'] = format_attribute(
             value=self.sex.label,
