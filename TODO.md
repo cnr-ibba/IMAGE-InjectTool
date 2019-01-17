@@ -22,8 +22,7 @@ InjectTool TODO
   - Data will be exported using JSON (preferably).
   - Exporting data in IMAGE-metadata excel template, could be useful for data
     cleaning?
-  - links for data export need to be protected and tested for ownership
-  - links for data export should return biosample json
+  - if needed, should be implemented using [django-rest-framework](https://www.django-rest-framework.org/)
 
 * Openrefine integration:
   - need to place Openrefine in docker compose?

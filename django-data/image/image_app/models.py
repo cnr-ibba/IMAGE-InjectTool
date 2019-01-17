@@ -13,7 +13,6 @@ from django.utils import timezone
 
 from common.fields import ProtectedFileField
 
-from .constants import OBO_URL
 from .helpers import format_attribute
 
 # Get an instance of a logger
@@ -107,32 +106,6 @@ class BioSampleMixin(BaseMixin):
     def __str__(self):
         return str(self.name)
 
-    def to_validation(self):
-        """Common features to both Sample and Animal"""
-
-        result = {}
-
-        # get a biosample id or a default value
-        result["biosampleId"] = self.get_biosample_id()
-
-        result["project"] = "IMAGE"
-
-        if self.description:
-            result["description"] = self.description
-
-        result["name"] = self.name.name
-
-        submission = self.name.submission
-        result["geneBankName"] = submission.gene_bank_name
-        result["geneBankCountry"] = submission.gene_bank_country.label
-        # https://docs.djangoproject.com/en/1.11/ref/models/instances/#django.db.models.Model.get_FOO_display
-        result["dataSourceType"] = submission.get_datasource_type_display()
-        result["dataSourceVersion"] = submission.datasource_version
-
-        result["dataSourceId"] = self.alternative_id
-
-        return result
-
     def get_attributes(self):
         """Common attribute definition. Attribute name is the name in
         metadata rules"""
@@ -217,17 +190,6 @@ class DictBase(BaseMixin, models.Model):
         return "{label} ({term})".format(
                 label=self.label,
                 term=self.term)
-
-    def to_validation(self):
-        biosample = dict(text=self.label)
-
-        if self.term:
-            biosample["ontologyTerms"] = "/".join([
-                OBO_URL,
-                self.term]
-            )
-
-        return biosample
 
 
 class Confidence(BaseMixin, models.Model):
@@ -341,24 +303,6 @@ class DictBreed(Confidence):
 
         else:
             return str(self.supplied_breed)
-
-    def to_validation(self):
-        result = {}
-
-        result['suppliedBreed'] = self.supplied_breed
-
-        # Add mapped breed and its term if I have them
-        if self.mapped_breed and self.mapped_breed_term:
-            result['mappedBreed'] = {
-                    'text': self.mapped_breed,
-                    'ontologyTerms': "/".join([
-                        OBO_URL,
-                        self.mapped_breed_term]
-                    ),
-            }
-
-        result['country'] = self.country.to_validation()
-        return result
 
     class Meta:
         verbose_name = 'Breed'
@@ -503,29 +447,6 @@ class Animal(BioSampleMixin, models.Model):
 
         return self.name.biosample_id or "animal_%s" % (
                 self.id)
-
-    def to_validation(self):
-        """Get a json representation of animal"""
-
-        result = super().to_validation()
-
-        result["material"] = {
-                "text": "organism",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "OBI_0100026"]
-                ),
-        }
-
-        result["species"] = self.breed.specie.to_validation()
-
-        result["breed"] = self.breed.to_validation()
-
-        result["sex"] = self.sex.to_validation()
-
-        # TODO: were are father and mother? Should unknown return no fields?
-
-        return result
 
     def get_attributes(self):
         """Return attributes like biosample needs"""
@@ -676,60 +597,6 @@ class Sample(BioSampleMixin, models.Model):
 
         return self.name.biosample_id or "sample_%s" % (
                 self.id)
-
-    def to_validation(self):
-        """Get a biosample representation of animal"""
-
-        result = super().to_validation()
-
-        result["material"] = {
-                "text": "specimen from organism",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "OBI_0001479"]
-                ),
-        }
-
-        result["derivedFrom"] = self.animal.get_biosample_id()
-
-        if self.collection_date:
-            result["collectionDate"] = {
-                "text": str(self.collection_date),
-                "unit": "YYYY-MM-DD"
-            }
-
-        if self.collection_place:
-            result["collectionPlace"] = self.collection_place
-
-        # TODO: move the following two fields to Dictionary Table
-        if self.organism_part and self.organism_part_term:
-            result["organismPart"] = {
-                "text": self.organism_part,
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    self.organism_part_term]
-                ),
-            }
-
-        if self.developmental_stage and self.developmental_stage_term:
-            result["developmentStage"] = {
-                "text": self.developmental_stage,
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    self.developmental_stage_term]
-                ),
-            }
-
-        if self.animal_age_at_collection:
-            result["animalAgeAtCollection"] = {
-                "text": self.animal_age_at_collection,
-                "unit": "years"
-            }
-
-        if self.availability:
-            result["availability"] = self.availability
-
-        return result
 
     def get_attributes(self):
         """Return attributes like biosample needs"""

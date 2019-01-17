@@ -18,8 +18,6 @@ from image_app.models import (Animal, Submission, DictBreed, DictCountry,
 
 from validation.helpers.biosample import AnimalValidator, SampleValidator
 
-from ..constants import OBO_URL
-
 
 class DictSexTestCase(TestCase):
     """Testing DictSex class"""
@@ -30,35 +28,6 @@ class DictSexTestCase(TestCase):
         # my attributes
         self.label = 'male'
         self.term = 'PATO_0000384'
-
-    def test_to_validation(self):
-        """Testing sex to biosample json"""
-
-        reference = {
-            "text": self.label,
-            "ontologyTerms": "/".join([
-                OBO_URL,
-                self.term]
-            ),
-        }
-
-        male = DictSex.objects.get(label=self.label)
-        test = male.to_validation()
-
-        self.assertEqual(reference, test)
-
-    def test_to_validation_with_none(self):
-        """Test to biosample conversion without term"""
-
-        male = DictSex.objects.get(label=self.label)
-        male.term = None
-        test = male.to_validation()
-
-        reference = {
-            "text": self.label
-        }
-
-        self.assertEqual(reference, test)
 
     def test_str(self):
         """Testing str representation"""
@@ -83,37 +52,6 @@ class DictSpecieTestCase(TestCase):
         # my attributes
         self.label = 'Sus scrofa'
         self.term = 'NCBITaxon_9823'
-
-    def test_to_validation(self):
-        """Testing specie to biosample json"""
-
-        reference = {
-            "text": self.label,
-            "ontologyTerms": "/".join([
-                OBO_URL,
-                self.term]
-            ),
-        }
-
-        print(DictSpecie.objects.all())
-
-        sus = DictSpecie.objects.get(label=self.label)
-        test = sus.to_validation()
-
-        self.assertEqual(reference, test)
-
-    def test_to_validation_with_none(self):
-        """Test to biosample conversion without term"""
-
-        sus = DictSpecie.objects.get(label=self.label)
-        sus.term = None
-        test = sus.to_validation()
-
-        reference = {
-            "text": self.label
-        }
-
-        self.assertEqual(reference, test)
 
     def test_str(self):
         """Testing str representation"""
@@ -154,35 +92,6 @@ class DictCountryTestCase(TestCase):
         self.label = 'England'
         self.term = 'GAZ_00002641'
 
-    def test_to_validation(self):
-        """Testing specie to biosample json"""
-
-        reference = {
-            "text": self.label,
-            "ontologyTerms": "/".join([
-                OBO_URL,
-                self.term]
-            ),
-        }
-
-        England = DictCountry.objects.get(label=self.label)
-        test = England.to_validation()
-
-        self.assertEqual(reference, test)
-
-    def test_to_validation_with_none(self):
-        """Test to biosample conversion without term"""
-
-        England = DictCountry.objects.get(label=self.label)
-        England.term = None
-        test = England.to_validation()
-
-        reference = {
-            "text": self.label
-        }
-
-        self.assertEqual(reference, test)
-
     def test_str(self):
         """Testing str representation"""
 
@@ -203,56 +112,18 @@ class DictBreedTestCase(TestCase):
         "image_app/dictspecie"
     ]
 
-    def test_to_validation(self):
-        """Testing breed to biosample json"""
+    def test_str(self):
+        """Testing str representation (as mapped_breed, if present)"""
 
-        reference = {
-            "suppliedBreed": "Bunte Bentheimer",
-            "country": {
-                "text": "England",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "GAZ_00002641"]
-                ),
-            },
-            "mappedBreed": {
-                "text": "Bentheim Black Pied",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "LBO_0000347"]
-                ),
-            }
-        }
+        supplied_breed = "Bunte Bentheimer"
+        mapped_breed = "Bentheim Black Pied"
 
-        bunte = DictBreed.objects.get(supplied_breed='Bunte Bentheimer')
-        test = bunte.to_validation()
+        breed = DictBreed.objects.get(pk=1)
+        self.assertEqual(str(breed), mapped_breed)
 
-        self.assertEqual(reference, test)
-
-    def test_to_validation_with_none(self):
-        """Test to biosample conversion without mapped objects"""
-
-        # TODO: eval default mapped breed
-        bunte = DictBreed.objects.get(supplied_breed='Bunte Bentheimer')
-
-        # remove mapped_breed and mapped_breed_term
-        bunte.mapped_breed = None
-        bunte.mapped_breed_term = None
-
-        reference = {
-            "suppliedBreed": "Bunte Bentheimer",
-            "country": {
-                "text": "England",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "GAZ_00002641"]
-                ),
-            },
-        }
-
-        # test biosample conversion
-        test = bunte.to_validation()
-        self.assertEqual(reference, test)
+        # unset mapped_breed
+        breed.mapped_breed = None
+        self.assertEqual(str(breed), supplied_breed)
 
 
 class SubmissionTestCase(TestCase):
@@ -322,129 +193,6 @@ class AnimalTestCase(TestCase):
         self.animal.save()
 
         test = self.animal.get_biosample_id()
-        self.assertEqual(reference, test)
-
-    def test_to_validation(self):
-        """Testing JSON conversion"""
-
-        reference = {
-            "biosampleId": "animal_%s" % (self.animal.id),
-            "project": "IMAGE",
-            "description": "a 4-year old pig organic fed",
-            "material": {
-                "text": "organism",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "OBI_0100026"]
-                ),
-            },
-            "name": "ANIMAL:::ID:::132713",
-            "geneBankName": "Cryoweb",
-            "geneBankCountry": "England",
-            "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "test",
-            "dataSourceId": "11",
-            "species": {
-                "text": "Sus scrofa",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "NCBITaxon_9823"]
-                ),
-            },
-            "breed": {
-                "suppliedBreed": "Bunte Bentheimer",
-                "country": {
-                    "text": "England",
-                    "ontologyTerms": "/".join([
-                        OBO_URL,
-                        "GAZ_00002641"]
-                    ),
-                },
-                "mappedBreed": {
-                    "text": "Bentheim Black Pied",
-                    "ontologyTerms": "/".join([
-                        OBO_URL,
-                        "LBO_0000347"]
-                    ),
-                }
-            },
-            "sex": {
-                "text": "male",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "PATO_0000384"]
-                ),
-            }
-
-            # HINT: no consideration were made for father and mother
-        }
-
-        test = self.animal.to_validation()
-
-        self.maxDiff = None
-        self.assertEqual(reference, test)
-
-    def test_to_validation_with_none(self):
-        """Test to json conversion with null fields"""
-
-        # reference with no description
-        reference = {
-            "biosampleId": "animal_%s" % (self.animal.id),
-            "project": "IMAGE",
-            "material": {
-                "text": "organism",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "OBI_0100026"]
-                ),
-            },
-            "name": "ANIMAL:::ID:::132713",
-            "geneBankName": "Cryoweb",
-            "geneBankCountry": "England",
-            "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "test",
-            "dataSourceId": "11",
-            "species": {
-                "text": "Sus scrofa",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "NCBITaxon_9823"]
-                ),
-            },
-            "breed": {
-                "suppliedBreed": "Bunte Bentheimer",
-                "country": {
-                    "text": "England",
-                    "ontologyTerms": "/".join([
-                        OBO_URL,
-                        "GAZ_00002641"]
-                    ),
-                },
-                "mappedBreed": {
-                    "text": "Bentheim Black Pied",
-                    "ontologyTerms": "/".join([
-                        OBO_URL,
-                        "LBO_0000347"]
-                    ),
-                }
-            },
-            "sex": {
-                "text": "male",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "PATO_0000384"]
-                ),
-            }
-
-            # HINT: no consideration were made for father and mother
-        }
-
-        # remove description and test
-        self.animal.description = None
-        self.animal.save()
-        test = self.animal.to_validation()
-
-        self.maxDiff = None
         self.assertEqual(reference, test)
 
     def test_to_biosample(self):
@@ -530,94 +278,6 @@ class SampleTestCase(TestCase):
         self.sample.save()
 
         test = self.sample.get_biosample_id()
-        self.assertEqual(reference, test)
-
-    def test_to_validation(self):
-        reference = {
-            "biosampleId": "sample_%s" % (self.sample.id),
-            "project": "IMAGE",
-            "description": "semen collected when the animal turns to 4",
-            "material": {
-                "text": "specimen from organism",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "OBI_0001479"]
-                ),
-            },
-            "name": "Siems_0722_393449",
-            "geneBankName": "Cryoweb",
-            "geneBankCountry": "England",
-            "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "test",
-            "dataSourceId": "Siems_0722_393449",
-            "derivedFrom": "animal_%s" % (self.animal.id),
-            "collectionDate": {
-                "text": "2017-03-12",
-                "unit": "YYYY-MM-DD"
-            },
-            "collectionPlace": "deutschland",
-            "organismPart": {
-                "text": "semen",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "UBERON_0001968"]
-                ),
-            },
-            "developmentStage": {
-                "text": "adult",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "EFO_0001272"]
-                ),
-            },
-            "animalAgeAtCollection": {
-                "text": 4,
-                "unit": "years"
-            },
-            "availability": "mailto:peter@ebi.ac.uk"
-        }
-
-        test = self.sample.to_validation()
-
-        self.maxDiff = None
-        self.assertEqual(reference, test)
-
-    def test_to_validation_with_none(self):
-        """Test to biosample conversion with null fields"""
-
-        reference = {
-            "biosampleId": "sample_%s" % (self.sample.id),
-            "project": "IMAGE",
-            "description": "semen collected when the animal turns to 4",
-            "material": {
-                "text": "specimen from organism",
-                "ontologyTerms": "/".join([
-                    OBO_URL,
-                    "OBI_0001479"]
-                ),
-            },
-            "name": "Siems_0722_393449",
-            "geneBankName": "Cryoweb",
-            "geneBankCountry": "England",
-            "dataSourceType": "CryoWeb",
-            "dataSourceVersion": "test",
-            "dataSourceId": "Siems_0722_393449",
-            "derivedFrom": "animal_%s" % (self.animal.id),
-        }
-
-        # set some attributes as NULL
-        self.sample.collection_date = None
-        self.sample.collection_place = None
-        self.sample.organism_part = None
-        self.sample.organism_part_term = None
-        self.sample.developmental_stage = None
-        self.sample.developmental_stage_term = None
-        self.sample.animal_age_at_collection = None
-        self.sample.availability = None
-
-        test = self.sample.to_validation()
-
-        self.maxDiff = None
         self.assertEqual(reference, test)
 
     def test_to_biosample(self):
