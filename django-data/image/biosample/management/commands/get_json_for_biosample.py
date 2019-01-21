@@ -12,7 +12,7 @@ import sys
 
 from django.core.management import BaseCommand
 
-from image_app.models import Animal
+from image_app.models import Submission, Animal
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -27,31 +27,25 @@ class Command(BaseCommand):
             default=sys.stdout,
             type=str)
 
+        parser.add_argument(
+            '--submission',
+            required=True,
+            type=int)
+
     def handle(self, *args, **options):
         # call commands and fill tables.
         logger.info("Called %s" % (sys.argv[1]))
+
+        # get a submission from submission id
+        submission_id = options['submission']
+        submission = Submission.objects.get(pk=submission_id)
 
         # get all biosample data for animals
         animals_json = []
         samples_json = []
 
-        # get animal data and add to a list
-        # for animal in Animal.objects.filter():
-
-        # HINT: get a subset of data
-        # there are 25 animals and 135 samples with this query
-        # for animal in Animal.objects.filter(
-        #        breed__supplied_breed__in=["Verzaschese", "Cinta Senese"]):
-
         # a more limited subset
-        for animal in Animal.objects.filter(
-                name__name__in=[
-                    "ANIMAL:::ID:::VERIT012000024961_2010",
-                    "ANIMAL:::ID:::VERIT12000024025_2008",
-                    "ANIMAL:::ID:::VERCH1539971_2010",
-                    "ANIMAL:::ID:::CS12_1999",
-                    "ANIMAL:::ID:::CS05_1999",
-                ]):
+        for animal in Animal.objects.filter(name__submission=submission):
             animals_json += [animal.to_biosample()]
 
             # get samples data and add to a list
@@ -70,5 +64,5 @@ class Command(BaseCommand):
 
         json.dump(biosamples, handle, indent=2)
 
-        # call commands and fill tables.
+        # end the script
         logger.info("%s ended" % (sys.argv[1]))

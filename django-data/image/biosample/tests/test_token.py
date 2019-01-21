@@ -6,7 +6,6 @@ Created on Tue Jul 17 10:59:01 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import python_jwt
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.test import Client, TestCase
@@ -15,29 +14,9 @@ from django.utils import timezone
 
 from ..models import Account, ManagedTeam
 from ..views import TokenView
+
 from .session_enabled_test_case import SessionEnabledTestCase
-
-
-def generate_token(now=None, domains=['subs.test-team-1']):
-    """A function to generate a 'fake' token"""
-
-    if not now:
-        now = int(timezone.now().timestamp())
-
-    claims = {
-        'iss': 'https://explore.aai.ebi.ac.uk/sp',
-        'iat': now,
-        'exp': now+3600,
-        'sub': 'usr-f1801430-51e1-4718-8fca-778887087bad',
-        'email': 'foo.bar@email.com',
-        'nickname': 'foo',
-        'name': 'Foo Bar',
-        'domains': domains
-    }
-
-    return python_jwt.generate_jwt(
-        claims,
-        algorithm='RS256')
+from .common import generate_token
 
 
 class TestTokenView(SessionEnabledTestCase):

@@ -12,7 +12,7 @@ import redis
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
 
-from pyUSIrest.client import Root
+import pyUSIrest.client
 
 from django.conf import settings
 from django.utils import timezone
@@ -131,7 +131,7 @@ class SubmitTask(MyTask):
         auth = get_auth(token=self.token)
 
         logger.debug("getting biosample root")
-        self.usi_root = Root(auth=auth)
+        self.usi_root = pyUSIrest.client.Root(auth=auth)
 
         # if I'm recovering a submission, get the same submission id
         if (self.submission_obj.biosample_submission_id is not None and
@@ -318,7 +318,7 @@ class FetchStatusTask(MyTask):
         self.auth = get_manager_auth()
 
         logger.debug("Getting root")
-        self.root = Root(self.auth)
+        self.root = pyUSIrest.client.Root(self.auth)
 
         for submission_obj in queryset:
             self.fetch_submission_obj(submission_obj)
