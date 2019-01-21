@@ -16,7 +16,6 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
 
-from pyUSIrest.auth import Auth
 from pyUSIrest.client import User
 
 from image_app.models import Submission, STATUSES
@@ -25,6 +24,7 @@ from submissions.templatetags.submissions_tags import can_submit
 from .forms import (
     GenerateTokenForm, RegisterUserForm, CreateUserForm, SubmitForm)
 from .models import Account, ManagedTeam
+from .helpers import get_auth, get_manager_auth
 from .tasks import SubmitTask
 
 # get available statuses
@@ -147,7 +147,7 @@ class MyFormMixin(object):
         password = form.cleaned_data['password']
 
         try:
-            auth = Auth(user=name, password=password)
+            auth = get_auth(user=name, password=password)
 
         except ConnectionError as e:
             # logger exception. With repr() the exception name is rendered
@@ -219,7 +219,7 @@ class TokenView(LoginRequiredMixin, TokenMixin, TemplateView):
 
         try:
             # add content to context
-            auth = Auth(token=self.request.session['token'])
+            auth = get_auth(token=self.request.session['token'])
 
             if auth.is_expired():
                 messages.error(
@@ -230,7 +230,10 @@ class TokenView(LoginRequiredMixin, TokenMixin, TemplateView):
             context["auth"] = auth
 
         except KeyError as e:
-            logger.error("No valid token found for %s" % self.request.user)
+            logger.error(
+                "No valid token found for %s: %s" % (
+                    self.request.user,
+                    e))
 
             messages.error(
                 self.request,
@@ -348,11 +351,8 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         # create a new auth object
         logger.debug("Generate a token for 'USI_MANAGER'")
 
-        # TODO: get an Auth instance from a helpers.method
-        auth = Auth(
-            user=config('USI_MANAGER'),
-            password=config('USI_MANAGER_PASSWORD'))
-
+        # get an Auth instance from a helpers.method
+        auth = get_manager_auth()
         admin = User(auth)
 
         description = "Team for %s" % (full_name)
@@ -375,11 +375,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         # I need to generate a new token to see the new team
         logger.debug("Generate a new token for 'USI_MANAGER'")
 
-        auth = Auth(
-            user=config('USI_MANAGER'),
-            password=config('USI_MANAGER_PASSWORD'))
-
-        # pass the new auth object to admin
+        auth = get_manager_auth()
         admin = User(auth)
 
         # list all domain for manager
@@ -458,7 +454,7 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
 
         # check token: if expired or near to expiring, return form
         elif 'token' in self.request.session:
-            auth = Auth(token=self.request.session['token'])
+            auth = get_auth(token=self.request.session['token'])
 
         else:
             logger.warning(

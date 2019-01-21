@@ -284,7 +284,7 @@ class CreateTokenSubmitViewTest(SuccessfulSubmitViewTest):
 
 
 class ErrorTokenSubmitViewTest(SubmitMixin):
-    @patch("biosample.views.Auth", side_effect=ConnectionError("test"))
+    @patch("biosample.helpers.Auth", side_effect=ConnectionError("test"))
     def setUp(self, my_auth):
         """Custom setUp"""
 

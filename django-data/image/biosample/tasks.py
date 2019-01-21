@@ -12,7 +12,6 @@ import redis
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
 
-from pyUSIrest.auth import Auth
 from pyUSIrest.client import Root
 
 from django.conf import settings
@@ -21,6 +20,8 @@ from django.utils import timezone
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Animal, Sample, STATUSES
 from common.tasks import redis_lock
+
+from .helpers import get_auth, get_manager_auth
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -127,7 +128,7 @@ class SubmitTask(MyTask):
 
     def submit_biosample(self):
         # reading token in auth
-        auth = Auth(token=self.token)
+        auth = get_auth(token=self.token)
 
         logger.debug("getting biosample root")
         self.usi_root = Root(auth=auth)
@@ -314,9 +315,7 @@ class FetchStatusTask(MyTask):
 
         # create a new auth object
         logger.debug("Generate a token for 'USI_MANAGER'")
-        self.auth = Auth(
-            user=config('USI_MANAGER'),
-            password=config('USI_MANAGER_PASSWORD'))
+        self.auth = get_manager_auth()
 
         logger.debug("Getting root")
         self.root = Root(self.auth)

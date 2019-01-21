@@ -374,7 +374,7 @@ class FetchMixin():
         cls.mock_root_patcher = patch('biosample.tasks.Root')
         cls.mock_root = cls.mock_root_patcher.start()
 
-        cls.mock_auth_patcher = patch('biosample.tasks.Auth')
+        cls.mock_auth_patcher = patch('biosample.helpers.Auth')
         cls.mock_auth = cls.mock_auth_patcher.start()
 
     @classmethod
