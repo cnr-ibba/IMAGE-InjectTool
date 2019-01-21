@@ -39,6 +39,21 @@ class DictSexTestCase(TestCase):
                         label=self.label,
                         term=self.term))
 
+    def test_format_attribute(self):
+        """Testing format attribute"""
+
+        reference = [{
+            "value": "male",
+            "terms": [{
+                "url": "http://purl.obolibrary.org/obo/PATO_0000384"
+             }]
+        }]
+
+        male = DictSex.objects.get(label=self.label)
+        test = male.format_attribute()
+
+        self.assertEqual(reference, test)
+
 
 class DictSpecieTestCase(TestCase):
     """Testing DictSpecie class"""

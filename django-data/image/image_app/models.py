@@ -14,6 +14,7 @@ from django.utils import timezone
 from common.fields import ProtectedFileField
 
 from .helpers import format_attribute
+from .constants import OBO_URL
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -201,13 +202,16 @@ class DictBase(BaseMixin, models.Model):
 
     def format_attribute(self):
         if self.library_name is None:
-            raise Exception("library_name not defined")
+            logger.warning("library_name not defined")
+            library_uri = OBO_URL
 
-        library = Ontology.objects.get(library_name=self.library_name)
+        else:
+            library = Ontology.objects.get(library_name=self.library_name)
+            library_uri = library.library_uri
 
         return format_attribute(
             value=self.label,
-            obo_url=library.library_uri,
+            obo_url=library_uri,
             terms=self.term)
 
 
