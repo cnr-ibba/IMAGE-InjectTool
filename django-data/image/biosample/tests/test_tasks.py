@@ -385,7 +385,7 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         # a completed submission with two samples
         my_submission = Mock()
         my_submission.name = "test-fetch"
-        my_submission.status = 'Submitted'
+        my_submission.status = 'Completed'
 
         # Add samples
         my_sample1 = Mock()
@@ -598,13 +598,13 @@ class FetchDraftTestCase(FetchMixin, TestCase):
         # testing a not finalized biosample condition
         self.assertFalse(my_submission.finalize.called)
 
-    def test_fetch_status_completed(self):
-        """Testing status durign biosample submission"""
+    def test_fetch_status_submitted(self):
+        """Testing status during biosample submission"""
 
         # a draft submission without errors
         my_submission = Mock()
         my_submission.name = "test-fetch"
-        my_submission.status = 'Completed'
+        my_submission.status = 'Submitted'
         my_submission.has_errors.return_value = Counter({False: 1})
         my_submission.get_status.return_value = Counter({'Complete': 1})
 

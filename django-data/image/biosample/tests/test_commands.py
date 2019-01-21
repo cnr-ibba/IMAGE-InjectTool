@@ -48,7 +48,7 @@ class CommandsTestCase(SubmitMixin, TestCase):
         # mocking objects
         args = ["--submission", 1]
         opts = {}
-        call_command('biosample_submission', *args, **opts)
+        call_command('biosample_submit', *args, **opts)
 
         # reload submission
         self.submission_obj.refresh_from_db()

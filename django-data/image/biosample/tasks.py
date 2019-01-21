@@ -335,7 +335,7 @@ class FetchStatusTask(MyTask):
             submission_name=submission_obj.biosample_submission_id)
 
         # Update submission status if completed
-        if submission.status == 'Submitted':
+        if submission.status == 'Completed':
             # cicle along samples
             for sample in submission.get_samples():
                 # derive pk and table from alias
@@ -387,10 +387,10 @@ class FetchStatusTask(MyTask):
                     "Biosample validation is not completed yet (%s)" %
                     (status))
 
-        elif submission.status == 'Completed':
+        elif submission.status == 'Submitted':
             logger.info(
-                "Submission %s is 'Completed'. Waiting for biosample "
-                "ids" % (submission.id))
+                "Submission %s is '%s'. Waiting for biosample "
+                "ids" % (submission.id, submission.status))
 
             # debug submission status
             document = submission.follow_url(
