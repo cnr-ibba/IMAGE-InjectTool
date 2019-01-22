@@ -296,11 +296,11 @@ $ docker-compose run --rm uwsgi python manage.py create_usi_user -u <username> -
 Submit UID data to biosample
 
 ```
-$ docker-compose run --rm uwsgi python manage.py biosample_submission -u <username>
+$ docker-compose run --rm uwsgi python manage.py biosample_submission --submission=1 [--finalize]
 ```
 
 Generate a biosample `json` file:
 
 ```
-$ docker-compose run --rm uwsgi python manage.py get_json_for_biosample --outfile italian_submission_example.jso
+$ docker-compose run --rm uwsgi python manage.py get_json_for_biosample --submission 1 --outfile italian_submission_example.json
 ```
