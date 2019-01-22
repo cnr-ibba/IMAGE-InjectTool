@@ -6,8 +6,6 @@ Created on Tue Jan 22 14:28:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import json
-
 from django.test import TestCase
 
 from image_app.models import Animal, Sample, Submission, Person
@@ -28,8 +26,6 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         "image_app/dictrole",
         "image_app/organization",
         "image_app/submission",
-        "biosample/account",
-        "biosample/managedteam",
         "image_app/dictsex",
         "image_app/dictspecie",
         "image_app/dictbreed",

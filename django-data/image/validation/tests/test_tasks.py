@@ -10,7 +10,8 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from image_app.models import Submission, STATUSES
+from common.tests import PersonMixinTestCase
+from image_app.models import Submission, STATUSES, Person
 
 from ..tasks import ValidateTask
 
@@ -23,13 +24,23 @@ NEED_REVISION = STATUSES.get_value('need_revision')
 SUBMITTED = STATUSES.get_value('submitted')
 
 
-class ValidateSubmissionTest(TestCase):
+class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
+    # an attribute for PersonMixinTestCase
+    person = Person
+
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",
         "image_app/dictrole",
         "image_app/organization",
-        "image_app/submission"
+        "image_app/submission",
+        "image_app/dictsex",
+        "image_app/dictspecie",
+        "image_app/dictbreed",
+        "image_app/name",
+        "image_app/animal",
+        "image_app/sample",
+        "image_app/ontology"
     ]
 
     def setUp(self):
@@ -46,9 +57,9 @@ class ValidateSubmissionTest(TestCase):
         # setting tasks
         self.my_task = ValidateTask()
 
-    # TODO: remove unuseful stuff and test a real case
-    @patch("validation.tasks.sleep")
-    def test_validate_submission(self, my_sleep):
+    @patch("validation.tasks.validation.check_with_ruleset")
+    @patch("validation.tasks.validation.check_usi_structure")
+    def test_validate_submission(self, check_usi, check_ruleset):
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
         res = self.my_task.run(submission_id=self.submission_id)
@@ -65,4 +76,5 @@ class ValidateSubmissionTest(TestCase):
             submission.message,
             "Submission validated with success")
 
-        self.assertTrue(my_sleep.called)
+        self.assertTrue(check_usi.called)
+        self.assertTrue(check_ruleset.called)

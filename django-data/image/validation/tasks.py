@@ -9,13 +9,13 @@ Useful staff to deal with validation process
 
 """
 
-from time import sleep
-
-from celery import task
 from celery.utils.log import get_task_logger
 
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal, STATUSES
+
+from .helpers import validation
+from .constants import IMAGE_RULESET
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -33,6 +33,16 @@ class ValidateTask(MyTask):
     # define my class attributes
     def __init__(self, *args, **kwargs):
         super(ValidateTask, self).__init__(*args, **kwargs)
+
+        # read rules ONCE
+        self.rules = validation.read_in_ruleset(IMAGE_RULESET)
+
+        # set a default validation status. If I will found an error, I will
+        # return a message and I will set NEED_REVISION
+        self.validation_status = True
+
+        # track global statuses
+        self.statuses = {'Pass': 0, 'Warning': 0, 'Error': 0}
 
     # Ovverride default on failure method
     # This is not a failed validation for a wrong value, this is an
@@ -67,35 +77,85 @@ class ValidateTask(MyTask):
     def validate_submission(self):
         """a function to perform validation steps"""
 
-        logger.info("validate_submission started")
+        logger.info("Validate Submission started")
 
         # get submissio object
         submission = Submission.objects.get(pk=self.submission_id)
 
-        # TODO: do stuff
-        sleep(10)
+        for animal in Animal.objects.filter(name__submission=submission):
+            self.validate_model(animal)
 
         for sample in Sample.objects.filter(name__submission=submission):
-            logger.debug("Validating %s" % (sample))
-            # TODO: test against sample
-            sample.name.status = READY
-            sample.name.save()
+            self.validate_model(sample)
 
-        for animal in Animal.objects.filter(name__submission=submission):
-            logger.debug("Validating %s" % (animal))
-            # TODO: test agains animal
-            animal.name.status = READY
-            animal.name.save()
+        # set a proper value for status (READY or NEED_REVISION)
+        if self.validation_status is True:
+            submission.status = READY
+            submission.message = "Submission validated with success"
+            submission.save()
 
-        # Update submission status
-        # TODO: set a proper value for status (READY or NEED_REVISION)
-        submission.status = READY
-        submission.message = "Submission validated with success"
-        submission.save()
+            logger.info("Results for submission %s: %s" % (
+                self.submission_id, self.statuses))
 
-        logger.info("validate_submission completed")
+        else:
+            submission.status = NEED_REVISION
+            submission.message = (
+                "Validation got errors: need revisions before submit")
+            submission.save()
+
+            logger.warning("Results for submission %s: %s" % (
+                self.submission_id, self.statuses))
+
+        logger.info("Validate Submission completed")
 
         return "success"
+
+    def validate_model(self, model):
+        logger.debug("Validating %s" % (model))
+
+        # get data in biosample format
+        data = model.to_biosample()
+
+        # input is a list object
+        usi_results = validation.check_usi_structure([data])
+
+        # no check_duplicates: it checks against alias (that is a pk)
+        # HINT: improve check_duplicates or implement database constraints
+
+        # check against image metadata
+        ruleset_results = validation.check_with_ruleset([data], self.rules)
+
+        # update status and track data in a overall variable
+        self.update_status(model, ruleset_results)
+
+        # if usi_results failed, this object is failed
+        if len(usi_results) > 0:
+            self.model_fail(model, usi_results[0].get_messages())
+
+    # inspired from validation.deal_with_validation_results
+    def update_status(self, model, results):
+        for result in results:
+            overall = result.get_overall_status()
+            if overall != "Pass":
+                self.model_fail(model, result.get_messages())
+
+            else:
+                # ok, I passed my validation
+                model.name.status = READY
+                model.name.save()
+
+            self.statuses[overall] = self.statuses[overall] + 1
+
+    def model_fail(self, model, messages):
+        # set a proper value for status (READY or NEED_REVISION)
+        model.name.status = NEED_REVISION
+        model.name.save()
+
+        # TODO: set messages for name
+
+        # set overall status (this submission has failed validation)
+        if self.validation_status is True:
+            self.validation_status = False
 
 
 # register explicitly tasks

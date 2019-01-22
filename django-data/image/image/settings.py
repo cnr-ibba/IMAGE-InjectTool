@@ -214,6 +214,10 @@ LOGGING = {
             'level': 'DEBUG',
             'handlers': ['console'],
         },
+        'validation.helpers': {
+            'level': 'INFO',
+            'handlers': ['console'],
+        },
         'common': {
             'level': 'DEBUG',
             'handlers': ['console'],

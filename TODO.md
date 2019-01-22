@@ -19,7 +19,6 @@ InjectTool TODO
 * Data export: How data needs to be exported? how IMAGE-metadata works?
   - IMAGE-metadata define fields in .xls used for import. There is a correspondance
     between IMAGE-metadata columns and UID database columns
-  - Data will be exported using JSON (preferably).
   - Exporting data in IMAGE-metadata excel template, could be useful for data
     cleaning?
   - if needed, should be implemented using [django-rest-framework](https://www.django-rest-framework.org/)
@@ -80,8 +79,14 @@ InjectTool TODO
 
 * Data validation:
   - integrate with Jun code
-  - if no taxonomy is defined, biosample submission will fail
-  - taxon and taxonId seem to be mandatory attributes
+  - will be managed by a IMAGE-ValidationTool, structured as a python package
+  - need to write back validation messages into database (`Name` table?)
+    - ideally more messages
+    - how to display message in site?
+    - test against different messages
+    - how to integrate with django-forms?
+    - Can I submit with a Warning message?
+    - mock up time consuming modules (`validation.tests.test_helpers`)
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -89,10 +94,6 @@ InjectTool TODO
     exported.
   - return a default ontology for breed if non mapping occours
   - model other field types
-
-* metadata rules
-  - test against example `json` files, don't derive reference on the fly (it
-    seems difficult update validation tests)
 
 * Biosample manager user should do:
   - ask for user intervention / notify success
