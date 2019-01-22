@@ -1,0 +1,3 @@
+[submodule "django-data/image/validation/helpers"]
+	path = django-data/image/validation/helpers
+	url = https://github.com/cnr-ibba/IMAGE-ValidationTool.git
