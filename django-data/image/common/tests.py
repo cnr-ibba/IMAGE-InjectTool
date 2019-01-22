@@ -96,7 +96,7 @@ class InvalidFormMixinTestCase(StatusMixinTestCase, MessageMixinTestCase):
 
 
 # a mixin to ensure that datasource is in place
-class DataSourceMixinTestCase():
+class DataSourceMixinTestCase(object):
     """Place file in data source directory"""
 
     # class attributes
@@ -131,3 +131,22 @@ class DataSourceMixinTestCase():
 
         # calling my base class teardown class
         super().tearDownClass()
+
+
+# a mixin to correctly instantiate a person object in order to get
+# a biosample json for test data
+class PersonMixinTestCase(object):
+    # set this attribute to Person model
+    person = None
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # now fix person table
+        person = cls.person.objects.get(user__username="test")
+        person.affiliation_id = 1
+        person.role_id = 1
+        person.initials = "T"
+        person.save()

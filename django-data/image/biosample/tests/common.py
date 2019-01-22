@@ -12,6 +12,7 @@ from unittest.mock import patch, PropertyMock
 
 from django.utils import timezone
 
+from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, STATUSES
 
 # get available status
@@ -46,7 +47,10 @@ def generate_token(now=None, domains=['subs.test-team-1']):
         algorithm='RS256')
 
 
-class SubmitMixin(object):
+class SubmitMixin(PersonMixinTestCase):
+    # an attribute for PersonMixinTestCase
+    person = Person
+
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",
@@ -63,18 +67,6 @@ class SubmitMixin(object):
         "image_app/sample",
         "image_app/ontology"
     ]
-
-    @classmethod
-    def setUpClass(cls):
-        # calling my base class setup
-        super().setUpClass()
-
-        # now fix person table
-        person = Person.objects.get(user__username="test")
-        person.affiliation_id = 1
-        person.role_id = 1
-        person.initials = "T"
-        person.save()
 
     def setUp(self):
         # get a submission object

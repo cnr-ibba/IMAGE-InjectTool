@@ -12,6 +12,8 @@ import json
 from django.test import TestCase
 from django.utils import timezone
 
+from common.tests import PersonMixinTestCase
+
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
                               Person, User, db_has_data)
@@ -165,8 +167,11 @@ class SubmissionTestCase(TestCase):
         self.assertEqual(reference, test)
 
 
-class AnimalTestCase(TestCase):
+class AnimalTestCase(PersonMixinTestCase, TestCase):
     """Testing Animal Class"""
+
+    # an attribute for PersonMixinTestCase
+    person = Person
 
     fixtures = [
         "image_app/user",
@@ -181,18 +186,6 @@ class AnimalTestCase(TestCase):
         "image_app/dictrole",
         "image_app/ontology"
     ]
-
-    @classmethod
-    def setUpClass(cls):
-        # calling my base class setup
-        super().setUpClass()
-
-        # now fix person table
-        person = Person.objects.get(user__username="test")
-        person.affiliation_id = 1
-        person.role_id = 1
-        person.initials = "T"
-        person.save()
 
     def setUp(self):
         # create animal
@@ -234,8 +227,11 @@ class AnimalTestCase(TestCase):
     # TODO: test None rendering
 
 
-class SampleTestCase(TestCase):
+class SampleTestCase(PersonMixinTestCase, TestCase):
     """testing sample class"""
+
+    # an attribute for PersonMixinTestCase
+    person = Person
 
     fixtures = [
         "image_app/user",
@@ -251,18 +247,6 @@ class SampleTestCase(TestCase):
         "image_app/dictrole",
         "image_app/ontology"
     ]
-
-    @classmethod
-    def setUpClass(cls):
-        # calling my base class setup
-        super().setUpClass()
-
-        # now fix person table
-        person = Person.objects.get(user__username="test")
-        person.affiliation_id = 1
-        person.role_id = 1
-        person.initials = "T"
-        person.save()
 
     def setUp(self):
         # create animal
