@@ -12,7 +12,7 @@ from django.test import TestCase
 
 from image_app.models import Submission, STATUSES
 
-from ..tasks import validate_submission
+from ..tasks import ValidateTask
 
 # get available statuses
 WAITING = STATUSES.get_value('waiting')
@@ -43,12 +43,15 @@ class ValidateSubmissionTest(TestCase):
         # track submission ID
         self.submission_id = submission.id
 
+        # setting tasks
+        self.my_task = ValidateTask()
+
     # TODO: remove unuseful stuff and test a real case
     @patch("validation.tasks.sleep")
     def test_validate_submission(self, my_sleep):
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
-        res = validate_submission(submission_id=1)
+        res = self.my_task.run(submission_id=self.submission_id)
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
@@ -61,3 +64,5 @@ class ValidateSubmissionTest(TestCase):
         self.assertEqual(
             submission.message,
             "Submission validated with success")
+
+        self.assertTrue(my_sleep.called)

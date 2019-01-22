@@ -86,7 +86,7 @@ class ValidateViewTest(TestMixin, TestCase):
 
 
 class SuccessfulValidateViewTest(TestMixin, TestCase):
-    @patch('validation.views.validate_submission.delay')
+    @patch('validation.views.ValidateTask.delay')
     def setUp(self, my_validation):
         # call base methods
         super(SuccessfulValidateViewTest, self).setUp()
@@ -135,7 +135,7 @@ class SuccessfulValidateViewTest(TestMixin, TestCase):
 
 
 class NoValidateViewTest(TestMixin, TestCase):
-    @patch('validation.views.validate_submission.delay')
+    @patch('validation.views.ValidateTask.delay')
     def setUp(self, my_validation):
         # call base methods
         super(NoValidateViewTest, self).setUp()
@@ -202,7 +202,7 @@ class NoValidateViewTest(TestMixin, TestCase):
 
 
 class InvalidValidateViewTest(TestMixin, TestCase):
-    @patch('validation.views.validate_submission.delay')
+    @patch('validation.views.ValidateTask.delay')
     def setUp(self, my_validation):
         # call base methods
         super(InvalidValidateViewTest, self).setUp()
@@ -229,7 +229,7 @@ class ErrorValidateViewtest(TestMixin, TestCase):
     """A class to test submission not belonging to the user or which doesn't
     exists"""
 
-    @patch('validation.views.validate_submission.delay')
+    @patch('validation.views.ValidateTask.delay')
     def setUp(self, my_validation):
         self.client = Client()
         self.client.login(username='test2', password='test2')

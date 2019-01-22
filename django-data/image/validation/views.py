@@ -17,7 +17,7 @@ from image_app.models import Submission, STATUSES
 from submissions.templatetags.submissions_tags import can_validate
 
 from .forms import ValidateForm
-from .tasks import validate_submission
+from .tasks import ValidateTask
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -58,7 +58,8 @@ class ValidateView(LoginRequiredMixin, FormView):
         submission.save()
 
         # a valid submission start a task
-        res = validate_submission.delay(submission_id)
+        my_task = ValidateTask()
+        res = my_task.delay(submission_id)
         logger.info(
             "Start validation process for %s with task %s" % (
                 submission,
