@@ -16,8 +16,6 @@ from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
                               Person, User, db_has_data)
 
-from validation.helpers.biosample import AnimalValidator, SampleValidator
-
 
 class DictSexTestCase(TestCase):
     """Testing DictSex class"""
@@ -233,19 +231,6 @@ class AnimalTestCase(TestCase):
         self.maxDiff = None
         self.assertEqual(reference, test)
 
-    # HINT: move to validation module?
-    def test_to_biosample_minimal(self):
-        """Test if biosample has biosample mininal fields"""
-
-        validator = AnimalValidator()
-        self.assertTrue(validator.check_minimal(self.animal.to_biosample()))
-
-    def test_to_biosample_mandatory(self):
-        """Test if biosample has metadata rules mandatory fields"""
-
-        validator = AnimalValidator()
-        self.assertTrue(validator.check_mandatory(self.animal.to_biosample()))
-
     # TODO: test None rendering
 
 
@@ -318,19 +303,6 @@ class SampleTestCase(TestCase):
 
         self.maxDiff = None
         self.assertEqual(reference, test)
-
-    # HINT: move to validation module?
-    def test_to_biosample_minimal(self):
-        """Test if biosample has biosample mininal fields"""
-
-        validator = SampleValidator()
-        self.assertTrue(validator.check_minimal(self.sample.to_biosample()))
-
-    def test_to_biosample_mandatory(self):
-        """Test if biosample has metadata rules mandatory fields"""
-
-        validator = SampleValidator()
-        self.assertTrue(validator.check_mandatory(self.sample.to_biosample()))
 
     # TODO: test biosample with None rendering
 
