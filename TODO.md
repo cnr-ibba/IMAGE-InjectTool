@@ -87,6 +87,7 @@ InjectTool TODO
     - how to integrate with django-forms?
     - Can I submit with a Warning message?
     - mock up time consuming modules (`validation.tests.test_helpers`)
+    - raise coverage / test different statuses
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown

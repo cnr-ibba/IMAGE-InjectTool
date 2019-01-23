@@ -39,19 +39,16 @@ ERROR = STATUSES.get_value('error')
 READY = STATUSES.get_value('ready')
 
 
-class SubmitTask(MyTask):
-    name = "Submit to Biosample"
-    description = """Submit to Biosample using USI"""
+class SubmissionData(object):
+    """An helper class for submission task"""
 
     # define my class attributes
     def __init__(self, *args, **kwargs):
-        super(SubmitTask, self).__init__(*args, **kwargs)
 
         # ok those are my default class attributes
         self.submission_id = None
         self.submission_obj = None
         self.token = None
-        self.team_name = None
 
         # here I will store samples already submitted
         self.submitted_samples = {}
@@ -60,18 +57,61 @@ class SubmitTask(MyTask):
         self.usi_submission = None
         self.usi_root = None
 
+        if kwargs['submission_id']:
+            self.submission_id = kwargs['submission_id']
+
+            # get submissio object
+            self.submission_obj = Submission.objects.get(
+                pk=self.submission_id)
+
+    @property
+    def owner(self):
+        """Recover owner from a submission object"""
+
+        return self.submission_obj.owner
+
+    @property
+    def team_name(self):
+        """Recover team_name from a submission object"""
+
+        return self.owner.biosample_account.team.name
+
+    @property
+    def biosample_submission_id(self):
+        """Get biosample submission id from database"""
+
+        return self.submission_obj.biosample_submission_id
+
+
+class SubmitTask(MyTask):
+    name = "Submit to Biosample"
+    description = """Submit to Biosample using USI"""
+
+    # http://docs.celeryproject.org/en/latest/userguide/tasks.html#instantiation
+    # A task is not instantiated for every request, but is registered in
+    # the task registry as a global instance. This means that the __init__
+    # constructor will only be called once per process, and that the
+    # task class is semantically closer to an Actor. if you have a task and
+    # you route every request to the same process, then it will keep state
+    # between requests. This can also be useful to cache resources, For
+    # example, a base Task class that caches a database connection
+
     # Ovverride default on failure method
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
-        self.submission_obj.status = ERROR
-        self.submission_obj.message = (
+        # create a instance to store submissison data from a submission_id
+        submission_data = SubmissionData(submission_id=args[0])
+
+        submission_data.submission_obj.status = ERROR
+        submission_data.submission_obj.message = (
             "Error in biosample submission: %s" % str(exc))
-        self.submission_obj.save()
+        submission_data.submission_obj.save()
 
         # send a mail to the user with the stacktrace (einfo)
-        self.submission_obj.owner.email_user(
-            "Error in biosample submission %s" % (self.submission_id),
+        submission_data.owner.email_user(
+            "Error in biosample submission %s" % (
+                submission_data.submission_id),
             ("Something goes wrong with biosample submission. Please report "
              "this to InjectTool team\n\n %s" % str(einfo)),
         )
@@ -79,22 +119,16 @@ class SubmitTask(MyTask):
     def run(self, submission_id):
         """This function is called when delay is called"""
 
-        # assign my submission id
-        self.submission_id = submission_id
+        # create a instance to store submissison data from a submission_id
+        submission_data = SubmissionData(submission_id=submission_id)
 
         # call innner merthod and return results
-        return self.submit()
+        return self.submit(submission_data)
 
     # a function to submit data into biosample
-    def submit(self):
-        # get submissio object
-        self.submission_obj = Submission.objects.get(pk=self.submission_id)
-
+    def submit(self, submission_data):
         logger.info("Starting submission for user %s" % (
-            self.submission_obj.owner.biosample_account))
-
-        # get info from submission object
-        self.team_name = self.submission_obj.owner.biosample_account.team.name
+            submission_data.owner.biosample_account))
 
         # read biosample token from redis database
         client = redis.StrictRedis(
@@ -102,19 +136,20 @@ class SubmitTask(MyTask):
             port=settings.REDIS_PORT,
             db=settings.REDIS_DB)
 
+        # infere key from submission data
         key = "token:submission:{submission_id}:{user}".format(
-            submission_id=self.submission_id,
-            user=self.submission_obj.owner)
+            submission_id=submission_data.submission_id,
+            user=submission_data.owner)
 
         # create a new auth object
-        logger.debug("Reading token for '%s'" % self.submission_obj.owner)
+        logger.debug("Reading token for '%s'" % submission_data.owner)
 
-        # getting token from redis db
-        self.token = client.get(key).decode("utf8")
+        # getting token from redis db and set submission data
+        submission_data.token = client.get(key).decode("utf8")
 
         # call a method to submit data to biosample
         try:
-            self.submit_biosample()
+            self.submit_biosample(submission_data)
 
         # retry a task under errors
         # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
@@ -126,36 +161,36 @@ class SubmitTask(MyTask):
         # return a status
         return "success"
 
-    def submit_biosample(self):
+    def submit_biosample(self, submission_data):
         # reading token in auth
-        auth = get_auth(token=self.token)
+        auth = get_auth(token=submission_data.token)
 
         logger.debug("getting biosample root")
-        self.usi_root = pyUSIrest.client.Root(auth=auth)
+        submission_data.usi_root = pyUSIrest.client.Root(auth=auth)
 
         # if I'm recovering a submission, get the same submission id
-        if (self.submission_obj.biosample_submission_id is not None and
-                self.submission_obj.biosample_submission_id != ''):
+        if (submission_data.biosample_submission_id is not None and
+                submission_data.biosample_submission_id != ''):
 
-            usi_submission_name = self.__recover_submission()
+            usi_submission_name = self.__recover_submission(submission_data)
 
         else:
             # get a new USI submission
-            usi_submission_name = self.__create_submission()
+            usi_submission_name = self.__create_submission(submission_data)
 
         logger.info("Fetching data and add to submission %s" % (
             usi_submission_name))
 
         # HINT: what happen if a token expire while submitting?
         for animal in Animal.objects.filter(
-                name__submission=self.submission_obj):
+                name__submission=submission_data.submission_obj):
 
             # add animal if not yet submitted, or patch it
             if animal.name.status != SUBMITTED:
                 logger.info("Appending animal %s" % (animal))
 
                 # check if animal is already submitted, otherwise patch
-                self.__create_or_update(animal)
+                self.__create_or_update(animal, submission_data)
 
             # Add their specimen
             for sample in animal.sample_set.all():
@@ -164,84 +199,91 @@ class SubmitTask(MyTask):
                     logger.info("Appending sample %s" % (sample))
 
                     # check if sample is already submitted, otherwise patch
-                    self.__create_or_update(sample)
+                    self.__create_or_update(sample, submission_data)
 
         logger.info("submission completed")
 
         # Update submission status: a completed but not yet finalized
         # submission
-        self.submission_obj.status = SUBMITTED
-        self.submission_obj.message = "Waiting for biosample validation"
-        self.submission_obj.save()
+        submission_data.submission_obj.status = SUBMITTED
+        submission_data.submission_obj.message = (
+            "Waiting for biosample validation")
+        submission_data.submission_obj.save()
 
     # helper function to create or update a biosample record
-    def __create_or_update(self, sample_obj):
+    def __create_or_update(self, sample_obj, submission_data):
         """Create or update a sample (or a animal) in USI"""
 
         # alias could be animal_XXX or a biosample id
         alias = sample_obj.get_biosample_id()
 
         # check in my submitted samples
-        if alias in self.submitted_samples:
+        if alias in submission_data.submitted_samples:
             # patch sample
             logger.info("Patching %s" % (alias))
 
             # get usi sample
-            sample = self.submitted_samples[alias]
+            sample = submission_data.submitted_samples[alias]
             sample.patch(sample_obj.to_biosample())
 
         else:
-            self.usi_submission.create_sample(sample_obj.to_biosample())
+            submission_data.usi_submission.create_sample(
+                sample_obj.to_biosample())
 
         # update sample status
         sample_obj.name.status = SUBMITTED
         sample_obj.name.last_submitted = timezone.now()
         sample_obj.name.save()
 
-    def __recover_submission(self):
+    def __recover_submission(self, submission_data):
         logger.info("Recovering submission %s for team %s" % (
-            self.submission_obj.biosample_submission_id, self.team_name))
+            submission_data.biosample_submission_id,
+            submission_data.team_name))
 
         # get the same submission object
-        usi_submission_name = self.submission_obj.biosample_submission_id
+        usi_submission_name = submission_data.biosample_submission_id
 
-        self.usi_submission = self.usi_root.get_submission_by_name(
-            submission_name=usi_submission_name)
+        submission_data.usi_submission = \
+            submission_data.usi_root.get_submission_by_name(
+                submission_name=usi_submission_name)
 
         # check that a submission is still editable
-        if self.usi_submission.status != "Draft":
+        if submission_data.usi_submission.status != "Draft":
             logger.warning(
                 "Error for submission '%s': current status is '%s'" % (
-                    usi_submission_name, self.usi_submission.status))
+                    usi_submission_name,
+                    submission_data.usi_submission.status))
 
             # I can't modify this submission so:
-            return self.__create_submission()
+            return self.__create_submission(submission_data)
 
         # read already submitted samples
         logger.debug("Getting info on samples...")
-        samples = self.usi_submission.get_samples()
+        samples = submission_data.usi_submission.get_samples()
         logger.debug("Got %s samples" % (len(samples)))
 
         for sample in samples:
-            self.submitted_samples[sample.alias] = sample
+            submission_data.submitted_samples[sample.alias] = sample
 
         # return usi biosample id
         return usi_submission_name
 
-    def __create_submission(self):
+    def __create_submission(self, submission_data):
         # getting team
-        logger.debug("getting team '%s'" % (self.team_name))
-        team = self.usi_root.get_team_by_name(self.team_name)
+        logger.debug("getting team '%s'" % (submission_data.team_name))
+        team = submission_data.usi_root.get_team_by_name(
+            submission_data.team_name)
 
         # create a new submission
         logger.info("Creating a new submission for %s" % (team.name))
-        self.usi_submission = team.create_submission()
+        submission_data.usi_submission = team.create_submission()
 
         # track submission_id in table
-        usi_submission_name = self.usi_submission.name
+        usi_submission_name = submission_data.usi_submission.name
 
-        self.submission_obj.biosample_submission_id = usi_submission_name
-        self.submission_obj.save()
+        submission_data.submission_obj.biosample_submission_id = \
+            usi_submission_name
+        submission_data.submission_obj.save()
 
         # return usi biosample id
         return usi_submission_name
