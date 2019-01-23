@@ -116,6 +116,8 @@ class SubmitTask(MyTask):
              "this to InjectTool team\n\n %s" % str(einfo)),
         )
 
+        # TODO: submit mail to admin
+
     def run(self, submission_id):
         """This function is called when delay is called"""
 
@@ -294,14 +296,6 @@ class FetchStatusTask(MyTask):
     description = """Fetch biosample using USI API"""
     lock_id = "FetchStatusTask"
 
-    # define my class attributes
-    def __init__(self, *args, **kwargs):
-        super(FetchStatusTask, self).__init__(*args, **kwargs)
-
-        # ok those are my default class attributes
-        self.root = None
-        self.auth = None
-
     def run(self):
         """This function is called when delay is called"""
 
@@ -355,25 +349,28 @@ class FetchStatusTask(MyTask):
 
         logger.info("Searching for submissions into biosample")
 
+        # track data
+        usi_objs = {}
+
         # create a new auth object
         logger.debug("Generate a token for 'USI_MANAGER'")
-        self.auth = get_manager_auth()
+        usi_objs['auth'] = get_manager_auth()
 
         logger.debug("Getting root")
-        self.root = pyUSIrest.client.Root(self.auth)
+        usi_objs['root'] = pyUSIrest.client.Root(usi_objs['auth'])
 
         for submission_obj in queryset:
-            self.fetch_submission_obj(submission_obj)
+            self.fetch_submission_obj(submission_obj, usi_objs)
 
         logger.info("fetch_queryset completed")
 
-    def fetch_submission_obj(self, submission_obj):
+    def fetch_submission_obj(self, submission_obj, usi_objs):
         """Fetch USI from a biosample object"""
 
         logger.info("Processing submission %s" % (submission_obj))
 
         # fetch a biosample object
-        submission = self.root.get_submission_by_name(
+        submission = usi_objs['root'].get_submission_by_name(
             submission_name=submission_obj.biosample_submission_id)
 
         # Update submission status if completed
@@ -436,7 +433,7 @@ class FetchStatusTask(MyTask):
 
             # debug submission status
             document = submission.follow_url(
-                "processingStatusSummary", self.auth)
+                "processingStatusSummary", usi_objs['auth'])
 
             logger.debug(
                 "Current status for submission %s is %s" % (
