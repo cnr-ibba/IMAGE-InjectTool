@@ -6,7 +6,7 @@ Created on Fri Oct  5 11:39:21 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.test import TestCase
 
@@ -60,6 +60,11 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
     @patch("validation.tasks.validation.check_with_ruleset")
     @patch("validation.tasks.validation.check_usi_structure")
     def test_validate_submission(self, check_usi, check_ruleset):
+        # setting a return value for check_with_ruleset
+        validation_result = Mock()
+        validation_result.get_overall_status.return_value = "Pass"
+        check_ruleset.return_value = [validation_result]
+
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
         res = self.my_task.run(submission_id=self.submission_id)
