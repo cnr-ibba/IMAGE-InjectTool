@@ -27,6 +27,11 @@ ERROR = STATUSES.get_value('error')
 NEED_REVISION = STATUSES.get_value('need_revision')
 
 
+# A class to deal with validation errors
+class ValidationError(Exception):
+    pass
+
+
 class ValidateTask(MyTask):
     name = "Validate Submission"
     description = """Validate submission data against IMAGE rules"""
@@ -52,17 +57,18 @@ class ValidateTask(MyTask):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
-        self.submission_obj.status = ERROR
-        self.submission_obj.message = (
-            "Error in IMAGE Validation: %s" % str(exc))
-        self.submission_obj.save()
+        # mark submission with ERROR
+        submission_obj = self.submission_fail(
+            args[0], str(exc))
 
         # send a mail to the user with the stacktrace (einfo)
-        self.submission_obj.owner.email_user(
-            "Error in IMAGE Validation %s" % (self.submission_id),
+        submission_obj.owner.email_user(
+            "Error in IMAGE Validation %s" % (args[0]),
             ("Something goes wrong with validation. Please report "
              "this to InjectTool team\n\n %s" % str(einfo)),
         )
+
+        # TODO: submit mail to admin
 
     # TODO: define a method to inform user for error in validation (Task run
     # with success but errors in data)
@@ -88,17 +94,32 @@ class ValidateTask(MyTask):
         for sample in Sample.objects.filter(name__submission=submission):
             self.validate_model(sample, submission_statuses)
 
+        # test for keys in submission_statuses
+        statuses = sorted(submission_statuses.keys())
+
+        # if error messages changes in IMAGE-ValidationTool, all this
+        # stuff isn't valid and I throw an exception
+        if statuses != ['Error', 'JSON', 'Pass', 'Warning']:
+            # mark submission with ERROR
+            self.submission_fail(
+                submission_id, "Error in submission statuses: %s" % (
+                    statuses))
+
+            raise ValidationError("Error in submission statuses: %s" % (
+                    statuses))
+
         # If I have any error in JSON is a problem of injectool
         if self.has_errors_in_json(submission_statuses):
-            submission.status = ERROR
-            submission.message = (
-                "Validation got errors: Wrong JSON structure")
-            submission.save()
-
             logger.error("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
 
-            # TODO: report for a bug in InjectTool
+            # mark submission with ERROR
+            self.submission_fail(
+                submission_id, "Validation got errors: Wrong JSON structure")
+
+            # raise an exception
+            raise ValidationError(
+                "Validation got errors: Wrong JSON structure")
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
@@ -161,7 +182,7 @@ class ValidateTask(MyTask):
     # inspired from validation.deal_with_validation_results
     def update_statuses(self, submission_statuses, model, results):
         if len(results) != 1:
-            raise Exception(
+            raise ValidationError(
                 "Number of validation results are different from expectations")
 
         # The hypotesys is that results is a list of one element
@@ -196,11 +217,27 @@ class ValidateTask(MyTask):
         return submission_statuses["JSON"] > 0
 
     def model_fail(self, model, messages):
+        """Mark a model with NEED_REVISION status"""
+
+        logger.debug("Model %s need to be revised: %s" % (model, messages))
+
         # set a proper value for status (READY or NEED_REVISION)
         model.name.status = NEED_REVISION
         model.name.save()
 
         # TODO: set messages for name
+
+    def submission_fail(self, submission_id, message):
+        """Mark a submission with ERROR status"""
+
+        submission_obj = Submission.objects.get(pk=submission_id)
+
+        submission_obj.status = ERROR
+        submission_obj.message = (
+            "Error in IMAGE Validation: %s" % message)
+        submission_obj.save()
+
+        return submission_obj
 
 
 # register explicitly tasks

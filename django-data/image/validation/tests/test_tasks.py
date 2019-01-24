@@ -6,14 +6,17 @@ Created on Fri Oct  5 11:39:21 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+from collections import Counter
 from unittest.mock import patch, Mock
+from billiard.einfo import ExceptionInfo
 
+from django.core import mail
 from django.test import TestCase
 
 from common.tests import PersonMixinTestCase
 from image_app.models import Submission, STATUSES, Person, Name
 
-from ..tasks import ValidateTask
+from ..tasks import ValidateTask, ValidationError
 
 # get available statuses
 WAITING = STATUSES.get_value('waiting')
@@ -61,8 +64,39 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # setting tasks
         self.my_task = ValidateTask()
 
+    def test_on_failure(self):
+        """Testing on failure methods"""
+
+        exc = Exception("Test")
+        task_id = "test_task_id"
+        args = [self.submission_id]
+        kwargs = {}
+        einfo = ExceptionInfo
+
+        # call on_failure method
+        self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
+
+        # check submission status and message
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # check submission.state changed
+        self.assertEqual(submission.status, ERROR)
+        self.assertEqual(
+            submission.message,
+            "Error in IMAGE Validation: Test")
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in IMAGE Validation %s" % self.submission_id,
+            email.subject)
+
     @patch("validation.tasks.validation.check_with_ruleset")
-    @patch("validation.tasks.validation.check_usi_structure")
+    @patch("validation.tasks.validation.check_usi_structure", return_value=[])
     def test_validate_submission(self, check_usi, check_ruleset):
         # setting a return value for check_with_ruleset
         validation_result = Mock()
@@ -116,10 +150,11 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         check_usi.return_value = usi_result
 
         # call task
-        res = self.my_task.run(submission_id=self.submission_id)
-
-        # assert a success with validation taks
-        self.assertEqual(res, "success")
+        self.assertRaisesRegex(
+            ValidationError,
+            "Wrong JSON structure",
+            self.my_task.run,
+            submission_id=self.submission_id)
 
         # check submission status and message
         self.submission.refresh_from_db()
@@ -142,3 +177,96 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(check_usi.called)
         self.assertFalse(check_ruleset.called)
+
+    @patch("validation.tasks.validation.check_with_ruleset")
+    @patch("validation.tasks.validation.check_usi_structure")
+    def test_unsupported_status(self, check_usi, check_ruleset):
+        # setting a return value for check_with_ruleset
+        rule_result = Mock()
+        rule_result.get_overall_status.return_value = "A fake status"
+        check_ruleset.return_value = [rule_result]
+
+        # call task
+        self.assertRaisesRegex(
+            ValidationError,
+            "Error in submission statuses",
+            self.my_task.run,
+            submission_id=self.submission_id)
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(self.submission.status, ERROR)
+        self.assertIn(
+            "Error in submission statuses",
+            self.submission.message)
+
+        # if JSON is not valid, I don't check for ruleset
+        self.assertTrue(check_usi.called)
+        self.assertTrue(check_ruleset.called)
+
+    @patch("validation.tasks.validation.check_with_ruleset")
+    @patch("validation.tasks.validation.check_usi_structure", return_value=[])
+    def test_validate_submission_errors(self, check_usi, check_ruleset):
+        # setting a return value for check_with_ruleset
+        result1 = Mock()
+        result1.get_overall_status.return_value = "Warning"
+        result1.get_messages.return_value = ["Warning: test message 1"]
+
+        result2 = Mock()
+        result2.get_overall_status.return_value = "Error"
+        result2.get_messages.return_value = ["Error: test message 2"]
+
+        # add results to result set
+        check_ruleset.side_effect = [[result1], [result2]]
+
+        # call task
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(self.submission.status, NEED_REVISION)
+        self.assertIn(
+            "need revisions before submit",
+            self.submission.message)
+
+        # test for model status. Is the name object
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.status, NEED_REVISION)
+
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.status, NEED_REVISION)
+
+        # TODO: test for model message (usi_results)
+
+        # test for my methods called
+        self.assertTrue(check_usi.called)
+        self.assertTrue(check_ruleset.called)
+
+    @patch("validation.tasks.validation.check_with_ruleset")
+    @patch("validation.tasks.validation.check_usi_structure", return_value=[])
+    def test_update_statuses_more_result(self, check_usi, check_ruleset):
+        """Test update_statuses with more than one results, or none of them"""
+
+        # testing exceptions
+        self.assertRaisesRegex(
+            ValidationError,
+            "Number of validation results are different from expectations",
+            self.my_task.update_statuses,
+            Counter(),
+            self.animal,
+            [Mock(), Mock()])
+
+        self.assertRaisesRegex(
+            ValidationError,
+            "Number of validation results are different from expectations",
+            self.my_task.update_statuses,
+            Counter(),
+            self.animal,
+            [])

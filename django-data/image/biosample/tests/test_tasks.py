@@ -255,10 +255,6 @@ class SubmitTestCase(SubmitMixin, TestCase):
         kwargs = {}
         einfo = ExceptionInfo
 
-        # initialize object with submission_obj
-        self.my_task.submission_id = self.submission_id
-        self.my_task.submission_obj = self.submission_obj
-
         # call on_failure method
         self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
 
