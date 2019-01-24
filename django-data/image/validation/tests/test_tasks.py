@@ -11,7 +11,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from common.tests import PersonMixinTestCase
-from image_app.models import Submission, STATUSES, Person
+from image_app.models import Submission, STATUSES, Person, Name
 
 from ..tasks import ValidateTask
 
@@ -45,14 +45,18 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
     def setUp(self):
         # get a submission object
-        submission = Submission.objects.get(pk=1)
+        self.submission = Submission.objects.get(pk=1)
 
         # set a status which I can validate
-        submission.status = LOADED
-        submission.save()
+        self.submission.status = LOADED
+        self.submission.save()
 
         # track submission ID
-        self.submission_id = submission.id
+        self.submission_id = self.submission.id
+
+        # track animal and sample. Track Name objects
+        self.animal = Name.objects.get(pk=3)
+        self.sample = Name.objects.get(pk=4)
 
         # setting tasks
         self.my_task = ValidateTask()
@@ -69,17 +73,72 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # (AsyncResult). I've patched the time consuming task
         res = self.my_task.run(submission_id=self.submission_id)
 
-        # assert a success with data uploading
+        # assert a success with validation taks
         self.assertEqual(res, "success")
 
         # check submission status and message
-        submission = Submission.objects.get(pk=1)
+        self.submission.refresh_from_db()
 
         # check submission.state changed
-        self.assertEqual(submission.status, READY)
+        self.assertEqual(self.submission.status, READY)
         self.assertEqual(
-            submission.message,
+            self.submission.message,
             "Submission validated with success")
 
+        # test for model status. Is the name object
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.status, READY)
+
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.status, READY)
+
+        # TODO: test for model message (no messages)
+
+        # assert validation functions called
         self.assertTrue(check_usi.called)
         self.assertTrue(check_ruleset.called)
+
+    @patch("validation.tasks.validation.check_with_ruleset")
+    @patch("validation.tasks.validation.check_usi_structure")
+    def test_validate_submission_wrong_json(self, check_usi, check_ruleset):
+        # setting a return value for check_with_ruleset
+        rule_result = Mock()
+        rule_result.get_overall_status.return_value = "Pass"
+        check_ruleset.return_value = [rule_result]
+
+        # assign a fake response for check_usi_structure
+        usi_result = [
+            ('Wrong JSON structure: no title field for record with '
+             'alias as animal_1'),
+            ('Wrong JSON structure: the values for attribute Person '
+             'role needs to be in an array for record animal_1')
+        ]
+        check_usi.return_value = usi_result
+
+        # call task
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(self.submission.status, ERROR)
+        self.assertIn(
+            "Wrong JSON structure",
+            self.submission.message)
+
+        # test for model status. Is the name object
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.status, ERROR)
+
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.status, ERROR)
+
+        # TODO: test for model message (usi_results)
+
+        # if JSON is not valid, I don't check for ruleset
+        self.assertTrue(check_usi.called)
+        self.assertFalse(check_ruleset.called)

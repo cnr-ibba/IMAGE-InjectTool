@@ -131,3 +131,26 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         # no errors for check_duplicates
         self.assertIsInstance(dup_result, list)
         self.assertEqual(len(dup_result), 0)
+
+    def test_wrong_json_structure(self):
+        """Test that json structure is ok"""
+
+        reference = [
+            ('Wrong JSON structure: no title field for record with '
+             'alias as animal_1'),
+            ('Wrong JSON structure: the values for attribute Person '
+             'role needs to be in an array for record animal_1')
+        ]
+
+        # get my animal
+        animal = Animal.objects.get(pk=1)
+        data = animal.to_biosample()
+
+        # delete some attributes from animal data
+        del(data['title'])
+        data["attributes"]['Person role'] = None
+
+        # test for Json structure
+        test = validation.check_usi_structure([data])
+
+        self.assertEqual(reference, test)

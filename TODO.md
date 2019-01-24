@@ -71,6 +71,7 @@ InjectTool TODO
 * import June code:
   - geo standardization
   - date standardization
+  - import ontology code in zooma module
   - zooma:
     - high confidence: use it
     - good: ask to user?

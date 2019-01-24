@@ -76,7 +76,11 @@ class ValidateTask(MyTask):
         submission = Submission.objects.get(pk=submission_id)
 
         # track global statuses
-        submission_statuses = Counter({'Pass': 0, 'Warning': 0, 'Error': 0})
+        submission_statuses = Counter(
+            {'Pass': 0,
+             'Warning': 0,
+             'Error': 0,
+             'JSON': 0})
 
         for animal in Animal.objects.filter(name__submission=submission):
             self.validate_model(animal, submission_statuses)
@@ -84,10 +88,22 @@ class ValidateTask(MyTask):
         for sample in Sample.objects.filter(name__submission=submission):
             self.validate_model(sample, submission_statuses)
 
+        # If I have any error in JSON is a problem of injectool
+        if self.has_errors_in_json(submission_statuses):
+            submission.status = ERROR
+            submission.message = (
+                "Validation got errors: Wrong JSON structure")
+            submission.save()
+
+            logger.error("Results for submission %s: %s" % (
+                submission_id, submission_statuses))
+
+            # TODO: report for a bug in InjectTool
+
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
         # return a message and I will set NEED_REVISION
-        if self.has_errors(submission_statuses):
+        elif self.has_errors_in_rules(submission_statuses):
             submission.status = NEED_REVISION
             submission.message = (
                 "Validation got errors: need revisions before submit")
@@ -96,6 +112,7 @@ class ValidateTask(MyTask):
             logger.warning("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
 
+        # WOW: I can submit those data
         else:
             submission.status = READY
             submission.message = "Submission validated with success"
@@ -117,6 +134,21 @@ class ValidateTask(MyTask):
         # input is a list object
         usi_results = validation.check_usi_structure([data])
 
+        # if I have errors here, JSON isn't valid: this is not an error
+        # on user's data but on InjectTool itself
+        if len(usi_results) > 0:
+            # update counter for JSON
+            submission_statuses.update({'JSON': len(usi_results)})
+
+            # usi_results is a list of string
+            model.name.status = ERROR
+            model.name.save()
+
+            # TODO: set messages for name
+
+            # It make no sense check_with_ruleset, since JSON is wrong
+            return
+
         # no check_duplicates: it checks against alias (that is a pk)
         # HINT: improve check_duplicates or implement database constraints
 
@@ -125,10 +157,6 @@ class ValidateTask(MyTask):
 
         # update status and track data in a overall variable
         self.update_statuses(submission_statuses, model, ruleset_results)
-
-        # if usi_results failed, this object is failed
-        if len(usi_results) > 0:
-            self.model_fail(model, usi_results[0].get_messages())
 
     # inspired from validation.deal_with_validation_results
     def update_statuses(self, submission_statuses, model, results):
@@ -153,7 +181,7 @@ class ValidateTask(MyTask):
         # update a collections.Counter objects by key
         submission_statuses.update({overall})
 
-    def has_errors(self, submission_statuses):
+    def has_errors_in_rules(self, submission_statuses):
         "Return True if there is any error or warning"""
 
         if (submission_statuses["Warning"] != 0 or
@@ -161,6 +189,11 @@ class ValidateTask(MyTask):
             return True
         else:
             return False
+
+    def has_errors_in_json(self, submission_statuses):
+        "Return True if there is any error in JSON"""
+
+        return submission_statuses["JSON"] > 0
 
     def model_fail(self, model, messages):
         # set a proper value for status (READY or NEED_REVISION)
