@@ -7,7 +7,6 @@ tmp/
 *.swp
 .idea/
 *_test_mongo
-*migrations*
 *tgz
 *tar.gz
 *.tar

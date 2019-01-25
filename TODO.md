@@ -61,8 +61,6 @@ InjectTool TODO
     or using [django-salmonella](https://github.com/lincolnloop/django-dynamic-raw-id)
   - django admin will be not accessible to normal user?
   - Using LoginRequiredMixing for class based view authentication (update all classes)
-  - add migrations in git repository, as suggested from official django documentation
-    [cit needed] and [here](https://stackoverflow.com/questions/28035119/should-i-be-adding-the-django-migration-files-in-the-gitignore-file)
   - django `contettype` framework to model relations between Name and Sample and
     animal
   - see [django_filters](https://django-filter.readthedocs.io/) and [django_tables](https://django-tables2.readthedocs.io/en/latest/).
