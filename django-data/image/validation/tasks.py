@@ -17,6 +17,7 @@ from image_app.models import Submission, Sample, Animal, STATUSES
 
 from .helpers import validation
 from .constants import IMAGE_RULESET
+from .models import ValidationResult as ValidationResultModel
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -57,9 +58,13 @@ class ValidateTask(MyTask):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
+        # get submissio object
+        submission_obj = Submission.objects.get(pk=args[0])
+
         # mark submission with ERROR
-        submission_obj = self.submission_fail(
-            args[0], str(exc))
+        submission_obj.status = ERROR
+        submission_obj.message = ("Error in IMAGE Validation: %s" % (str(exc)))
+        submission_obj.save()
 
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
@@ -79,7 +84,7 @@ class ValidateTask(MyTask):
         logger.info("Validate Submission started")
 
         # get submissio object
-        submission = Submission.objects.get(pk=submission_id)
+        submission_obj = Submission.objects.get(pk=submission_id)
 
         # track global statuses
         submission_statuses = Counter(
@@ -88,10 +93,10 @@ class ValidateTask(MyTask):
              'Error': 0,
              'JSON': 0})
 
-        for animal in Animal.objects.filter(name__submission=submission):
+        for animal in Animal.objects.filter(name__submission=submission_obj):
             self.validate_model(animal, submission_statuses)
 
-        for sample in Sample.objects.filter(name__submission=submission):
+        for sample in Sample.objects.filter(name__submission=submission_obj):
             self.validate_model(sample, submission_statuses)
 
         # test for keys in submission_statuses
@@ -100,44 +105,39 @@ class ValidateTask(MyTask):
         # if error messages changes in IMAGE-ValidationTool, all this
         # stuff isn't valid and I throw an exception
         if statuses != ['Error', 'JSON', 'Pass', 'Warning']:
-            # mark submission with ERROR
-            self.submission_fail(
-                submission_id, "Error in submission statuses: %s" % (
-                    statuses))
+            message = "Error in submission statuses: %s" % (statuses)
 
-            raise ValidationError("Error in submission statuses: %s" % (
-                    statuses))
+            # mark submission with ERROR (this is not related to user data)
+            # calling the appropriate method passing ERROR as status
+            self.submission_fail(submission_obj, message, status=ERROR)
+
+            # raise an exception since is an InjectTool issue
+            raise ValidationError(message)
 
         # If I have any error in JSON is a problem of injectool
         if self.has_errors_in_json(submission_statuses):
-            logger.error("Results for submission %s: %s" % (
+            # mark submission with NEED_REVISION
+            self.submission_fail(submission_obj, "Wrong JSON structure")
+
+            logger.warning("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
-
-            # mark submission with ERROR
-            self.submission_fail(
-                submission_id, "Validation got errors: Wrong JSON structure")
-
-            # raise an exception
-            raise ValidationError(
-                "Validation got errors: Wrong JSON structure")
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
         # return a message and I will set NEED_REVISION
         elif self.has_errors_in_rules(submission_statuses):
-            submission.status = NEED_REVISION
-            submission.message = (
-                "Validation got errors: need revisions before submit")
-            submission.save()
+            # mark submission with NEED_REVISION
+            self.submission_fail(
+                submission_obj, "need revisions before submit")
 
             logger.warning("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
 
         # WOW: I can submit those data
         else:
-            submission.status = READY
-            submission.message = "Submission validated with success"
-            submission.save()
+            submission_obj.status = READY
+            submission_obj.message = "Submission validated with success"
+            submission_obj.save()
 
             logger.info("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
@@ -153,19 +153,29 @@ class ValidateTask(MyTask):
         data = model.to_biosample()
 
         # input is a list object
-        usi_results = validation.check_usi_structure([data])
+        usi_result = validation.check_usi_structure([data])
 
         # if I have errors here, JSON isn't valid: this is not an error
         # on user's data but on InjectTool itself
-        if len(usi_results) > 0:
+        if len(usi_result) > 0:
             # update counter for JSON
-            submission_statuses.update({'JSON': len(usi_results)})
+            submission_statuses.update({'JSON': len(usi_result)})
 
-            # usi_results is a list of string
-            model.name.status = ERROR
+            # get a validation result model
+            if hasattr(model.name, 'validationresult'):
+                validationresult = model.name.validationresult
+            else:
+                validationresult = ValidationResultModel()
+                model.name.validationresult = validationresult
+
+            # setting valdiationtool results and save
+            validationresult.result = usi_result
+            validationresult.save()
+
+            # update model
+            model.name.validationresult = validationresult
+            model.name.status = NEED_REVISION
             model.name.save()
-
-            # TODO: set messages for name
 
             # It make no sense check_with_ruleset, since JSON is wrong
             return
@@ -192,7 +202,7 @@ class ValidateTask(MyTask):
         overall = result.get_overall_status()
 
         if overall != "Pass":
-            self.model_fail(model, result.get_messages())
+            self.model_fail(model, result)
 
         else:
             # ok, I passed my validation
@@ -216,10 +226,11 @@ class ValidateTask(MyTask):
 
         return submission_statuses["JSON"] > 0
 
-    def model_fail(self, model, messages):
+    def model_fail(self, model, result):
         """Mark a model with NEED_REVISION status"""
 
-        logger.debug("Model %s need to be revised: %s" % (model, messages))
+        logger.debug(
+            "Model %s need to be revised: %s" % (model, result.get_messages()))
 
         # set a proper value for status (READY or NEED_REVISION)
         model.name.status = NEED_REVISION
@@ -227,17 +238,12 @@ class ValidateTask(MyTask):
 
         # TODO: set messages for name
 
-    def submission_fail(self, submission_id, message):
-        """Mark a submission with ERROR status"""
+    def submission_fail(self, submission_obj, message, status=NEED_REVISION):
+        """Mark a submission with NEED_REVISION status"""
 
-        submission_obj = Submission.objects.get(pk=submission_id)
-
-        submission_obj.status = ERROR
-        submission_obj.message = (
-            "Error in IMAGE Validation: %s" % message)
+        submission_obj.status = status
+        submission_obj.message = ("Validation got errors: %s" % (message))
         submission_obj.save()
-
-        return submission_obj
 
 
 # register explicitly tasks

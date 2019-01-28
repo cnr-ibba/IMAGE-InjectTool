@@ -150,27 +150,26 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         check_usi.return_value = usi_result
 
         # call task
-        self.assertRaisesRegex(
-            ValidationError,
-            "Wrong JSON structure",
-            self.my_task.run,
-            submission_id=self.submission_id)
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
 
         # check submission status and message
         self.submission.refresh_from_db()
 
         # check submission.state changed
-        self.assertEqual(self.submission.status, ERROR)
+        self.assertEqual(self.submission.status, NEED_REVISION)
         self.assertIn(
             "Wrong JSON structure",
             self.submission.message)
 
         # test for model status. Is the name object
         self.animal.refresh_from_db()
-        self.assertEqual(self.animal.status, ERROR)
+        self.assertEqual(self.animal.status, NEED_REVISION)
 
         self.sample.refresh_from_db()
-        self.assertEqual(self.sample.status, ERROR)
+        self.assertEqual(self.sample.status, NEED_REVISION)
 
         # TODO: test for model message (usi_results)
 
