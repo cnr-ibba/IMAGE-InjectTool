@@ -17,6 +17,8 @@ from common.tests import PersonMixinTestCase
 from image_app.models import Submission, STATUSES, Person, Name
 
 from ..tasks import ValidateTask, ValidationError
+from ..helpers.ValidationResult import (
+    ValidationResultColumn, ValidationResultRecord)
 
 # get available statuses
 WAITING = STATUSES.get_value('waiting')
@@ -25,6 +27,14 @@ ERROR = STATUSES.get_value('error')
 READY = STATUSES.get_value('ready')
 NEED_REVISION = STATUSES.get_value('need_revision')
 SUBMITTED = STATUSES.get_value('submitted')
+
+
+# https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
+class PickableMock(Mock):
+    """Provide a __reduce__ method to allow pickling mock objects"""
+
+    def __reduce__(self):
+        return (Mock, ())
 
 
 class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
@@ -43,7 +53,8 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         "image_app/name",
         "image_app/animal",
         "image_app/sample",
-        "image_app/ontology"
+        "image_app/ontology",
+        "validation/validationresult"
     ]
 
     def setUp(self):
@@ -126,7 +137,10 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.sample.refresh_from_db()
         self.assertEqual(self.sample.status, READY)
 
-        # TODO: test for model message (no messages)
+        # test for model message (no messages). self.animal and samples
+        # are two Name instances
+        self.assertFalse(hasattr(self.animal, "validationresult"))
+        self.assertFalse(hasattr(self.sample, "validationresult"))
 
         # assert validation functions called
         self.assertTrue(check_usi.called)
@@ -171,24 +185,26 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.sample.refresh_from_db()
         self.assertEqual(self.sample.status, NEED_REVISION)
 
-        # TODO: test for model message (usi_results)
+        # test for model message (usi_results)
+        self.assertEqual(self.animal.validationresult.result, usi_result)
+        self.assertEqual(self.sample.validationresult.result, usi_result)
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(check_usi.called)
         self.assertFalse(check_ruleset.called)
 
     @patch("validation.tasks.validation.check_with_ruleset")
-    @patch("validation.tasks.validation.check_usi_structure")
+    @patch("validation.tasks.validation.check_usi_structure", return_value=[])
     def test_unsupported_status(self, check_usi, check_ruleset):
         # setting a return value for check_with_ruleset
-        rule_result = Mock()
+        rule_result = PickableMock()
         rule_result.get_overall_status.return_value = "A fake status"
         check_ruleset.return_value = [rule_result]
 
         # call task
         self.assertRaisesRegex(
             ValidationError,
-            "Error in submission statuses",
+            "Error in statuses for submission",
             self.my_task.run,
             submission_id=self.submission_id)
 
@@ -198,7 +214,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # check submission.state changed
         self.assertEqual(self.submission.status, ERROR)
         self.assertIn(
-            "Error in submission statuses",
+            "Error in statuses for submission",
             self.submission.message)
 
         # if JSON is not valid, I don't check for ruleset
@@ -209,13 +225,15 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
     @patch("validation.tasks.validation.check_usi_structure", return_value=[])
     def test_validate_submission_errors(self, check_usi, check_ruleset):
         # setting a return value for check_with_ruleset
-        result1 = Mock()
-        result1.get_overall_status.return_value = "Warning"
-        result1.get_messages.return_value = ["Warning: test message 1"]
+        result1 = ValidationResultRecord("animal_1")
+        result1.add_validation_result_column(
+            ValidationResultColumn("warning", "warn message", "animal_1")
+        )
 
-        result2 = Mock()
-        result2.get_overall_status.return_value = "Error"
-        result2.get_messages.return_value = ["Error: test message 2"]
+        result2 = ValidationResultRecord("sample_1")
+        result2.add_validation_result_column(
+            ValidationResultColumn("error", "error message", "sample_1")
+        )
 
         # add results to result set
         check_ruleset.side_effect = [[result1], [result2]]
@@ -232,7 +250,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # check submission.state changed
         self.assertEqual(self.submission.status, NEED_REVISION)
         self.assertIn(
-            "need revisions before submit",
+            "Error in metadata rules",
             self.submission.message)
 
         # test for model status. Is the name object
@@ -242,7 +260,12 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.sample.refresh_from_db()
         self.assertEqual(self.sample.status, NEED_REVISION)
 
-        # TODO: test for model message (usi_results)
+        # test for model message (usi_results)
+        test = self.animal.validationresult.result
+        self.assertEqual(test.get_messages(), result1.get_messages())
+
+        test = self.sample.validationresult.result
+        self.assertEqual(test.get_messages(), result2.get_messages())
 
         # test for my methods called
         self.assertTrue(check_usi.called)

@@ -105,7 +105,11 @@ class ValidateTask(MyTask):
         # if error messages changes in IMAGE-ValidationTool, all this
         # stuff isn't valid and I throw an exception
         if statuses != ['Error', 'JSON', 'Pass', 'Warning']:
-            message = "Error in submission statuses: %s" % (statuses)
+            message = "Error in statuses for submission %s: %s" % (
+                submission_obj, statuses)
+
+            # debug: print error in log
+            logger.error(message)
 
             # mark submission with ERROR (this is not related to user data)
             # calling the appropriate method passing ERROR as status
@@ -119,18 +123,27 @@ class ValidateTask(MyTask):
             # mark submission with NEED_REVISION
             self.submission_fail(submission_obj, "Wrong JSON structure")
 
-            logger.warning("Results for submission %s: %s" % (
+            # debug
+            logger.warning(
+                "Wrong JSON structure for submission %s" % (submission_obj))
+
+            logger.debug("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
         # return a message and I will set NEED_REVISION
         elif self.has_errors_in_rules(submission_statuses):
-            # mark submission with NEED_REVISION
-            self.submission_fail(
-                submission_obj, "need revisions before submit")
+            message = (
+                "Error in metadata rules. Need revisions before submit")
 
-            logger.warning("Results for submission %s: %s" % (
+            # mark submission with NEED_REVISION
+            self.submission_fail(submission_obj, message)
+
+            logger.warning(
+                "Error in metadata rules for submission %s" % (submission_obj))
+
+            logger.debug("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
 
         # WOW: I can submit those data
@@ -139,7 +152,10 @@ class ValidateTask(MyTask):
             submission_obj.message = "Submission validated with success"
             submission_obj.save()
 
-            logger.info("Results for submission %s: %s" % (
+            logger.info(
+                "Submission %s validated with success" % (submission_obj))
+
+            logger.debug("Results for submission %s: %s" % (
                 submission_id, submission_statuses))
 
         logger.info("Validate Submission completed")
@@ -161,21 +177,8 @@ class ValidateTask(MyTask):
             # update counter for JSON
             submission_statuses.update({'JSON': len(usi_result)})
 
-            # get a validation result model
-            if hasattr(model.name, 'validationresult'):
-                validationresult = model.name.validationresult
-            else:
-                validationresult = ValidationResultModel()
-                model.name.validationresult = validationresult
-
-            # setting valdiationtool results and save
-            validationresult.result = usi_result
-            validationresult.save()
-
-            # update model
-            model.name.validationresult = validationresult
-            model.name.status = NEED_REVISION
-            model.name.save()
+            # update model results
+            self.model_fail(model, usi_result)
 
             # It make no sense check_with_ruleset, since JSON is wrong
             return
@@ -206,6 +209,10 @@ class ValidateTask(MyTask):
 
         else:
             # ok, I passed my validation
+            if hasattr(model.name, 'validationresult'):
+                # delete old validation result if present
+                model.name.validationresult.delete()
+
             model.name.status = READY
             model.name.save()
 
@@ -229,14 +236,29 @@ class ValidateTask(MyTask):
     def model_fail(self, model, result):
         """Mark a model with NEED_REVISION status"""
 
-        logger.debug(
-            "Model %s need to be revised: %s" % (model, result.get_messages()))
+        if isinstance(result, list):
+            messages = result
 
-        # set a proper value for status (READY or NEED_REVISION)
+        else:
+            messages = result.get_messages()
+
+        logger.debug(
+            "Model %s need to be revised: %s" % (model, messages))
+
+        # get a validation result model
+        if hasattr(model.name, 'validationresult'):
+            validationresult = model.name.validationresult
+        else:
+            validationresult = ValidationResultModel()
+            model.name.validationresult = validationresult
+
+        # setting valdiationtool results and save
+        validationresult.result = result
+        validationresult.save()
+
+        # update model
         model.name.status = NEED_REVISION
         model.name.save()
-
-        # TODO: set messages for name
 
     def submission_fail(self, submission_obj, message, status=NEED_REVISION):
         """Mark a submission with NEED_REVISION status"""

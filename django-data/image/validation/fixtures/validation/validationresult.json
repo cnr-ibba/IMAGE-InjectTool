@@ -1,0 +1,11 @@
+[
+{
+  "model": "validation.validationresult",
+  "pk": 1,
+  "fields": {
+    "name": 3,
+    "status": null,
+    "data": "gANdcQBYSQAAAFdyb25nIEpTT04gc3RydWN0dXJlOiB0YXhvbklkIHZhbHVlIGZvciByZWNvcmQgYW5pbWFsXzMgaXMgbm90IGFuIGludGVnZXJxAWEu"
+  }
+}
+]
