@@ -208,6 +208,7 @@ class ValidateTask(MyTask):
             self.model_fail(model, result)
 
         else:
+            # HINT: set object even with no errors?
             # ok, I passed my validation
             if hasattr(model.name, 'validationresult'):
                 # delete old validation result if present

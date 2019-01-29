@@ -7,12 +7,12 @@
 {% block content %}
   <h1>Edit Submission Data for <em>{{ submission.title }}</em></h1>
 
-  <table class="table table-hover">
+  <table class="table table-hover table-responsive-sm">
     <thead>
       <tr>
         <th scope="col">Name</th>
         <th scope="col">Biosample ID</th>
-        <th scope="col">Status</th>
+        <th scope="col">Validation</th>
         <th scope="col">Last Changed</th>
         <th scope="col">Last Submitted</th>
       </tr>
@@ -22,7 +22,17 @@
         <tr class="{% cycle 'table-primary' 'table-secondary' %}">
           <th><a href="#">{{ name.name|truncatechars:30 }}</a></th>
           <td>{{ name.biosample_id }}</td>
-          <td>{{ name.get_status_display }}</td>
+          {% if name.validationresult %}
+            {% if name.validationresult.status == 'Warning' %}
+              <td><span class="badge badge-pill badge-warning">{{ name.validationresult.status }}</span></td>
+            {% else %}
+              {# Set error to others stauses #}
+              <td><span class="badge badge-pill badge-danger">{{ name.validationresult.status }}</span></td>
+            {% endif %}
+          {% else %}
+            <td><span class="badge badge-pill badge-success">Pass</span></td>
+          {% endif %}
+
           <td>{{ name.last_changed }}</td>
           <td>{{ name.last_submitted }}</td>
         </tr>

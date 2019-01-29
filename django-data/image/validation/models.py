@@ -37,3 +37,16 @@ class ValidationResult(models.Model):
     @result.setter
     def result(self, result):
         self.data = pickle.dumps(result)
+
+        if isinstance(result, list):
+            self.status = "Wrong JSON structure"
+
+        else:
+            # assign status
+            self.status = result.get_overall_status()
+
+    def __str__(self):
+        if self.data is None:
+            return "No data for %s" % (self.name)
+
+        return "%s for %s" % (self.status, self.name)

@@ -32,7 +32,6 @@ InjectTool TODO
 * Regarding data submissions
   - How I can update an already loaded biosample using a different submission from
     the first one?
-  - If data loading fails, were I can fix my data? update submission view?
   - what the `edit data` in the submission detail view means? editing data into UID?
     Update submission view?
   - what happens if I update something after submission to biosample? need I track
@@ -77,16 +76,16 @@ InjectTool TODO
       mapped_breed (need revisions)
 
 * Data validation:
-  - integrate with Jun code
   - will be managed by a IMAGE-ValidationTool, structured as a python package
   - need to write back validation messages into database (`Name` table?)
-    - ideally more messages
     - how to display message in site?
-    - test against different messages
     - how to integrate with django-forms?
     - Can I submit with a Warning message?
     - mock up time consuming modules (`validation.tests.test_helpers`)
-    - raise coverage / test different statuses
+  - Can validation start after data load, and after calling zooma? See celery
+    chains
+  - an object which pass validation need to be different from an object that is
+    not yet validated
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -133,7 +132,8 @@ InjectTool TODO
   - Add messages when views are called or code executed
   - Error handling (API?/String messages?)
   - Navbar for tools (zooma, dictionary tables, etc)?
-  - `.table-responsive` class in order to render HTML tables
+  - serving all 3rd party javascript scripts (jquery, bootstrap and popper using
+    static files)
 
 * Issues relative to UID:
   - rename `image_app` application into `uid`?
