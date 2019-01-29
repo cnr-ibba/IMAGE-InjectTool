@@ -24,10 +24,10 @@
           <td>{{ name.biosample_id }}</td>
           {% if name.validationresult %}
             {% if name.validationresult.status == 'Warning' %}
-              <td><span class="badge badge-pill badge-warning">{{ name.validationresult.status }}</span></td>
+              <td><span class="badge badge-pill badge-warning" data-toggle="tooltip" title="{{ name.validationresult.result.get_messages }}" data-placement="right">{{ name.validationresult.status }}</span></td>
             {% else %}
               {# Set error to others stauses #}
-              <td><span class="badge badge-pill badge-danger">{{ name.validationresult.status }}</span></td>
+              <td><span class="badge badge-pill badge-danger" data-toggle="tooltip" title="{{ name.validationresult.result.get_messages }}" data-placement="right">{{ name.validationresult.status }}</span></td>
             {% endif %}
           {% else %}
             <td><span class="badge badge-pill badge-success">Pass</span></td>
@@ -52,3 +52,12 @@
   </p>
 
 {% endblock content %}
+
+{% block custom-js %}
+  <script>
+  // Jquery called when document is loaded
+  $(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+  </script>
+{% endblock %}
