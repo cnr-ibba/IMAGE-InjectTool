@@ -112,6 +112,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # setting a return value for check_with_ruleset
         validation_result = Mock()
         validation_result.get_overall_status.return_value = "Pass"
+        validation_result.get_messages.return_value = ["A message"]
         check_ruleset.return_value = [validation_result]
 
         # NOTE that I'm calling the function directly, without delay
@@ -137,10 +138,12 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.sample.refresh_from_db()
         self.assertEqual(self.sample.status, READY)
 
-        # test for model message (no messages). self.animal and samples
-        # are two Name instances
-        self.assertFalse(hasattr(self.animal, "validationresult"))
-        self.assertFalse(hasattr(self.sample, "validationresult"))
+        # test for model message (usi_results)
+        self.assertEqual(self.animal.validationresult.messages, ["A message"])
+        self.assertEqual(self.animal.validationresult.status, "Pass")
+
+        self.assertEqual(self.sample.validationresult.messages, ["A message"])
+        self.assertEqual(self.sample.validationresult.status, "Pass")
 
         # assert validation functions called
         self.assertTrue(check_usi.called)
@@ -186,8 +189,13 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.assertEqual(self.sample.status, NEED_REVISION)
 
         # test for model message (usi_results)
-        self.assertEqual(self.animal.validationresult.result, usi_result)
-        self.assertEqual(self.sample.validationresult.result, usi_result)
+        self.assertEqual(self.animal.validationresult.messages, usi_result)
+        self.assertEqual(
+            self.animal.validationresult.status, "Wrong JSON structure")
+
+        self.assertEqual(self.sample.validationresult.messages, usi_result)
+        self.assertEqual(
+            self.sample.validationresult.status, "Wrong JSON structure")
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(check_usi.called)
@@ -199,6 +207,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # setting a return value for check_with_ruleset
         rule_result = PickableMock()
         rule_result.get_overall_status.return_value = "A fake status"
+        rule_result.get_messages.return_value = ["A fake message", ]
         check_ruleset.return_value = [rule_result]
 
         # call task
@@ -261,11 +270,13 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.assertEqual(self.sample.status, NEED_REVISION)
 
         # test for model message (usi_results)
-        test = self.animal.validationresult.result
-        self.assertEqual(test.get_messages(), result1.get_messages())
+        test = self.animal.validationresult
+        self.assertEqual(test.messages, result1.get_messages())
+        self.assertEqual(test.status, "Warning")
 
-        test = self.sample.validationresult.result
-        self.assertEqual(test.get_messages(), result2.get_messages())
+        test = self.sample.validationresult
+        self.assertEqual(test.messages, result2.get_messages())
+        self.assertEqual(test.status, "Error")
 
         # test for my methods called
         self.assertTrue(check_usi.called)

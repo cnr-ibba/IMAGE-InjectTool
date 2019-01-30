@@ -37,8 +37,7 @@ def get_badge(name):
     badge_class = badge_types[status]
 
     # get messages
-    messages = name.validationresult.result.get_messages()
-    messages_str = "<br>".join(messages)
+    messages_str = "<br>".join(name.validationresult.messages)
 
     # set result string
     if status == 'Pass':

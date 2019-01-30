@@ -27,6 +27,9 @@ READY = STATUSES.get_value('ready')
 ERROR = STATUSES.get_value('error')
 NEED_REVISION = STATUSES.get_value('need_revision')
 
+# get a dictionary from status name (ie {0: 'Waiting'})
+key2status = dict([x.value for x in STATUSES])
+
 
 # A class to deal with validation errors
 class ValidationError(Exception):
@@ -178,7 +181,7 @@ class ValidateTask(MyTask):
             submission_statuses.update({'JSON': len(usi_result)})
 
             # update model results
-            self.model_fail(model, usi_result)
+            self.mark_model(model, usi_result, NEED_REVISION)
 
             # It make no sense check_with_ruleset, since JSON is wrong
             return
@@ -205,17 +208,10 @@ class ValidateTask(MyTask):
         overall = result.get_overall_status()
 
         if overall != "Pass":
-            self.model_fail(model, result)
+            self.mark_model(model, result, NEED_REVISION)
 
         else:
-            # HINT: set object even with no errors?
-            # ok, I passed my validation
-            if hasattr(model.name, 'validationresult'):
-                # delete old validation result if present
-                model.name.validationresult.delete()
-
-            model.name.status = READY
-            model.name.save()
+            self.mark_model(model, result, READY)
 
         # update a collections.Counter objects by key
         submission_statuses.update({overall})
@@ -234,19 +230,22 @@ class ValidateTask(MyTask):
 
         return submission_statuses["JSON"] > 0
 
-    def model_fail(self, model, result):
-        """Mark a model with NEED_REVISION status"""
+    def mark_model(self, model, result, status):
+        """Set status to a model and instantiate a ValidationResult obj"""
 
         if isinstance(result, list):
             messages = result
+            overall_status = "Wrong JSON structure"
 
         else:
             messages = result.get_messages()
+            overall_status = result.get_overall_status()
 
         logger.debug(
-            "Model %s need to be revised: %s" % (model, messages))
+            "Marking %s with '%s' status (%s)" % (
+                model, key2status[status], messages))
 
-        # get a validation result model
+        # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
             validationresult = model.name.validationresult
         else:
@@ -254,11 +253,12 @@ class ValidateTask(MyTask):
             model.name.validationresult = validationresult
 
         # setting valdiationtool results and save
-        validationresult.result = result
+        validationresult.messages = messages
+        validationresult.status = overall_status
         validationresult.save()
 
-        # update model
-        model.name.status = NEED_REVISION
+        # update model status and save
+        model.name.status = status
         model.name.save()
 
     def submission_fail(self, submission_obj, message, status=NEED_REVISION):

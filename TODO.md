@@ -32,8 +32,6 @@ InjectTool TODO
 * Regarding data submissions
   - How I can update an already loaded biosample using a different submission from
     the first one?
-  - what the `edit data` in the submission detail view means? editing data into UID?
-    Update submission view?
   - what happens if I update something after submission to biosample? need I track
     what changes I see and patch in a new submission?
   - what if a token expires during a submission?
@@ -77,15 +75,12 @@ InjectTool TODO
 
 * Data validation:
   - will be managed by a IMAGE-ValidationTool, structured as a python package
-  - need to write back validation messages into database (`Name` table?)
-    - how to display message in site?
-    - how to integrate with django-forms?
-    - Can I submit with a Warning message?
-    - mock up time consuming modules (`validation.tests.test_helpers`)
+  - could error message be shorter?
+  - how to integrate with django-forms?
+  - Can I submit with a Warning message?
+  - mock up time consuming modules (`validation.tests.test_helpers`)
   - Can validation start after data load, and after calling zooma? See celery
     chains
-  - an object which pass validation need to be different from an object that is
-    not yet validated
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -100,6 +95,11 @@ InjectTool TODO
 * Regarding table `Name`:
   - define a UID unique ID for samples and animals?
   - track biosample errors (validationResults) in name table?
+
+* Regarding `EditSubmissionView`
+  - forms to edit data
+  - links to delete things
+  - search?
 
 * Regarding django 3rd party modules:
   - Install `django.contrib.sites` (it is useful?)
@@ -139,6 +139,7 @@ InjectTool TODO
   - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
+  - implement `DictOrganism` (to model *specimen*, *organism* and *organism parts*)
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission
