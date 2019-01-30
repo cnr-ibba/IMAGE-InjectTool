@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load validation_tags %}
+
 {% block title %}
   Edit Submission Data for {{ submission.title }}
 {% endblock title %}
@@ -22,17 +24,7 @@
         <tr class="{% cycle 'table-primary' 'table-secondary' %}">
           <th><a href="#">{{ name.name|truncatechars:30 }}</a></th>
           <td>{{ name.biosample_id }}</td>
-          {% if name.validationresult %}
-            {% if name.validationresult.status == 'Warning' %}
-              <td><span class="badge badge-pill badge-warning" data-toggle="tooltip" title="{{ name.validationresult.result.get_messages }}" data-placement="right">{{ name.validationresult.status }}</span></td>
-            {% else %}
-              {# Set error to others stauses #}
-              <td><span class="badge badge-pill badge-danger" data-toggle="tooltip" title="{{ name.validationresult.result.get_messages }}" data-placement="right">{{ name.validationresult.status }}</span></td>
-            {% endif %}
-          {% else %}
-            <td><span class="badge badge-pill badge-success">Pass</span></td>
-          {% endif %}
-
+          <td>{{ name|get_badge }}</td>
           <td>{{ name.last_changed }}</td>
           <td>{{ name.last_submitted }}</td>
         </tr>
