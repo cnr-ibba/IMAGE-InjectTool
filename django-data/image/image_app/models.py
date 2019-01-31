@@ -230,7 +230,7 @@ class Confidence(BaseMixin, models.Model):
         abstract = True
 
 
-# --- database models
+# --- dictionary tables
 
 
 class DictRole(DictBase):
@@ -246,8 +246,8 @@ class DictRole(DictBase):
 
 
 class DictCountry(DictBase, Confidence):
-    """A class to model contries defined by Gazetteer
-    https://www.ebi.ac.uk/ols/ontologies/gaz"""
+    """A class to model contries defined by NCI Thesaurus OBO Edition
+    https://www.ebi.ac.uk/ols/ontologies/ncit"""
 
     library_name = 'NCIT'
 
@@ -262,14 +262,14 @@ class DictSpecie(DictBase, Confidence):
     """A class to model species defined by NCBI organismal classification
     http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
 
+    library_name = "NCBITaxon"
+
     @property
     def taxon_id(self):
         if not self.term or self.term == '':
             return None
 
         return int(self.term.split("_")[-1])
-
-    # TODO: fk with Ontology table
 
     class Meta:
         # db_table will be <app_name>_<classname>
@@ -294,14 +294,13 @@ class DictSpecie(DictBase, Confidence):
 
 
 class DictBreed(Confidence):
+    """A class to deal with breed objects and their ontologies"""
+
+    library_name = "LBO"
+
     # this was the description field in cryoweb v_breeds_species tables
     supplied_breed = models.CharField(max_length=255, blank=False)
     mapped_breed = models.CharField(max_length=255, blank=False, null=True)
-
-    # TODO add Mapped breed ontology library FK To Ontology
-#    mapped_breed_ontology_library = models.ForeignKey(
-#            'Ontology',
-#            db_index=True)
 
     mapped_breed_term = models.CharField(
             max_length=255,
@@ -319,14 +318,6 @@ class DictBreed(Confidence):
         'DictSpecie',
         on_delete=models.PROTECT)
 
-    def __str__(self):
-        # return mapped breed if defined
-        if self.mapped_breed:
-            return str(self.mapped_breed)
-
-        else:
-            return str(self.supplied_breed)
-
     class Meta:
         verbose_name = 'Breed'
 
@@ -335,6 +326,34 @@ class DictBreed(Confidence):
         # default value, ex the descricption (supplied_breed)
         unique_together = (("supplied_breed", "specie"),)
 
+    def __str__(self):
+        # return mapped breed if defined
+        if self.mapped_breed:
+            return str(self.mapped_breed)
+
+        else:
+            return str(self.supplied_breed)
+
+    def format_attribute(self):
+        """Format mapped_breed attribute (with its ontology). Return None if
+        no mapped_breed"""
+
+        if not self.mapped_breed or not self.mapped_breed_term:
+            return None
+
+        if self.library_name is None:
+            logger.warning("library_name not defined")
+            library_uri = OBO_URL
+
+        else:
+            library = Ontology.objects.get(library_name=self.library_name)
+            library_uri = library.library_uri
+
+        return format_attribute(
+            value=self.mapped_breed,
+            obo_url=library_uri,
+            terms=self.mapped_breed_term)
+
 
 class DictSex(DictBase):
     """A class to model sex as defined in PATO"""
@@ -342,6 +361,9 @@ class DictSex(DictBase):
     class Meta:
         verbose_name = 'sex'
         verbose_name_plural = 'sex'
+
+
+# --- Other tables tables
 
 
 class Name(BaseMixin, models.Model):
@@ -465,6 +487,10 @@ class Animal(BioSampleMixin, models.Model):
         related_name='animals',
         on_delete=models.CASCADE)
 
+    @property
+    def specie(self):
+        return self.breed.specie
+
     def get_biosample_id(self):
         """Get the biosample id or a temporary name"""
 
@@ -479,19 +505,17 @@ class Animal(BioSampleMixin, models.Model):
         attributes["Material"] = format_attribute(
             value="organism", terms="OBI_0100026")
 
-        attributes['Species'] = format_attribute(
-            value=self.breed.specie.label,
-            terms=self.breed.specie.term)
+        attributes['Species'] = self.specie.format_attribute()
 
         attributes['Supplied breed'] = format_attribute(
             value=self.breed.supplied_breed)
 
+        attributes['Mapped breed'] = self.breed.format_attribute()
+
         attributes[
             'EFABIS Breed country'] = self.breed.country.format_attribute()
 
-        attributes['Sex'] = format_attribute(
-            value=self.sex.label,
-            terms=self.sex.term)
+        attributes['Sex'] = self.sex.format_attribute()
 
         attributes["Birth location accuracy"] = format_attribute(
             value=self.get_birth_location_accuracy_display())
@@ -516,9 +540,9 @@ class Animal(BioSampleMixin, models.Model):
             now = timezone.now()
             result['releaseDate'] = str(now.date())
 
-        result['taxonId'] = self.breed.specie.taxon_id
+        result['taxonId'] = self.specie.taxon_id
 
-        result['taxon'] = self.breed.specie.label
+        result['taxon'] = self.specie.label
 
         # define optinal fields
         if self.description:
@@ -580,6 +604,7 @@ class Sample(BioSampleMixin, models.Model):
             null=True,
             help_text="Example: UBERON_0001968")
 
+    # HINT: move to a dictionary table?
     developmental_stage = models.CharField(
             max_length=255,
             blank=True,
@@ -614,6 +639,10 @@ class Sample(BioSampleMixin, models.Model):
         related_name='samples',
         on_delete=models.CASCADE)
 
+    @property
+    def specie(self):
+        return self.animal.breed.specie
+
     def get_biosample_id(self):
         """Get the biosample id or a temporary name"""
 
@@ -628,12 +657,10 @@ class Sample(BioSampleMixin, models.Model):
         attributes["Material"] = format_attribute(
             value="specimen from organism", terms="OBI_0001479")
 
-        attributes['Species'] = format_attribute(
-            value=self.animal.breed.specie.label,
-            terms=self.animal.breed.specie.term)
+        attributes['Species'] = self.specie.format_attribute()
 
-        # HINT: this won't to be a biosample id in the first submission.
-        # How to fix it? can be removed from mandatory attributes
+        # The data source id or alternative id of the animal from which
+        # the sample was collected (see Animal.to_biosample())
         attributes['Derived from'] = format_attribute(
             value=self.animal.name.name)
 
@@ -671,9 +698,9 @@ class Sample(BioSampleMixin, models.Model):
             now = timezone.now()
             result['releaseDate'] = str(now.date())
 
-        result['taxonId'] = self.animal.breed.specie.taxon_id
+        result['taxonId'] = self.specie.taxon_id
 
-        result['taxon'] = self.animal.breed.specie.label
+        result['taxon'] = self.specie.label
 
         # define optinal fields
         if self.description:
@@ -756,7 +783,6 @@ class Publication(BaseMixin, models.Model):
         return self.doi
 
 
-# HINT: do I need this table?
 class Ontology(BaseMixin, models.Model):
     library_name = models.CharField(
         max_length=255,

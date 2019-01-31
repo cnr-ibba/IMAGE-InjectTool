@@ -116,6 +116,16 @@
         "value": "Bunte Bentheimer"
       }
     ],
+    "Mapped breed": [
+      {
+        "value": "Bentheim Black Pied",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/LBO_0000347"
+          }
+        ]
+      }
+    ],
     "EFABIS Breed country": [
       {
         "value": "United Kingdom",

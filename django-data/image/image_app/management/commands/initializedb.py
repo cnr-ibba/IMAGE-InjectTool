@@ -28,13 +28,13 @@ logger = logging.getLogger(__name__)
 
 def fill_ontology():
     data = """Library name;Library URI;Comment
-PATO;http://www.ebi.ac.uk/ols/ontologies/pato;Phenotype And Trait Ontology
-LBO;http://www.ebi.ac.uk/ols/ontologies/lbo;Livestock Breed Ontology
+PATO;http://purl.obolibrary.org/obo;Phenotype And Trait Ontology
+LBO;http://purl.obolibrary.org/obo;Livestock Breed Ontology
 EFO;http://www.ebi.ac.uk/efo;Experimental Factor Ontology
-OBI;http://www.ebi.ac.uk/ols/ontologies/obi;Ontology for Biomedical Investigations
-NCBITaxon;http://www.ebi.ac.uk/ols/ontologies/ncbitaxon;NCBI Taxonomy
-UBERON;http://www.ebi.ac.uk/ols/ontologies/uberon;cross-species ontology covering anatomical structures in animals
-GAZ;https://www.ebi.ac.uk/ols/ontologies/gaz;A gazetteer constructed on ontological principles
+OBI;http://purl.obolibrary.org/obo;Ontology for Biomedical Investigations
+NCBITaxon;http://purl.obolibrary.org/obo;NCBI Taxonomy
+UBERON;http://purl.obolibrary.org/obo;cross-species ontology covering anatomical structures in animals
+GAZ;http://purl.obolibrary.org/obo;A gazetteer constructed on ontological principles
 NCIT;http://purl.obolibrary.org/obo;NCI Thesaurus OBO Edition
 """
 
