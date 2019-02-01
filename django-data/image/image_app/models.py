@@ -269,7 +269,7 @@ class DictSex(DictBase):
         unique_together = (("label", "term"),)
 
 
-class DictUberon(DictBase):
+class DictUberon(DictBase, Confidence):
     """A class to model anatomies modeled in uberon"""
 
     library_name = "UBERON"
@@ -279,7 +279,7 @@ class DictUberon(DictBase):
         unique_together = (("label", "term"),)
 
 
-class DictStage(DictBase):
+class DictStage(DictBase, Confidence):
     """A class to developmental stages defined as descendants of
     descendants of EFO_0000399"""
 
@@ -370,13 +370,8 @@ class DictBreed(Confidence):
         if not self.mapped_breed or not self.mapped_breed_term:
             return None
 
-        if self.library_name is None:
-            logger.warning("library_name not defined")
-            library_uri = OBO_URL
-
-        else:
-            library = Ontology.objects.get(library_name=self.library_name)
-            library_uri = library.library_uri
+        library = Ontology.objects.get(library_name=self.library_name)
+        library_uri = library.library_uri
 
         return format_attribute(
             value=self.mapped_breed,
@@ -991,8 +986,6 @@ def truncate_filled_tables():
 
     # call each class and truncate its table by calling truncate method
     Animal.truncate()
-    DictBreed.truncate()
-    DictSpecie.truncate()
     Name.truncate()
     Publication.truncate()
     Sample.truncate()

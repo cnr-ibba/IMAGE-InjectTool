@@ -23,6 +23,8 @@ class DictBreedAdmin(admin.ModelAdmin):
         'supplied_breed', 'mapped_breed', 'mapped_breed_term', 'confidence',
         'country', 'specie')
 
+    list_filter = ('country', 'specie')
+
 
 class NameAdmin(admin.ModelAdmin):
     """A class to deal with animal names"""
