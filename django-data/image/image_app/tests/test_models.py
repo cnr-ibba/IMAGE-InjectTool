@@ -24,7 +24,8 @@ class DictSexTestCase(TestCase):
 
     fixtures = [
         "image_app/dictsex",
-        "image_app/ontology"]
+        "image_app/ontology"
+    ]
 
     def setUp(self):
         # my attributes
@@ -61,10 +62,11 @@ class DictSpecieTestCase(TestCase):
     """Testing DictSpecie class"""
 
     fixtures = [
-        "image_app/dictspecie",
-        "image_app/dictcountry",
-        "image_app/speciesynonim",
-        "image_app/ontology"]
+        'image_app/dictcountry',
+        'image_app/dictspecie',
+        'image_app/ontology',
+        'image_app/speciesynonim'
+    ]
 
     def setUp(self):
         # my attributes
@@ -105,7 +107,8 @@ class DictCountryTestCase(TestCase):
 
     fixtures = [
         "image_app/dictcountry",
-        "image_app/ontology"]
+        "image_app/ontology"
+    ]
 
     def setUp(self):
         # my attributes
@@ -151,12 +154,12 @@ class SubmissionTestCase(TestCase):
     """Testing Submission class"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/submission",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/ontology"
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/ontology',
+        'image_app/organization',
+        'image_app/submission',
+        'image_app/user'
     ]
 
     def setUp(self):
@@ -176,17 +179,17 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
     person = Person
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/submission",
-        "image_app/name",
-        "image_app/dictbreed",
-        "image_app/dictspecie",
-        "image_app/dictsex",
-        "image_app/animal",
-        "image_app/organization",
-        "image_app/dictrole",
-        "image_app/ontology"
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/name',
+        'image_app/ontology',
+        'image_app/organization',
+        'image_app/submission',
+        'image_app/user'
     ]
 
     def setUp(self):
@@ -236,20 +239,20 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
     person = Person
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/submission",
-        "image_app/name",
-        "image_app/dictbreed",
-        "image_app/dictspecie",
-        "image_app/dictsex",
-        "image_app/animal",
-        "image_app/sample",
-        "image_app/organization",
-        "image_app/dictrole",
-        "image_app/ontology",
-        "image_app/dictuberon",
-        "image_app/dictstage"
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/ontology',
+        'image_app/organization',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user'
     ]
 
     def setUp(self):

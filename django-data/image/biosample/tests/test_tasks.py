@@ -282,13 +282,13 @@ class FetchMixin():
     """Mixin for fetching status"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
-        "biosample/account",
-        "biosample/managedteam",
+        'biosample/account',
+        'biosample/managedteam',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/organization',
+        'image_app/submission',
+        'image_app/user'
     ]
 
     @classmethod
@@ -362,19 +362,21 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
     """a completed submission with two samples"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
-        "biosample/account",
-        "biosample/managedteam",
-        "image_app/dictsex",
-        "image_app/dictspecie",
-        "image_app/dictbreed",
-        "image_app/name",
-        "image_app/animal",
-        "image_app/sample"
+        'biosample/account',
+        'biosample/managedteam',
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/organization',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user'
     ]
 
     def test_fetch_status(self):
@@ -486,19 +488,21 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
     """Test a submission with errors for biosample"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
-        "biosample/account",
-        "biosample/managedteam",
-        "image_app/dictsex",
-        "image_app/dictspecie",
-        "image_app/dictbreed",
-        "image_app/name",
-        "image_app/animal",
-        "image_app/sample"
+        'biosample/account',
+        'biosample/managedteam',
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/organization',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user'
     ]
 
     def setUp(self):

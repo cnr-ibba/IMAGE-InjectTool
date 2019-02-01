@@ -18,7 +18,7 @@ from django.conf import settings
 from decouple import AutoConfig
 from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
-    Submission, ACCURACIES, STATUSES)
+    Submission, ACCURACIES, STATUSES, DictUberon)
 from language.models import SpecieSynonim
 
 from .models import db_has_data as cryoweb_has_data
@@ -380,13 +380,24 @@ def fill_uid_samples(submission):
             name__name=v_vessel.ext_animal,
             name__submission=submission)
 
+        # get a organism part
+        organism_part, created = DictUberon.objects.get_or_create(
+            label=v_vessel.get_organism_part()
+        )
+
+        if created:
+            logger.info("Created %s" % organism_part)
+
+        else:
+            logger.debug("Found %s" % organism_part)
+
         # create a new object. Using defaults to avoid collisions when
         # updating data
         defaults = {
             'alternative_id': v_vessel.db_vessel,
             'collection_date': v_vessel.production_dt,
             'protocol': v_vessel.get_protocol_name(),
-            'organism_part': v_vessel.get_organism_part(),
+            'organism_part': organism_part,
             'animal': animal,
             'description': v_vessel.comment,
             'owner': submission.owner

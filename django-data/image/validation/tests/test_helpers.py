@@ -21,18 +21,20 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
     person = Person
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
-        "image_app/dictsex",
-        "image_app/dictspecie",
-        "image_app/dictbreed",
-        "image_app/name",
-        "image_app/animal",
-        "image_app/sample",
-        "image_app/ontology"
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/ontology',
+        'image_app/organization',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user'
     ]
 
     def setUp(self):
