@@ -258,6 +258,39 @@ class DictCountry(DictBase, Confidence):
         unique_together = (("label", "term"),)
 
 
+class DictSex(DictBase):
+    """A class to model sex as defined in PATO"""
+
+    library_name = "PATO"
+
+    class Meta:
+        verbose_name = 'sex'
+        verbose_name_plural = 'sex'
+        unique_together = (("label", "term"),)
+
+
+class DictUberon(DictBase):
+    """A class to model anatomies modeled in uberon"""
+
+    library_name = "UBERON"
+
+    class Meta:
+        verbose_name = 'organism part'
+        unique_together = (("label", "term"),)
+
+
+class DictStage(DictBase):
+    """A class to developmental stages defined as descendants of
+    descendants of EFO_0000399"""
+
+    library_name = 'EFO'
+
+    class Meta:
+        # db_table will be <app_name>_<classname>
+        verbose_name = "developmental stage"
+        unique_together = (("label", "term"),)
+
+
 class DictSpecie(DictBase, Confidence):
     """A class to model species defined by NCBI organismal classification
     http://www.ebi.ac.uk/ols/ontologies/ncbitaxon"""
@@ -320,10 +353,6 @@ class DictBreed(Confidence):
 
     class Meta:
         verbose_name = 'Breed'
-
-        # HINT: would mapped_breed ba a better choice to define a unique key
-        # using breed and species? in that case, mapped breed need to have a
-        # default value, ex the descricption (supplied_breed)
         unique_together = (("supplied_breed", "specie"),)
 
     def __str__(self):
@@ -353,14 +382,6 @@ class DictBreed(Confidence):
             value=self.mapped_breed,
             obo_url=library_uri,
             terms=self.mapped_breed_term)
-
-
-class DictSex(DictBase):
-    """A class to model sex as defined in PATO"""
-
-    class Meta:
-        verbose_name = 'sex'
-        verbose_name_plural = 'sex'
 
 
 # --- Other tables tables
@@ -444,9 +465,7 @@ class Animal(BioSampleMixin, models.Model):
     # using a constraint for sex
     sex = models.ForeignKey(
         'DictSex',
-        blank=True,
         null=True,
-        default=-1,
         on_delete=models.PROTECT)
 
     # check that father and mother are defined using Foreign Keys
@@ -595,26 +614,17 @@ class Sample(BioSampleMixin, models.Model):
         blank=False,
         default=ACCURACIES.get_value('missing'))
 
-    # TODO: move those fields to dictionary tables
-    organism_part = models.CharField(max_length=255, blank=True, null=True)
+    # using a constraint for organism (DictUberon)
+    organism_part = models.ForeignKey(
+        'DictUberon',
+        null=True,
+        on_delete=models.PROTECT)
 
-    organism_part_term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: UBERON_0001968")
-
-    # HINT: move to a dictionary table?
-    developmental_stage = models.CharField(
-            max_length=255,
-            blank=True,
-            null=True)
-
-    developmental_stage_term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: EFO_0001272")
+    # using a constraint for developmental stage (DictStage)
+    developmental_stage = models.ForeignKey(
+        'DictStage',
+        null=True,
+        on_delete=models.PROTECT)
 
     physiological_stage = models.CharField(
             max_length=255,
@@ -670,10 +680,8 @@ class Sample(BioSampleMixin, models.Model):
         attributes['Collection place'] = format_attribute(
             value=self.collection_place)
 
-        # TODO: this will point to a correct term dictionary table
-        attributes['Organism part'] = format_attribute(
-            value=self.organism_part,
-            terms=self.organism_part_term)
+        # this will point to a correct term dictionary table
+        attributes['Organism part'] = self.organism_part.format_attribute()
 
         attributes["Collection place accuracy"] = format_attribute(
             value=self.get_collection_place_accuracy_display())
@@ -852,7 +860,6 @@ class Submission(BaseMixin, models.Model):
         null=False,
         help_text='examples: "2018-04-27", "version 1.5"')
 
-    # HINT: can this field be NULL?
     organization = models.ForeignKey(
         'Organization',
         on_delete=models.PROTECT,
@@ -964,6 +971,8 @@ def truncate_database():
     DictRole.truncate()
     DictSex.truncate()
     DictSpecie.truncate()
+    DictUberon.truncate()
+    DictStage.truncate()
     Name.truncate()
     Ontology.truncate()
     Organization.truncate()

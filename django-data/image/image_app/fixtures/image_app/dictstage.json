@@ -1,0 +1,10 @@
+[
+{
+  "model": "image_app.dictstage",
+  "pk": 1,
+  "fields": {
+    "label": "adult",
+    "term": "EFO_0001272"
+  }
+}
+]

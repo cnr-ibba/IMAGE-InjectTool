@@ -74,6 +74,7 @@ def fill_DictSex():
 
 
 # a function to fill up DictRoles
+# TODO: need I fill tables with descendants terms?
 def fill_DictRoles():
     # define a submitter role
     role, created = DictRole.objects.get_or_create(

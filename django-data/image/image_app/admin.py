@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 
 from .models import (Animal, DictBreed, DictCountry, DictRole, DictSpecie,
                      Name, Ontology, Organization, Person, Publication, Sample,
-                     Submission)
+                     Submission, DictSex, DictUberon, DictStage)
 
 
 class DictBreedAdmin(admin.ModelAdmin):
@@ -106,8 +106,7 @@ class SampleAdmin(admin.ModelAdmin):
         'name', 'alternative_id', 'animal',
         'protocol', 'collection_date', 'collection_place_latitude',
         'collection_place_longitude', 'collection_place', 'organism_part',
-        'organism_part_term', 'developmental_stage',
-        'developmental_stage_term', 'physiological_stage',
+        'developmental_stage', 'physiological_stage',
         'animal_age_at_collection', 'availability', 'storage_processing',
         'preparation_interval', 'description', 'owner'
     )
@@ -245,11 +244,14 @@ class DictSpecieAdmin(admin.ModelAdmin):
 
 # default admin class
 admin.site.register(DictRole, admin.ModelAdmin)
+admin.site.register(DictSex, admin.ModelAdmin)
+admin.site.register(DictUberon, admin.ModelAdmin)
+admin.site.register(DictStage, admin.ModelAdmin)
+
+# Custom admin class
 admin.site.register(DictSpecie, DictSpecieAdmin)
 admin.site.register(DictCountry, DictCountryAdmin)
 admin.site.register(Submission, SubmissionAdmin)
-
-# Custom admin class
 admin.site.register(Animal, AnimalAdmin)
 admin.site.register(Sample, SampleAdmin)
 admin.site.register(Name, NameAdmin)

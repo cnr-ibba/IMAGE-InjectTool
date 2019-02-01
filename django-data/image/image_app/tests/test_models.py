@@ -22,7 +22,9 @@ from image_app.models import (Animal, Submission, DictBreed, DictCountry,
 class DictSexTestCase(TestCase):
     """Testing DictSex class"""
 
-    fixtures = ["image_app/dictsex"]
+    fixtures = [
+        "image_app/dictsex",
+        "image_app/ontology"]
 
     def setUp(self):
         # my attributes
@@ -245,7 +247,9 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         "image_app/sample",
         "image_app/organization",
         "image_app/dictrole",
-        "image_app/ontology"
+        "image_app/ontology",
+        "image_app/dictuberon",
+        "image_app/dictstage"
     ]
 
     def setUp(self):
