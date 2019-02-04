@@ -194,10 +194,10 @@ class BioSampleMixin(BaseMixin):
         attributes[
             'Organization role'] = self.organization.role.format_attribute()
 
-        # This One2One object could be present or not
-        if hasattr(self.submission, "publication"):
+        # this could be present or not
+        if self.name.publication:
             attributes['Publication DOI'] = format_attribute(
-                value=self.submission.publication)
+                value=self.name.publication.doi)
 
         attributes['Gene bank name'] = format_attribute(
             value=self.gene_bank_name)
@@ -470,6 +470,12 @@ class Name(BaseMixin, models.Model):
     last_submitted = models.DateTimeField(
         blank=True,
         null=True)
+
+    publication = models.ForeignKey(
+        'Publication',
+        null=True,
+        related_name='name_set',
+        on_delete=models.SET_NULL)
 
     class Meta:
         unique_together = (("name", "submission"),)
@@ -828,12 +834,6 @@ class Organization(BaseMixin, models.Model):
 
 
 class Publication(BaseMixin, models.Model):
-    submission = models.OneToOneField(
-        'Submission',
-        db_index=True,
-        related_name='publication',
-        on_delete=models.CASCADE)
-
     # this is a non mandatory fields in ruleset
     doi = models.CharField(
         max_length=255,

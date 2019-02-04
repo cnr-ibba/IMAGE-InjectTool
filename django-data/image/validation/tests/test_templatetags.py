@@ -24,6 +24,7 @@ class GetBadgeTest(TestCase):
         "image_app/organization",
         "image_app/submission",
         "image_app/name",
+        'image_app/publication',
         "validation/validationresult"
     ]
 

@@ -8,7 +8,7 @@ Created on Tue Jan 22 14:28:16 2019
 
 from django.test import TestCase
 
-from image_app.models import Animal, Sample, Submission, Person
+from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
 from ..helpers import validation
@@ -32,10 +32,21 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         'image_app/name',
         'image_app/ontology',
         'image_app/organization',
+        'image_app/publication',
         'image_app/sample',
         'image_app/submission',
         'image_app/user'
     ]
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # drop publication for semplicity
+        name = Name.objects.get(pk=3)
+        publication = name.publication
+        publication.delete()
 
     def setUp(self):
         self.rules = validation.read_in_ruleset(IMAGE_RULESET)

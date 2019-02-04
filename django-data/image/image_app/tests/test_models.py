@@ -188,6 +188,7 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
         'image_app/name',
         'image_app/ontology',
         'image_app/organization',
+        'image_app/publication',
         'image_app/submission',
         'image_app/user'
     ]
@@ -250,6 +251,7 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         'image_app/name',
         'image_app/ontology',
         'image_app/organization',
+        'image_app/publication',
         'image_app/sample',
         'image_app/submission',
         'image_app/user'

@@ -1,0 +1,9 @@
+[
+{
+  "model": "image_app.publication",
+  "pk": 1,
+  "fields": {
+    "doi": "doi:10.1139/o09-005"
+  }
+}
+]

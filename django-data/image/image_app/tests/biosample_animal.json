@@ -11,6 +11,11 @@
         "value": "IMAGE"
       }
     ],
+    "Publication DOI": [
+      {
+        "value": "doi:10.1139/o09-005"
+      }
+    ],
     "Data source ID": [
       {
         "value": "ANIMAL:::ID:::132713"
