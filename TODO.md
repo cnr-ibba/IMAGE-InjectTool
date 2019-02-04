@@ -124,6 +124,7 @@ InjectTool TODO
   - "Semen" has not an ontology term
   - browse by languages, see all synonym in every language (add navigation links)
   - update ontology urls (see Jun's code)
+  - mind spaces in language synonyms
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,

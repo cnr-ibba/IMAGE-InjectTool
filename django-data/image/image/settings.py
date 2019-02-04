@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'biosample',
     'accounts',
     'submissions',
-    'validation'
+    'validation',
+    'animals',
 ]
 
 MIDDLEWARE = [
@@ -216,6 +217,10 @@ LOGGING = {
         },
         'validation.helpers': {
             'level': 'INFO',
+            'handlers': ['console'],
+        },
+        'animals': {
+            'level': 'DEBUG',
             'handlers': ['console'],
         },
         'common': {
