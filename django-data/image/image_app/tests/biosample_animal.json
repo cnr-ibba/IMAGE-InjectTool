@@ -26,6 +26,21 @@
         "value": "test"
       }
     ],
+    "Submission description": [
+      {
+        "value": "image test data"
+      }
+    ],
+    "Person first name": [
+      {
+        "value": "Foo"
+      }
+    ],
+    "Person initial": [
+      {
+        "value": "T"
+      }
+    ],
     "Person last name": [
       {
         "value": "Bar"
@@ -54,6 +69,21 @@
     "Organization name": [
       {
         "value": "Test organization"
+      }
+    ],
+    "Organization address": [
+      {
+        "value": "Foo Bar"
+      }
+    ],
+    "Organization country": [
+      {
+        "value": "United Kingdom",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/NCIT_C17233"
+          }
+        ]
       }
     ],
     "Organization role": [
@@ -89,6 +119,11 @@
     "Data source version": [
       {
         "value": "test"
+      }
+    ],
+    "Description": [
+      {
+        "value": "a 4-year old pig organic fed"
       }
     ],
     "Material": [

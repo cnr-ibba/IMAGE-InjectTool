@@ -12,8 +12,8 @@
     "father": 1,
     "mother": 2,
     "birth_location": null,
-    "birth_location_latitude": NaN,
-    "birth_location_longitude": NaN,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
     "owner": 1
   }
 }

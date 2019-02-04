@@ -22,7 +22,7 @@
     <tbody>
       {% for name in object_list %}
         <tr class="{% cycle 'table-primary' 'table-secondary' %}">
-          <th><a href="#">{{ name.name|truncatechars:30 }}</a></th>
+          <th><a href="{% if name.animal %}{% url 'animals:detail' pk=name.animal.pk %}{% else %}#{% endif %}">{{ name.name|truncatechars:30 }}</a></th>
           <td>{{ name.biosample_id }}</td>
           <td>{{ name|get_badge }}</td>
           <td>{{ name.last_changed }}</td>

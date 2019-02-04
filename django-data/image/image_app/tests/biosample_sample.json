@@ -26,6 +26,21 @@
         "value": "test"
       }
     ],
+    "Submission description": [
+      {
+        "value": "image test data"
+      }
+    ],
+    "Person first name": [
+      {
+        "value": "Foo"
+      }
+    ],
+    "Person initial": [
+      {
+        "value": "T"
+      }
+    ],
     "Person last name": [
       {
         "value": "Bar"
@@ -54,6 +69,21 @@
     "Organization name": [
       {
         "value": "Test organization"
+      }
+    ],
+    "Organization address": [
+      {
+        "value": "Foo Bar"
+      }
+    ],
+    "Organization country": [
+      {
+        "value": "United Kingdom",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/NCIT_C17233"
+          }
+        ]
       }
     ],
     "Organization role": [
@@ -114,6 +144,11 @@
     "Derived from": [
       {
         "value": "ANIMAL:::ID:::132713"
+      }
+    ],
+    "Description": [
+      {
+        "value": "semen collected when the animal turns to 4"
       }
     ],
     "Collection date": [

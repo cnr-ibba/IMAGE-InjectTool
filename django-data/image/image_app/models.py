@@ -119,52 +119,99 @@ class BioSampleMixin(BaseMixin):
     def gene_bank_country(self):
         return self.name.submission.gene_bank_country
 
+    @property
+    def gene_bank_name(self):
+        return self.name.submission.gene_bank_name
+
+    @property
+    def data_source_id(self):
+        return self.name.name
+
+    @property
+    def submission(self):
+        return self.name.submission
+
+    @property
+    def specie(self):
+        raise NotImplementedError(
+            "You need to define this method in your class")
+
     def get_attributes(self):
         """Common attribute definition. Attribute name is the name in
         metadata rules"""
 
         attributes = {}
 
-        attributes["Project"] = format_attribute(
-            value="IMAGE")
-
         attributes['Data source ID'] = format_attribute(
-            value=self.name.name)
+            value=self.data_source_id)
 
         attributes['Alternative id'] = format_attribute(
             value=self.alternative_id)
 
+        # HINT: this is a mandatory biosample field: could be removed from
+        # attributes?
+        attributes['Description'] = format_attribute(
+            value=self.description)
+
+        attributes["Project"] = format_attribute(
+            value="IMAGE")
+
         attributes['Submission title'] = format_attribute(
-            value=self.name.submission.title)
+            value=self.submission.title)
+
+        attributes['Submission description'] = format_attribute(
+            value=self.submission.description)
 
         attributes['Person last name'] = format_attribute(
             value=self.owner.last_name)
+
+        attributes['Person initial'] = format_attribute(
+            value=self.person.initials)
+
+        attributes['Person first name'] = format_attribute(
+            value=self.owner.first_name)
 
         attributes['Person email'] = format_attribute(
             value="mailto:%s" % (self.owner.email))
 
         attributes['Person affiliation'] = format_attribute(
-            value=self.owner.person.affiliation.name)
+            value=self.person.affiliation.name)
 
         attributes['Person role'] = self.person.role.format_attribute()
 
         attributes['Organization name'] = format_attribute(
-            value=self.name.submission.organization.name)
+            value=self.organization.name)
+
+        attributes['Organization address'] = format_attribute(
+            value=self.organization.address)
+
+        attributes['Organization uri'] = format_attribute(
+            value=self.organization.URI)
+
+        attributes['Organization country'] = \
+            self.organization.country.format_attribute()
 
         attributes[
             'Organization role'] = self.organization.role.format_attribute()
 
+        # This One2One object could be present or not
+        if hasattr(self.submission, "publication"):
+            attributes['Publication DOI'] = format_attribute(
+                value=self.submission.publication)
+
         attributes['Gene bank name'] = format_attribute(
-            value=self.name.submission.gene_bank_name)
+            value=self.gene_bank_name)
 
         attributes[
             'Gene bank country'] = self.gene_bank_country.format_attribute()
 
         attributes['Data source type'] = format_attribute(
-            value=self.name.submission.get_datasource_type_display())
+            value=self.submission.get_datasource_type_display())
 
         attributes['Data source version'] = format_attribute(
-            value=self.name.submission.datasource_version)
+            value=self.submission.datasource_version)
+
+        attributes['Species'] = self.specie.format_attribute()
 
         return attributes
 
@@ -519,17 +566,26 @@ class Animal(BioSampleMixin, models.Model):
         attributes["Material"] = format_attribute(
             value="organism", terms="OBI_0100026")
 
-        attributes['Species'] = self.specie.format_attribute()
+        # TODO: how to model derived from (mother/father)?
 
         attributes['Supplied breed'] = format_attribute(
             value=self.breed.supplied_breed)
 
-        attributes['Mapped breed'] = self.breed.format_attribute()
-
         attributes[
             'EFABIS Breed country'] = self.breed.country.format_attribute()
 
+        attributes['Mapped breed'] = self.breed.format_attribute()
+
         attributes['Sex'] = self.sex.format_attribute()
+
+        attributes["Birth location"] = format_attribute(
+            value=self.birth_location)
+
+        attributes["Birth location longitude"] = format_attribute(
+            value=self.birth_location_longitude)
+
+        attributes["Birth location latitude"] = format_attribute(
+            value=self.birth_location_latitude)
 
         attributes["Birth location accuracy"] = format_attribute(
             value=self.get_birth_location_accuracy_display())
@@ -569,6 +625,9 @@ class Animal(BioSampleMixin, models.Model):
         result['sampleRelationships'] = []
 
         return result
+
+    def get_absolute_url(self):
+        return reverse("animals:detail", kwargs={"pk": self.pk})
 
 
 class Sample(BioSampleMixin, models.Model):
@@ -661,8 +720,6 @@ class Sample(BioSampleMixin, models.Model):
 
         attributes["Material"] = format_attribute(
             value="specimen from organism", terms="OBI_0001479")
-
-        attributes['Species'] = self.specie.format_attribute()
 
         # The data source id or alternative id of the animal from which
         # the sample was collected (see Animal.to_biosample())
@@ -771,10 +828,10 @@ class Organization(BaseMixin, models.Model):
 
 
 class Publication(BaseMixin, models.Model):
-    submission = models.ForeignKey(
+    submission = models.OneToOneField(
         'Submission',
         db_index=True,
-        related_name='publications',
+        related_name='publication',
         on_delete=models.CASCADE)
 
     # this is a non mandatory fields in ruleset
