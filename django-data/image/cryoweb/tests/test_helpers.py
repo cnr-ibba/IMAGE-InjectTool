@@ -16,7 +16,7 @@ from django.test import TestCase
 from language.models import SpecieSynonim
 from image_app.models import (
     Submission, DictBreed, Name, Animal, Sample, DictSex, STATUSES,
-    DictCountry)
+    DictCountry, DictSpecie)
 from common.tests import DataSourceMixinTestCase
 
 from ..helpers import (
@@ -28,14 +28,14 @@ from ..models import db_has_data, truncate_database, BreedsSpecies
 class BaseTestCase():
     # import this file and populate database once
     fixtures = [
-        "image_app/user",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/dictcountry",
-        "image_app/submission",
-        "image_app/dictsex",
-        "language/dictspecie",
-        "language/speciesynonim"
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/organization',
+        'image_app/submission',
+        'image_app/user',
+        'language/dictspecie',
+        'language/speciesynonim'
     ]
 
     # By default, fixtures are only loaded into the default database. If you
@@ -118,6 +118,42 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
             CryoWebImportError,
             "You have no species",
             check_species, "United Kingdom")
+
+
+class CheckBreed(TestCase):
+    # import this file and populate database once
+    fixtures = [
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/organization',
+        'image_app/submission',
+        'image_app/user',
+    ]
+
+    def test_add_breed(self):
+        italy = DictCountry.objects.get(label="Italy")
+        united_kingdom = DictCountry.objects.get(label="United Kingdom")
+
+        sus = DictSpecie.objects.get(label="Sus scrofa")
+
+        # inserting an already present breed get the object without creation
+        breed, created = DictBreed.objects.get_or_create(
+            supplied_breed="Bunte Bentheimer",
+            specie=sus,
+            country=united_kingdom)
+
+        self.assertFalse(created)
+
+        # inserting a breed in a different country add a record
+        breed, created = DictBreed.objects.get_or_create(
+            supplied_breed="Bunte Bentheimer",
+            specie=sus,
+            country=italy)
+
+        self.assertTrue(created)
 
 
 class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):

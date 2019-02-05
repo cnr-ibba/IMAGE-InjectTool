@@ -400,7 +400,7 @@ class DictBreed(Confidence):
 
     class Meta:
         verbose_name = 'Breed'
-        unique_together = (("supplied_breed", "specie"),)
+        unique_together = (("supplied_breed", "specie", "country"),)
 
     def __str__(self):
         # return mapped breed if defined
