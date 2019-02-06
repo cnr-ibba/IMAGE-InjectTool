@@ -1,7 +1,7 @@
 
 {% extends "base.html" %}
 
-{% load submissions_tags %}
+{% load validation_tags %}
 
 {% block title %}
   Animal List
@@ -11,4 +11,52 @@
 
 <h1>All Animals In Your Namespace</h1>
 
+<table class="table table-hover table-responsive-sm">
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Action</th>
+      <th scope="col">Submission</th>
+      <th scope="col">Biosample ID</th>
+      <th scope="col">Validation</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for animal in object_list %}
+      <tr class="{% cycle 'table-primary' 'table-secondary' %}">
+        <th><a href="{% url 'animals:detail' pk=animal.pk %}">{{ animal.name.name|truncatechars:30 }}</a></th>
+        <td>
+          <i class="fas fa-edit"></i><a href="{% url 'animals:update' pk=animal.pk %}">Edit</a>&nbsp
+          <i class="fas fa-trash-alt"></i><a href="{% url 'animals:delete' pk=animal.pk %}">Delete</a>
+        </td>
+        <td><a href="{% url 'submissions:detail' pk=animal.submission.pk %}">{{ animal.submission.title }}</a> </td>
+        <td>{{ animal.name.biosample_id }}</td>
+        <td>{{ animal.name|get_badge }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% include 'includes/pagination.html' %}
+
+<p class="container mt-3">
+  <div class="row">
+    <div class="col-lg-4 col-md-6 mt-2 lead text-center">
+      <a class="btn btn-primary btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Back to Submissions List</a>
+    </div>
+    <div class="col-lg-4 col-md-6 mt-2 lead text-center">
+      <a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+    </div>
+  </div>
+</p>
+
 {% endblock content %}
+
+{% block custom-js %}
+<script>
+// Jquery called when document is loaded
+$(document).ready(function(){
+  $('[data-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

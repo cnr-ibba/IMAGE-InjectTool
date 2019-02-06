@@ -63,3 +63,14 @@ class DeleteAnimalView(OwnerMixin, DeleteView):
 class AnimaViewlList(OwnerMixin, ListView):
     model = Animal
     template_name = "animals/animal_list.html"
+    paginate_by = 10
+    ordering = ["name__submission"]
+
+    def get_queryset(self):
+        """Override get_queryset"""
+
+        qs = super(AnimaViewlList, self).get_queryset()
+        return qs.select_related(
+            "name",
+            "name__validationresult",
+            "name__submission")
