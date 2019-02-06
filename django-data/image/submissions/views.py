@@ -129,7 +129,10 @@ class EditSubmissionView(OwnerMixin, ListView):
 
         # unknown animals should be removed from a submission. They have no
         # data in animal table nor sample
-        return Name.objects.select_related("validationresult").filter(
+        return Name.objects.select_related(
+                "validationresult",
+                "animal",
+                "sample").filter(
             Q(submission=self.submission) & (
                 Q(animal__isnull=False) | Q(sample__isnull=False))
             ).order_by('id')

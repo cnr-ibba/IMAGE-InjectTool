@@ -67,15 +67,6 @@ class EditSubmissionViewTest(
         self.assertContains(self.response, 'href="{0}"'.format(list_url))
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))
 
-    def test_ownership(self):
-        """Test ownership for a submissions"""
-
-        client = Client()
-        client.login(username='test2', password='test2')
-
-        response = client.get(self.url)
-        self.assertEqual(response.status_code, 404)
-
     def test_name_data(self):
         """Test submission has data"""
 
@@ -90,3 +81,21 @@ class EditSubmissionViewTest(
 
         for name in names:
             self.assertNotContains(self.response, name)
+
+    def test_name_urls(self):
+        """Test data has links for delete and update"""
+
+        animal_update_url = reverse('animals:update', kwargs={'pk': 1})
+        animal_delete_url = reverse('animals:delete', kwargs={'pk': 1})
+
+        self.assertContains(
+            self.response,
+            'href="{0}"'.format(
+                    animal_update_url))
+
+        self.assertContains(
+            self.response,
+            'href="{0}"'.format(
+                    animal_delete_url))
+
+        # TODO: test for samples Update/Delete Views
