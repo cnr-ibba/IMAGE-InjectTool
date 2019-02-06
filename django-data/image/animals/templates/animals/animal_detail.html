@@ -156,10 +156,10 @@
 <div class="container mt-3">
   <div class="row">
     {# disabling a button if waiting variable is set to true #}
-    <div class="col-lg-3 col-md-12 mt-2 lead text-center"><a class="btn btn-primary btn-lg btn-block" href="#" role="button">Back to Animal list</a></div>
+    <div class="col-lg-3 col-md-12 mt-2 lead text-center"><a class="btn btn-primary btn-lg btn-block" href="{% url 'animals:list' %}" role="button">Back to Animal list</a></div>
     <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'submissions:edit' pk=animal.submission.pk %}" role="button">Back to Submission</a></div>
-    <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-warning btn-lg btn-block" href="#" role="button">Edit Animal</a></div>
-    <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-danger btn-lg btn-block" href="#" role="button">Delete Animal</a></div>
+    <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-warning btn-lg btn-block" href="{% url 'animals:update' pk=animal.pk %}" role="button">Edit Animal</a></div>
+    <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-danger btn-lg btn-block" href="{% url 'animals:delete' pk=animal.pk %}" role="button">Delete Animal</a></div>
   </div>
 </div>
 

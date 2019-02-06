@@ -1,0 +1,14 @@
+
+{% extends "base.html" %}
+
+{% load submissions_tags %}
+
+{% block title %}
+  Animal {{ animal.pk }} Update
+{% endblock title %}
+
+{% block content %}
+
+<h1>Update <em>{{ animal.name }}</em></h1>
+
+{% endblock content %}

@@ -1,0 +1,14 @@
+
+{% extends "base.html" %}
+
+{% load submissions_tags %}
+
+{% block title %}
+  Animal {{ animal.pk }} Confirm Delete
+{% endblock title %}
+
+{% block content %}
+
+<h1>Delete <em>{{ animal.name }}</em></h1>
+
+{% endblock content %}

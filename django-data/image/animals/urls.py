@@ -14,4 +14,13 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/$',
         views.DetailAnimalView.as_view(),
         name='detail'),
+    url(r'^(?P<pk>[-\w]+)/update$',
+        views.UpdateAnimalView.as_view(),
+        name='update'),
+    url(r'^(?P<pk>[-\w]+)/delete$',
+        views.DeleteAnimalView.as_view(),
+        name='delete'),
+    url(r'list$',
+        views.AnimaViewlList.as_view(),
+        name='list'),
 ]

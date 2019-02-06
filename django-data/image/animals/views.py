@@ -9,7 +9,7 @@ Created on Mon Feb  4 12:34:22 2019
 import logging
 
 from django.contrib import messages
-from django.views.generic import DetailView
+from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 
 from image_app.models import Animal
 from common.views import OwnerMixin
@@ -47,3 +47,19 @@ class DetailAnimalView(OwnerMixin, DetailView):
 
         # condition: I have validation result
         return data
+
+
+class UpdateAnimalView(OwnerMixin, UpdateView):
+    model = Animal
+    fields = '__all__'
+    template_name = "animals/animal_form.html"
+
+
+class DeleteAnimalView(OwnerMixin, DeleteView):
+    model = Animal
+    template_name = "animals/animal_confirm_delete.html"
+
+
+class AnimaViewlList(OwnerMixin, ListView):
+    model = Animal
+    template_name = "animals/animal_list.html"
