@@ -6,9 +6,13 @@ Created on Fri Oct  5 11:39:21 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import json
+
 from collections import Counter
 from unittest.mock import patch, Mock
 from billiard.einfo import ExceptionInfo
+from celery.exceptions import Retry
+from pytest import raises
 
 from django.core import mail
 from django.test import TestCase
@@ -106,8 +110,67 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         email = mail.outbox[0]
 
         self.assertEqual(
-            "Error in IMAGE Validation %s" % self.submission_id,
+            "Error in IMAGE Validation: %s" % self.submission_id,
             email.subject)
+
+    # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
+    @patch("validation.tasks.ValidateTask.retry")
+    @patch("validation.tasks.validation.check_with_ruleset")
+    def test_validate_retry(self, my_check, my_retry):
+        """Test submissions with retry"""
+
+        # Set a side effect on the patched methods
+        # so that they raise the errors we want.
+        my_retry.side_effect = Retry()
+        my_check.side_effect = Exception()
+
+        with raises(Retry):
+            self.my_task.run(submission_id=self.submission_id)
+
+        self.assertTrue(my_check.called)
+        self.assertTrue(my_retry.called)
+
+    @patch("validation.tasks.ValidateTask.retry")
+    @patch("validation.tasks.validation.check_with_ruleset")
+    def test_issues_with_api(self, my_check, my_retry):
+        """Test submissions with retry"""
+
+        # Set a side effect on the patched methods
+        # so that they raise the errors we want.
+        my_retry.side_effect = Retry()
+        my_check.side_effect = json.decoder.JSONDecodeError(
+            msg="test", doc="test", pos=1)
+
+        # call task. No retries with issues at EBI
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # this is the message I want
+        message = "Errors in EBI API endpoints. Please try again later"
+
+        # check submission.state changed
+        self.assertEqual(self.submission.status, NEED_REVISION)
+        self.assertIn(
+            message,
+            self.submission.message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in IMAGE Validation: %s" % message,
+            email.subject)
+
+        self.assertTrue(my_check.called)
+        self.assertFalse(my_retry.called)
 
     @patch("validation.tasks.validation.check_with_ruleset")
     @patch("validation.tasks.validation.check_usi_structure", return_value=[])

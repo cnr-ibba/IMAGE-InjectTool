@@ -9,6 +9,9 @@ Useful staff to deal with validation process
 
 """
 
+import json
+import traceback
+
 from collections import Counter
 from celery.utils.log import get_task_logger
 
@@ -71,7 +74,7 @@ class ValidateTask(MyTask):
 
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
-            "Error in IMAGE Validation %s" % (args[0]),
+            "Error in IMAGE Validation: %s" % (args[0]),
             ("Something goes wrong with validation. Please report "
              "this to InjectTool team\n\n %s" % str(einfo)),
         )
@@ -96,11 +99,39 @@ class ValidateTask(MyTask):
              'Error': 0,
              'JSON': 0})
 
-        for animal in Animal.objects.filter(name__submission=submission_obj):
-            self.validate_model(animal, submission_statuses)
+        try:
+            for animal in Animal.objects.filter(
+                    name__submission=submission_obj):
+                self.validate_model(animal, submission_statuses)
 
-        for sample in Sample.objects.filter(name__submission=submission_obj):
-            self.validate_model(sample, submission_statuses)
+            for sample in Sample.objects.filter(
+                    name__submission=submission_obj):
+                self.validate_model(sample, submission_statuses)
+
+        # TODO: errors in validation shuold raise custom exception
+        except json.decoder.JSONDecodeError as exc:
+            logger.error("Error in validation: %s" % exc)
+
+            message = "Errors in EBI API endpoints. Please try again later"
+            logger.error(message)
+
+            # mark submission with NEED_REVISION
+            self.submission_fail(submission_obj, message)
+
+            # get exception info
+            einfo = traceback.format_exc()
+
+            # send a mail to the user with the stacktrace (einfo)
+            submission_obj.owner.email_user(
+                "Error in IMAGE Validation: %s" % (message),
+                ("Something goes wrong with validation. Please report "
+                 "this to InjectTool team\n\n %s" % str(einfo)),
+            )
+
+            return "success"
+
+        except Exception as exc:
+            raise self.retry(exc=exc)
 
         # test for keys in submission_statuses
         statuses = sorted(submission_statuses.keys())
