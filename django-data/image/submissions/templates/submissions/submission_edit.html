@@ -13,6 +13,7 @@
     <thead>
       <tr>
         <th scope="col">Name</th>
+        <th scope="col">Action</th>
         <th scope="col">Biosample ID</th>
         <th scope="col">Validation</th>
         <th scope="col">Last Changed</th>
@@ -23,6 +24,10 @@
       {% for name in object_list %}
         <tr class="{% cycle 'table-primary' 'table-secondary' %}">
           <th><a href="{% if name.animal %}{% url 'animals:detail' pk=name.animal.pk %}{% else %}#{% endif %}">{{ name.name|truncatechars:30 }}</a></th>
+          <td>
+            <i class="fas fa-edit"></i><a href="#">Edit</a>&nbsp
+            <i class="fas fa-trash-alt"></i><a href="#">Delete</a>
+          </td>
           <td>{{ name.biosample_id }}</td>
           <td>{{ name|get_badge }}</td>
           <td>{{ name.last_changed }}</td>
@@ -39,13 +44,13 @@
   </p>
   <p class="container mt-3">
     <div class="row">
-      <div class="col-md-4 mt-2 lead text-center">
-        <a class="btn btn-primary btn-lg btn-block" href="{% url 'submissions:detail' pk=submission.pk %}" role="button">Back to Detail</a>
+      <div class="col-lg-4 col-md-12 mt-2 lead text-center">
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'submissions:detail' pk=submission.pk %}" role="button">Back to Submission Detail</a>
       </div>
-      <div class="col-md-4 mt-2 lead text-center">
+      <div class="col-lg-4 col-md-6 mt-2 lead text-center">
         <a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Back to Submissions List</a>
       </div>
-      <div class="col-md-4 mt-2 lead text-center">
+      <div class="col-lg-4 col-md-6 mt-2 lead text-center">
         <a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
       </div>
     </div>

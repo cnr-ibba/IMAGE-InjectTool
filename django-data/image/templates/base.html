@@ -20,6 +20,9 @@
     {% block custom-css %}
     {% endblock custom-css %}
 
+    <!-- fontawesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+
     <title>
       {# Title Extensions go inside the block #}
       {% block title %}
@@ -112,7 +115,8 @@
     {% block footer %}
     <footer class="footer">
       <div class="container">
-        <span class="text-muted">Using version {% git_describe %} </span>
+        <span class="text-muted">Using version {% git_describe %}</span>
+        <span class="float-right"><a href="https://github.com/cnr-ibba/IMAGE-InjectTool"><i class="fab fa-github fa-lg"></i></a></span> 
       </div>
     </footer>
     {% endblock footer %}
