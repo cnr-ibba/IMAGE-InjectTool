@@ -94,7 +94,6 @@ InjectTool TODO
 
 * Regarding table `Name`:
   - define a UID unique ID for samples and animals?
-  - track biosample errors (validationResults) in name table?
 
 * Regarding `EditSubmissionView`
   - forms to edit data

@@ -8,6 +8,7 @@ Created on Tue Oct  2 16:07:58 2018
 
 import os
 import redis
+import traceback
 
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
@@ -153,9 +154,33 @@ class SubmitTask(MyTask):
         try:
             self.submit_biosample(submission_data)
 
+        except ConnectionError as exc:
+            logger.error("Error in biosample submission: %s" % exc)
+
+            message = "Errors in EBI API endpoints. Please try again later"
+            logger.error(message)
+
+            # add message to submission. Change status to READY
+            submission_data.submission_obj.status = READY
+            submission_data.submission_obj.message = message
+            submission_data.submission_obj.save()
+
+            # get exception info
+            einfo = traceback.format_exc()
+
+            # send a mail to the user with the stacktrace (einfo)
+            submission_data.owner.email_user(
+                "Error in biosample submission %s" % (
+                    submission_data.submission_id),
+                ("Something goes wrong with biosample submission. Please "
+                 "report this to InjectTool team\n\n %s" % str(einfo)),
+                )
+
+            return "success"
+
         # retry a task under errors
         # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
-        except ConnectionError as exc:
+        except Exception as exc:
             raise self.retry(exc=exc)
 
         logger.info("database updated and task finished")

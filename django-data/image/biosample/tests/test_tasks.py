@@ -106,13 +106,54 @@ class SubmitTestCase(SubmitMixin, TestCase):
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
         my_retry.side_effect = Retry()
-        my_submit.side_effect = ConnectionError()
+        my_submit.side_effect = Exception()
 
         with raises(Retry):
             self.my_task.run(submission_id=1)
 
         self.assertTrue(my_submit.called)
         self.assertTrue(my_retry.called)
+
+    @patch("biosample.tasks.SubmitTask.retry")
+    @patch("biosample.tasks.SubmitTask.submit_biosample")
+    def test_issues_with_api(self, my_submit, my_retry):
+        """Test errors with submission API"""
+
+        # Set a side effect on the patched methods
+        # so that they raise the errors we want.
+        my_retry.side_effect = Retry()
+        my_submit.side_effect = ConnectionError()
+
+        # call task. No retries with issues at EBI
+        res = self.my_task.run(submission_id=1)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission_obj.refresh_from_db()
+
+        # this is the message I want
+        message = "Errors in EBI API endpoints. Please try again later"
+
+        # check submission.status NOT changed
+        self.assertEqual(self.submission_obj.status, READY)
+        self.assertIn(
+            message,
+            self.submission_obj.message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission 1",
+            email.subject)
+
+        self.assertTrue(my_submit.called)
+        self.assertFalse(my_retry.called)
 
     def test_submit_recover(self):
         """Test submission recovering"""

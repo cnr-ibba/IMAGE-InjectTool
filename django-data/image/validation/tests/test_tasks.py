@@ -117,7 +117,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
     @patch("validation.tasks.ValidateTask.retry")
     @patch("validation.tasks.validation.check_with_ruleset")
     def test_validate_retry(self, my_check, my_retry):
-        """Test submissions with retry"""
+        """Test validation with retry"""
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
@@ -133,7 +133,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
     @patch("validation.tasks.ValidateTask.retry")
     @patch("validation.tasks.validation.check_with_ruleset")
     def test_issues_with_api(self, my_check, my_retry):
-        """Test submissions with retry"""
+        """Test errors with validation API"""
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
@@ -153,8 +153,8 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # this is the message I want
         message = "Errors in EBI API endpoints. Please try again later"
 
-        # check submission.state changed
-        self.assertEqual(self.submission.status, NEED_REVISION)
+        # check submission.status changed to NEED_REVISION
+        self.assertEqual(self.submission.status, LOADED)
         self.assertIn(
             message,
             self.submission.message)

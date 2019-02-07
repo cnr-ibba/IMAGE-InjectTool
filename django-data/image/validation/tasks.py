@@ -28,6 +28,7 @@ logger = get_task_logger(__name__)
 # get available statuses
 READY = STATUSES.get_value('ready')
 ERROR = STATUSES.get_value('error')
+LOADED = STATUSES.get_value('loaded')
 NEED_REVISION = STATUSES.get_value('need_revision')
 
 # get a dictionary from status name (ie {0: 'Waiting'})
@@ -115,8 +116,10 @@ class ValidateTask(MyTask):
             message = "Errors in EBI API endpoints. Please try again later"
             logger.error(message)
 
-            # mark submission with NEED_REVISION
-            self.submission_fail(submission_obj, message)
+            # Set a message and revert status to LOADED
+            submission_obj.status = LOADED
+            submission_obj.message = (message)
+            submission_obj.save()
 
             # get exception info
             einfo = traceback.format_exc()

@@ -82,11 +82,11 @@ class DetailSubmissionView(OwnerMixin, DetailView):
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
 
+        # get the submission message
+        message = self.object.message
+
         # check if data are loaded or not
         if self.object.status in [WAITING, SUBMITTED]:
-            # get the message
-            message = self.object.message
-
             messages.warning(
                 request=self.request,
                 message=message,
@@ -95,14 +95,14 @@ class DetailSubmissionView(OwnerMixin, DetailView):
         elif self.object.status in [ERROR, NEED_REVISION]:
             messages.error(
                 request=self.request,
-                message=self.object.message,
+                message=message,
                 extra_tags="alert alert-dismissible alert-danger")
 
-        elif self.object.message is not None and self.object.message != '':
-            messages.debug(
+        elif message is not None and message != '':
+            messages.info(
                 request=self.request,
-                message=self.object.message,
-                extra_tags="alert alert-dismissible alert-light")
+                message=message,
+                extra_tags="alert alert-dismissible alert-info")
 
         return data
 
