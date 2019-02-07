@@ -91,15 +91,16 @@ class DetailSubmissionViewTest(
         # set loaded flag
         submission = Submission.objects.get(pk=1)
         submission.status = STATUSES.get_value('loaded')
+        submission.message = "import complete"
         submission.save()
 
         # get a new response
         response = self.client.get(self.url)
 
-        # get all response
-        all_messages = [msg for msg in get_messages(response.wsgi_request)]
-
-        self.assertTrue(len(all_messages) == 0)
+        self.check_messages(
+            response,
+            "info",
+            "import complete")
 
     def test_submitted(self):
         """With submitted data into biosample (not yet finalized) I will get
@@ -126,15 +127,17 @@ class DetailSubmissionViewTest(
         # set loaded flag
         submission = Submission.objects.get(pk=1)
         submission.status = STATUSES.get_value('completed')
+        submission.message = "Successful submission into biosample"
         submission.save()
 
         # get a new response
         response = self.client.get(self.url)
 
-        # get all response
-        all_messages = [msg for msg in get_messages(response.wsgi_request)]
-
-        self.assertTrue(len(all_messages) == 0)
+        # check message
+        self.check_messages(
+            response,
+            "info",
+            "Successful submission into biosample")
 
     # simulate errors in uploading data
     def test_errors(self):

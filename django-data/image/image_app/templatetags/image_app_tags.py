@@ -20,6 +20,16 @@ def git_describe():
     return subprocess.check_output(["git", "describe", "--always"]).strip()
 
 
+# browse git repository using current version
+@register.simple_tag
+def get_git_link():
+    version = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+    link = "https://github.com/cnr-ibba/IMAGE-InjectTool/tree/"
+
+    # decode a binary object in order to add it to string
+    return link + version.decode('utf8')
+
+
 # form fields
 @register.filter
 def field_type(bound_field):
