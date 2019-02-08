@@ -403,12 +403,10 @@ class DictBreed(Confidence):
         unique_together = (("supplied_breed", "specie", "country"),)
 
     def __str__(self):
-        # return mapped breed if defined
-        if self.mapped_breed:
-            return str(self.mapped_breed)
-
-        else:
-            return str(self.supplied_breed)
+        return "{supplied} ({mapped}, {specie})".format(
+            supplied=self.supplied_breed,
+            mapped=self.mapped_breed,
+            specie=self.specie.label)
 
     def format_attribute(self):
         """Format mapped_breed attribute (with its ontology). Return None if
@@ -500,8 +498,7 @@ class Animal(BioSampleMixin, models.Model):
     material = models.CharField(
         max_length=255,
         default="Organism",
-        editable=False,
-        null=True)
+        editable=False)
 
     breed = models.ForeignKey(
         'DictBreed',
@@ -652,8 +649,7 @@ class Sample(BioSampleMixin, models.Model):
     material = models.CharField(
         max_length=255,
         default="Specimen from Organism",
-        editable=False,
-        null=True)
+        editable=False)
 
     animal = models.ForeignKey(
         'Animal',
