@@ -139,7 +139,8 @@ InjectTool TODO
   - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
-  - implement `DictOrganism` (to model *specimen*, *organism* and *organism parts*)
+  - Publications could be placed in Animal/Sample table: it could be easier to
+    update cause is specific to Animal/Sample
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission

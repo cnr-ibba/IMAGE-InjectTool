@@ -56,6 +56,20 @@ class UpdateAnimalView(OwnerMixin, UpdateView):
     model = Animal
     template_name = "animals/animal_form.html"
 
+    def get_initial(self):
+        """
+        Returns the initial data to use for forms on this view.
+        """
+
+        initial = super(UpdateAnimalView, self).get_initial()
+
+        # Add name, mother, father
+        initial['disabled_name'] = self.object.name
+        initial['disabled_mother'] = self.object.mother
+        initial['disabled_father'] = self.object.father
+
+        return initial
+
     # add the request to the kwargs
     # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
     def get_form_kwargs(self):
