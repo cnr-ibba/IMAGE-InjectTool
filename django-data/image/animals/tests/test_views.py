@@ -13,14 +13,20 @@ from common.tests import (
     GeneralMixinTestCase, OwnerMixinTestCase, FormMixinTestCase,
     InvalidFormMixinTestCase)
 
-from image_app.models import ACCURACIES, Animal
+from image_app.models import ACCURACIES, STATUSES, Animal, Submission
 
 from ..views import DetailAnimalView, UpdateAnimalView
 from ..forms import UpdateAnimalForm
 from .common import AnimalFeaturesMixin
 
+# get accuracy levels
 PRECISE = ACCURACIES.get_value('precise')
 MISSING = ACCURACIES.get_value('missing')
+
+# get statuses
+READY = STATUSES.get_value('ready')
+NEED_REVISION = STATUSES.get_value('need_revision')
+LOADED = STATUSES.get_value('loaded')
 
 
 class AnimalViewTestMixin(
@@ -77,6 +83,8 @@ class DetailAnimalViewTest(
             'href="{0}"'.format(
                     animal_delete_url))
 
+    # TODO: test messages
+
 
 class UpdateAnimalViewTest(
         FormMixinTestCase, AnimalViewTestMixin, TestCase):
@@ -130,10 +138,18 @@ class SuccessfulUpdateAnimalViewTest(
     def setUp(self):
         """call base method"""
 
+        # The values I need to modify
         self.description = "A new description"
         self.location = "Milano"
         self.latitude = 45.4654219
         self.longitude = 9.1859243
+
+        # a submission object
+        self.submission = Submission.objects.get(pk=1)
+
+        # update status
+        self.submission.status = READY
+        self.submission.save()
 
         # login a test user (defined in fixture)
         self.client = Client()
@@ -167,6 +183,24 @@ class SuccessfulUpdateAnimalViewTest(
         self.assertEqual(animal.birth_location_longitude, self.longitude)
         self.assertEqual(animal.birth_location_accuracy, PRECISE)
 
+    def test_statuses(self):
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # test status for submission
+        self.assertEqual(self.submission.status, NEED_REVISION)
+        self.assertIn("Data has changed", self.submission.message)
+
+        # get an animal object
+        animal = Animal.objects.get(pk=1)
+
+        # test status for animal
+        self.assertEqual(animal.name.status, NEED_REVISION)
+        self.assertListEqual(
+            animal.name.validationresult.messages,
+            ['Info: Data has changed, validation has to be called']
+        )
+
 
 class InvalidUpdateSpeciesViewTest(
         AnimalFeaturesMixin, InvalidFormMixinTestCase, TestCase):
@@ -174,10 +208,18 @@ class InvalidUpdateSpeciesViewTest(
     def setUp(self):
         """call base method"""
 
+        # The values I need to modify
         self.description = "A new description"
         self.location = "Milano"
         self.latitude = "meow"
         self.longitude = "bark"
+
+        # a submission object
+        self.submission = Submission.objects.get(pk=1)
+
+        # update status
+        self.submission.status = READY
+        self.submission.save()
 
         # login a test user (defined in fixture)
         self.client = Client()
@@ -205,3 +247,16 @@ class InvalidUpdateSpeciesViewTest(
         self.assertEqual(animal.birth_location_latitude, None)
         self.assertEqual(animal.birth_location_longitude, None)
         self.assertEqual(animal.birth_location_accuracy, MISSING)
+
+    def test_statuses(self):
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # test status for submission
+        self.assertEqual(self.submission.status, READY)
+
+        # get an animal object
+        animal = Animal.objects.get(pk=1)
+
+        # test status for animal (default one)
+        self.assertEqual(animal.name.status, LOADED)

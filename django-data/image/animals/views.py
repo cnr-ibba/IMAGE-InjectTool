@@ -11,13 +11,17 @@ import logging
 from django.contrib import messages
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 
-from image_app.models import Animal
+from image_app.models import Animal, STATUSES
 from common.views import OwnerMixin
+from validation.models import ValidationResult as ValidationResultModel
 
 from .forms import UpdateAnimalForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+# get status
+NEED_REVISION = STATUSES.get_value('need_revision')
 
 
 class DetailAnimalView(OwnerMixin, DetailView):
@@ -32,7 +36,13 @@ class DetailAnimalView(OwnerMixin, DetailView):
             validation = self.object.name.validationresult
 
             for message in validation.messages:
-                if "Warning:" in message:
+                if "Info:" in message:
+                    messages.info(
+                        request=self.request,
+                        message=message,
+                        extra_tags="alert alert-dismissible alert-info")
+
+                elif "Warning:" in message:
                     messages.warning(
                         request=self.request,
                         message=message,
@@ -92,6 +102,35 @@ class UpdateAnimalView(OwnerMixin, UpdateView):
     def get_form(self):
         return self.form_class(
             self.object, **self.get_form_kwargs())
+
+    # override form valid istance
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+
+        # HINT: validate object?
+
+        # setting statuses and messages
+        self.object.name.status = NEED_REVISION
+        self.object.name.save()
+
+        if hasattr(self.object.name, 'validationresult'):
+            validationresult = self.object.name.validationresult
+        else:
+            validationresult = ValidationResultModel()
+            self.object.name.validationresult = validationresult
+
+        validationresult.messages = [
+            'Info: Data has changed, validation has to be called']
+        validationresult.save()
+
+        # Override submission status
+        self.object.submission.status = NEED_REVISION
+        self.object.submission.message = (
+            "Data has changed, validation has to be called")
+        self.object.submission.save()
+
+        # save object and return HttpResponseRedirect(self.get_success_url())
+        return super().form_valid(form)
 
 
 class DeleteAnimalView(OwnerMixin, DeleteView):
