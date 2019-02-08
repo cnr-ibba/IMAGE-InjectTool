@@ -9,16 +9,10 @@ Created on Tue Jul 24 15:51:05 2018
 from django import forms
 
 from image_app.models import Submission
+from common.forms import RequestFormMixin
 
 
-class SubmissionForm(forms.ModelForm):
-    # the request is now available, add it to the instance data
-    def __init__(self, *args, **kwargs):
-        if 'request' in kwargs:
-            self.request = kwargs.pop('request')
-
-        super(SubmissionForm, self).__init__(*args, **kwargs)
-
+class SubmissionForm(RequestFormMixin, forms.ModelForm):
     class Meta:
         model = Submission
         fields = (
