@@ -139,15 +139,15 @@ class DictBreedTestCase(TestCase):
     def test_str(self):
         """Testing str representation (as mapped_breed, if present)"""
 
-        supplied_breed = "Bunte Bentheimer"
-        mapped_breed = "Bentheim Black Pied"
-
         breed = DictBreed.objects.get(pk=1)
-        self.assertEqual(str(breed), mapped_breed)
+        self.assertEqual(
+            str(breed),
+            "Bunte Bentheimer (Bentheim Black Pied, Sus scrofa)")
 
         # unset mapped_breed
         breed.mapped_breed = None
-        self.assertEqual(str(breed), supplied_breed)
+        self.assertEqual(
+            str(breed), "Bunte Bentheimer (None, Sus scrofa)")
 
 
 class SubmissionTestCase(TestCase):

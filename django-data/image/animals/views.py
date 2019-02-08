@@ -50,6 +50,15 @@ class DetailAnimalView(OwnerMixin, DetailView):
         # condition: I have validation result
         return data
 
+    def get_queryset(self):
+        """Override get_queryset"""
+
+        qs = super(DetailAnimalView, self).get_queryset()
+        return qs.select_related(
+            "name",
+            "name__validationresult",
+            "name__submission")
+
 
 class UpdateAnimalView(OwnerMixin, UpdateView):
     form_class = UpdateAnimalForm
