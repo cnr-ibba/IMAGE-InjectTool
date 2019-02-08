@@ -94,9 +94,15 @@
   </nav>
 {% endif %}
 
-<p class="lead">
-  <a class="btn btn-primary btn-lg" href="#" role="button">Call Zooma</a>
-  <a class="btn btn-secondary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+<p class="container mt-3">
+  <div class="row">
+    <div class="col-lg-4 col-md-6 mt-2 lead text-center">
+      <a class="btn btn-primary btn-lg btn-block" href="#" role="button">Call Zooma</a>
+    </div>
+    <div class="col-lg-4 col-md-6 mt-2 lead text-center">
+      <a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+    </div>
+  </div>
 </p>
 
 {% endblock %}

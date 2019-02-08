@@ -134,6 +134,10 @@ class UpdateSpeciesViewTest(FormMixinTestCase, BaseTest):
         self.assertContains(self.response, "required disabled", 2)
         self.assertContains(self.response, 'name="word" value="Cattle"')
 
+    # TODO: test not found species
+
+    # TODO: test navigation links
+
 
 # Here, I'm already tested the urls, csfr. So BaseTest
 class SuccessfulUpdateSpeciesViewTest(BaseTest):
