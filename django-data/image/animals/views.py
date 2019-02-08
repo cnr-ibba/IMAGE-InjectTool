@@ -14,6 +14,8 @@ from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 from image_app.models import Animal
 from common.views import OwnerMixin
 
+from .forms import UpdateAnimalForm
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -50,9 +52,23 @@ class DetailAnimalView(OwnerMixin, DetailView):
 
 
 class UpdateAnimalView(OwnerMixin, UpdateView):
+    form_class = UpdateAnimalForm
     model = Animal
-    fields = '__all__'
     template_name = "animals/animal_form.html"
+
+    # add the request to the kwargs
+    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
+    def get_form_kwargs(self):
+        kwargs = super(UpdateAnimalView, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    # override UpdateView.get_form() method. Initialize a form object
+    # and pass submission into it. Self object is the animal object I
+    # want to update
+    def get_form(self):
+        return self.form_class(
+            self.object, **self.get_form_kwargs())
 
 
 class DeleteAnimalView(OwnerMixin, DeleteView):
