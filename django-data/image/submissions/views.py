@@ -13,7 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, STATUSES, Name
@@ -141,6 +141,25 @@ class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
             Q(submission=self.submission) & (
                 Q(animal__isnull=False) | Q(sample__isnull=False))
             ).order_by('id')
+
+    def dispatch(self, request, *args, **kwargs):
+        handler = super(EditSubmissionView, self).dispatch(
+                request, *args, **kwargs)
+
+        # here I've done get_queryset. Check for submission status
+        if hasattr(self, "submission") and not self.submission.can_edit():
+            message = "Cannot edit submission: current status is: %s" % (
+                    self.submission.get_status_display())
+
+            logger.warning(message)
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect(self.submission.get_absolute_url())
+
+        return handler
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context

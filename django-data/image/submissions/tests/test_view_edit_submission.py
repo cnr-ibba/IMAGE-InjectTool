@@ -11,8 +11,17 @@ from django.urls import resolve, reverse
 from django.utils.http import urlquote
 
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
+from image_app.models import Submission, STATUSES
 
 from ..views import EditSubmissionView
+
+WAITING = STATUSES.get_value('waiting')
+LOADED = STATUSES.get_value('loaded')
+ERROR = STATUSES.get_value('error')
+READY = STATUSES.get_value('ready')
+NEED_REVISION = STATUSES.get_value('need_revision')
+SUBMITTED = STATUSES.get_value('submitted')
+COMPLETED = STATUSES.get_value('completed')
 
 
 class EditSubmissionViewTest(
@@ -39,6 +48,13 @@ class EditSubmissionViewTest(
         # login a test user (defined in fixture)
         self.client = Client()
         self.client.login(username='test', password='test')
+
+        # get a submission object
+        self.submission = Submission.objects.get(pk=1)
+
+        # update submission status with a permitted statuses
+        self.submission.status = NEED_REVISION
+        self.submission.save()
 
         self.url = reverse('submissions:edit', kwargs={'pk': 1})
         self.response = self.client.get(self.url)
@@ -99,3 +115,101 @@ class EditSubmissionViewTest(
                     animal_delete_url))
 
         # TODO: test for samples Update/Delete Views
+
+
+class EditSubmissionViewStatusesTest(TestCase):
+    fixtures = [
+        "image_app/user",
+        "image_app/dictcountry",
+        "image_app/dictrole",
+        "image_app/organization",
+        "image_app/submission"
+    ]
+
+    def setUp(self):
+        # login a test user (defined in fixture)
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        self.url = reverse('submissions:edit', kwargs={'pk': 1})
+
+        # get a submission object
+        self.submission = Submission.objects.get(pk=1)
+        self.redirect_url = self.submission.get_absolute_url()
+
+    def test_waiting(self):
+        """Test waiting statuses return to submission detail"""
+
+        # update statuses
+        self.submission.status = WAITING
+        self.submission.save()
+
+        # test redirect
+        response = self.client.get(self.url)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_loaded(self):
+        """Test loaded status"""
+
+        # force submission status
+        self.submission.status = LOADED
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_submitted(self):
+        """Test submitted status"""
+
+        # force submission status
+        self.submission.status = SUBMITTED
+        self.submission.save()
+
+        # test redirect
+        response = self.client.get(self.url)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_error(self):
+        """Test error status"""
+
+        # force submission status
+        self.submission.status = ERROR
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_need_revision(self):
+        """Test need_revision status"""
+
+        # force submission status
+        self.submission.status = NEED_REVISION
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_ready(self):
+        """Test ready status"""
+
+        # force submission status
+        self.submission.status = READY
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_completed(self):
+        """Test completed status"""
+
+        # force submission status
+        self.submission.status = COMPLETED
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
