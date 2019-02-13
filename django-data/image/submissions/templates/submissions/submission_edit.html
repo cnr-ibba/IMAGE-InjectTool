@@ -25,8 +25,10 @@
         <tr class="{% cycle 'table-primary' 'table-secondary' %}">
           <th><a href="{% if name.animal %}{% url 'animals:detail' pk=name.animal.pk %}{% else %}#{% endif %}">{{ name.name|truncatechars:30 }}</a></th>
           <td>
-            <i class="fas fa-edit"></i><a href="{% if name.animal %}{% url 'animals:update' pk=name.animal.pk %}{% else %}#{% endif %}">Edit</a>&nbsp
-            <i class="fas fa-trash-alt"></i><a href="{% if name.animal %}{% url 'animals:delete' pk=name.animal.pk %}{% else %}#{% endif %}">Delete</a>
+            {% if name.animal %}
+              {% include "animals/animal_buttons.html" with animal=name.animal %}
+            {% endif %}
+            {# deal with name.samples #}
           </td>
           <td>{{ name.biosample_id }}</td>
           <td>{{ name|get_badge }}</td>

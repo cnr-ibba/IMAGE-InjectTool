@@ -26,8 +26,7 @@
       <tr class="{% cycle 'table-primary' 'table-secondary' %}">
         <th><a href="{% url 'animals:detail' pk=animal.pk %}">{{ animal.name.name|truncatechars:30 }}</a></th>
         <td>
-          <i class="fas fa-edit"></i><a href="{% url 'animals:update' pk=animal.pk %}">Edit</a>&nbsp
-          <i class="fas fa-trash-alt"></i><a href="{% url 'animals:delete' pk=animal.pk %}">Delete</a>
+          {% include "animals/animal_buttons.html" %}
         </td>
         <td><a href="{% url 'submissions:detail' pk=animal.submission.pk %}">{{ animal.submission.title }}</a> </td>
         <td>{{ animal.name.biosample_id }}</td>

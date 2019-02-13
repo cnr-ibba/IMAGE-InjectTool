@@ -1,0 +1,3 @@
+
+<a class="btn btn-outline-warning btn-sm {% if not animal.can_edit %}disabled{% endif %}" href="{% url 'animals:update' pk=animal.pk %}" role="button"><i class="fas fa-edit"></i>Edit</a>
+<a class="btn btn-outline-danger btn-sm {% if not animal.can_delete %}disabled{% endif %}" href="{% url 'animals:delete' pk=animal.pk %}" role="button"><i class="fas fa-trash-alt"></i>Delete</a>

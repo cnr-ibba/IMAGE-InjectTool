@@ -281,6 +281,7 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
     def setUp(self):
         # create animal
         self.animal = Animal.objects.get(pk=1)
+        self.submission = self.animal.submission
 
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
@@ -317,6 +318,83 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
 
     # TODO: test None rendering
 
+    def test_waiting(self):
+        """Test waiting status"""
+
+        # force submission status
+        self.submission.status = WAITING
+        self.submission.save()
+
+        # test my helper methods
+        self.assertFalse(self.animal.can_delete())
+        self.assertFalse(self.animal.can_edit())
+
+    def test_loaded(self):
+        """Test loaded status"""
+
+        # force submission status
+        self.submission.status = LOADED
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.animal.can_delete())
+        self.assertTrue(self.animal.can_edit())
+
+    def test_submitted(self):
+        """Test submitted status"""
+
+        # force submission status
+        self.submission.status = SUBMITTED
+        self.submission.save()
+
+        # test my helper methods
+        self.assertFalse(self.animal.can_delete())
+        self.assertFalse(self.animal.can_edit())
+
+    def test_error(self):
+        """Test error status"""
+
+        # force submission status
+        self.submission.status = ERROR
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.animal.can_delete())
+        self.assertTrue(self.animal.can_edit())
+
+    def test_need_revision(self):
+        """Test need_revision status"""
+
+        # force submission status
+        self.submission.status = NEED_REVISION
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.animal.can_delete())
+        self.assertTrue(self.animal.can_edit())
+
+    def test_ready(self):
+        """Test ready status"""
+
+        # force submission status
+        self.submission.status = READY
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.animal.can_delete())
+        self.assertTrue(self.animal.can_edit())
+
+    def test_completed(self):
+        """Test completed status"""
+
+        # force submission status
+        self.submission.status = COMPLETED
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.animal.can_delete())
+        self.assertTrue(self.animal.can_edit())
+
 
 class SampleTestCase(PersonMixinTestCase, TestCase):
     """testing sample class"""
@@ -348,6 +426,9 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
 
         # now get a sample object
         self.sample = Sample.objects.get(pk=1)
+
+        # set submission
+        self.submission = self.sample.submission
 
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
@@ -405,3 +486,80 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         """testing db_has_data for image_app"""
 
         self.assertTrue(db_has_data())
+
+    def test_waiting(self):
+        """Test waiting status"""
+
+        # force submission status
+        self.submission.status = WAITING
+        self.submission.save()
+
+        # test my helper methods
+        self.assertFalse(self.sample.can_delete())
+        self.assertFalse(self.sample.can_edit())
+
+    def test_loaded(self):
+        """Test loaded status"""
+
+        # force submission status
+        self.submission.status = LOADED
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.sample.can_delete())
+        self.assertTrue(self.sample.can_edit())
+
+    def test_submitted(self):
+        """Test submitted status"""
+
+        # force submission status
+        self.submission.status = SUBMITTED
+        self.submission.save()
+
+        # test my helper methods
+        self.assertFalse(self.sample.can_delete())
+        self.assertFalse(self.sample.can_edit())
+
+    def test_error(self):
+        """Test error status"""
+
+        # force submission status
+        self.submission.status = ERROR
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.sample.can_delete())
+        self.assertTrue(self.sample.can_edit())
+
+    def test_need_revision(self):
+        """Test need_revision status"""
+
+        # force submission status
+        self.submission.status = NEED_REVISION
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.sample.can_delete())
+        self.assertTrue(self.sample.can_edit())
+
+    def test_ready(self):
+        """Test ready status"""
+
+        # force submission status
+        self.submission.status = READY
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.sample.can_delete())
+        self.assertTrue(self.sample.can_edit())
+
+    def test_completed(self):
+        """Test completed status"""
+
+        # force submission status
+        self.submission.status = COMPLETED
+        self.submission.save()
+
+        # test my helper methods
+        self.assertTrue(self.sample.can_delete())
+        self.assertTrue(self.sample.can_edit())

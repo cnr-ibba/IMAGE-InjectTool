@@ -215,6 +215,31 @@ class BioSampleMixin(BaseMixin):
 
         return attributes
 
+    def __can_I(self, names):
+        """Return True id self.status in statuses"""
+
+        statuses = [x.value[0] for x in STATUSES if x.name in names]
+
+        if self.submission.status not in statuses:
+            return True
+
+        else:
+            return False
+
+    def can_edit(self):
+        """Returns True if I can edit a sample/animal"""
+
+        names = ['waiting', 'submitted']
+
+        return self.__can_I(names)
+
+    def can_delete(self):
+        """Returns True if I can delete a sample/animal"""
+
+        names = ['waiting', 'submitted']
+
+        return self.__can_I(names)
+
 
 # --- Abstract classes
 
