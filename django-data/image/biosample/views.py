@@ -15,11 +15,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
+from django.http import HttpResponseRedirect
 
 from pyUSIrest.client import User
 
 from image_app.models import Submission, STATUSES
-from submissions.templatetags.submissions_tags import can_submit
 
 from .forms import (
     GenerateTokenForm, RegisterUserForm, CreateUserForm, SubmitForm)
@@ -437,13 +437,13 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
         self.submission_id = submission_id
 
         # check if I can submit object (statuses)
-        # TODO: check if I can submit by dispatch method
-        if not can_submit(submission):
+        if not submission.can_submit():
             # return super method (which calls get_success_url)
             logger.error(
                 "Can't submit submission %s: current status is %s" % (
                     submission, submission.get_status_display()))
-            return super(SubmitView, self).form_valid(form)
+
+            return HttpResponseRedirect(self.get_success_url())
 
         # create an auth object if credentials are provided
         if name and password:

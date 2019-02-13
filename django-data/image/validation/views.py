@@ -12,9 +12,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
 
 from image_app.models import Submission, STATUSES
-from submissions.templatetags.submissions_tags import can_validate
 
 from .forms import ValidateForm
 from .tasks import ValidateTask
@@ -46,13 +46,13 @@ class ValidateView(LoginRequiredMixin, FormView):
         self.submission_id = submission_id
 
         # check if I can validate object (statuses)
-        # TODO: check if I can submit by dispatch method
-        if not can_validate(submission):
+        if not submission.can_validate():
             # return super method (which calls get_success_url)
             logger.error(
                 "Can't validate submission %s: current status is %s" % (
                     submission, submission.get_status_display()))
-            return super(ValidateView, self).form_valid(form)
+
+            return HttpResponseRedirect(self.get_success_url())
 
         submission.message = "waiting for data validation"
         submission.status = WAITING
