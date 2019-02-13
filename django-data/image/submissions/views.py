@@ -74,25 +74,24 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DetailSubmissionView(OwnerMixin, DetailView):
-    model = Submission
-    template_name = "submissions/submission_detail.html"
+class MessagesSubmissionMixin(object):
+    """Display messages in SubmissionViews"""
 
     # https://stackoverflow.com/a/45696442
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
 
         # get the submission message
-        message = self.object.message
+        message = self.submission.message
 
         # check if data are loaded or not
-        if self.object.status in [WAITING, SUBMITTED]:
+        if self.submission.status in [WAITING, SUBMITTED]:
             messages.warning(
                 request=self.request,
                 message=message,
                 extra_tags="alert alert-dismissible alert-warning")
 
-        elif self.object.status in [ERROR, NEED_REVISION]:
+        elif self.submission.status in [ERROR, NEED_REVISION]:
             messages.error(
                 request=self.request,
                 message=message,
@@ -107,16 +106,22 @@ class DetailSubmissionView(OwnerMixin, DetailView):
         return data
 
 
-class ListSubmissionsView(OwnerMixin, ListView):
+class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
     model = Submission
-    template_name = "submissions/submission_list.html"
-    ordering = ['-created_at']
-    paginate_by = 10
+    template_name = "submissions/submission_detail.html"
+
+    def get_context_data(self, **kwargs):
+        # pass self.object to a new submission attribute in order to call
+        # MessagesSubmissionMixin.get_context_data()
+        self.submission = self.object
+
+        # Call the base implementation first to get a context
+        return super(DetailSubmissionView, self).get_context_data(**kwargs)
 
 
 # a detail view since I need to operate on a submission object
 # HINT: rename to a more informative name?
-class EditSubmissionView(OwnerMixin, ListView):
+class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
     template_name = "submissions/submission_edit.html"
     paginate_by = 10
 
@@ -145,6 +150,13 @@ class EditSubmissionView(OwnerMixin, ListView):
         context["submission"] = self.submission
 
         return context
+
+
+class ListSubmissionsView(OwnerMixin, ListView):
+    model = Submission
+    template_name = "submissions/submission_list.html"
+    ordering = ['-created_at']
+    paginate_by = 10
 
 
 class ReloadSubmissionView(OwnerMixin, UpdateView):
