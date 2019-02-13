@@ -31,6 +31,7 @@ def get_badge(name):
     badge_types = defaultdict(constant_factory('danger'))
     badge_types['Pass'] = 'success'
     badge_types['Warning'] = 'warning'
+    badge_types['Info'] = 'info'
 
     # get a badge class from status
     status = name.validationresult.status
@@ -46,6 +47,7 @@ def get_badge(name):
             '>{1}</span>'.format(
                 badge_class, status)
         )
+
     else:
         result = (
             '<span class="badge badge-pill badge-{0}" data-toggle="tooltip" '

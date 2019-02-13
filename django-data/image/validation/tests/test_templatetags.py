@@ -6,8 +6,6 @@ Created on Wed Jan 30 11:14:02 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import Mock
-
 from django.test import TestCase
 from django.template import Template, Context
 
@@ -95,6 +93,18 @@ class GetBadgeTest(TestCase):
         self.assertIn('badge-danger', rendered)
         self.assertIn('title="1<br>2"', rendered)
         self.assertIn('>Error<', rendered)
+
+    def test_info(self):
+        """Test a info validation (eg. data need validation"""
+
+        self.validationresult.status = 'Info'
+        self.validationresult.messages = ["1", "2"]
+
+        rendered = self.render()
+
+        self.assertIn('badge-info', rendered)
+        self.assertIn('title="1<br>2"', rendered)
+        self.assertIn('>Info<', rendered)
 
     def test_default(self):
         """Test default case (not specified) error validation"""

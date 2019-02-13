@@ -130,6 +130,7 @@ class UpdateAnimalView(OwnerMixin, UpdateView):
 
         validationresult.messages = [
             'Info: Data has changed, validation has to be called']
+        validationresult.status = "Info"
         validationresult.save()
 
         # Override submission status

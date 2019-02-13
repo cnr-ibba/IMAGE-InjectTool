@@ -263,6 +263,7 @@ class SuccessfulUpdateAnimalViewTest(
 
         # test status for animal
         self.assertEqual(animal.name.status, NEED_REVISION)
+        self.assertEqual(animal.name.validationresult.status, 'Info')
         self.assertListEqual(
             animal.name.validationresult.messages,
             ['Info: Data has changed, validation has to be called']

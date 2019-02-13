@@ -84,6 +84,9 @@ InjectTool TODO
   - mock up time consuming modules (`validation.tests.test_helpers`)
   - Can validation start after data load, and after calling zooma? See celery
     chains
+  - I could validate a data for an already submitted object (rules may change).
+    but if the validation is ok, I don't need to change the status nor submit
+    this object
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -166,3 +169,4 @@ InjectTool TODO
 
 * animals and samples module:
   * prevent data editing and deletion while validation or submission is running
+    - defining templatetags and blocking views while those processes run
