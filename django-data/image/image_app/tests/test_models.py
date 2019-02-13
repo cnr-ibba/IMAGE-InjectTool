@@ -16,7 +16,15 @@ from common.tests import PersonMixinTestCase
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
-                              Person, User, db_has_data)
+                              Person, User, db_has_data, STATUSES)
+
+WAITING = STATUSES.get_value('waiting')
+LOADED = STATUSES.get_value('loaded')
+ERROR = STATUSES.get_value('error')
+READY = STATUSES.get_value('ready')
+NEED_REVISION = STATUSES.get_value('need_revision')
+SUBMITTED = STATUSES.get_value('submitted')
+COMPLETED = STATUSES.get_value('completed')
 
 
 class DictSexTestCase(TestCase):
@@ -170,6 +178,83 @@ class SubmissionTestCase(TestCase):
         reference = "Cryoweb (United Kingdom, test)"
 
         self.assertEqual(reference, test)
+
+    def test_waiting(self):
+        """Test waiting status"""
+
+        # force submission status
+        self.submission.status = WAITING
+
+        # test my helper methods
+        self.assertFalse(self.submission.can_edit())
+        self.assertFalse(self.submission.can_validate())
+        self.assertFalse(self.submission.can_submit())
+
+    def test_loaded(self):
+        """Test loaded status"""
+
+        # force submission status
+        self.submission.status = LOADED
+
+        # test my helper methods
+        self.assertTrue(self.submission.can_edit())
+        self.assertTrue(self.submission.can_validate())
+        self.assertFalse(self.submission.can_submit())
+
+    def test_submitted(self):
+        """Test submitted status"""
+
+        # force submission status
+        self.submission.status = SUBMITTED
+
+        # test my helper methods
+        self.assertFalse(self.submission.can_edit())
+        self.assertFalse(self.submission.can_validate())
+        self.assertFalse(self.submission.can_submit())
+
+    def test_error(self):
+        """Test error status"""
+
+        # force submission status
+        self.submission.status = ERROR
+
+        # test my helper methods
+        self.assertTrue(self.submission.can_edit())
+        self.assertFalse(self.submission.can_validate())
+        self.assertFalse(self.submission.can_submit())
+
+    def test_need_revision(self):
+        """Test need_revision status"""
+
+        # force submission status
+        self.submission.status = NEED_REVISION
+
+        # test my helper methods
+        self.assertTrue(self.submission.can_edit())
+        self.assertTrue(self.submission.can_validate())
+        self.assertFalse(self.submission.can_submit())
+
+    def test_ready(self):
+        """Test ready status"""
+
+        # force submission status
+        self.submission.status = READY
+
+        # test my helper methods
+        self.assertTrue(self.submission.can_edit())
+        self.assertTrue(self.submission.can_validate())
+        self.assertTrue(self.submission.can_submit())
+
+    def test_completed(self):
+        """Test completed status"""
+
+        # force submission status
+        self.submission.status = COMPLETED
+
+        # test my helper methods
+        self.assertTrue(self.submission.can_edit())
+        self.assertFalse(self.submission.can_validate())
+        self.assertFalse(self.submission.can_submit())
 
 
 class AnimalTestCase(PersonMixinTestCase, TestCase):

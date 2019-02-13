@@ -984,6 +984,42 @@ class Submission(BaseMixin, models.Model):
     def get_absolute_url(self):
         return reverse("submissions:detail", kwargs={"pk": self.pk})
 
+    def __can_I(self, names):
+        """Return True id self.status in statuses"""
+
+        statuses = [x.value[0] for x in STATUSES if x.name in names]
+
+        if self.status not in statuses:
+            return True
+
+        else:
+            return False
+
+    def can_edit(self):
+        """Returns True if I can edit a submission"""
+
+        names = ['waiting', 'submitted']
+
+        return self.__can_I(names)
+
+    def can_validate(self):
+        names = ['error', 'waiting', 'submitted', 'completed']
+
+        return self.__can_I(names)
+
+    def can_submit(self):
+        names = ['ready']
+
+        # this is the opposite of self.__can_I
+        statuses = [x.value[0] for x in STATUSES if x.name in names]
+
+        # self.status need to be in statuses for submitting
+        if self.status in statuses:
+            return True
+
+        else:
+            return False
+
 
 # --- Custom functions
 

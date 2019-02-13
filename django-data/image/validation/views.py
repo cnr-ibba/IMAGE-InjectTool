@@ -46,6 +46,7 @@ class ValidateView(LoginRequiredMixin, FormView):
         self.submission_id = submission_id
 
         # check if I can validate object (statuses)
+        # TODO: check if I can submit by dispatch method
         if not can_validate(submission):
             # return super method (which calls get_success_url)
             logger.error(

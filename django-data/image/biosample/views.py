@@ -100,7 +100,7 @@ class RegisterMixin(object):
                 RegisterMixin, self).dispatch(request, *args, **kwargs)
 
         else:
-            logger.warning("Error for user:%s: Already rtegistered" % user)
+            logger.warning("Error for user:%s: Already registered" % user)
             messages.warning(
                 request=self.request,
                 message='Your biosample account is already registered',
@@ -437,6 +437,7 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
         self.submission_id = submission_id
 
         # check if I can submit object (statuses)
+        # TODO: check if I can submit by dispatch method
         if not can_submit(submission):
             # return super method (which calls get_success_url)
             logger.error(

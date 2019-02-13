@@ -90,7 +90,7 @@ class DetailAnimalViewTest(
                     animal_delete_url))
 
 
-class DetailAnimalViewTestMessages(
+class DetailAnimalViewMessagesTest(
         AnimalFeaturesMixin, MessageMixinTestCase, TestCase):
     """Test messages in DetailAnimalView"""
 
