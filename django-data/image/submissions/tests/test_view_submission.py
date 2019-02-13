@@ -6,7 +6,6 @@ Created on Tue Jul 24 11:08:12 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 

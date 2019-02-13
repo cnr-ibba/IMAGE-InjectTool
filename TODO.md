@@ -34,6 +34,9 @@ InjectTool TODO
     the first one?
   - what happens if I update something after submission to biosample? need I track
     what changes I see and patch in a new submission?
+    * No resubmission of already submitted data (with biosample id) if data isn't
+      changed
+    * test for Update of one animal (submit only a thing)
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
 
@@ -160,3 +163,6 @@ InjectTool TODO
     - https://gist.github.com/benbacardi/d6cd0fb8c85e1547c3c60f95f5b2d5e1
   - [customize queryset](https://stackoverflow.com/questions/22902457/django-listview-customising-queryset)
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
+
+* animals and samples module:
+  * prevent data editing and deletion while validation or submission is running

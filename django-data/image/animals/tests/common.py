@@ -22,5 +22,6 @@ class AnimalFeaturesMixin(object):
         'image_app/publication',
         'image_app/sample',
         'image_app/submission',
-        'image_app/user'
+        'image_app/user',
+        'validation/validationresult'
     ]

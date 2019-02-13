@@ -9,6 +9,7 @@ Created on Mon Feb  4 12:34:22 2019
 import logging
 
 from django.contrib import messages
+from django.utils import timezone
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 
 from image_app.models import Animal, STATUSES
@@ -35,6 +36,13 @@ class DetailAnimalView(OwnerMixin, DetailView):
         if hasattr(self.object.name, "validationresult"):
             validation = self.object.name.validationresult
 
+            logger.debug(
+                "Found validationresult: %s->%s" % (
+                    validation, validation.messages))
+
+            # I could have more messages in validation message. They could
+            # be werning or errors, validation.status (overall status)
+            # has no meaning here
             for message in validation.messages:
                 if "Info:" in message:
                     messages.info(
@@ -111,6 +119,7 @@ class UpdateAnimalView(OwnerMixin, UpdateView):
 
         # setting statuses and messages
         self.object.name.status = NEED_REVISION
+        self.object.name.last_changed = timezone.now()
         self.object.name.save()
 
         if hasattr(self.object.name, 'validationresult'):

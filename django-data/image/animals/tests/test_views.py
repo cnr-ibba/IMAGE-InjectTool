@@ -6,12 +6,15 @@ Created on Wed Feb  6 13:52:26 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+from unittest.mock import patch
+
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
+from django.utils import timezone
 
 from common.tests import (
     GeneralMixinTestCase, OwnerMixinTestCase, FormMixinTestCase,
-    InvalidFormMixinTestCase)
+    InvalidFormMixinTestCase, MessageMixinTestCase)
 
 from image_app.models import ACCURACIES, STATUSES, Animal, Submission
 
@@ -27,6 +30,9 @@ MISSING = ACCURACIES.get_value('missing')
 READY = STATUSES.get_value('ready')
 NEED_REVISION = STATUSES.get_value('need_revision')
 LOADED = STATUSES.get_value('loaded')
+
+# get a timestamp
+NOW = timezone.now()
 
 
 class AnimalViewTestMixin(
@@ -83,7 +89,63 @@ class DetailAnimalViewTest(
             'href="{0}"'.format(
                     animal_delete_url))
 
-    # TODO: test messages
+
+class DetailAnimalViewTestMessages(
+        AnimalFeaturesMixin, MessageMixinTestCase, TestCase):
+    """Test messages in DetailAnimalView"""
+
+    def setUp(self):
+        # login a test user (defined in fixture)
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        self.url = reverse('animals:detail', kwargs={'pk': 1})
+
+        # get an animal object
+        animal = Animal.objects.get(pk=1)
+
+        # get validation result
+        self.validationresult = animal.name.validationresult
+
+    def check_message(self, message_type, message_str):
+        """Test messages in DetailAnimalView"""
+
+        self.validationresult.messages = [message_str]
+        self.validationresult.save()
+
+        # get the page
+        response = self.client.get(self.url)
+
+        # check messages (defined in common.tests.MessageMixinTestCase
+        self.check_messages(
+            response,
+            message_type,
+            message_str)
+
+    def test_info_message(self):
+        """Test info message in AnimalDetailView"""
+
+        # define a info string
+        message_str = "Info: test"
+        self.check_message('info', message_str)
+
+    def test_warning_message(self):
+        """Test warning message in AnimalDetailView"""
+
+        # define a warning string
+        message_str = "Warning: test"
+        self.check_message('warning', message_str)
+
+    def test_error_message(self):
+        """Test error message in AnimalDetailView"""
+
+        # define a error string
+        message_str = "Error: test"
+        self.check_message('error', message_str)
+
+        # another error string
+        message_str = "test"
+        self.check_message('error', message_str)
 
 
 class UpdateAnimalViewTest(
@@ -133,10 +195,15 @@ class UpdateAnimalViewTest(
 
 # Here, I'm already tested the urls, csfr. So BaseTest
 class SuccessfulUpdateAnimalViewTest(
-        AnimalFeaturesMixin, TestCase):
+        AnimalFeaturesMixin, MessageMixinTestCase, TestCase):
 
-    def setUp(self):
+    # inspired from https://stackoverflow.com/a/3155865/4385116
+    @patch('animals.views.timezone.now', return_value=NOW)
+    def setUp(self, mytime):
         """call base method"""
+
+        # traclk my mock function
+        self.mytime = mytime
 
         # The values I need to modify
         self.description = "A new description"
@@ -200,6 +267,25 @@ class SuccessfulUpdateAnimalViewTest(
             animal.name.validationresult.messages,
             ['Info: Data has changed, validation has to be called']
         )
+
+    def test_message(self):
+        """Assert 'need validation' message"""
+
+        # check messages (defined in common.tests.MessageMixinTestCase
+        self.check_messages(
+            self.response,
+            "info",
+            "Info: Data has changed, validation has to be called")
+
+    def test_updated_time(self):
+        # get an animal object
+        animal = Animal.objects.get(pk=1)
+
+        # assert my method was called
+        self.assertTrue(self.mytime.called)
+
+        # assert time was updated
+        self.assertEqual(animal.name.last_changed, NOW)
 
 
 class InvalidUpdateSpeciesViewTest(
