@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb  6 13:52:26 2019
+Created on Thu Feb 14 15:48:19 2019
 
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
@@ -13,143 +13,21 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 
 from common.tests import (
-    GeneralMixinTestCase, OwnerMixinTestCase, FormMixinTestCase,
-    InvalidFormMixinTestCase, MessageMixinTestCase)
+    FormMixinTestCase, InvalidFormMixinTestCase, MessageMixinTestCase)
+from image_app.models import Animal, Submission, ACCURACIES
 
-from image_app.models import ACCURACIES, STATUSES, Animal, Submission
-
-from ..views import DetailAnimalView, UpdateAnimalView
+from ..views import UpdateAnimalView
 from ..forms import UpdateAnimalForm
-from .common import AnimalFeaturesMixin
+from .common import (
+    AnimalFeaturesMixin, AnimalViewTestMixin, AnimalStatusMixin, READY,
+    NEED_REVISION, LOADED)
 
 # get accuracy levels
 PRECISE = ACCURACIES.get_value('precise')
 MISSING = ACCURACIES.get_value('missing')
 
-# get statuses
-WAITING = STATUSES.get_value('waiting')
-LOADED = STATUSES.get_value('loaded')
-ERROR = STATUSES.get_value('error')
-READY = STATUSES.get_value('ready')
-NEED_REVISION = STATUSES.get_value('need_revision')
-SUBMITTED = STATUSES.get_value('submitted')
-COMPLETED = STATUSES.get_value('completed')
-
 # get a timestamp
 NOW = timezone.now()
-
-
-class AnimalViewTestMixin(
-        AnimalFeaturesMixin, GeneralMixinTestCase, OwnerMixinTestCase):
-    pass
-
-
-class DetailAnimalViewTest(
-        AnimalViewTestMixin, TestCase):
-
-    def setUp(self):
-        # login a test user (defined in fixture)
-        self.client = Client()
-        self.client.login(username='test', password='test')
-
-        self.url = reverse('animals:detail', kwargs={'pk': 1})
-        self.response = self.client.get(self.url)
-
-    def test_url_resolves_view(self):
-        view = resolve('/animals/1/')
-        self.assertIsInstance(view.func.view_class(), DetailAnimalView)
-
-    def test_edit_not_found_status_code(self):
-        url = reverse('submissions:edit', kwargs={'pk': 99})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_contains_navigation_links(self):
-        """Contain links to ListAnimalView, EditAnimalView DeleteAnimalView
-        and SubmissionEditView"""
-
-        animal_list_url = reverse('animals:list')
-        submission_edit_url = reverse('submissions:detail', kwargs={'pk': 1})
-        animal_update_url = reverse('animals:update', kwargs={'pk': 1})
-        animal_delete_url = reverse('animals:delete', kwargs={'pk': 1})
-
-        self.assertContains(
-            self.response,
-            'href="{0}"'.format(
-                    animal_list_url))
-
-        self.assertContains(
-            self.response,
-            'href="{0}"'.format(
-                    submission_edit_url))
-
-        self.assertContains(
-            self.response,
-            'href="{0}"'.format(
-                    animal_update_url))
-
-        self.assertContains(
-            self.response,
-            'href="{0}"'.format(
-                    animal_delete_url))
-
-
-class DetailAnimalViewMessagesTest(
-        AnimalFeaturesMixin, MessageMixinTestCase, TestCase):
-    """Test messages in DetailAnimalView"""
-
-    def setUp(self):
-        # login a test user (defined in fixture)
-        self.client = Client()
-        self.client.login(username='test', password='test')
-
-        self.url = reverse('animals:detail', kwargs={'pk': 1})
-
-        # get an animal object
-        animal = Animal.objects.get(pk=1)
-
-        # get validation result
-        self.validationresult = animal.name.validationresult
-
-    def check_message(self, message_type, message_str):
-        """Test messages in DetailAnimalView"""
-
-        self.validationresult.messages = [message_str]
-        self.validationresult.save()
-
-        # get the page
-        response = self.client.get(self.url)
-
-        # check messages (defined in common.tests.MessageMixinTestCase
-        self.check_messages(
-            response,
-            message_type,
-            message_str)
-
-    def test_info_message(self):
-        """Test info message in AnimalDetailView"""
-
-        # define a info string
-        message_str = "Info: test"
-        self.check_message('info', message_str)
-
-    def test_warning_message(self):
-        """Test warning message in AnimalDetailView"""
-
-        # define a warning string
-        message_str = "Warning: test"
-        self.check_message('warning', message_str)
-
-    def test_error_message(self):
-        """Test error message in AnimalDetailView"""
-
-        # define a error string
-        message_str = "Error: test"
-        self.check_message('error', message_str)
-
-        # another error string
-        message_str = "test"
-        self.check_message('error', message_str)
 
 
 class UpdateAnimalViewTest(
@@ -205,7 +83,8 @@ class UpdateAnimalViewTest(
         self.assertContains(self.response, 'href="{0}"'.format(link))
 
 
-class UpdateAnimalViewStatusesTest(AnimalFeaturesMixin, TestCase):
+class UpdateAnimalViewStatusesTest(
+        AnimalFeaturesMixin, AnimalStatusMixin, TestCase):
     """Test page access with different submission status"""
 
     def setUp(self):
@@ -220,83 +99,6 @@ class UpdateAnimalViewStatusesTest(AnimalFeaturesMixin, TestCase):
         # set URLS
         self.url = reverse("animals:update", kwargs={'pk': 1})
         self.redirect_url = self.animal.get_absolute_url()
-
-    def test_waiting(self):
-        """Test waiting statuses return to submission detail"""
-
-        # update statuses
-        self.submission.status = WAITING
-        self.submission.save()
-
-        # test redirect
-        response = self.client.get(self.url)
-        self.assertRedirects(response, self.redirect_url)
-
-    def test_loaded(self):
-        """Test loaded status"""
-
-        # force submission status
-        self.submission.status = LOADED
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_submitted(self):
-        """Test submitted status"""
-
-        # force submission status
-        self.submission.status = SUBMITTED
-        self.submission.save()
-
-        # test redirect
-        response = self.client.get(self.url)
-        self.assertRedirects(response, self.redirect_url)
-
-    def test_error(self):
-        """Test error status"""
-
-        # force submission status
-        self.submission.status = ERROR
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_need_revision(self):
-        """Test need_revision status"""
-
-        # force submission status
-        self.submission.status = NEED_REVISION
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_ready(self):
-        """Test ready status"""
-
-        # force submission status
-        self.submission.status = READY
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_completed(self):
-        """Test completed status"""
-
-        # force submission status
-        self.submission.status = COMPLETED
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
 
 
 # Here, I'm already tested the urls, csfr. So BaseTest
