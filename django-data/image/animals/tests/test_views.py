@@ -69,7 +69,7 @@ class DetailAnimalViewTest(
         and SubmissionEditView"""
 
         animal_list_url = reverse('animals:list')
-        submission_edit_url = reverse('submissions:edit', kwargs={'pk': 1})
+        submission_edit_url = reverse('submissions:detail', kwargs={'pk': 1})
         animal_update_url = reverse('animals:update', kwargs={'pk': 1})
         animal_delete_url = reverse('animals:delete', kwargs={'pk': 1})
 

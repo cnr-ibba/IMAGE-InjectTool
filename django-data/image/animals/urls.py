@@ -11,6 +11,9 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+    url(r'list/$',
+        views.AnimaViewlList.as_view(),
+        name='list'),
     url(r'^(?P<pk>[-\w]+)/$',
         views.DetailAnimalView.as_view(),
         name='detail'),
@@ -20,7 +23,4 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/delete/$',
         views.DeleteAnimalView.as_view(),
         name='delete'),
-    url(r'list$',
-        views.AnimaViewlList.as_view(),
-        name='list'),
 ]

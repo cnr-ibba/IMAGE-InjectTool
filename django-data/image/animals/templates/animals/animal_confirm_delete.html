@@ -1,12 +1,70 @@
 
 {% extends "base.html" %}
 
+{% load static %}
+{% load validation_tags %}
+
 {% block title %}
   Animal {{ animal.pk }} Confirm Delete
 {% endblock title %}
 
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock custom-css %}
+
 {% block content %}
 
-<h1>Delete <em>{{ animal.name }}</em></h1>
+<h1 class="text-center logo my-4">
+  Delete <em>{{ animal.name.name }}?</em>
+</h1>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10 col-sm-12">
+    <div class="card">
+      <div class="card-body">
+        {% with animal.sample_set.count as sample_count %}
+          {% if sample_count > 0 %}
+            <h3>All those related samples will be also deleted:</h3>
+            <table class="table table-hover table-responsive-sm">
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Biosample ID</th>
+                  <th scope="col">Validation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sample in animal.sample_set.all %}
+                  <tr class="{% cycle 'table-primary' 'table-secondary' %}">
+                    <th><a href="#" target="_blank">{{ sample.name.name|truncatechars:30 }}</a></th>
+                    <td>{{ sample.name.biosample_id }}</td>
+                    <td>{{ sample.name|get_badge }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <h3>No other samples will be deleted with this animal</h3>
+          {% endif %}
+        {% endwith %}
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <input type="submit" class="btn btn-danger" value="Delete">
+            <a href="javascript:{goBack()}" class="btn btn-secondary" role="button">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock content %}
+
+{% block custom-js %}
+<script>
+  // back to previous page https://www.w3schools.com/jsref/met_his_back.asp
+  function goBack() {
+    console.log(document.referrer);
+    window.history.back();
+  }
+</script>
+{% endblock %}

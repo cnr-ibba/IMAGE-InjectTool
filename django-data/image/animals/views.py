@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 from django.shortcuts import redirect
+from django.urls import reverse
 
 from image_app.models import Animal, STATUSES
 from common.views import OwnerMixin
@@ -166,6 +167,38 @@ class UpdateAnimalView(OwnerMixin, UpdateView):
 class DeleteAnimalView(OwnerMixin, DeleteView):
     model = Animal
     template_name = "animals/animal_confirm_delete.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        handler = super(DeleteAnimalView, self).dispatch(
+                request, *args, **kwargs)
+
+        # here I've done get_queryset. Check for submission status
+        if hasattr(self, "object") and not self.object.can_edit():
+            message = "Cannot delete %s: submission status is: %s" % (
+                    self.object, self.object.submission.get_status_display())
+
+            logger.warning(message)
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect(self.object.get_absolute_url())
+
+        return handler
+
+    def get_success_url(self):
+        message = "Animal %s was successfully deleted" % self.object.name
+        logger.info(message)
+        messages.info(
+            request=self.request,
+            message=message,
+            extra_tags="alert alert-dismissible alert-info")
+
+        return reverse(
+            'submissions:edit',
+            kwargs={'pk': self.object.submission.pk}
+        )
 
 
 class AnimaViewlList(OwnerMixin, ListView):
