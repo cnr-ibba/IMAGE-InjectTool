@@ -27,9 +27,13 @@ PRECISE = ACCURACIES.get_value('precise')
 MISSING = ACCURACIES.get_value('missing')
 
 # get statuses
+WAITING = STATUSES.get_value('waiting')
+LOADED = STATUSES.get_value('loaded')
+ERROR = STATUSES.get_value('error')
 READY = STATUSES.get_value('ready')
 NEED_REVISION = STATUSES.get_value('need_revision')
-LOADED = STATUSES.get_value('loaded')
+SUBMITTED = STATUSES.get_value('submitted')
+COMPLETED = STATUSES.get_value('completed')
 
 # get a timestamp
 NOW = timezone.now()
@@ -161,6 +165,14 @@ class UpdateAnimalViewTest(
         self.client = Client()
         self.client.login(username='test', password='test')
 
+        # get objects
+        self.animal = Animal.objects.get(pk=1)
+        self.submission = self.animal.submission
+
+        # update submission status (to get this url)
+        self.submission.status = READY
+        self.submission.save()
+
         self.url = reverse("animals:update", kwargs={'pk': 1})
         self.response = self.client.get(self.url)
 
@@ -191,6 +203,100 @@ class UpdateAnimalViewTest(
 
         link = "javascript:{goBack()}"
         self.assertContains(self.response, 'href="{0}"'.format(link))
+
+
+class UpdateAnimalViewStatusesTest(AnimalFeaturesMixin, TestCase):
+    """Test page access with different submission status"""
+
+    def setUp(self):
+        # login a test user (defined in fixture)
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        # get objects
+        self.animal = Animal.objects.get(pk=1)
+        self.submission = self.animal.submission
+
+        # set URLS
+        self.url = reverse("animals:update", kwargs={'pk': 1})
+        self.redirect_url = self.animal.get_absolute_url()
+
+    def test_waiting(self):
+        """Test waiting statuses return to submission detail"""
+
+        # update statuses
+        self.submission.status = WAITING
+        self.submission.save()
+
+        # test redirect
+        response = self.client.get(self.url)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_loaded(self):
+        """Test loaded status"""
+
+        # force submission status
+        self.submission.status = LOADED
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_submitted(self):
+        """Test submitted status"""
+
+        # force submission status
+        self.submission.status = SUBMITTED
+        self.submission.save()
+
+        # test redirect
+        response = self.client.get(self.url)
+        self.assertRedirects(response, self.redirect_url)
+
+    def test_error(self):
+        """Test error status"""
+
+        # force submission status
+        self.submission.status = ERROR
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_need_revision(self):
+        """Test need_revision status"""
+
+        # force submission status
+        self.submission.status = NEED_REVISION
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_ready(self):
+        """Test ready status"""
+
+        # force submission status
+        self.submission.status = READY
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_completed(self):
+        """Test completed status"""
+
+        # force submission status
+        self.submission.status = COMPLETED
+        self.submission.save()
+
+        # test no redirect
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
 
 
 # Here, I'm already tested the urls, csfr. So BaseTest

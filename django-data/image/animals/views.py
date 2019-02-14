@@ -11,6 +11,7 @@ import logging
 from django.contrib import messages
 from django.utils import timezone
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
+from django.shortcuts import redirect
 
 from image_app.models import Animal, STATUSES
 from common.views import OwnerMixin
@@ -82,6 +83,25 @@ class UpdateAnimalView(OwnerMixin, UpdateView):
     form_class = UpdateAnimalForm
     model = Animal
     template_name = "animals/animal_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        handler = super(UpdateAnimalView, self).dispatch(
+                request, *args, **kwargs)
+
+        # here I've done get_queryset. Check for submission status
+        if hasattr(self, "object") and not self.object.can_edit():
+            message = "Cannot edit %s: submission status is: %s" % (
+                    self.object, self.object.submission.get_status_display())
+
+            logger.warning(message)
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect(self.object.get_absolute_url())
+
+        return handler
 
     def get_initial(self):
         """
