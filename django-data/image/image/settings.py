@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'submissions',
     'validation',
     'animals',
+    'samples'
 ]
 
 MIDDLEWARE = [
@@ -220,6 +221,10 @@ LOGGING = {
             'handlers': ['console'],
         },
         'animals': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'samples': {
             'level': 'DEBUG',
             'handlers': ['console'],
         },

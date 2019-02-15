@@ -65,6 +65,10 @@ urlpatterns = [
         include(
             ('animals.urls', 'animals'),
             namespace='animals')),
+    url(r'^samples/',
+        include(
+            ('samples.urls', 'samples'),
+            namespace='samples')),
     url(r'^admin/', admin.site.urls),
     url(r'^about/$', AboutView.as_view(), name='about'),
     url(r"^protected/(?P<path>.*)$",
