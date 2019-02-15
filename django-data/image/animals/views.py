@@ -10,15 +10,13 @@ import logging
 
 from django.db import transaction
 from django.contrib import messages
-from django.utils import timezone
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
-from django.shortcuts import redirect
-from django.urls import reverse
 from django.http import HttpResponseRedirect
 
 from image_app.models import Animal, STATUSES
-from common.views import OwnerMixin
-from validation.models import ValidationResult as ValidationResultModel
+from common.views import (
+    DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
+    ListMaterialMixin)
 
 from .forms import UpdateAnimalForm
 
@@ -29,82 +27,15 @@ logger = logging.getLogger(__name__)
 NEED_REVISION = STATUSES.get_value('need_revision')
 
 
-class DetailAnimalView(OwnerMixin, DetailView):
+class DetailAnimalView(DetailMaterialMixin, DetailView):
     model = Animal
     template_name = "animals/animal_detail.html"
 
-    def get_context_data(self, **kwargs):
-        data = super().get_context_data(**kwargs)
 
-        # get a validationresult obj
-        if hasattr(self.object.name, "validationresult"):
-            validation = self.object.name.validationresult
-
-            logger.debug(
-                "Found validationresult: %s->%s" % (
-                    validation, validation.messages))
-
-            # I could have more messages in validation message. They could
-            # be werning or errors, validation.status (overall status)
-            # has no meaning here
-            for message in validation.messages:
-                if "Info:" in message:
-                    messages.info(
-                        request=self.request,
-                        message=message,
-                        extra_tags="alert alert-dismissible alert-info")
-
-                elif "Warning:" in message:
-                    messages.warning(
-                        request=self.request,
-                        message=message,
-                        extra_tags="alert alert-dismissible alert-warning")
-
-                # the other validation messages are threated like errors
-                else:
-                    messages.error(
-                        request=self.request,
-                        message=message,
-                        extra_tags="alert alert-dismissible alert-danger")
-
-            # cicle for a message in validation.messages
-
-        # condition: I have validation result
-        return data
-
-    def get_queryset(self):
-        """Override get_queryset"""
-
-        qs = super(DetailAnimalView, self).get_queryset()
-        return qs.select_related(
-            "name",
-            "name__validationresult",
-            "name__submission")
-
-
-class UpdateAnimalView(OwnerMixin, UpdateView):
+class UpdateAnimalView(UpdateMaterialMixin, UpdateView):
     form_class = UpdateAnimalForm
     model = Animal
     template_name = "animals/animal_form.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        handler = super(UpdateAnimalView, self).dispatch(
-                request, *args, **kwargs)
-
-        # here I've done get_queryset. Check for submission status
-        if hasattr(self, "object") and not self.object.can_edit():
-            message = "Cannot edit %s: submission status is: %s" % (
-                    self.object, self.object.submission.get_status_display())
-
-            logger.warning(message)
-            messages.warning(
-                request=self.request,
-                message=message,
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect(self.object.get_absolute_url())
-
-        return handler
 
     def get_initial(self):
         """
@@ -120,80 +51,10 @@ class UpdateAnimalView(OwnerMixin, UpdateView):
 
         return initial
 
-    # add the request to the kwargs
-    # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
-    def get_form_kwargs(self):
-        kwargs = super(UpdateAnimalView, self).get_form_kwargs()
-        kwargs['request'] = self.request
-        return kwargs
 
-    # override UpdateView.get_form() method. Initialize a form object
-    # and pass submission into it. Self object is the animal object I
-    # want to update
-    def get_form(self):
-        return self.form_class(
-            self.object, **self.get_form_kwargs())
-
-    # override form valid istance
-    def form_valid(self, form):
-        self.object = form.save(commit=False)
-
-        # HINT: validate object?
-
-        # setting statuses and messages
-        self.object.name.status = NEED_REVISION
-        self.object.name.last_changed = timezone.now()
-        self.object.name.save()
-
-        if hasattr(self.object.name, 'validationresult'):
-            validationresult = self.object.name.validationresult
-        else:
-            validationresult = ValidationResultModel()
-            self.object.name.validationresult = validationresult
-
-        validationresult.messages = [
-            'Info: Data has changed, validation has to be called']
-        validationresult.status = "Info"
-        validationresult.save()
-
-        # Override submission status
-        self.object.submission.status = NEED_REVISION
-        self.object.submission.message = (
-            "Data has changed, validation has to be called")
-        self.object.submission.save()
-
-        # save object and return HttpResponseRedirect(self.get_success_url())
-        return super().form_valid(form)
-
-
-class DeleteAnimalView(OwnerMixin, DeleteView):
+class DeleteAnimalView(DeleteMaterialMixin, DeleteView):
     model = Animal
     template_name = "animals/animal_confirm_delete.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        handler = super(DeleteAnimalView, self).dispatch(
-                request, *args, **kwargs)
-
-        # here I've done get_queryset. Check for submission status
-        if hasattr(self, "object") and not self.object.can_edit():
-            message = "Cannot delete %s: submission status is: %s" % (
-                    self.object, self.object.submission.get_status_display())
-
-            logger.warning(message)
-            messages.warning(
-                request=self.request,
-                message=message,
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect(self.object.get_absolute_url())
-
-        return handler
-
-    def get_success_url(self):
-        return reverse(
-            'submissions:edit',
-            kwargs={'pk': self.object.submission.pk}
-        )
 
     # ovverride the default detail method.
     # HINT: Suppose I want to delete an animal
@@ -259,7 +120,7 @@ class DeleteAnimalView(OwnerMixin, DeleteView):
         return HttpResponseRedirect(success_url)
 
 
-class ListAnimalView(OwnerMixin, ListView):
+class ListAnimalView(ListMaterialMixin, ListView):
     model = Animal
     template_name = "animals/animal_list.html"
     paginate_by = 10

@@ -10,8 +10,10 @@ import logging
 
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 
-from common.views import OwnerMixin
-from image_app.models import Sample, STATUSES
+from image_app.models import Sample
+from common.views import (
+    DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
+    ListMaterialMixin)
 
 from .forms import UpdateSampleForm
 
@@ -19,33 +21,24 @@ from .forms import UpdateSampleForm
 logger = logging.getLogger(__name__)
 
 
-class DetailSampleView(OwnerMixin, DetailView):
+class DetailSampleView(DetailMaterialMixin, DetailView):
     model = Sample
     template_name = "samples/sample_detail.html"
 
 
-class UpdateSampleView(OwnerMixin, UpdateView):
+class UpdateSampleView(UpdateMaterialMixin, UpdateView):
     form_class = UpdateSampleForm
     model = Sample
     template_name = "samples/sample_form.html"
 
 
-class DeleteSampleView(OwnerMixin, DeleteView):
+class DeleteSampleView(DeleteMaterialMixin, DeleteView):
     model = Sample
     template_name = "samples/sample_confirm_delete.html"
 
 
-class ListSampleView(OwnerMixin, ListView):
+class ListSampleView(ListMaterialMixin, ListView):
     model = Sample
     template_name = "samples/sample_list.html"
     paginate_by = 10
     ordering = ["name__submission"]
-
-    def get_queryset(self):
-        """Override get_queryset"""
-
-        qs = super(ListSampleView, self).get_queryset()
-        return qs.select_related(
-            "name",
-            "name__validationresult",
-            "name__submission")

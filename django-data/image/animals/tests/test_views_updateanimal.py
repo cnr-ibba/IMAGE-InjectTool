@@ -106,7 +106,7 @@ class SuccessfulUpdateAnimalViewTest(
         AnimalFeaturesMixin, MessageMixinTestCase, TestCase):
 
     # inspired from https://stackoverflow.com/a/3155865/4385116
-    @patch('animals.views.timezone.now', return_value=NOW)
+    @patch('common.views.timezone.now', return_value=NOW)
     def setUp(self, mytime):
         """call base method"""
 
