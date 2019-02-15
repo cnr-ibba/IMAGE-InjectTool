@@ -12,7 +12,7 @@ from . import views
 
 urlpatterns = [
     url(r'list/$',
-        views.AnimaViewlList.as_view(),
+        views.ListAnimalView.as_view(),
         name='list'),
     url(r'^(?P<pk>[-\w]+)/$',
         views.DetailAnimalView.as_view(),

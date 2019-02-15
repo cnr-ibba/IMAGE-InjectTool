@@ -183,7 +183,7 @@ class SuccessfulDeleteAnimalViewTest(
         self.assertEqual(self.submission.status, READY)
 
     def test_message(self):
-        """Assert 'need validation' message"""
+        """Assert 'successfully deleted' message"""
 
         # check messages (defined in common.tests.MessageMixinTestCase
         self.check_messages(

@@ -38,7 +38,15 @@ class ListSubmissionViewTest(
     def test_content(self):
         """Assert submission in list"""
 
-        self.assertContains(self.response, "image test data")
+        # get animal queryset
+        qs = self.response.context['submission_list']
+
+        # assert one animal for this user
+        self.assertEqual(qs.count(), 1)
+
+        # test submission in context data
+        submission = qs.first()
+        self.assertEqual(submission.description, "image test data")
 
     def test_ownership(self):
         """Test a non-owner have no submission. But I can access the page"""
@@ -50,6 +58,12 @@ class ListSubmissionViewTest(
 
         # I will get a submission list, but I won't see loaded data
         self.assertNotContains(response, "image test data")
+
+        # get submission queryset
+        qs = response.context['submission_list']
+
+        # assert no animals for this user
+        self.assertEqual(qs.count(), 0)
 
     def test_url_resolves_view(self):
         view = resolve('/submissions/list/')

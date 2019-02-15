@@ -99,21 +99,21 @@ class DetailAnimalViewMessagesTest(
             message_str)
 
     def test_info_message(self):
-        """Test info message in AnimalDetailView"""
+        """Test info message in DetailAnimalView"""
 
         # define a info string
         message_str = "Info: test"
         self.check_message('info', message_str)
 
     def test_warning_message(self):
-        """Test warning message in AnimalDetailView"""
+        """Test warning message in DetailAnimalView"""
 
         # define a warning string
         message_str = "Warning: test"
         self.check_message('warning', message_str)
 
     def test_error_message(self):
-        """Test error message in AnimalDetailView"""
+        """Test error message in DetailAnimalView"""
 
         # define a error string
         message_str = "Error: test"

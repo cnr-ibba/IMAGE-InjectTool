@@ -259,7 +259,7 @@ class DeleteAnimalView(OwnerMixin, DeleteView):
         return HttpResponseRedirect(success_url)
 
 
-class AnimaViewlList(OwnerMixin, ListView):
+class ListAnimalView(OwnerMixin, ListView):
     model = Animal
     template_name = "animals/animal_list.html"
     paginate_by = 10
@@ -268,7 +268,7 @@ class AnimaViewlList(OwnerMixin, ListView):
     def get_queryset(self):
         """Override get_queryset"""
 
-        qs = super(AnimaViewlList, self).get_queryset()
+        qs = super(ListAnimalView, self).get_queryset()
         return qs.select_related(
             "name",
             "name__validationresult",
