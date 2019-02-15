@@ -544,13 +544,13 @@ class Animal(BioSampleMixin, models.Model):
         'Name',
         on_delete=models.CASCADE,
         null=True,
-        related_name='father_set')
+        related_name='father_of')
 
     mother = models.ForeignKey(
         'Name',
         on_delete=models.CASCADE,
         null=True,
-        related_name='mother_set')
+        related_name='mother_of')
 
     # HINT: and birth date?
 

@@ -147,6 +147,8 @@ InjectTool TODO
   - `contenttypes` framework to model errors?
   - Publications could be placed in Animal/Sample table: it could be easier to
     update cause is specific to Animal/Sample
+  - Having a unknown animal as  mother/father should be equal having this foreign
+    key with a NULL value
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission

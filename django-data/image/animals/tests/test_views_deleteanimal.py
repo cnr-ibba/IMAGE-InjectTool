@@ -9,7 +9,8 @@ Created on Thu Feb 14 16:00:29 2019
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
-from image_app.models import Animal, Sample
+from image_app.models import Animal, Sample, Name
+from validation.models import ValidationResult
 from common.tests import MessageMixinTestCase
 
 from .common import (
@@ -103,6 +104,9 @@ class SuccessfulDeleteAnimalViewTest(
         self.submission.status = READY
         self.submission.save()
 
+        # create a new child for this animal
+        self.child = self.create_child()
+
         self.url = reverse("animals:delete", kwargs={'pk': 1})
         self.response = self.client.post(
             self.url,
@@ -110,22 +114,66 @@ class SuccessfulDeleteAnimalViewTest(
             follow=True
         )
 
+    def create_child(self):
+        """Create a new child animal for testing purpose"""
+
+        # choose mother and father
+        father = Name.objects.get(name='ANIMAL:::ID:::132713')
+        mother = Name.objects.get(name='ANIMAL:::ID:::unknown_dam')
+
+        # create an animal object from an existing one
+        animal = Animal.objects.get(pk=1)
+        name = animal.name
+
+        # create a name, first
+        name.pk = None
+        name.name = "test child"
+        name.save()
+
+        # then create a new animal from animal
+        animal.pk = None
+        animal.name = name
+        animal.father = father
+        animal.mother = mother
+        animal.save()
+
+        return animal
+
     def test_redirect(self):
         url = reverse('submissions:edit', kwargs={'pk': self.submission.pk})
         self.assertRedirects(self.response, url)
 
     def test_animal_delete(self):
-        self.assertRaisesMessage(
-            Animal.DoesNotExist,
-            "Animal matching query does not exist",
-            Animal.objects.get,
-            pk=1)
+        """Deleting an animal will delete its samples, names and
+        validationresults. Its child will be present"""
 
-        self.assertRaisesMessage(
-            Sample.DoesNotExist,
-            "Sample matching query does not exist",
-            Sample.objects.get,
-            pk=1)
+        # One animal present
+        n_animals = Animal.objects.count()
+        self.assertEqual(n_animals, 1)
+        test = Animal.objects.get(pk=2)
+
+        # assert child father and mother
+        self.assertIsNone(test.father)
+        mother = Name.objects.get(name='ANIMAL:::ID:::unknown_dam')
+        self.assertEqual(test.mother, mother)
+
+        # nor its samples
+        n_samples = Sample.objects.count()
+        self.assertEqual(n_samples, 0)
+
+        # names will be deleted
+        n_names = Name.objects.count()
+        self.assertEqual(n_names, 3)
+
+        # check for ramaining names
+        names = [name.name for name in Name.objects.all()]
+        self.assertIn("ANIMAL:::ID:::unknown_sire", names)
+        self.assertIn("ANIMAL:::ID:::unknown_dam", names)
+        self.assertIn("test child", names)
+
+        # check for validationresults
+        n_validation = ValidationResult.objects.count()
+        self.assertEqual(n_validation, 0)
 
     def test_statuses(self):
         # reload submission

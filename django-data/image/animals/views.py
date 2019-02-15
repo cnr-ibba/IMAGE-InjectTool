@@ -8,11 +8,13 @@ Created on Mon Feb  4 12:34:22 2019
 
 import logging
 
+from django.db import transaction
 from django.contrib import messages
 from django.utils import timezone
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.http import HttpResponseRedirect
 
 from image_app.models import Animal, STATUSES
 from common.views import OwnerMixin
@@ -188,17 +190,73 @@ class DeleteAnimalView(OwnerMixin, DeleteView):
         return handler
 
     def get_success_url(self):
+        return reverse(
+            'submissions:edit',
+            kwargs={'pk': self.object.submission.pk}
+        )
+
+    # ovverride the default detail method.
+    # HINT: Suppose I want to delete an animal
+    # that is mother or father of another one. Should I delete its child
+    # element? for the moment, I will disconnect all its child from this
+    # object. All its child will have unknown father and mother
+    def delete(self, request, *args, **kwargs):
+        """
+        Calls the delete() method on the fetched object, does all stuff and
+        then redirects to the success URL.
+        """
+
+        self.object = self.get_object()
+        logger.debug("Got animal: %s" % (self.object))
+        success_url = self.get_success_url()
+
+        # get the related name object
+        name = self.object.name
+        logger.debug("Got name: %s" % (name))
+
+        # get its samples and their names
+        samples = self.object.sample_set.all()
+        logger.debug("Got samples: %s" % (samples))
+
+        # deleting object in a transaction
+        with transaction.atomic():
+            # delete all child samples
+            for sample in samples:
+                sample_name = sample.name
+
+                logger.debug(
+                    "Deleting sample:%s and name:%s" % (sample, sample_name))
+
+                result = sample.delete()
+                logger.debug("%s objects deleted" % str(result))
+
+                result = sample_name.delete()
+                logger.debug("%s objects deleted" % str(result))
+
+            # clear all child from this animal
+            logger.debug("Clearing all childs from this animal")
+            name.mother_of.clear()
+            name.father_of.clear()
+
+            # delete this animal object
+            logger.debug(
+                "Deleting animal:%s and name:%s" % (self.object, name))
+
+            result = self.object.delete()
+            logger.debug("%s objects deleted" % str(result))
+
+            result = name.delete()
+            logger.debug("%s objects deleted" % str(result))
+
         message = "Animal %s was successfully deleted" % self.object.name
         logger.info(message)
+
         messages.info(
             request=self.request,
             message=message,
             extra_tags="alert alert-dismissible alert-info")
 
-        return reverse(
-            'submissions:edit',
-            kwargs={'pk': self.object.submission.pk}
-        )
+        return HttpResponseRedirect(success_url)
 
 
 class AnimaViewlList(OwnerMixin, ListView):

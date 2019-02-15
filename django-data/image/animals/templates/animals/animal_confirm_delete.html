@@ -47,6 +47,7 @@
             <h3>No other samples will be deleted with this animal</h3>
           {% endif %}
         {% endwith %}
+        <p class="text-info">Animals derived from this one will be set with unknown parent</p>
         <form method="post" enctype="multipart/form-data" novalidate>
             {% csrf_token %}
             <input type="submit" class="btn btn-danger" value="Delete">
