@@ -14,12 +14,12 @@ from django.utils import timezone
 
 from common.tests import (
     FormMixinTestCase, InvalidFormMixinTestCase, MessageMixinTestCase)
-from image_app.models import Animal, Submission, ACCURACIES
+from image_app.models import Sample, Submission, ACCURACIES
 
-from ..views import UpdateAnimalView
-from ..forms import UpdateAnimalForm
+from ..views import UpdateSampleView
+from ..forms import UpdateSampleForm
 from .common import (
-    AnimalFeaturesMixin, AnimalViewTestMixin, AnimalStatusMixin, READY,
+    SampleFeaturesMixin, SampleViewTestMixin, SampleStatusMixin, READY,
     NEED_REVISION, LOADED)
 
 # get accuracy levels
@@ -30,11 +30,11 @@ MISSING = ACCURACIES.get_value('missing')
 NOW = timezone.now()
 
 
-class UpdateAnimalViewTest(
-        FormMixinTestCase, AnimalViewTestMixin, TestCase):
+class UpdateSampleViewTest(
+        FormMixinTestCase, SampleViewTestMixin, TestCase):
 
     # required by FormMixinTestCase
-    form_class = UpdateAnimalForm
+    form_class = UpdateSampleForm
 
     def setUp(self):
         """call base method"""
@@ -44,37 +44,37 @@ class UpdateAnimalViewTest(
         self.client.login(username='test', password='test')
 
         # get objects
-        self.animal = Animal.objects.get(pk=1)
-        self.submission = self.animal.submission
+        self.sample = Sample.objects.get(pk=1)
+        self.submission = self.sample.submission
 
         # update submission status (to get this url)
         self.submission.status = READY
         self.submission.save()
 
-        self.url = reverse("animals:update", kwargs={'pk': 1})
+        self.url = reverse("samples:update", kwargs={'pk': 1})
         self.response = self.client.get(self.url)
 
     def test_url_resolves_view(self):
-        view = resolve('/animals/1/update/')
-        self.assertIsInstance(view.func.view_class(), UpdateAnimalView)
+        view = resolve('/samples/1/update/')
+        self.assertIsInstance(view.func.view_class(), UpdateSampleView)
 
     def test_reload_not_found_status_code(self):
-        url = reverse('animals:update', kwargs={'pk': 99})
+        url = reverse('samples:update', kwargs={'pk': 99})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
     def test_form_inputs(self):
         # csrfmiddlewaretoken is tested by FormMixinTestCase
-        self.assertContains(self.response, '<div class="form-group">', 11)
-        self.assertContains(self.response, '<input type="text"', 6)
-        self.assertContains(self.response, '<input type="number"', 2)
+        self.assertContains(self.response, '<div class="form-group">', 18)
+        self.assertContains(self.response, '<input type="text"', 11)
+        self.assertContains(self.response, '<input type="number"', 4)
         self.assertContains(self.response, '<select ', 3)
         self.assertContains(
-            self.response, '<select name="breed"', 1)
+            self.response, '<select name="collection_place_accuracy"', 1)
         self.assertContains(
-            self.response, '<select name="sex"', 1)
+            self.response, '<select name="organism_part"', 1)
         self.assertContains(
-            self.response, '<select name="birth_location_accuracy"', 1)
+            self.response, '<select name="developmental_stage"', 1)
 
     def test_contains_navigation_links(self):
         """Testing link to a javascript function"""
@@ -83,8 +83,8 @@ class UpdateAnimalViewTest(
         self.assertContains(self.response, 'href="{0}"'.format(link))
 
 
-class UpdateAnimalViewStatusesTest(
-        AnimalFeaturesMixin, AnimalStatusMixin, TestCase):
+class UpdateSampleViewStatusesTest(
+        SampleFeaturesMixin, SampleStatusMixin, TestCase):
     """Test page access with different submission status"""
 
     def setUp(self):
@@ -93,17 +93,17 @@ class UpdateAnimalViewStatusesTest(
         self.client.login(username='test', password='test')
 
         # get objects
-        self.animal = Animal.objects.get(pk=1)
-        self.submission = self.animal.submission
+        self.sample = Sample.objects.get(pk=1)
+        self.submission = self.sample.submission
 
         # set URLS
-        self.url = reverse("animals:update", kwargs={'pk': 1})
-        self.redirect_url = self.animal.get_absolute_url()
+        self.url = reverse("samples:update", kwargs={'pk': 1})
+        self.redirect_url = self.sample.get_absolute_url()
 
 
 # Here, I'm already tested the urls, csfr. So BaseTest
-class SuccessfulUpdateAnimalViewTest(
-        AnimalFeaturesMixin, MessageMixinTestCase, TestCase):
+class SuccessfulUpdateSampleViewTest(
+        SampleFeaturesMixin, MessageMixinTestCase, TestCase):
 
     # inspired from https://stackoverflow.com/a/3155865/4385116
     @patch('common.views.timezone.now', return_value=NOW)
@@ -130,33 +130,32 @@ class SuccessfulUpdateAnimalViewTest(
         self.client = Client()
         self.client.login(username='test', password='test')
 
-        self.url = reverse("animals:update", kwargs={'pk': 1})
+        self.url = reverse("samples:update", kwargs={'pk': 1})
         self.response = self.client.post(
             self.url,
             {'alternative_id': 11,
              'description': self.description,
-             "breed": 1,
-             "sex": 1,
-             'birth_location': self.location,
-             'birth_location_latitude': self.latitude,
-             'birth_location_longitude': self.longitude,
-             'birth_location_accuracy': PRECISE},
+             'collection_place': self.location,
+             'collection_place_latitude': self.latitude,
+             'collection_place_longitude': self.longitude,
+             'collection_place_accuracy': PRECISE,
+             'organism_part': 1},
             follow=True
         )
 
     def test_redirect(self):
-        url = reverse("animals:detail", kwargs={'pk': 1})
+        url = reverse("samples:detail", kwargs={'pk': 1})
         self.assertRedirects(self.response, url)
 
-    def test_animal_updated(self):
-        # get an animal object
-        animal = Animal.objects.get(pk=1)
+    def test_sample_updated(self):
+        # get an sample object
+        sample = Sample.objects.get(pk=1)
 
-        self.assertEqual(animal.description, self.description)
-        self.assertEqual(animal.birth_location, self.location)
-        self.assertEqual(animal.birth_location_latitude, self.latitude)
-        self.assertEqual(animal.birth_location_longitude, self.longitude)
-        self.assertEqual(animal.birth_location_accuracy, PRECISE)
+        self.assertEqual(sample.description, self.description)
+        self.assertEqual(sample.collection_place, self.location)
+        self.assertEqual(sample.collection_place_latitude, self.latitude)
+        self.assertEqual(sample.collection_place_longitude, self.longitude)
+        self.assertEqual(sample.collection_place_accuracy, PRECISE)
 
     def test_statuses(self):
         # reload submission
@@ -166,14 +165,14 @@ class SuccessfulUpdateAnimalViewTest(
         self.assertEqual(self.submission.status, NEED_REVISION)
         self.assertIn("Data has changed", self.submission.message)
 
-        # get an animal object
-        animal = Animal.objects.get(pk=1)
+        # get an sample object
+        sample = Sample.objects.get(pk=1)
 
-        # test status for animal
-        self.assertEqual(animal.name.status, NEED_REVISION)
-        self.assertEqual(animal.name.validationresult.status, 'Info')
+        # test status for sample
+        self.assertEqual(sample.name.status, NEED_REVISION)
+        self.assertEqual(sample.name.validationresult.status, 'Info')
         self.assertListEqual(
-            animal.name.validationresult.messages,
+            sample.name.validationresult.messages,
             ['Info: Data has changed, validation has to be called']
         )
 
@@ -187,18 +186,18 @@ class SuccessfulUpdateAnimalViewTest(
             "Info: Data has changed, validation has to be called")
 
     def test_updated_time(self):
-        # get an animal object
-        animal = Animal.objects.get(pk=1)
+        # get an sample object
+        sample = Sample.objects.get(pk=1)
 
         # assert my method was called
         self.assertTrue(self.mytime.called)
 
         # assert time was updated
-        self.assertEqual(animal.name.last_changed, NOW)
+        self.assertEqual(sample.name.last_changed, NOW)
 
 
-class InvalidUpdateAnimalViewTest(
-        AnimalFeaturesMixin, InvalidFormMixinTestCase, TestCase):
+class InvalidUpdateSampleViewTest(
+        SampleFeaturesMixin, InvalidFormMixinTestCase, TestCase):
 
     def setUp(self):
         """call base method"""
@@ -220,28 +219,31 @@ class InvalidUpdateAnimalViewTest(
         self.client = Client()
         self.client.login(username='test', password='test')
 
-        self.url = reverse("animals:update", kwargs={'pk': 1})
+        self.url = reverse("samples:update", kwargs={'pk': 1})
 
         # there are no mandatory fields. Check against known validators
         # and not providing breeds and sex
         self.response = self.client.post(
             self.url,
-            {'description': self.description,
-             'birth_location': self.location,
-             'birth_location_latitude': self.latitude,
-             'birth_location_longitude': self.longitude,
-             'birth_location_accuracy': PRECISE},
+            {'alternative_id': 11,
+             'description': self.description,
+             'collection_place': self.location,
+             'collection_place_latitude': self.latitude,
+             'collection_place_longitude': self.longitude,
+             'collection_place_accuracy': PRECISE,
+             'organism_part': 1},
             follow=True)
 
     def test_no_update(self):
-        # get an animal object
-        animal = Animal.objects.get(pk=1)
+        # get an sample object
+        sample = Sample.objects.get(pk=1)
 
-        self.assertEqual(animal.description, "a 4-year old pig organic fed")
-        self.assertEqual(animal.birth_location, None)
-        self.assertEqual(animal.birth_location_latitude, None)
-        self.assertEqual(animal.birth_location_longitude, None)
-        self.assertEqual(animal.birth_location_accuracy, MISSING)
+        self.assertEqual(
+            sample.description, "semen collected when the animal turns to 4")
+        self.assertEqual(sample.collection_place, "deutschland")
+        self.assertEqual(sample.collection_place_latitude, None)
+        self.assertEqual(sample.collection_place_longitude, None)
+        self.assertEqual(sample.collection_place_accuracy, MISSING)
 
     def test_statuses(self):
         # reload submission
@@ -250,8 +252,8 @@ class InvalidUpdateAnimalViewTest(
         # test status for submission
         self.assertEqual(self.submission.status, READY)
 
-        # get an animal object
-        animal = Animal.objects.get(pk=1)
+        # get an sample object
+        sample = Sample.objects.get(pk=1)
 
-        # test status for animal (default one)
-        self.assertEqual(animal.name.status, LOADED)
+        # test status for sample (default one)
+        self.assertEqual(sample.name.status, LOADED)

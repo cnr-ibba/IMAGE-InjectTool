@@ -31,6 +31,19 @@ class UpdateSampleView(UpdateMaterialMixin, UpdateView):
     model = Sample
     template_name = "samples/sample_form.html"
 
+    def get_initial(self):
+        """
+        Returns the initial data to use for forms on this view.
+        """
+
+        initial = super(UpdateSampleView, self).get_initial()
+
+        # Add name, animal
+        initial['disabled_name'] = self.object.name
+        initial['disabled_animal'] = self.object.animal
+
+        return initial
+
 
 class DeleteSampleView(DeleteMaterialMixin, DeleteView):
     model = Sample

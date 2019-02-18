@@ -705,6 +705,7 @@ class Sample(BioSampleMixin, models.Model):
     developmental_stage = models.ForeignKey(
         'DictStage',
         null=True,
+        blank=True,
         on_delete=models.PROTECT)
 
     physiological_stage = models.CharField(
@@ -803,6 +804,9 @@ class Sample(BioSampleMixin, models.Model):
         }]
 
         return result
+
+    def get_absolute_url(self):
+        return reverse("samples:detail", kwargs={"pk": self.pk})
 
 
 class Person(BaseMixin, models.Model):
