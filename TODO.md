@@ -59,8 +59,7 @@ InjectTool TODO
     [here](https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html).
     Others solutions could be [autocomplete fields](http://django-extensions.readthedocs.io/en/latest/admin_extensions.html?highlight=ForeignKeyAutocompleteAdmin)
     or using [django-salmonella](https://github.com/lincolnloop/django-dynamic-raw-id)
-  - django admin will be not accessible to normal user?
-  - Using LoginRequiredMixing for class based view authentication (update all classes)
+  - Using LoginRequiredMixin for class based view authentication (update all classes)
   - django `contettype` framework to model relations between Name and Sample and
     animal
   - see [django_filters](https://django-filter.readthedocs.io/) and [django_tables](https://django-tables2.readthedocs.io/en/latest/).
@@ -78,8 +77,6 @@ InjectTool TODO
 
 * Data validation:
   - will be managed by a IMAGE-ValidationTool, structured as a python package
-  - could error message be shorter?
-  - how to integrate with django-forms?
   - Can I submit with a Warning message?
   - mock up time consuming modules (`validation.tests.test_helpers`)
   - Can validation start after data load, and after calling zooma? See celery
@@ -168,7 +165,3 @@ InjectTool TODO
     - https://gist.github.com/benbacardi/d6cd0fb8c85e1547c3c60f95f5b2d5e1
   - [customize queryset](https://stackoverflow.com/questions/22902457/django-listview-customising-queryset)
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
-
-* animals and samples module:
-  * prevent data editing and deletion while validation or submission is running
-    - defining templatetags and blocking views while those processes run
