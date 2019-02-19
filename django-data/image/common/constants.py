@@ -97,3 +97,7 @@ UNKNOWN = ACCURACIES.get_value('unknown')
 CRYOWEB_TYPE = DATA_TYPES.get_value('cryoweb')
 TEMPLATE_TYPE = DATA_TYPES.get_value('template')
 CRB_ANIM_TYPE = DATA_TYPES.get_value('crb_anim')
+
+# get different confidence statuses
+GOOD = CONFIDENCES.get_value('good')
+CURATED = CONFIDENCES.get_value('curated')

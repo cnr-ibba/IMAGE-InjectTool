@@ -14,7 +14,7 @@ import urllib
 
 import requests
 
-from image_app.models import CONFIDENCES
+from common.constants import CONFIDENCES
 
 from .constants import ZOOMA_URL, ONTOLOGIES, TAXONOMY_URL
 

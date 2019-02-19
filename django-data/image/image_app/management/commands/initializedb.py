@@ -18,9 +18,9 @@ import os
 
 from django.core.management import BaseCommand
 
-from common.constants import OBO_URL
+from common.constants import OBO_URL, CURATED
 from image_app.models import (DictCountry, DictRole, DictSex, DictSpecie,
-                              Ontology, Organization, CONFIDENCES)
+                              Ontology, Organization)
 from language.models import SpecieSynonim
 
 # Get an instance of a logger
@@ -130,7 +130,7 @@ def fill_Countries():
     country, created = DictCountry.objects.get_or_create(
         label='United Kingdom',
         term='NCIT_C17233',
-        confidence=CONFIDENCES.get_value('curated'))
+        confidence=CURATED)
 
     if created is True:
         logger.info("Created: %s" % (country))
