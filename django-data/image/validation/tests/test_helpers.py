@@ -6,14 +6,15 @@ Created on Tue Jan 22 14:28:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+from image_validation import validation
+from image_validation.static_parameters import ruleset_filename as \
+    IMAGE_RULESET
+from image_validation.ValidationResult import ValidationResultRecord
+
 from django.test import TestCase
 
 from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
-
-from ..helpers import validation
-from ..helpers.ValidationResult import ValidationResultRecord
-from ..constants import IMAGE_RULESET
 
 
 class SubmissionTestCase(PersonMixinTestCase, TestCase):
@@ -66,13 +67,10 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         for animal in animals:
             data += [animal.to_biosample()]
 
-        # get validation results
-        ruleset_results = validation.check_with_ruleset(data, self.rules)
+        for i, record in enumerate(data):
+            result = self.rules.validate(record)
 
-        # test objects
-        self.assertIsInstance(ruleset_results, list)
-
-        for i, result in enumerate(ruleset_results):
+            # assert result type
             self.assertIsInstance(result, ValidationResultRecord)
             self.assertEqual(result.get_overall_status(), reference[i][0])
 
@@ -96,13 +94,10 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         for sample in samples:
             data += [sample.to_biosample()]
 
-        # get validation results
-        ruleset_results = validation.check_with_ruleset(data, self.rules)
+        for i, record in enumerate(data):
+            result = self.rules.validate(record)
 
-        # test objects
-        self.assertIsInstance(ruleset_results, list)
-
-        for i, result in enumerate(ruleset_results):
+            # assert result type
             self.assertIsInstance(result, ValidationResultRecord)
             self.assertEqual(result.get_overall_status(), reference[i][0])
 
@@ -151,8 +146,6 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         reference = [
             ('Wrong JSON structure: no title field for record with '
              'alias as animal_1'),
-            ('Wrong JSON structure: the values for attribute Person '
-             'role needs to be in an array for record animal_1')
         ]
 
         # get my animal
@@ -161,9 +154,25 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
 
         # delete some attributes from animal data
         del(data['title'])
-        data["attributes"]['Person role'] = None
 
         # test for Json structure
         test = validation.check_usi_structure([data])
 
         self.assertEqual(reference, test)
+
+
+class RulesTestCase(TestCase):
+    """Assert that image rules are valid"""
+
+    def setUp(self):
+        self.rules = validation.read_in_ruleset(IMAGE_RULESET)
+
+    def test_check_ruleset(self):
+        """Assert that rules are valid"""
+
+        # get validation results
+        ruleset_check = validation.check_ruleset(self.rules)
+
+        # test image metadata rules
+        self.assertIsInstance(ruleset_check, list)
+        self.assertEqual(len(ruleset_check), 0)

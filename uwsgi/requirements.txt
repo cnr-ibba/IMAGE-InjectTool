@@ -18,3 +18,4 @@ django_celery_beat==1.4.0
 django-celery-email==2.0.1
 git+https://github.com/cnr-ibba/pyUSIrest.git@b07c54830d57603ba052821b43ad36e11bdab62c
 # pyUSIrest==0.2.1
+git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@c465bb3ce7cbebe0dccb6b3638b09b81cf80e81c

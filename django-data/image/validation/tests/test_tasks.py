@@ -75,6 +75,9 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # setting tasks
         self.my_task = ValidateTask()
 
+        # patching rules.validation
+        self.my_task.rules = Mock()
+
     def test_on_failure(self):
         """Testing on failure methods"""
 
@@ -108,30 +111,34 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
     @patch("validation.tasks.ValidateTask.retry")
-    @patch("validation.tasks.validation.check_with_ruleset")
-    def test_validate_retry(self, my_check, my_retry):
+    def test_validate_retry(self, my_retry):
         """Test validation with retry"""
+
+        # get the validation method from task.rules
+        my_validate = self.my_task.rules.validate
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
         my_retry.side_effect = Retry()
-        my_check.side_effect = Exception()
+        my_validate.side_effect = Exception()
 
         with raises(Retry):
             self.my_task.run(submission_id=self.submission_id)
 
-        self.assertTrue(my_check.called)
+        self.assertTrue(my_validate.called)
         self.assertTrue(my_retry.called)
 
     @patch("validation.tasks.ValidateTask.retry")
-    @patch("validation.tasks.validation.check_with_ruleset")
-    def test_issues_with_api(self, my_check, my_retry):
+    def test_issues_with_api(self, my_retry):
         """Test errors with validation API"""
+
+        # get the validation method from task.rules
+        my_validate = self.my_task.rules.validate
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
         my_retry.side_effect = Retry()
-        my_check.side_effect = json.decoder.JSONDecodeError(
+        my_validate.side_effect = json.decoder.JSONDecodeError(
             msg="test", doc="test", pos=1)
 
         # call task. No retries with issues at EBI
@@ -162,17 +169,19 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
             "Error in IMAGE Validation: %s" % message,
             email.subject)
 
-        self.assertTrue(my_check.called)
+        self.assertTrue(my_validate.called)
         self.assertFalse(my_retry.called)
 
-    @patch("validation.tasks.validation.check_with_ruleset")
     @patch("validation.tasks.validation.check_usi_structure", return_value=[])
-    def test_validate_submission(self, check_usi, check_ruleset):
+    def test_validate_submission(self, check_usi):
+        # get the validation method from task.rules
+        my_validate = self.my_task.rules.validate
+
         # setting a return value for check_with_ruleset
         validation_result = Mock()
         validation_result.get_overall_status.return_value = "Pass"
         validation_result.get_messages.return_value = ["A message"]
-        check_ruleset.return_value = [validation_result]
+        my_validate.return_value = [validation_result]
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
@@ -206,15 +215,17 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
         # assert validation functions called
         self.assertTrue(check_usi.called)
-        self.assertTrue(check_ruleset.called)
+        self.assertTrue(my_validate.called)
 
-    @patch("validation.tasks.validation.check_with_ruleset")
     @patch("validation.tasks.validation.check_usi_structure")
-    def test_validate_submission_wrong_json(self, check_usi, check_ruleset):
+    def test_validate_submission_wrong_json(self, check_usi):
+        # get the validation method from task.rules
+        my_validate = self.my_task.rules.validate
+
         # setting a return value for check_with_ruleset
         rule_result = Mock()
         rule_result.get_overall_status.return_value = "Pass"
-        check_ruleset.return_value = [rule_result]
+        my_validate.return_value = [rule_result]
 
         # assign a fake response for check_usi_structure
         usi_result = [
@@ -258,16 +269,18 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(check_usi.called)
-        self.assertFalse(check_ruleset.called)
+        self.assertFalse(my_validate.called)
 
-    @patch("validation.tasks.validation.check_with_ruleset")
     @patch("validation.tasks.validation.check_usi_structure", return_value=[])
-    def test_unsupported_status(self, check_usi, check_ruleset):
+    def test_unsupported_status(self, check_usi):
+        # get the validation method from task.rules
+        my_validate = self.my_task.rules.validate
+
         # setting a return value for check_with_ruleset
         rule_result = PickableMock()
         rule_result.get_overall_status.return_value = "A fake status"
         rule_result.get_messages.return_value = ["A fake message", ]
-        check_ruleset.return_value = [rule_result]
+        my_validate.return_value = [rule_result]
 
         # call task
         self.assertRaisesRegex(
@@ -287,11 +300,13 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(check_usi.called)
-        self.assertTrue(check_ruleset.called)
+        self.assertTrue(my_validate.called)
 
-    @patch("validation.tasks.validation.check_with_ruleset")
     @patch("validation.tasks.validation.check_usi_structure", return_value=[])
-    def test_validate_submission_errors(self, check_usi, check_ruleset):
+    def test_validate_submission_errors(self, check_usi):
+        # get the validation method from task.rules
+        my_validate = self.my_task.rules.validate
+
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
         result1.add_validation_result_column(
@@ -304,7 +319,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         )
 
         # add results to result set
-        check_ruleset.side_effect = [[result1], [result2]]
+        my_validate.side_effect = [[result1], [result2]]
 
         # call task
         res = self.my_task.run(submission_id=self.submission_id)
@@ -339,11 +354,10 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
         # test for my methods called
         self.assertTrue(check_usi.called)
-        self.assertTrue(check_ruleset.called)
+        self.assertTrue(my_validate.called)
 
-    @patch("validation.tasks.validation.check_with_ruleset")
     @patch("validation.tasks.validation.check_usi_structure", return_value=[])
-    def test_update_statuses_more_result(self, check_usi, check_ruleset):
+    def test_update_statuses_more_result(self, check_usi):
         """Test update_statuses with more than one results, or none of them"""
 
         # testing exceptions

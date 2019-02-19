@@ -15,12 +15,14 @@ import traceback
 from collections import Counter
 from celery.utils.log import get_task_logger
 
+from image_validation import validation
+from image_validation.static_parameters import ruleset_filename as \
+    IMAGE_RULESET
+
 from common.constants import READY, ERROR, LOADED, NEED_REVISION
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal, STATUSES
 
-from .helpers import validation
-from .constants import IMAGE_RULESET
 from .models import ValidationResult as ValidationResultModel
 
 # Get an instance of a logger
@@ -38,6 +40,7 @@ class ValidationError(Exception):
 class ValidateTask(MyTask):
     name = "Validate Submission"
     description = """Validate submission data against IMAGE rules"""
+    rules = None
 
     # define my class attributes
     def __init__(self, *args, **kwargs):
@@ -212,14 +215,14 @@ class ValidateTask(MyTask):
             # update model results
             self.mark_model(model, usi_result, NEED_REVISION)
 
-            # It make no sense check_with_ruleset, since JSON is wrong
+            # It make no sense continue validation since JSON is wrong
             return
 
         # no check_duplicates: it checks against alias (that is a pk)
         # HINT: improve check_duplicates or implement database constraints
 
         # check against image metadata
-        ruleset_results = validation.check_with_ruleset([data], self.rules)
+        ruleset_results = self.rules.validate(data)
 
         # update status and track data in a overall variable
         self.update_statuses(submission_statuses, model, ruleset_results)
