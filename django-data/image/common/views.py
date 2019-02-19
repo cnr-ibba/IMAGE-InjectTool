@@ -14,8 +14,6 @@ from django.utils import timezone
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from validation.models import ValidationResult as ValidationResultModel
-
 from .constants import NEED_REVISION
 
 # Get an instance of a logger
@@ -86,6 +84,9 @@ class DetailMaterialMixin(OwnerMixin):
 class UpdateMaterialMixin(OwnerMixin):
     """A common UpdateMixin for Material classes (Sample/Animal)"""
 
+    # override this attribute with a real validation class
+    validationresult_class = None
+
     def dispatch(self, request, *args, **kwargs):
         handler = super(UpdateMaterialMixin, self).dispatch(
                 request, *args, **kwargs)
@@ -133,7 +134,7 @@ class UpdateMaterialMixin(OwnerMixin):
         if hasattr(self.object.name, 'validationresult'):
             validationresult = self.object.name.validationresult
         else:
-            validationresult = ValidationResultModel()
+            validationresult = self.validationresult_class()
             self.object.name.validationresult = validationresult
 
         validationresult.messages = [

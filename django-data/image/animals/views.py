@@ -17,6 +17,7 @@ from image_app.models import Animal
 from common.views import (
     DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
     ListMaterialMixin)
+from validation.models import ValidationResult as ValidationResultModel
 
 from .forms import UpdateAnimalForm
 
@@ -33,6 +34,9 @@ class UpdateAnimalView(UpdateMaterialMixin, UpdateView):
     form_class = UpdateAnimalForm
     model = Animal
     template_name = "animals/animal_form.html"
+
+    # specify a real validation class for update
+    validationresult_class = ValidationResultModel
 
     def get_initial(self):
         """

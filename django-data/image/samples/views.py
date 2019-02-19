@@ -17,6 +17,7 @@ from image_app.models import Sample
 from common.views import (
     DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
     ListMaterialMixin)
+from validation.models import ValidationResult as ValidationResultModel
 
 from .forms import UpdateSampleForm
 
@@ -33,6 +34,9 @@ class UpdateSampleView(UpdateMaterialMixin, UpdateView):
     form_class = UpdateSampleForm
     model = Sample
     template_name = "samples/sample_form.html"
+
+    # specify a real validation class for update
+    validationresult_class = ValidationResultModel
 
     def get_initial(self):
         """
