@@ -13,6 +13,8 @@ from unittest.mock import patch, Mock
 from billiard.einfo import ExceptionInfo
 from celery.exceptions import Retry
 from pytest import raises
+from image_validation.ValidationResult import (
+    ValidationResultColumn, ValidationResultRecord)
 
 from django.core import mail
 from django.test import TestCase
@@ -22,8 +24,6 @@ from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name
 
 from ..tasks import ValidateTask, ValidationError
-from ..helpers.ValidationResult import (
-    ValidationResultColumn, ValidationResultRecord)
 
 
 # https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
