@@ -10,12 +10,12 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from image_app.models import DictBreed, DictSpecie, DictCountry
+from image_app.models import DictBreed, DictSpecie, DictCountry, DictUberon
 from common.constants import OBO_URL, GOOD
 
 from ..helpers import (
     to_camel_case, from_camel_case, useZooma, get_taxonID_by_scientific_name,
-    annotate_breed, annotate_specie, annotate_country)
+    annotate_breed, annotate_specie, annotate_country, annotate_uberon)
 
 
 class TestCamelCase(TestCase):
@@ -467,3 +467,66 @@ class TestAnnotateSpecie(TestCase):
 
         self.assertIsNone(self.specie.term)
         self.assertIsNone(self.specie.confidence)
+
+
+class TestAnnotateUberon(TestCase):
+    """A class to test annotate uberon"""
+
+    fixtures = [
+        "image_app/dictuberon",
+    ]
+
+    def setUp(self):
+        # get a specie object
+        self.part = DictUberon.objects.get(pk=1)
+
+        # erase attributes
+        self.part.term = None
+        self.part.confidence = None
+        self.part.save()
+
+    @patch("zooma.helpers.useZooma")
+    def test_annotate_uberon(self, my_zooma):
+        """Testing annotate uberon"""
+
+        my_zooma.return_value = {
+            'type': 'organism part',
+            'confidence': 'Good',
+            'text': 'semen',
+            'ontologyTerms': '%s/UBERON_0001968' % (OBO_URL)
+        }
+
+        # call my method
+        annotate_uberon(self.part)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.part.refresh_from_db()
+
+        self.assertEqual(self.part.label, "semen")
+        self.assertEqual(self.part.term, "UBERON_0001968")
+        self.assertEqual(self.part.confidence, GOOD)
+
+    @patch("zooma.helpers.useZooma")
+    def test_no_annotation(self, my_zooma):
+        """Ignore terms with non expected ontology"""
+
+        # a fake object
+        my_zooma.return_value = {
+            'type': 'organism part',
+            'confidence': 'Good',
+            'text': 'England',
+            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL)
+        }
+
+        # call my method
+        annotate_uberon(self.part)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.part.refresh_from_db()
+
+        self.assertIsNone(self.part.term)
+        self.assertIsNone(self.part.confidence)

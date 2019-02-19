@@ -299,3 +299,41 @@ def annotate_specie(specie_obj):
 
         specie_obj.confidence = confidence
         specie_obj.save()
+
+
+def annotate_uberon(uberon_obj):
+    """Annotate an organism part object using Zooma"""
+
+    logger.debug("getting ontology term for %s" % (uberon_obj))
+
+    result = useZooma(uberon_obj.label, "organism part")
+
+    # update object (if possible)
+    if result:
+        url = result['ontologyTerms']
+        # https://stackoverflow.com/a/7253830
+        term = url.rsplit('/', 1)[-1]
+
+        # check that term have a correct ontology
+        # TODO: move this check in useZooma and relate with Ontology
+        # table
+        if term.split("_")[0] != "UBERON":
+            logger.error(
+                "Got an unexpected term for %s: %s" % (
+                    uberon_obj, term))
+
+            # ignore such term
+            return
+
+        # The ontology seems correct. Annotate!
+        logger.info("Updating %s with %s" % (uberon_obj, result))
+        url = result['ontologyTerms']
+
+        uberon_obj.term = term
+
+        # get an int object for such confidence
+        confidence = CONFIDENCES.get_value(
+            result["confidence"].lower())
+
+        uberon_obj.confidence = confidence
+        uberon_obj.save()

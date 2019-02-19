@@ -9,9 +9,10 @@ Created on Thu Oct 25 11:27:52 2018
 from celery.utils.log import get_task_logger
 
 from image.celery import app as celery_app, MyTask
-from image_app.models import DictCountry, DictBreed, DictSpecie
+from image_app.models import DictCountry, DictBreed, DictSpecie, DictUberon
 
-from .helpers import annotate_country, annotate_breed, annotate_specie
+from .helpers import (
+    annotate_country, annotate_breed, annotate_specie, annotate_uberon)
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -70,6 +71,24 @@ class AnnotateSpecies(MyTask):
 
         return "success"
 
+
+class AnnotateUberon(MyTask):
+    name = "Annotate Uberon"
+    description = "Annotate organism parts with ontologies using Zooma tools"
+
+    def run(self):
+        """This function is called when delay is called"""
+
+        logger.debug("Starting annotate uberon")
+
+        # get all breeds without a term
+        for part in DictUberon.objects.filter(term__isnull=True):
+            annotate_uberon(part)
+
+        logger.debug("Annotate uberon completed")
+
+        return "success"
+
 # --- task registering
 
 
@@ -78,3 +97,4 @@ class AnnotateSpecies(MyTask):
 celery_app.tasks.register(AnnotateCountries)
 celery_app.tasks.register(AnnotateBreeds)
 celery_app.tasks.register(AnnotateSpecies)
+celery_app.tasks.register(AnnotateUberon)

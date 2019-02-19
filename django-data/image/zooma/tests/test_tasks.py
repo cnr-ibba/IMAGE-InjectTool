@@ -10,9 +10,10 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from image_app.models import DictBreed, DictCountry, DictSpecie
+from image_app.models import DictBreed, DictCountry, DictSpecie, DictUberon
 
-from ..tasks import AnnotateBreeds, AnnotateCountries, AnnotateSpecies
+from ..tasks import (
+    AnnotateBreeds, AnnotateCountries, AnnotateSpecies, AnnotateUberon)
 
 
 class TestAnnotateBreeds(TestCase):
@@ -91,6 +92,33 @@ class TestAnnotateSpecies(TestCase):
         specie.save()
 
     @patch("zooma.tasks.annotate_specie")
+    def test_task(self, my_func):
+        res = self.my_task.run()
+
+        # assert a success
+        self.assertEqual(res, "success")
+        self.assertTrue(my_func.called)
+
+
+class TestAnnotateUberon(TestCase):
+    """A class to test annotate uberon"""
+
+    fixtures = [
+        "image_app/dictuberon",
+    ]
+
+    def setUp(self):
+        self.my_task = AnnotateUberon()
+
+        # get a specie object
+        part = DictUberon.objects.get(pk=1)
+
+        # erase attributes
+        part.term = None
+        part.confidence = None
+        part.save()
+
+    @patch("zooma.tasks.annotate_uberon")
     def test_task(self, my_func):
         res = self.my_task.run()
 
