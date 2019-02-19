@@ -10,18 +10,12 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 from django.utils.http import urlquote
 
+from common.constants import (
+    WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
-from image_app.models import Submission, STATUSES
+from image_app.models import Submission
 
 from ..views import EditSubmissionView
-
-WAITING = STATUSES.get_value('waiting')
-LOADED = STATUSES.get_value('loaded')
-ERROR = STATUSES.get_value('error')
-READY = STATUSES.get_value('ready')
-NEED_REVISION = STATUSES.get_value('need_revision')
-SUBMITTED = STATUSES.get_value('submitted')
-COMPLETED = STATUSES.get_value('completed')
 
 
 class EditSubmissionViewTest(

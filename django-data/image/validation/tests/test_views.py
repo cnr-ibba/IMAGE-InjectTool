@@ -11,17 +11,11 @@ from unittest.mock import patch
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-from image_app.models import Submission, STATUSES
+from common.constants import WAITING, ERROR, SUBMITTED, LOADED, COMPLETED
+from image_app.models import Submission
 
 from ..forms import ValidateForm
 from ..views import ValidateView
-
-# reading statuses
-WAITING = STATUSES.get_value('waiting')
-ERROR = STATUSES.get_value('error')
-SUBMITTED = STATUSES.get_value('submitted')
-LOADED = STATUSES.get_value('loaded')
-COMPLETED = STATUSES.get_value('completed')
 
 
 class TestMixin(object):

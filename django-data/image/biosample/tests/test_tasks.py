@@ -19,14 +19,14 @@ from django.test import TestCase
 from django.conf import settings
 from django.core import mail
 
+from common.constants import (
+    LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 from image_app.models import Submission, Name
 
 from ..tasks import SubmitTask, FetchStatusTask
 from ..models import ManagedTeam
 
-from .common import (
-    SubmitMixin, SUBMITTED, ERROR, COMPLETED, NEED_REVISION, LOADED, READY,
-    generate_token)
+from .common import SubmitMixin, generate_token
 
 
 class SubmitTestCase(SubmitMixin, TestCase):

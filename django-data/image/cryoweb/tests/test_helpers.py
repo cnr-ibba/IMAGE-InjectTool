@@ -13,9 +13,10 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
+from common.constants import ERROR
 from language.models import SpecieSynonim
 from image_app.models import (
-    Submission, DictBreed, Name, Animal, Sample, DictSex, STATUSES,
+    Submission, DictBreed, Name, Animal, Sample, DictSex,
     DictCountry, DictSpecie)
 from common.tests import DataSourceMixinTestCase
 
@@ -224,7 +225,7 @@ class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
 
         self.assertEqual(
             self.submission.status,
-            STATUSES.get_value('error'))
+            ERROR)
 
         self.assertIn(
             "Cryoweb has data",
@@ -244,7 +245,7 @@ class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
 
             self.assertEqual(
                 self.submission.status,
-                STATUSES.get_value('error'))
+                ERROR)
 
             self.assertIn(
                 "Test upload failed",
@@ -293,7 +294,7 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
 
         self.assertEqual(
             self.submission.status,
-            STATUSES.get_value('error'))
+            ERROR)
 
         self.assertIn(
             "Test message",

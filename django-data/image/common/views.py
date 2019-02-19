@@ -15,13 +15,11 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 from validation.models import ValidationResult as ValidationResultModel
-from image_app.models import STATUSES
+
+from .constants import NEED_REVISION
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-# get status
-NEED_REVISION = STATUSES.get_value('need_revision')
 
 
 # a mixin to isolate user data

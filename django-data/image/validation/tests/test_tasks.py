@@ -17,20 +17,13 @@ from pytest import raises
 from django.core import mail
 from django.test import TestCase
 
+from common.constants import LOADED, ERROR, READY, NEED_REVISION
 from common.tests import PersonMixinTestCase
-from image_app.models import Submission, STATUSES, Person, Name
+from image_app.models import Submission, Person, Name
 
 from ..tasks import ValidateTask, ValidationError
 from ..helpers.ValidationResult import (
     ValidationResultColumn, ValidationResultRecord)
-
-# get available statuses
-WAITING = STATUSES.get_value('waiting')
-LOADED = STATUSES.get_value('loaded')
-ERROR = STATUSES.get_value('error')
-READY = STATUSES.get_value('ready')
-NEED_REVISION = STATUSES.get_value('need_revision')
-SUBMITTED = STATUSES.get_value('submitted')
 
 
 # https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815

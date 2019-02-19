@@ -14,13 +14,11 @@ import logging
 
 from django.core.management import BaseCommand
 
-from image_app.models import Submission, Name, STATUSES
+from common.constants import LOADED
+from image_app.models import Submission, Name
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-# get loaded status
-LOADED = STATUSES.get_value('loaded')
 
 
 class Command(BaseCommand):

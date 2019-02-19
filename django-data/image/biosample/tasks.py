@@ -19,8 +19,10 @@ from django.conf import settings
 from django.utils import timezone
 
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Animal, Sample, STATUSES
+from image_app.models import Submission, Animal, Sample
 from common.tasks import redis_lock
+from common.constants import (
+    ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
 from .helpers import get_auth, get_manager_auth
 
@@ -30,14 +32,6 @@ logger = get_task_logger(__name__)
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
-
-# Get Submission statuses
-SUBMITTED = STATUSES.get_value('submitted')
-NEED_REVISION = STATUSES.get_value('need_revision')
-COMPLETED = STATUSES.get_value('completed')
-WAITING = STATUSES.get_value('waiting')
-ERROR = STATUSES.get_value('error')
-READY = STATUSES.get_value('ready')
 
 
 class SubmissionData(object):

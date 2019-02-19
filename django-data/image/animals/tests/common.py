@@ -8,16 +8,8 @@ Created on Fri Feb  8 14:01:22 2019
 
 from common.tests import (
     GeneralMixinTestCase, OwnerMixinTestCase)
-from image_app.models import STATUSES
-
-# get statuses
-WAITING = STATUSES.get_value('waiting')
-LOADED = STATUSES.get_value('loaded')
-ERROR = STATUSES.get_value('error')
-READY = STATUSES.get_value('ready')
-NEED_REVISION = STATUSES.get_value('need_revision')
-SUBMITTED = STATUSES.get_value('submitted')
-COMPLETED = STATUSES.get_value('completed')
+from common.constants import (
+    WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
 
 class AnimalFeaturesMixin(object):

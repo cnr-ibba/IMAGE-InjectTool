@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 from django.http import HttpResponseRedirect
 
-from image_app.models import Animal, STATUSES
+from image_app.models import Animal
 from common.views import (
     DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
     ListMaterialMixin)
@@ -22,9 +22,6 @@ from .forms import UpdateAnimalForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-# get status
-NEED_REVISION = STATUSES.get_value('need_revision')
 
 
 class DetailAnimalView(DetailMaterialMixin, DetailView):

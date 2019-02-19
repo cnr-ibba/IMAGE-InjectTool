@@ -19,7 +19,8 @@ from django.http import HttpResponseRedirect
 
 from pyUSIrest.client import User
 
-from image_app.models import Submission, STATUSES
+from common.constants import WAITING
+from image_app.models import Submission
 
 from .forms import (
     GenerateTokenForm, RegisterUserForm, CreateUserForm, SubmitForm)
@@ -27,8 +28,6 @@ from .models import Account, ManagedTeam
 from .helpers import get_auth, get_manager_auth
 from .tasks import SubmitTask
 
-# get available statuses
-WAITING = STATUSES.get_value('waiting')
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

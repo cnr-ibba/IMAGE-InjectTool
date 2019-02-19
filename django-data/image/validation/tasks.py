@@ -15,6 +15,7 @@ import traceback
 from collections import Counter
 from celery.utils.log import get_task_logger
 
+from common.constants import READY, ERROR, LOADED, NEED_REVISION
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal, STATUSES
 
@@ -24,12 +25,6 @@ from .models import ValidationResult as ValidationResultModel
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
-
-# get available statuses
-READY = STATUSES.get_value('ready')
-ERROR = STATUSES.get_value('error')
-LOADED = STATUSES.get_value('loaded')
-NEED_REVISION = STATUSES.get_value('need_revision')
 
 # get a dictionary from status name (ie {0: 'Waiting'})
 key2status = dict([x.value for x in STATUSES])

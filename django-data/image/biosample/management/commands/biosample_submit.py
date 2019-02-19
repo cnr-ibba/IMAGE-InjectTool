@@ -17,11 +17,11 @@ from django.utils import timezone
 
 import pyUSIrest
 
-from image_app.models import Submission, Animal, STATUSES
+from common.constants import SUBMITTED
+from image_app.models import Submission, Animal
 
 from biosample.helpers import get_manager_auth
 
-SUBMITTED = STATUSES.get_value('submitted')
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

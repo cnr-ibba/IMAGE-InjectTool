@@ -14,18 +14,12 @@ from django.utils import timezone
 
 from common.constants import OBO_URL
 from common.tests import PersonMixinTestCase
+from common.constants import (
+    WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
-                              Person, User, db_has_data, STATUSES)
-
-WAITING = STATUSES.get_value('waiting')
-LOADED = STATUSES.get_value('loaded')
-ERROR = STATUSES.get_value('error')
-READY = STATUSES.get_value('ready')
-NEED_REVISION = STATUSES.get_value('need_revision')
-SUBMITTED = STATUSES.get_value('submitted')
-COMPLETED = STATUSES.get_value('completed')
+                              Person, User, db_has_data)
 
 
 class DictSexTestCase(TestCase):

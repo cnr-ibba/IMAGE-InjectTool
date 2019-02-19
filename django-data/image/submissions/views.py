@@ -15,22 +15,17 @@ from django.http import HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.shortcuts import get_object_or_404, redirect
 
-from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission, STATUSES, Name
+from common.constants import WAITING, ERROR, SUBMITTED, NEED_REVISION
 from common.views import OwnerMixin
+from cryoweb.tasks import import_from_cryoweb
+from image_app.models import Submission, Name
 
 from .forms import SubmissionForm, ReloadForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-
-# reading statuses
-WAITING = STATUSES.get_value('waiting')
-ERROR = STATUSES.get_value('error')
-SUBMITTED = STATUSES.get_value('submitted')
-NEED_REVISION = STATUSES.get_value('need_revision')
-
+# get cryoweb type
 CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
 
 

@@ -11,11 +11,12 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TestCase
 
+from common.constants import SUBMITTED
 from image_app.models import Name
 
 from ..models import ManagedTeam
 
-from .common import SubmitMixin, SUBMITTED
+from .common import SubmitMixin
 
 
 class CommandsTestCase(SubmitMixin, TestCase):

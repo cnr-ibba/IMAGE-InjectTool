@@ -14,16 +14,14 @@ from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 
-from image_app.models import Submission, STATUSES
+from common.constants import WAITING
+from image_app.models import Submission
 
 from .forms import ValidateForm
 from .tasks import ValidateTask
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-# reading statuses
-WAITING = STATUSES.get_value('waiting')
 
 
 class ValidateView(LoginRequiredMixin, FormView):

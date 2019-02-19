@@ -15,7 +15,9 @@ from django.urls import resolve, reverse
 from django.conf import settings
 from django.utils import timezone
 
-from image_app.models import Submission, STATUSES
+from image_app.models import Submission
+from common.constants import (
+    WAITING, ERROR, READY, SUBMITTED, COMPLETED)
 from common.tests import (
         FormMixinTestCase, MessageMixinTestCase, InvalidFormMixinTestCase)
 
@@ -24,15 +26,6 @@ from ..views import SubmitView
 
 from .session_enabled_test_case import SessionEnabledTestCase
 from .test_token import generate_token
-
-
-# get available status
-READY = STATUSES.get_value('ready')
-WAITING = STATUSES.get_value('waiting')
-ERROR = STATUSES.get_value('error')
-SUBMITTED = STATUSES.get_value('submitted')
-LOADED = STATUSES.get_value('loaded')
-COMPLETED = STATUSES.get_value('completed')
 
 
 class TestMixin(object):

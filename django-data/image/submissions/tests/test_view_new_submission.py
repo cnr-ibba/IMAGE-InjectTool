@@ -13,7 +13,8 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 import common
-from image_app.models import DictCountry, Organization, Submission, STATUSES
+from common.constants import ERROR
+from image_app.models import DictCountry, Organization, Submission
 from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
 from ..forms import SubmissionForm
@@ -24,9 +25,6 @@ from ..views import CreateSubmissionView
 CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
 TEMPLATE_TYPE = Submission.TYPES.get_value('template')
 CRB_ANIM_TYPE = Submission.TYPES.get_value('crb_anim')
-
-# get submission status
-ERROR = STATUSES.get_value('error')
 
 
 class Initialize(TestCase):

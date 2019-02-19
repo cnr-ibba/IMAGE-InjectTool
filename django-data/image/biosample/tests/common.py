@@ -12,17 +12,9 @@ from unittest.mock import patch, PropertyMock
 
 from django.utils import timezone
 
+from common.constants import READY
 from common.tests import PersonMixinTestCase
-from image_app.models import Submission, Person, Name, STATUSES
-
-# get available status
-WAITING = STATUSES.get_value('waiting')
-LOADED = STATUSES.get_value('loaded')
-SUBMITTED = STATUSES.get_value('submitted')
-ERROR = STATUSES.get_value('error')
-NEED_REVISION = STATUSES.get_value('need_revision')
-READY = STATUSES.get_value('ready')
-COMPLETED = STATUSES.get_value('completed')
+from image_app.models import Submission, Person, Name
 
 
 def generate_token(now=None, domains=['subs.test-team-1']):

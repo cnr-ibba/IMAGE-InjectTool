@@ -12,72 +12,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 from common.fields import ProtectedFileField
-from common.constants import OBO_URL
+from common.constants import (
+    OBO_URL, STATUSES, CONFIDENCES, NAME_STATUSES, ACCURACIES, WAITING, LOADED,
+    MISSING)
 
 from .helpers import format_attribute
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-
-# --- Enums
-
-
-class ACCURACIES(Enum):
-    missing = (0, 'missing geographic information')
-    country = (1, 'country level')
-    region = (2, 'region level')
-    precise = (3, 'precise coordinates')
-    unknown = (4, 'unknown accuracy level')
-
-    @classmethod
-    def get_value(cls, member):
-        return cls[member].value[0]
-
-
-# 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-class CONFIDENCES(Enum):
-    high = (0, 'High')
-    good = (1, 'Good')
-    medium = (2, 'Medium')
-    low = (3, 'Low')
-    curated = (4, 'Manually Curated')
-
-    @classmethod
-    def get_value(cls, member):
-        return cls[member].value[0]
-
-
-# 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-# waiting: waiting to upload data (or process them!)
-# loaded: data loaded into UID, can validate
-# error: error in uploading data into UID or in submission
-# ready: validated data ready for submission
-# need_revision: validated data need checks before submission
-# submitted: submitted to biosample
-# completed: finalized submission with biosample id
-class STATUSES(Enum):
-    waiting = (0, 'Waiting')
-    loaded = (1, 'Loaded')
-    submitted = (2, 'Submitted')
-    error = (3, 'Error')
-    need_revision = (4, 'Need Revision')
-    ready = (5, "Ready")
-    completed = (6, "Completed")
-
-    @classmethod
-    def get_value(cls, member):
-        return cls[member].value[0]
-
-
-# a list of a valid statuse for names
-NAME_STATUSES = [
-    'loaded',
-    'ready',
-    'need_revision',
-    'submitted',
-    'completed'
-]
 
 
 # --- Mixins
@@ -283,7 +225,7 @@ class DictBase(BaseMixin, models.Model):
 
         return format_attribute(
             value=self.label,
-            obo_url=library_uri,
+            library_uri=library_uri,
             terms=self.term)
 
 
@@ -445,7 +387,7 @@ class DictBreed(Confidence):
 
         return format_attribute(
             value=self.mapped_breed,
-            obo_url=library_uri,
+            library_uri=library_uri,
             terms=self.mapped_breed_term)
 
 
@@ -483,7 +425,7 @@ class Name(BaseMixin, models.Model):
     status = models.SmallIntegerField(
             choices=[x.value for x in STATUSES if x.name in NAME_STATUSES],
             help_text='example: Submitted',
-            default=STATUSES.get_value('loaded'))
+            default=LOADED)
 
     last_changed = models.DateTimeField(
         auto_now_add=True,
@@ -569,7 +511,7 @@ class Animal(BioSampleMixin, models.Model):
         help_text='example: unknown accuracy level, country level',
         null=False,
         blank=False,
-        default=ACCURACIES.get_value('missing'))
+        default=MISSING)
 
     owner = models.ForeignKey(
         User,
@@ -693,7 +635,7 @@ class Sample(BioSampleMixin, models.Model):
         help_text='example: unknown accuracy level, country level',
         null=False,
         blank=False,
-        default=ACCURACIES.get_value('missing'))
+        default=MISSING)
 
     # using a constraint for organism (DictUberon)
     organism_part = models.ForeignKey(
@@ -958,7 +900,7 @@ class Submission(BaseMixin, models.Model):
     status = models.SmallIntegerField(
             choices=[x.value for x in STATUSES],
             help_text='example: Waiting',
-            default=STATUSES.get_value('waiting'))
+            default=WAITING)
 
     # a field to track errors in UID loading. Should be blank if no errors
     # are found

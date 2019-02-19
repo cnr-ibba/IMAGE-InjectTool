@@ -9,7 +9,8 @@ Created on Tue Jul 24 11:08:12 2018
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-from image_app.models import Submission, STATUSES
+from common.constants import LOADED, SUBMITTED, COMPLETED, ERROR
+from image_app.models import Submission
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
 
 from ..views import DetailSubmissionView
@@ -89,7 +90,7 @@ class DetailSubmissionViewTest(
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.status = STATUSES.get_value('loaded')
+        submission.status = LOADED
         submission.message = "import complete"
         submission.save()
 
@@ -107,7 +108,7 @@ class DetailSubmissionViewTest(
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.status = STATUSES.get_value('submitted')
+        submission.status = SUBMITTED
         submission.message = "submitted"
         submission.save()
 
@@ -125,7 +126,7 @@ class DetailSubmissionViewTest(
 
         # set loaded flag
         submission = Submission.objects.get(pk=1)
-        submission.status = STATUSES.get_value('completed')
+        submission.status = COMPLETED
         submission.message = "Successful submission into biosample"
         submission.save()
 
@@ -143,7 +144,7 @@ class DetailSubmissionViewTest(
         # set loaded flag
         submission = Submission.objects.get(pk=1)
         submission.message = "Fake Error"
-        submission.status = STATUSES.get_value('error')
+        submission.status = ERROR
         submission.save()
 
         # get a new response

@@ -13,12 +13,14 @@ import os
 import shlex
 import subprocess
 
+from decouple import AutoConfig
+
 from django.conf import settings
 
-from decouple import AutoConfig
+from common.constants import LOADED, ERROR, MISSING, UNKNOWN
 from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
-    Submission, ACCURACIES, STATUSES, DictUberon)
+    Submission, DictUberon)
 from language.models import SpecieSynonim
 
 from .models import db_has_data as cryoweb_has_data
@@ -26,14 +28,6 @@ from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-# Set Submission statuses
-LOADED = STATUSES.get_value('loaded')
-ERROR = STATUSES.get_value('error')
-
-# get accuracy levels
-MISSING = ACCURACIES.get_value('missing')
-UNKNOWN = ACCURACIES.get_value('unknown')
 
 
 # --- check functions

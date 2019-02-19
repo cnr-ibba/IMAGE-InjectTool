@@ -18,8 +18,9 @@ from django.conf import settings
 from django.http import HttpResponse
 
 from common.storage import ProtectedFileSystemStorage
+from common.constants import COMPLETED
 
-from ..models import Submission, STATUSES, uid_report
+from ..models import Submission, uid_report
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -55,7 +56,6 @@ class SummaryView(LoginRequiredMixin, TemplateView):
             owner=self.request.user).count()
 
         # count loaded objects into biosample
-        COMPLETED = STATUSES.get_value('completed')
         context['datasource_completed'] = Submission.objects.filter(
             status=COMPLETED, owner=self.request.user).count()
 
