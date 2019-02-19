@@ -11,6 +11,7 @@ import json
 
 from django.test import TestCase
 
+from common.constants import OBO_URL
 from image_app.helpers import DateDecoder, DateEncoder, format_attribute
 
 
@@ -91,7 +92,7 @@ class TestAttributes(TestCase):
         reference = [{
             "value": "organism",
             "terms": [{
-                "url": "http://purl.obolibrary.org/obo/OBI_0100026"
+                "url": "%s/OBI_0100026" % (OBO_URL)
             }]
         }]
 

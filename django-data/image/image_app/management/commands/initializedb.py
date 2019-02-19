@@ -18,6 +18,7 @@ import os
 
 from django.core.management import BaseCommand
 
+from common.constants import OBO_URL
 from image_app.models import (DictCountry, DictRole, DictSex, DictSpecie,
                               Ontology, Organization, CONFIDENCES)
 from language.models import SpecieSynonim
@@ -28,15 +29,15 @@ logger = logging.getLogger(__name__)
 
 def fill_ontology():
     data = """Library name;Library URI;Comment
-PATO;http://purl.obolibrary.org/obo;Phenotype And Trait Ontology
-LBO;http://purl.obolibrary.org/obo;Livestock Breed Ontology
+PATO;{obo_url};Phenotype And Trait Ontology
+LBO;{obo_url};Livestock Breed Ontology
 EFO;http://www.ebi.ac.uk/efo;Experimental Factor Ontology
-OBI;http://purl.obolibrary.org/obo;Ontology for Biomedical Investigations
-NCBITaxon;http://purl.obolibrary.org/obo;NCBI Taxonomy
-UBERON;http://purl.obolibrary.org/obo;cross-species ontology covering anatomical structures in animals
-GAZ;http://purl.obolibrary.org/obo;A gazetteer constructed on ontological principles
-NCIT;http://purl.obolibrary.org/obo;NCI Thesaurus OBO Edition
-"""
+OBI;{obo_url};Ontology for Biomedical Investigations
+NCBITaxon;{obo_url};NCBI Taxonomy
+UBERON;{obo_url};cross-species ontology covering anatomical structures in animals
+GAZ;{obo_url};A gazetteer constructed on ontological principles
+NCIT;{obo_url};NCI Thesaurus OBO Edition
+""".format(obo_url=OBO_URL)
 
     handle = io.StringIO(data)
     reader = csv.reader(handle, delimiter=";")

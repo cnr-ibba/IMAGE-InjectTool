@@ -18,7 +18,7 @@ from django.conf import settings
 
 from decouple import AutoConfig
 
-from .constants import OBO_URL
+from common.constants import OBO_URL
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

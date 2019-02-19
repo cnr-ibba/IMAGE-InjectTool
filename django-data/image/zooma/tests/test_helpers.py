@@ -11,6 +11,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from image_app.models import DictBreed, DictSpecie, DictCountry, CONFIDENCES
+from common.constants import OBO_URL
 
 from ..helpers import (
     to_camel_case, from_camel_case, useZooma, get_taxonID_by_scientific_name,
@@ -71,7 +72,7 @@ class TestZooma(TestCase):
     def test_high_confidence(self, mock_get):
         reference = {
             'confidence': 'High',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/NCBITaxon_10090',
+            'ontologyTerms': '%s/NCBITaxon_10090' % (OBO_URL),
             'text': 'Mus musculus',
             'type': 'organism'
         }
@@ -93,7 +94,7 @@ class TestZooma(TestCase):
     def test_medium_confidence(self, mock_get):
         reference = {
             'confidence': 'Medium',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002641',
+            'ontologyTerms': '%s/GAZ_00002641' % (OBO_URL),
             'text': 'England',
             'type': 'country'
         }
@@ -129,7 +130,7 @@ class TestZooma(TestCase):
     def test_breed(self, mock_get):
         reference = {
             'confidence': 'Good',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347',
+            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL),
             'text': 'Bentheim Black Pied',
             'type': 'breed'
         }
@@ -151,7 +152,7 @@ class TestZooma(TestCase):
             'type': 'breed',
             'confidence': 'Good',
             'text': 'Bentheimer Landschaf',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000436'
+            'ontologyTerms': '%s/LBO_0000436' % (OBO_URL)
         }
 
         mock_get.return_value.json.return_value = self.format_response(
@@ -171,7 +172,7 @@ class TestZooma(TestCase):
 
         reference = {
             'confidence': 'High',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/PATO_0000461',
+            'ontologyTerms': '%s/PATO_0000461' % (OBO_URL),
             'text': 'normal',
             'type': 'disease'
         }
@@ -192,7 +193,7 @@ class TestZooma(TestCase):
     def test_organism_part(self, mock_get):
         reference = {
             'confidence': 'High',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/UBERON_0002106',
+            'ontologyTerms': '%s/UBERON_0002106' % (OBO_URL),
             'text': 'spleen',
             'type': 'organism part'
         }
@@ -213,7 +214,7 @@ class TestZooma(TestCase):
     def test_organism_part2(self, mock_get):
         reference = {
             'confidence': 'Good',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/UBERON_0001968',
+            'ontologyTerms': '%s/UBERON_0001968' % (OBO_URL),
             'text': 'semen',
             'type': 'organism part'
         }
@@ -306,7 +307,7 @@ class TestAnnotateBreed(TestCase):
             'type': 'breed',
             'confidence': 'Good',
             'text': 'Bentheim Black Pied',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
+            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL)
         }
 
         # call my method
@@ -330,7 +331,7 @@ class TestAnnotateBreed(TestCase):
             'type': 'breed',
             'confidence': 'Good',
             'text': 'Bentheim Black Pied',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/GAZ_00002641'
+            'ontologyTerms': '%s/GAZ_00002641' % (OBO_URL)
         }
 
         # call my method
@@ -370,7 +371,7 @@ class TestAnnotateCountry(TestCase):
             'type': 'country',
             'confidence': 'Good',
             'text': 'United Kingdom',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/NCIT_C17233'}
+            'ontologyTerms': '%s/NCIT_C17233' % (OBO_URL)}
 
         # call my method
         annotate_country(self.country)
@@ -393,7 +394,7 @@ class TestAnnotateCountry(TestCase):
             'type': 'country',
             'confidence': 'Good',
             'text': 'England',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
+            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL)
         }
 
         # call my method
@@ -432,7 +433,7 @@ class TestAnnotateSpecie(TestCase):
             'type': 'specie',
             'confidence': 'Good',
             'text': 'Sus scrofa',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/NCBITaxon_9823'
+            'ontologyTerms': '%s/NCBITaxon_9823' % (OBO_URL)
         }
 
         # call my method
@@ -456,7 +457,7 @@ class TestAnnotateSpecie(TestCase):
             'type': 'specie',
             'confidence': 'Good',
             'text': 'England',
-            'ontologyTerms': 'http://purl.obolibrary.org/obo/LBO_0000347'
+            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL)
         }
 
         # call my method

@@ -12,6 +12,7 @@ import json
 from django.test import TestCase
 from django.utils import timezone
 
+from common.constants import OBO_URL
 from common.tests import PersonMixinTestCase
 
 from image_app.models import (Animal, Submission, DictBreed, DictCountry,
@@ -56,7 +57,7 @@ class DictSexTestCase(TestCase):
         reference = [{
             "value": "male",
             "terms": [{
-                "url": "http://purl.obolibrary.org/obo/PATO_0000384"
+                "url": "%s/PATO_0000384" % (OBO_URL)
              }]
         }]
 

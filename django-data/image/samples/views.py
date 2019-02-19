@@ -71,7 +71,7 @@ class DeleteSampleView(DeleteMaterialMixin, DeleteView):
         with transaction.atomic():
             # delete this sample object
             logger.debug(
-                "Deleting animal:%s and name:%s" % (self.object, name))
+                "Deleting sample:%s and name:%s" % (self.object, name))
 
             result = self.object.delete()
             logger.debug("%s objects deleted" % str(result))
