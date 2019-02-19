@@ -15,7 +15,8 @@ from django.http import HttpResponseRedirect
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.shortcuts import get_object_or_404, redirect
 
-from common.constants import WAITING, ERROR, SUBMITTED, NEED_REVISION
+from common.constants import (
+    WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE)
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name
@@ -24,9 +25,6 @@ from .forms import SubmissionForm, ReloadForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
-
-# get cryoweb type
-CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
 
 
 class CreateSubmissionView(LoginRequiredMixin, CreateView):

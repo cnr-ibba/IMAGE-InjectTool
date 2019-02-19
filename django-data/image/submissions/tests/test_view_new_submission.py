@@ -13,18 +13,12 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 import common
-from common.constants import ERROR
+from common.constants import ERROR, CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE
 from image_app.models import DictCountry, Organization, Submission
 from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
 from ..forms import SubmissionForm
 from ..views import CreateSubmissionView
-
-
-# get template types from submission object
-CRYOWEB_TYPE = Submission.TYPES.get_value('cryoweb')
-TEMPLATE_TYPE = Submission.TYPES.get_value('template')
-CRB_ANIM_TYPE = Submission.TYPES.get_value('crb_anim')
 
 
 class Initialize(TestCase):

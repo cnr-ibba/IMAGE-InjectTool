@@ -59,6 +59,17 @@ class STATUSES(Enum):
         return cls[member].value[0]
 
 
+# 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
+class DATA_TYPES(Enum):
+    cryoweb = (0, 'CryoWeb')
+    template = (1, 'Template')
+    crb_anim = (2, 'CRB-Anim')
+
+    @classmethod
+    def get_value(cls, member):
+        return cls[member].value[0]
+
+
 # a list of a valid statuse for names
 NAME_STATUSES = [
     'loaded',
@@ -81,3 +92,8 @@ COMPLETED = STATUSES.get_value('completed')
 # get accuracy levels
 MISSING = ACCURACIES.get_value('missing')
 UNKNOWN = ACCURACIES.get_value('unknown')
+
+# get different data sources types
+CRYOWEB_TYPE = DATA_TYPES.get_value('cryoweb')
+TEMPLATE_TYPE = DATA_TYPES.get_value('template')
+CRB_ANIM_TYPE = DATA_TYPES.get_value('crb_anim')

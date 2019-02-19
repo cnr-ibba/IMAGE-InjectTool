@@ -2,7 +2,6 @@
 import logging
 import os
 import shlex
-from enum import Enum
 
 from django.contrib.auth.models import User
 from django.db import connections, models
@@ -14,7 +13,7 @@ from django.utils import timezone
 from common.fields import ProtectedFileField
 from common.constants import (
     OBO_URL, STATUSES, CONFIDENCES, NAME_STATUSES, ACCURACIES, WAITING, LOADED,
-    MISSING)
+    MISSING, DATA_TYPES)
 
 from .helpers import format_attribute
 
@@ -858,19 +857,9 @@ class Submission(BaseMixin, models.Model):
         'DictCountry',
         on_delete=models.PROTECT)
 
-    # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-    class TYPES(Enum):
-        cryoweb = (0, 'CryoWeb')
-        template = (1, 'Template')
-        crb_anim = (2, 'CRB-Anim')
-
-        @classmethod
-        def get_value(cls, member):
-            return cls[member].value[0]
-
     # datasource field
     datasource_type = models.SmallIntegerField(
-        choices=[x.value for x in TYPES],
+        choices=[x.value for x in DATA_TYPES],
         help_text='example: CryoWeb')
 
     datasource_version = models.CharField(
