@@ -76,7 +76,6 @@ InjectTool TODO
       mapped_breed (need revisions)
 
 * Data validation:
-  - will be managed by a IMAGE-ValidationTool, structured as a python package
   - Can I submit with a Warning message?
   - mock up time consuming modules (`validation.tests.test_helpers`)
   - Can validation start after data load, and after calling zooma? See celery

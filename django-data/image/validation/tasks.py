@@ -15,15 +15,12 @@ import traceback
 from collections import Counter
 from celery.utils.log import get_task_logger
 
-from image_validation import validation
-from image_validation.static_parameters import ruleset_filename as \
-    IMAGE_RULESET
-
 from common.constants import READY, ERROR, LOADED, NEED_REVISION
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal, STATUSES
 
 from .models import ValidationResult as ValidationResultModel
+from .helpers import MetaDataValidation
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -40,22 +37,15 @@ class ValidationError(Exception):
 class ValidateTask(MyTask):
     name = "Validate Submission"
     description = """Validate submission data against IMAGE rules"""
-    rules = None
 
-    # define my class attributes
-    def __init__(self, *args, **kwargs):
-        # http://docs.celeryproject.org/en/latest/userguide/tasks.html#instantiation
-        # A task is not instantiated for every request, but is registered in
-        # the task registry as a global instance. This means that the __init__
-        # constructor will only be called once per process, and that the
-        # task class is semantically closer to an Actor. if you have a task and
-        # you route every request to the same process, then it will keep state
-        # between requests. This can also be useful to cache resources, For
-        # example, a base Task class that caches a database connection
-        super(ValidateTask, self).__init__(*args, **kwargs)
-
-        # read rules ONCE
-        self.rules = validation.read_in_ruleset(IMAGE_RULESET)
+    # http://docs.celeryproject.org/en/latest/userguide/tasks.html#instantiation
+    # A task is not instantiated for every request, but is registered in
+    # the task registry as a global instance. This means that the __init__
+    # constructor will only be called once per process, and that the
+    # task class is semantically closer to an Actor. if you have a task and
+    # you route every request to the same process, then it will keep state
+    # between requests. This can also be useful to cache resources, For
+    # example, a base Task class that caches a database connection
 
     # Ovverride default on failure method
     # This is not a failed validation for a wrong value, this is an
@@ -87,6 +77,9 @@ class ValidateTask(MyTask):
         """a function to perform validation steps"""
 
         logger.info("Validate Submission started")
+
+        # read rules when task starts
+        self.ruleset = MetaDataValidation()
 
         # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
@@ -204,7 +197,7 @@ class ValidateTask(MyTask):
         data = model.to_biosample()
 
         # input is a list object
-        usi_result = validation.check_usi_structure([data])
+        usi_result = self.ruleset.check_usi_structure([data])
 
         # if I have errors here, JSON isn't valid: this is not an error
         # on user's data but on InjectTool itself
@@ -222,7 +215,7 @@ class ValidateTask(MyTask):
         # HINT: improve check_duplicates or implement database constraints
 
         # check against image metadata
-        ruleset_results = self.rules.validate(data)
+        ruleset_results = self.ruleset.validate(data)
 
         # update status and track data in a overall variable
         self.update_statuses(submission_statuses, model, ruleset_results)
@@ -230,6 +223,7 @@ class ValidateTask(MyTask):
     # inspired from validation.deal_with_validation_results
     def update_statuses(self, submission_statuses, model, results):
         if len(results) != 1:
+            logger.error("Got %s results: %s" % (len(results), results))
             raise ValidationError(
                 "Number of validation results are different from expectations")
 

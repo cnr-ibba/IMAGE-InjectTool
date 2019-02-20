@@ -6,15 +6,14 @@ Created on Tue Jan 22 14:28:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from image_validation import validation
-from image_validation.static_parameters import ruleset_filename as \
-    IMAGE_RULESET
 from image_validation.ValidationResult import ValidationResultRecord
 
 from django.test import TestCase
 
 from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
+
+from ..helpers import MetaDataValidation
 
 
 class SubmissionTestCase(PersonMixinTestCase, TestCase):
@@ -50,7 +49,7 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         publication.delete()
 
     def setUp(self):
-        self.rules = validation.read_in_ruleset(IMAGE_RULESET)
+        self.metadata = MetaDataValidation()
         self.submission_id = 1
 
     def test_animal(self):
@@ -68,7 +67,7 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
             data += [animal.to_biosample()]
 
         for i, record in enumerate(data):
-            result = self.rules.validate(record)
+            result = self.metadata.validate(record)
 
             # assert result type
             self.assertIsInstance(result, ValidationResultRecord)
@@ -95,7 +94,7 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
             data += [sample.to_biosample()]
 
         for i, record in enumerate(data):
-            result = self.rules.validate(record)
+            result = self.metadata.validate(record)
 
             # assert result type
             self.assertIsInstance(result, ValidationResultRecord)
@@ -127,14 +126,14 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         data = animals_json + samples_json
 
         # test for usi structure
-        usi_result = validation.check_usi_structure(data)
+        usi_result = self.metadata.check_usi_structure(data)
 
         # no errors for check usi_structure
         self.assertIsInstance(usi_result, list)
         self.assertEqual(len(usi_result), 0)
 
         # test for duplicated data
-        dup_result = validation.check_duplicates(data)
+        dup_result = self.metadata.check_duplicates(data)
 
         # no errors for check_duplicates
         self.assertIsInstance(dup_result, list)
@@ -156,7 +155,7 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         del(data['title'])
 
         # test for Json structure
-        test = validation.check_usi_structure([data])
+        test = self.metadata.check_usi_structure([data])
 
         self.assertEqual(reference, test)
 
@@ -165,13 +164,13 @@ class RulesTestCase(TestCase):
     """Assert that image rules are valid"""
 
     def setUp(self):
-        self.rules = validation.read_in_ruleset(IMAGE_RULESET)
+        self.metadata = MetaDataValidation()
 
     def test_check_ruleset(self):
         """Assert that rules are valid"""
 
         # get validation results
-        ruleset_check = validation.check_ruleset(self.rules)
+        ruleset_check = self.metadata.check_ruleset()
 
         # test image metadata rules
         self.assertIsInstance(ruleset_check, list)
