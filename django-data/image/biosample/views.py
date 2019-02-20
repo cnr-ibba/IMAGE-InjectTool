@@ -327,7 +327,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
                 confirmPwd=confirmPwd,
                 email=email,
                 full_name=full_name,
-                organization=affiliation
+                organisation=affiliation
             )
 
         except ConnectionError as e:

@@ -104,10 +104,11 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
 
     def tearDown(self):
         # delete uploaded file if exists
-        fullpath = self.submission.uploaded_file.path
+        for submission in Submission.objects.all():
+            fullpath = submission.uploaded_file.path
 
-        if os.path.exists(fullpath):
-            os.remove(fullpath)
+            if os.path.exists(fullpath):
+                os.remove(fullpath)
 
         # call super method
         super().tearDown()
@@ -121,6 +122,26 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
 
     def test_task_called(self):
         self.my_task.assert_called_with(self.submission.pk)
+
+    def test_different_user(self):
+        """Create a new submission with the same data for a different user"""
+
+        # login as a different user
+        client = Client()
+        client.login(username='test2', password='test2')
+
+        response = client.post(
+            self.url,
+            self.get_data(),
+            follow=True)
+
+        # get this new submission object
+        self.assertEqual(Submission.objects.count(), 2)
+        submission = Submission.objects.filter(owner__username="test2").first()
+
+        # assert redirects
+        url = reverse('submissions:detail', kwargs={'pk': submission.pk})
+        self.assertRedirects(response, url)
 
 
 class InvalidCreateSubmissionViewTest(InvalidFormMixinTestCase, Initialize):

@@ -920,7 +920,8 @@ class Submission(BaseMixin, models.Model):
             "gene_bank_name",
             "gene_bank_country",
             "datasource_type",
-            "datasource_version"),)
+            "datasource_version",
+            "owner"),)
 
     def __str__(self):
         return "%s (%s, %s)" % (
