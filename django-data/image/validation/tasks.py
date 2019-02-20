@@ -215,21 +215,13 @@ class ValidateTask(MyTask):
         # HINT: improve check_duplicates or implement database constraints
 
         # check against image metadata
-        ruleset_results = self.ruleset.validate(data)
+        ruleset_result = self.ruleset.validate(data)
 
         # update status and track data in a overall variable
-        self.update_statuses(submission_statuses, model, ruleset_results)
+        self.update_statuses(submission_statuses, model, ruleset_result)
 
     # inspired from validation.deal_with_validation_results
-    def update_statuses(self, submission_statuses, model, results):
-        if len(results) != 1:
-            logger.error("Got %s results: %s" % (len(results), results))
-            raise ValidationError(
-                "Number of validation results are different from expectations")
-
-        # The hypotesys is that results is a list of one element
-        result = results[0]
-
+    def update_statuses(self, submission_statuses, model, result):
         # get overall status (ie Pass, Error)
         overall = result.get_overall_status()
 

@@ -22,20 +22,21 @@ class MetaDataValidation():
     def read_in_ruleset(self, ruleset_filename):
         self.ruleset = validation.read_in_ruleset(ruleset_filename)
 
-    def check_usi_structure(self, data):
+    def check_usi_structure(self, record):
         """Check data against USI rules"""
 
-        return validation.check_usi_structure(data)
+        # this function need its input as a list
+        return validation.check_usi_structure(record)
 
     def check_ruleset(self):
         """Check ruleset"""
 
         return validation.check_ruleset(self.ruleset)
 
-    def check_duplicates(self, data):
+    def check_duplicates(self, record):
         """Check duplicates in data"""
 
-        return validation.check_duplicates(data)
+        return validation.check_duplicates(record)
 
     def validate(self, record):
         """Check attributes for record"""

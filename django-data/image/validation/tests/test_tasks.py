@@ -21,7 +21,7 @@ from django.test import TestCase
 
 from common.constants import LOADED, ERROR, READY, NEED_REVISION
 from common.tests import PersonMixinTestCase
-from image_app.models import Submission, Person, Name
+from image_app.models import Submission, Person, Name, Animal, Sample
 
 from ..tasks import ValidateTask, ValidationError
 
@@ -68,9 +68,13 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # track submission ID
         self.submission_id = self.submission.id
 
-        # track animal and sample. Track Name objects
-        self.animal = Name.objects.get(pk=3)
-        self.sample = Name.objects.get(pk=4)
+        # track animal and sample.
+        self.animal = Animal.objects.get(pk=1)
+        self.sample = Sample.objects.get(pk=1)
+
+        # Track Name objects
+        self.animal_name = Name.objects.get(pk=3)
+        self.sample_name = Name.objects.get(pk=4)
 
         # setting tasks
         self.my_task = ValidateTask()
@@ -187,7 +191,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         validation_result = Mock()
         validation_result.get_overall_status.return_value = "Pass"
         validation_result.get_messages.return_value = ["A message"]
-        my_validate.return_value = [validation_result]
+        my_validate.return_value = validation_result
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
@@ -206,18 +210,20 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
             "Submission validated with success")
 
         # test for model status. Is the name object
-        self.animal.refresh_from_db()
-        self.assertEqual(self.animal.status, READY)
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.status, READY)
 
-        self.sample.refresh_from_db()
-        self.assertEqual(self.sample.status, READY)
+        self.sample_name.refresh_from_db()
+        self.assertEqual(self.sample_name.status, READY)
 
         # test for model message (usi_results)
-        self.assertEqual(self.animal.validationresult.messages, ["A message"])
-        self.assertEqual(self.animal.validationresult.status, "Pass")
+        self.assertEqual(
+            self.animal_name.validationresult.messages, ["A message"])
+        self.assertEqual(self.animal_name.validationresult.status, "Pass")
 
-        self.assertEqual(self.sample.validationresult.messages, ["A message"])
-        self.assertEqual(self.sample.validationresult.status, "Pass")
+        self.assertEqual(
+            self.sample_name.validationresult.messages, ["A message"])
+        self.assertEqual(self.sample_name.validationresult.status, "Pass")
 
         # assert validation functions called
         self.assertTrue(my_check.called)
@@ -242,7 +248,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # setting a return value for check_with_ruleset
         rule_result = Mock()
         rule_result.get_overall_status.return_value = "Pass"
-        my_validate.return_value = [rule_result]
+        my_validate.return_value = rule_result
 
         # call task
         res = self.my_task.run(submission_id=self.submission_id)
@@ -260,20 +266,22 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
             self.submission.message)
 
         # test for model status. Is the name object
-        self.animal.refresh_from_db()
-        self.assertEqual(self.animal.status, NEED_REVISION)
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.status, NEED_REVISION)
 
-        self.sample.refresh_from_db()
-        self.assertEqual(self.sample.status, NEED_REVISION)
+        self.sample_name.refresh_from_db()
+        self.assertEqual(self.sample_name.status, NEED_REVISION)
 
         # test for model message (usi_results)
-        self.assertEqual(self.animal.validationresult.messages, usi_result)
         self.assertEqual(
-            self.animal.validationresult.status, "Wrong JSON structure")
+            self.animal_name.validationresult.messages, usi_result)
+        self.assertEqual(
+            self.animal_name.validationresult.status, "Wrong JSON structure")
 
-        self.assertEqual(self.sample.validationresult.messages, usi_result)
         self.assertEqual(
-            self.sample.validationresult.status, "Wrong JSON structure")
+            self.sample_name.validationresult.messages, usi_result)
+        self.assertEqual(
+            self.sample_name.validationresult.status, "Wrong JSON structure")
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(my_check.called)
@@ -291,7 +299,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         rule_result = PickableMock()
         rule_result.get_overall_status.return_value = "A fake status"
         rule_result.get_messages.return_value = ["A fake message", ]
-        my_validate.return_value = [rule_result]
+        my_validate.return_value = rule_result
 
         # call task
         self.assertRaisesRegex(
@@ -335,7 +343,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         )
 
         # add results to result set
-        my_validate.side_effect = [[result1], [result2]]
+        my_validate.side_effect = [result1, result2]
 
         # call task
         res = self.my_task.run(submission_id=self.submission_id)
@@ -353,18 +361,18 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
             self.submission.message)
 
         # test for model status. Is the name object
-        self.animal.refresh_from_db()
-        self.assertEqual(self.animal.status, NEED_REVISION)
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.status, NEED_REVISION)
 
-        self.sample.refresh_from_db()
-        self.assertEqual(self.sample.status, NEED_REVISION)
+        self.sample_name.refresh_from_db()
+        self.assertEqual(self.sample_name.status, NEED_REVISION)
 
         # test for model message (usi_results)
-        test = self.animal.validationresult
+        test = self.animal_name.validationresult
         self.assertEqual(test.messages, result1.get_messages())
         self.assertEqual(test.status, "Warning")
 
-        test = self.sample.validationresult
+        test = self.sample_name.validationresult
         self.assertEqual(test.messages, result2.get_messages())
         self.assertEqual(test.status, "Error")
 
@@ -373,22 +381,51 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
 
-    def test_update_statuses_more_result(self):
-        """Test update_statuses with more than one results, or none of them"""
+    def check_status(self, status, messages, name_status):
+        """Test if I can update status for a model that pass validation"""
 
-        # testing exceptions
-        self.assertRaisesRegex(
-            ValidationError,
-            "Number of validation results are different from expectations",
-            self.my_task.update_statuses,
-            Counter(),
-            self.animal,
-            [Mock(), Mock()])
+        result = PickableMock()
+        result.get_overall_status.return_value = status
+        result.get_messages.return_value = messages
 
-        self.assertRaisesRegex(
-            ValidationError,
-            "Number of validation results are different from expectations",
-            self.my_task.update_statuses,
-            Counter(),
-            self.animal,
-            [])
+        submission_statuses = Counter(
+            {'Pass': 0,
+             'Warning': 0,
+             'Error': 0,
+             'JSON': 0})
+
+        # calling update statuses
+        self.my_task.update_statuses(submission_statuses, self.animal, result)
+
+        # Test for animal status
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.status, name_status)
+
+        # get validation result object
+        validationresult = self.animal_name.validationresult
+        self.assertEqual(validationresult.status, status)
+        self.assertEqual(validationresult.messages, messages)
+
+        # test submission status
+        self.assertEqual(submission_statuses[status], 1)
+
+    def test_update_status_pass(self):
+        status = 'Pass'
+        messages = ['Passed all tests']
+        name_status = READY
+
+        self.check_status(status, messages, name_status)
+
+    def test_update_status_warning(self):
+        status = 'Warning'
+        messages = ['issued a warning']
+        name_status = NEED_REVISION
+
+        self.check_status(status, messages, name_status)
+
+    def test_update_status_error(self):
+        status = 'Error'
+        messages = ['issued an error']
+        name_status = NEED_REVISION
+
+        self.check_status(status, messages, name_status)

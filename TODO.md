@@ -64,6 +64,7 @@ InjectTool TODO
     animal
   - see [django_filters](https://django-filter.readthedocs.io/) and [django_tables](https://django-tables2.readthedocs.io/en/latest/).
     For an example tutorial see [here](https://www.craigderington.me/generic-list-view-with-django-tables/)
+  - [django-pgcrypto](https://django-pgcrypto-expressions.readthedocs.io/en/latest/)?
 
 * import June code:
   - geo standardization
