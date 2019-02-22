@@ -103,6 +103,7 @@ class DataSourceMixinTestCase(object):
     uploaded_file = False
     dst_path = None
     model = None
+    datasource_filename = None
 
     @classmethod
     def setUpClass(cls):
@@ -115,9 +116,12 @@ class DataSourceMixinTestCase(object):
         submission = cls.model.objects.get(pk=1)
         cls.dst_path = submission.uploaded_file.path
 
+        # get datasource filename from submission object
+        datasource_filename = os.path.basename(submission.uploaded_file.path)
+
         if not os.path.exists(cls.dst_path):
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            src_path = os.path.join(base_dir, "cryoweb_test_data_only.sql")
+            src_path = os.path.join(base_dir, datasource_filename)
             shutil.copy(src_path, cls.dst_path)
             cls.uploaded_file = True
 
