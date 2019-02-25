@@ -145,7 +145,7 @@
     </tr>
     <tr class="table-secondary">
       <th scope="row">Animal age at collection:</th>
-      <td>{{ sample.animal_age_at_collection }}</td>
+      <td>{{ sample.animal_age_at_collection }} {% if sample.animal_age_at_collection_units %}{{ sample.get_animal_age_at_collection_units_display }}{% endif %}</td>
     </tr>
     <tr class="table-primary">
       <th scope="row">Availability:</th>

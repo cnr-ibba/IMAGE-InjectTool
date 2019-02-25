@@ -12,29 +12,29 @@ from enum import Enum
 OBO_URL = "http://purl.obolibrary.org/obo"
 
 
-class ACCURACIES(Enum):
+class EnumMixin():
+    """Common methods for my Enum classes"""
+
+    @classmethod
+    def get_value(cls, member):
+        return cls[member].value[0]
+
+
+class ACCURACIES(EnumMixin, Enum):
     missing = (0, 'missing geographic information')
     country = (1, 'country level')
     region = (2, 'region level')
     precise = (3, 'precise coordinates')
     unknown = (4, 'unknown accuracy level')
 
-    @classmethod
-    def get_value(cls, member):
-        return cls[member].value[0]
-
 
 # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-class CONFIDENCES(Enum):
+class CONFIDENCES(EnumMixin, Enum):
     high = (0, 'High')
     good = (1, 'Good')
     medium = (2, 'Medium')
     low = (3, 'Low')
     curated = (4, 'Manually Curated')
-
-    @classmethod
-    def get_value(cls, member):
-        return cls[member].value[0]
 
 
 # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
@@ -45,7 +45,7 @@ class CONFIDENCES(Enum):
 # need_revision: validated data need checks before submission
 # submitted: submitted to biosample
 # completed: finalized submission with biosample id
-class STATUSES(Enum):
+class STATUSES(EnumMixin, Enum):
     waiting = (0, 'Waiting')
     loaded = (1, 'Loaded')
     submitted = (2, 'Submitted')
@@ -54,20 +54,22 @@ class STATUSES(Enum):
     ready = (5, "Ready")
     completed = (6, "Completed")
 
-    @classmethod
-    def get_value(cls, member):
-        return cls[member].value[0]
-
 
 # 6.4.8 Better Model Choice Constants Using Enum (two scoops of django)
-class DATA_TYPES(Enum):
+class DATA_TYPES(EnumMixin, Enum):
     cryoweb = (0, 'CryoWeb')
     template = (1, 'Template')
     crb_anim = (2, 'CRB-Anim')
 
-    @classmethod
-    def get_value(cls, member):
-        return cls[member].value[0]
+
+# to deal with time units
+class TIME_UNITS(EnumMixin, Enum):
+    minutes = (0, "minutes")
+    hours = (1, "hours")
+    days = (2, "days")
+    weeks = (3, "weeks")
+    months = (4, "months")
+    years = (5, "years")
 
 
 # a list of a valid statuse for names
@@ -101,3 +103,6 @@ CRB_ANIM_TYPE = DATA_TYPES.get_value('crb_anim')
 # get different confidence statuses
 GOOD = CONFIDENCES.get_value('good')
 CURATED = CONFIDENCES.get_value('curated')
+
+# get time units
+YEARS = TIME_UNITS.get_value('years')

@@ -13,7 +13,7 @@ from django.utils import timezone
 from common.fields import ProtectedFileField
 from common.constants import (
     OBO_URL, STATUSES, CONFIDENCES, NAME_STATUSES, ACCURACIES, WAITING, LOADED,
-    MISSING, DATA_TYPES)
+    MISSING, DATA_TYPES, TIME_UNITS)
 
 from .helpers import format_attribute
 
@@ -551,10 +551,12 @@ class Animal(BioSampleMixin, models.Model):
             value=self.birth_location)
 
         attributes["Birth location longitude"] = format_attribute(
-            value=self.birth_location_longitude)
+            value=self.birth_location_longitude,
+            units="decimal degrees")
 
         attributes["Birth location latitude"] = format_attribute(
-            value=self.birth_location_latitude)
+            value=self.birth_location_latitude,
+            units="decimal degrees")
 
         attributes["Birth location accuracy"] = format_attribute(
             value=self.get_birth_location_accuracy_display())
@@ -654,7 +656,15 @@ class Sample(BioSampleMixin, models.Model):
             blank=True,
             null=True)
 
-    animal_age_at_collection = models.IntegerField(null=True, blank=True)
+    animal_age_at_collection = models.IntegerField(
+        null=True,
+        blank=True)
+
+    animal_age_at_collection_units = models.SmallIntegerField(
+        choices=[x.value for x in TIME_UNITS],
+        help_text='example: years',
+        null=True,
+        blank=True)
 
     availability = models.CharField(max_length=255, blank=True, null=True)
 
@@ -701,11 +711,43 @@ class Sample(BioSampleMixin, models.Model):
         attributes['Collection place'] = format_attribute(
             value=self.collection_place)
 
-        # this will point to a correct term dictionary table
-        attributes['Organism part'] = self.organism_part.format_attribute()
+        attributes["Collection place longitude"] = format_attribute(
+            value=self.collection_place_longitude,
+            units="decimal degrees")
+
+        attributes["Collection place latitude"] = format_attribute(
+            value=self.collection_place_latitude,
+            units="decimal degrees")
 
         attributes["Collection place accuracy"] = format_attribute(
             value=self.get_collection_place_accuracy_display())
+
+        # this will point to a correct term dictionary table
+        if self.organism_part:
+            attributes['Organism part'] = self.organism_part.format_attribute()
+
+        if self.developmental_stage:
+            attributes['Developmental stage'] = \
+                self.developmental_stage.format_attribute()
+
+        attributes['Physiological stage'] = format_attribute(
+            value=self.physiological_stage)
+
+        attributes['Animal age at collection'] = format_attribute(
+            value=self.animal_age_at_collection,
+            units=self.get_animal_age_at_collection_units_display())
+
+        attributes['Availability'] = format_attribute(
+            value=self.availability)
+
+        attributes['Sample storage'] = format_attribute(
+            value=self.storage)
+
+        attributes['Sample storage processing'] = format_attribute(
+            value=self.storage_processing)
+
+        attributes['Sampling to preparation interval'] = format_attribute(
+            value=self.preparation_interval)
 
         # filter out empty values
         attributes = {k: v for k, v in attributes.items() if v is not None}
