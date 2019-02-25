@@ -8,11 +8,12 @@ Created on Thu Feb 21 15:37:16 2019
 
 import csv
 import logging
+import pycountry
 
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 from common.constants import LOADED, ERROR
-from image_app.models import DictSpecie, DictSex
+from image_app.models import DictSpecie, DictSex, DictCountry, DictBreed
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -34,11 +35,21 @@ class CRBAnimReader():
         """Read crb anim files and set tit to class attribute"""
 
         with open(filename, newline='') as csvfile:
+            # initialize data
+            self.data = []
             self.dialect = csv.Sniffer().sniff(csvfile.read(2048))
             csvfile.seek(0)
+
+            # read csv file
             reader = csv.reader(csvfile, self.dialect)
             self.header = next(reader)
-            self.data = list(reader)
+
+            # create a namedtuple object
+            Data = namedtuple("Data", self.header)
+
+            # add records to data
+            for record in map(Data._make, reader):
+                self.data.append(record)
 
         self.items = self.eval_columns()
 
@@ -66,6 +77,14 @@ class CRBAnimReader():
 
         for i, column in enumerate(self.header):
             logger.debug("%s: %s" % (column, self.data[num][i]))
+
+    def filter_by_column_value(self, column, value):
+        for line in self.data:
+            if getattr(line, column) == value:
+                yield line
+
+            else:
+                logger.debug("Filtering: %s" % (str(line)))
 
     def __check_items(self, item_set, model, column):
         """General check of CRBanim items into database"""
@@ -108,6 +127,46 @@ class CRBAnimReader():
         return self.__check_items(item_set, DictSex, column)
 
 
+def process_record(record, language):
+    # HINT: record with a biosample id should be ignored, for the moment
+    if record.EBI_Biosample_identifier != "\\N":
+        logger.warning("Ignoring %s: already in biosample!" % str(record))
+        return
+
+    # get a DictSpecie object. Species are in latin names, so I don't need
+    # a translation
+    specie = DictSpecie.objects.get(label=record.species_latin_name)
+
+    # get country name using pycountries
+    country_name = pycountry.countries.get(
+        alpha_2=record.country_of_origin).name
+
+    # get country for breeds. Ideally will be the same of submission,
+    # however, it could be possible to store data from other contries
+    country, created = DictCountry.objects.get_or_create(
+        label=country_name)
+
+    # I could create a country from a v_breed_specie instance. That's
+    # ok, maybe I could have a lot of breed from different countries and
+    # a few organizations submitting them
+    if created:
+        logger.info("Created %s" % country)
+
+    else:
+        logger.debug("Found %s" % country)
+
+    breed, created = DictBreed.objects.get_or_create(
+        supplied_breed=record.breed_name,
+        specie=specie,
+        country=country)
+
+    if created:
+        logger.info("Created %s" % breed)
+
+    else:
+        logger.debug("Found %s" % breed)
+
+
 def upload_crbanim(submission):
     # debug
     logger.info("Importing from CRB-Anim file")
@@ -128,6 +187,12 @@ def upload_crbanim(submission):
         if not reader.check_species():
             raise CRBAnimImportError(
                 "Some species are not loaded in UID database")
+
+        # ok get languages from submission (useful for translation)
+        language = submission.gene_bank_country.label
+
+        for record in reader.data:
+            process_record(record, language)
 
     except Exception as exc:
         # save a message in database

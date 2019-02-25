@@ -120,6 +120,17 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
         # the read species are not included in fixtures
         self.assertFalse(self.reader.check_sex())
 
+    def test_filter_by_column(self):
+        """Filter records by column value"""
+
+        # filter out biosample records from mydata
+        data = self.reader.filter_by_column_value(
+            "EBI_Biosample_identifier",
+            "\\N")
+        data = list(data)
+
+        self.assertEqual(len(data), 1)
+
 
 class UploadCRBAnimTestCase(BaseTestCase, TestCase):
 

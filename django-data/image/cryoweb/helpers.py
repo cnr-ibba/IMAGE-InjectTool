@@ -213,13 +213,15 @@ def fill_uid_breeds(submission):
             synonim=v_breed_specie.ext_species,
             language=language)
 
-        # get country. Maybe DictCountry will be related to dictionary table
-        # for now, I can create an object or not
-        # TODO: define if is a dictionary related term or not
-        # use language for consistency with submission
+        # get country for breeds. Ideally will be the same of submission,
+        # since the Italian cryoweb is supposed to contains italian breeds.
+        # however, it could be possible to store data from other contries
         country, created = DictCountry.objects.get_or_create(
-            label=language)
+            label=v_breed_specie.efabis_country)
 
+        # I could create a country from a v_breed_specie instance. That's
+        # ok, maybe I could have a lot of breed from different countries and
+        # a few organizations submitting them
         if created:
             logger.info("Created %s" % country)
 
@@ -374,9 +376,9 @@ def fill_uid_samples(submission):
             name__name=v_vessel.ext_animal,
             name__submission=submission)
 
-        # get a organism part
+        # get a organism part. Organism parts need to be in lowercases
         organism_part, created = DictUberon.objects.get_or_create(
-            label=v_vessel.get_organism_part()
+            label=v_vessel.get_organism_part().lower()
         )
 
         if created:

@@ -49,9 +49,6 @@ InjectTool TODO
   - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
     and its father
   - check for duplicate breeds - names
-  - we could have breed with a country different from the submission and organization:
-    - the submission country determine the language. The species breed is determined
-      from data.
 
 * NGINX media folder can serve media files (jpg, etc).
   - add subdirs in media folder `data_source/`
