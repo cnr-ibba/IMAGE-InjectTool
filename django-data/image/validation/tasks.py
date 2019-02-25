@@ -175,6 +175,17 @@ class ValidateTask(MyTask):
                 submission_id, submission_statuses))
 
         # WOW: I can submit those data
+        elif self.has_warnings_in_rules(submission_statuses):
+            submission_obj.status = READY
+            submission_obj.message = "Submission validated with some warnings"
+            submission_obj.save()
+
+            logger.info(
+                "Submission %s validated with some warning" % (submission_obj))
+
+            logger.debug("Results for submission %s: %s" % (
+                submission_id, submission_statuses))
+
         else:
             submission_obj.status = READY
             submission_obj.message = "Submission validated with success"
@@ -225,20 +236,28 @@ class ValidateTask(MyTask):
         # get overall status (ie Pass, Error)
         overall = result.get_overall_status()
 
-        if overall != "Pass":
-            self.mark_model(model, result, NEED_REVISION)
+        # set model as valid even if has some warnings
+        if overall in ["Pass", "Warning"]:
+            self.mark_model(model, result, READY)
 
         else:
-            self.mark_model(model, result, READY)
+            self.mark_model(model, result, NEED_REVISION)
 
         # update a collections.Counter objects by key
         submission_statuses.update({overall})
 
     def has_errors_in_rules(self, submission_statuses):
-        "Return True if there is any error or warning"""
+        "Return True if there is any errors"""
 
-        if (submission_statuses["Warning"] != 0 or
-                submission_statuses["Error"] != 0):
+        if submission_statuses["Error"] != 0:
+            return True
+        else:
+            return False
+
+    def has_warnings_in_rules(self, submission_statuses):
+        "Return True if there is any warnings"""
+
+        if submission_statuses["Warning"] != 0:
             return True
         else:
             return False

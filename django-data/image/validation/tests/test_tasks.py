@@ -339,6 +339,66 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
         result2 = ValidationResultRecord("sample_1")
         result2.add_validation_result_column(
+            ValidationResultColumn("pass", "a message", "sample_1")
+        )
+
+        # add results to result set
+        my_validate.side_effect = [result1, result2]
+
+        # call task
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(self.submission.status, READY)
+        self.assertIn(
+            "Submission validated with some warnings",
+            self.submission.message)
+
+        # test for model status. Is the name object
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.status, READY)
+
+        self.sample_name.refresh_from_db()
+        self.assertEqual(self.sample_name.status, READY)
+
+        # test for model message (usi_results)
+        test = self.animal_name.validationresult
+        self.assertEqual(test.messages, result1.get_messages())
+        self.assertEqual(test.status, "Warning")
+
+        test = self.sample_name.validationresult
+        self.assertEqual(test.messages, result2.get_messages())
+        self.assertEqual(test.status, "Pass")
+
+        # test for my methods called
+        self.assertTrue(my_check.called)
+        self.assertTrue(my_validate.called)
+        self.assertTrue(my_read.called)
+
+    @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
+    @patch("validation.tasks.MetaDataValidation.check_usi_structure")
+    @patch("validation.tasks.MetaDataValidation.validate")
+    def test_validate_submission_warnings(
+            self, my_validate, my_check, my_read):
+        """A submission with warnings is a READY submission"""
+
+        # setting check_usi_structure result
+        my_check.return_value = []
+
+        # setting a return value for check_with_ruleset
+        result1 = ValidationResultRecord("animal_1")
+        result1.add_validation_result_column(
+            ValidationResultColumn("warning", "warn message", "animal_1")
+        )
+
+        result2 = ValidationResultRecord("sample_1")
+        result2.add_validation_result_column(
             ValidationResultColumn("error", "error message", "sample_1")
         )
 
@@ -362,7 +422,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
-        self.assertEqual(self.animal_name.status, NEED_REVISION)
+        self.assertEqual(self.animal_name.status, READY)
 
         self.sample_name.refresh_from_db()
         self.assertEqual(self.sample_name.status, NEED_REVISION)
@@ -419,7 +479,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
     def test_update_status_warning(self):
         status = 'Warning'
         messages = ['issued a warning']
-        name_status = NEED_REVISION
+        name_status = READY
 
         self.check_status(status, messages, name_status)
 
