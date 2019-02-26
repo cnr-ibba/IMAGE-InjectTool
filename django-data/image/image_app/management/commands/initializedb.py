@@ -138,6 +138,38 @@ def fill_Countries():
     return country
 
 
+def standardize_institute_name(original):
+    special = {
+        'de': 1,
+        'la': 1,
+        'of': 1,
+        'and': 1,
+        'y': 1,
+        'fuer': 1,
+        'del': 1,
+        'l': 1,
+        'INRA': 1,
+        'FAO': 1
+    }
+    if original.find(" ") > -1:
+        if original.upper() == original:
+            components = original.split(' ')
+            # We capitalize the first letter of each component except the first one
+            # with the 'title' method and join them together.
+            result = ''
+            for component in components:
+                result = result + ' '
+                if component.lower() in special:
+                    result = result + component.lower()
+                elif component.upper() in special:
+                    result = result + component.upper()
+                else:
+                    result = result + component.title()
+            result = result[1:]
+            return result
+    return original
+
+
 def fill_Organization():
     """Fill organization table"""
 
@@ -161,7 +193,7 @@ def fill_Organization():
             logger.info("Created: %s" % (country))
 
         organization, created = Organization.objects.get_or_create(
-            name=row.name, role=role, country=country)
+            name=standardize_institute_name(row.name), role=role, country=country)
 
         if created is True:
             logger.info("Created: %s" % (organization))
