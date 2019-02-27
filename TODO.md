@@ -23,12 +23,6 @@ InjectTool TODO
     cleaning?
   - if needed, should be implemented using [django-rest-framework](https://www.django-rest-framework.org/)
 
-* Openrefine integration:
-  - need to place Openrefine in docker compose?
-  - can I place data directly in OpenRefine? I need to download data from Inject-Tool
-    then load into OpenRefine? when data are ready, I need to place them back to Inject-Tool?
-  - test [OpenRefine client](https://github.com/OpenRefine/refine-client-py)
-
 * Regarding data submissions
   - How I can update an already loaded biosample using a different submission from
     the first one?
@@ -77,8 +71,8 @@ InjectTool TODO
       mapped_breed (need revisions)
 
 * Data validation:
-  - Can I submit with a Warning message?
   - mock up time consuming modules (`validation.tests.test_helpers`)
+    - hard task: maybe pickling `image_validation.use_ontology.OntologyCache`?
   - Can validation start after data load, and after calling zooma? See celery
     chains
   - I could validate a data for an already submitted object (rules may change).

@@ -151,11 +151,15 @@ def standardize_institute_name(original):
         'INRA': 1,
         'FAO': 1
     }
+
+    # search space in original (instutute name) if no space is found
+    # it is like that institute name will be EBI or IBBA, and will be
+    # treated as it is
     if original.find(" ") > -1:
         if original.upper() == original:
             components = original.split(' ')
-            # We capitalize the first letter of each component except the first one
-            # with the 'title' method and join them together.
+            # We capitalize the first letter of each component except the first
+            # one with the 'title' method and join them together.
             result = ''
             for component in components:
                 result = result + ' '
@@ -173,8 +177,8 @@ def standardize_institute_name(original):
 def fill_Organization():
     """Fill organization table"""
 
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    filename = os.path.join(base_dir, "commands/organization_list.csv")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    filename = os.path.join(base_dir, "organization_list.csv")
 
     # open data file
     handle = open(filename)
@@ -192,8 +196,11 @@ def fill_Organization():
         if created is True:
             logger.info("Created: %s" % (country))
 
+        # HINT: could be better to fix organization names in organization_list?
         organization, created = Organization.objects.get_or_create(
-            name=standardize_institute_name(row.name), role=role, country=country)
+            name=standardize_institute_name(row.name),
+            role=role,
+            country=country)
 
         if created is True:
             logger.info("Created: %s" % (organization))
