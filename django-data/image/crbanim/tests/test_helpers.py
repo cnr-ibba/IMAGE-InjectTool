@@ -186,13 +186,11 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         self.assertEqual(animal.sex, sex)
 
         # testing samples
-        fill_uid_sample(
+        sample = fill_uid_sample(
             self.record,
             sample_name,
             animal,
             self.submission)
-
-        sample = Sample.objects.get(pk=1)
 
         # testing animal
         self.assertIsInstance(sample, Sample)

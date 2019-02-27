@@ -281,6 +281,8 @@ def fill_uid_sample(record, sample_name, animal, submission):
     else:
         logger.debug("Updating %s" % sample)
 
+    return sample
+
 
 def process_record(record, submission, language):
     # HINT: record with a biosample id should be ignored, for the moment
