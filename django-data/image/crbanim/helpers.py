@@ -12,8 +12,9 @@ import pycountry
 
 from collections import defaultdict, namedtuple
 
-from common.constants import LOADED, ERROR
-from image_app.models import DictSpecie, DictSex, DictCountry, DictBreed
+from common.constants import LOADED, ERROR, MISSING
+from image_app.models import (
+    DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -127,11 +128,8 @@ class CRBAnimReader():
         return self.__check_items(item_set, DictSex, column)
 
 
-def process_record(record, language):
-    # HINT: record with a biosample id should be ignored, for the moment
-    if record.EBI_Biosample_identifier != "\\N":
-        logger.warning("Ignoring %s: already in biosample!" % str(record))
-        return
+def fill_uid_breed(record):
+    """Fill DioctBreed from a crbanim record"""
 
     # get a DictSpecie object. Species are in latin names, so I don't need
     # a translation
@@ -166,6 +164,95 @@ def process_record(record, language):
     else:
         logger.debug("Found %s" % breed)
 
+    # return a DictBreed object
+    return breed
+
+
+def fill_uid_names(record, submission):
+    """fill Names table from crbanim record"""
+
+    # in the same record I have the sample identifier and animal identifier
+    # a name record for animal
+    animal_name, created = Name.objects.get_or_create(
+        name=record.animal_ID,
+        submission=submission,
+        owner=submission.owner)
+
+    if created:
+        logger.info("Created animal %s" % animal_name)
+
+    else:
+        logger.debug("Found animal %s" % animal_name)
+
+    # name record for sample
+    sample_name, created = Name.objects.get_or_create(
+        name=record.sample_identifier,
+        submission=submission,
+        owner=submission.owner)
+
+    if created:
+        logger.info("Created sample %s" % sample_name)
+
+    else:
+        logger.debug("Found sample %s" % sample_name)
+
+    # returning 2 Name instances
+    return animal_name, sample_name
+
+
+def fill_uid_animal(record, animal_name, breed, submission):
+    """Helper function to fill animal data in UID animal table"""
+
+    # HINT: does CRBAnim models mother and father?
+
+    # determine sex. Check for values
+    sex = DictSex.objects.get(label__iexact=record.sex)
+
+    # there's no birth_location for animal in CRBAnim
+    accuracy = MISSING
+
+    # create a new object. Using defaults to avoid collisions when
+    # updating data
+    # HINT: CRBanim has less attribute than cryoweb
+    defaults = {
+        'alternative_id': record.EBI_Biosample_identifier,
+        'breed': breed,
+        'sex': sex,
+        'birth_location_accuracy': accuracy,
+        'owner': submission.owner
+    }
+
+    # HINT: I could have the same animal again and again. Should I update
+    # every times?
+    animal, created = Animal.objects.update_or_create(
+        name=animal_name,
+        defaults=defaults)
+
+    if created:
+        logger.info("Created %s" % animal)
+
+    else:
+        logger.debug("Updating %s" % animal)
+
+    # i need to track animal to relate the sample
+    return animal
+
+
+def process_record(record, submission, language):
+    # HINT: record with a biosample id should be ignored, for the moment
+    if record.EBI_Biosample_identifier != "\\N":
+        logger.warning("Ignoring %s: already in biosample!" % str(record))
+        return
+
+    # filling breeds
+    breed = fill_uid_breed(record)
+
+    # filling name tables
+    animal_name, sample_name = fill_uid_names(record, submission)
+
+    # fill animal
+    animal = fill_uid_animal(record, animal_name, breed, submission)
+
 
 def upload_crbanim(submission):
     # debug
@@ -192,7 +279,7 @@ def upload_crbanim(submission):
         language = submission.gene_bank_country.label
 
         for record in reader.data:
-            process_record(record, language)
+            process_record(record, submission, language)
 
     except Exception as exc:
         # save a message in database

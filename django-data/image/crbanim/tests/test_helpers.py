@@ -13,10 +13,12 @@ from django.test import TestCase
 
 from common.constants import ERROR, LOADED
 from common.tests import DataSourceMixinTestCase
-from image_app.models import Submission, db_has_data, DictSpecie, DictSex
+from image_app.models import (
+    Submission, db_has_data, DictSpecie, DictSex, DictBreed, Name, Animal)
 
 from ..helpers import (
-    logger, CRBAnimReader, upload_crbanim, CRBAnimImportError)
+    logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
+    fill_uid_animal)
 
 
 class BaseTestCase(DataSourceMixinTestCase):
@@ -96,6 +98,7 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
     def test_debug_row(self):
         """Assert a function is callable"""
 
+        self.reader.print_line(0)
         self.assertLogs(logger=logger, level=logging.DEBUG)
 
     def test_check_species(self):
@@ -130,6 +133,74 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
         data = list(data)
 
         self.assertEqual(len(data), 1)
+
+
+class ProcessRecordTestCase(BaseTestCase, TestCase):
+    """A class to test function which process record"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # crate a CRBAnimReade object
+        self.reader = CRBAnimReader()
+
+        # get filenames for DataSourceMixinTestCase.dst_path
+        self.reader.read_file(self.dst_path)
+
+        # filter out biosample records from mydata
+        data = self.reader.filter_by_column_value(
+            "EBI_Biosample_identifier",
+            "\\N")
+        data = list(data)
+
+        # track the sample record for test
+        self.record = data[0]
+
+    def test_fill_uid_breed(self):
+        """testing fill_uid_breed"""
+
+        # call method
+        breed = fill_uid_breed(self.record)
+
+        # testing output
+        self.assertIsInstance(breed, DictBreed)
+        self.assertEqual(breed.supplied_breed, self.record.breed_name)
+        self.assertEqual(breed.specie.label, self.record.species_latin_name)
+
+    def test_fill_uid_names(self):
+        # calling method
+        animal_name, sample_name = fill_uid_names(self.record, self.submission)
+
+        # testing output
+        self.assertIsInstance(animal_name, Name)
+        self.assertIsInstance(sample_name, Name)
+
+        self.assertEqual(animal_name.name, self.record.animal_ID)
+        self.assertEqual(sample_name.name, self.record.sample_identifier)
+
+    def test_fill_uid_animal(self):
+        breed = fill_uid_breed(self.record)
+
+        # creating name
+        animal_name = Name.objects.create(
+            name=self.record.animal_ID,
+            submission=self.submission,
+            owner=self.submission.owner)
+
+        # testing method
+        animal = fill_uid_animal(
+            self.record,
+            animal_name,
+            breed,
+            self.submission)
+
+        # testing animal
+        self.assertIsInstance(animal, Animal)
+
+        # testing animal attributes
+        sex = DictSex.objects.get(label__iexact=self.record.sex)
+        self.assertEqual(animal.sex, sex)
 
 
 class UploadCRBAnimTestCase(BaseTestCase, TestCase):
