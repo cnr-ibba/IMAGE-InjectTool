@@ -14,7 +14,8 @@ from collections import defaultdict, namedtuple
 
 from common.constants import LOADED, ERROR, MISSING
 from image_app.models import (
-    DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal)
+    DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
+    DictUberon)
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -238,6 +239,49 @@ def fill_uid_animal(record, animal_name, breed, submission):
     return animal
 
 
+def fill_uid_sample(record, sample_name, animal, submission):
+    """Helper function to fill animal data in UID sample table"""
+
+    # name and animal name come from parameters
+
+    # get a organism part. Organism parts need to be in lowercases
+    # waht sample_type_name stands for?
+    organism_part, created = DictUberon.objects.get_or_create(
+        label=record.body_part_name.lower()
+    )
+
+    if created:
+        logger.info("Created %s" % organism_part)
+
+    else:
+        logger.debug("Found %s" % organism_part)
+
+    # create a new object. Using defaults to avoid collisions when
+    # updating data
+    defaults = {
+        # can't be EBI_Biosample_identifier
+        # 'alternative_id': v_vessel.db_vessel,
+        'collection_date': record.sampling_date,
+        'protocol': record.sampling_protocol_url,
+        'organism_part': organism_part,
+        'animal': animal,
+        # 'description': v_vessel.comment,
+        'owner': submission.owner,
+        'storage': " ".join([
+            record.sample_container_type, record.sample_storage_temperature])
+    }
+
+    sample, created = Sample.objects.update_or_create(
+        name=sample_name,
+        defaults=defaults)
+
+    if created:
+        logger.info("Created %s" % sample)
+
+    else:
+        logger.debug("Updating %s" % sample)
+
+
 def process_record(record, submission, language):
     # HINT: record with a biosample id should be ignored, for the moment
     if record.EBI_Biosample_identifier != "\\N":
@@ -252,6 +296,9 @@ def process_record(record, submission, language):
 
     # fill animal
     animal = fill_uid_animal(record, animal_name, breed, submission)
+
+    # fill sample
+    fill_uid_sample(record, sample_name, animal, submission)
 
 
 def upload_crbanim(submission):
@@ -276,6 +323,7 @@ def upload_crbanim(submission):
                 "Some species are not loaded in UID database")
 
         # ok get languages from submission (useful for translation)
+        # HINT: no traslations implemented, at the moment
         language = submission.gene_bank_country.label
 
         for record in reader.data:

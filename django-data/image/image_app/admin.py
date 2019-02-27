@@ -121,10 +121,10 @@ class SampleAdmin(admin.ModelAdmin):
 
     fields = (
         ('name', 'alternative_id', 'description', 'owner'),
-        ('animal', 'protocol', 'organism_part', 'organism_part_term'),
+        ('animal', 'protocol', 'organism_part'),
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
-        ('developmental_stage', 'developmental_stage_term',
+        ('developmental_stage',
          'physiological_stage', 'animal_age_at_collection', 'availability'),
         ('storage_processing', 'preparation_interval')
     )

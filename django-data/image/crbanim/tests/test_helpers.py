@@ -12,36 +12,14 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from common.constants import ERROR, LOADED
-from common.tests import DataSourceMixinTestCase
 from image_app.models import (
-    Submission, db_has_data, DictSpecie, DictSex, DictBreed, Name, Animal)
+    Submission, db_has_data, DictSpecie, DictSex, DictBreed, Name, Animal,
+    Sample, DictUberon)
 
 from ..helpers import (
     logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
-    fill_uid_animal)
-
-
-class BaseTestCase(DataSourceMixinTestCase):
-    # define attribute in DataSourceMixinTestCase
-    model = Submission
-
-    # import this file and populate database once
-    fixtures = [
-        'crbanim/dictspecie',
-        'crbanim/submission',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/organization',
-        'image_app/user'
-    ]
-
-    def setUp(self):
-        # calling my base class setup
-        super().setUp()
-
-        # track submission
-        self.submission = Submission.objects.get(pk=1)
+    fill_uid_animal, fill_uid_sample)
+from .common import BaseTestCase
 
 
 class CRBAnimReaderTestCase(BaseTestCase, TestCase):
@@ -179,12 +157,17 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         self.assertEqual(animal_name.name, self.record.animal_ID)
         self.assertEqual(sample_name.name, self.record.sample_identifier)
 
-    def test_fill_uid_animal(self):
+    def test_fill_uid_animal_and_samples(self):
         breed = fill_uid_breed(self.record)
 
         # creating name
         animal_name = Name.objects.create(
             name=self.record.animal_ID,
+            submission=self.submission,
+            owner=self.submission.owner)
+
+        sample_name = Name.objects.create(
+            name=self.record.sample_identifier,
             submission=self.submission,
             owner=self.submission.owner)
 
@@ -201,6 +184,23 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         # testing animal attributes
         sex = DictSex.objects.get(label__iexact=self.record.sex)
         self.assertEqual(animal.sex, sex)
+
+        # testing samples
+        fill_uid_sample(
+            self.record,
+            sample_name,
+            animal,
+            self.submission)
+
+        sample = Sample.objects.get(pk=1)
+
+        # testing animal
+        self.assertIsInstance(sample, Sample)
+
+        # testing sample attributes
+        organism_part = DictUberon.objects.get(
+            label__iexact=self.record.body_part_name)
+        self.assertEqual(sample.organism_part, organism_part)
 
 
 class UploadCRBAnimTestCase(BaseTestCase, TestCase):
@@ -221,6 +221,8 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
 
         # assert data into database
         self.assertTrue(db_has_data())
+        self.assertTrue(Animal.objects.exists())
+        self.assertTrue(Sample.objects.exists())
 
     @patch("crbanim.helpers.CRBAnimReader.check_species",
            side_effect=Exception("Test message"))
@@ -243,3 +245,5 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
 
         # assert data into database
         self.assertFalse(db_has_data())
+        self.assertFalse(Animal.objects.exists())
+        self.assertFalse(Sample.objects.exists())
