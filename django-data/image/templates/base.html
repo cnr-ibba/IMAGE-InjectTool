@@ -118,7 +118,7 @@
     {% block footer %}
     <footer class="footer">
       <div class="container">
-        <span class="text-muted">Using version {% git_describe %}</span>
+        <span class="text-muted">{% git_describe %}</span>
         <span class="float-right"><a href="{% get_git_link %}"><i class="fab fa-github fa-lg"></i></a></span>
       </div>
     </footer>

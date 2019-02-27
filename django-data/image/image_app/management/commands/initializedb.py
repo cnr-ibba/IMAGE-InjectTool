@@ -91,7 +91,7 @@ def fill_DictRoles():
 def fill_Species():
     """Populate cryoweb dictionary tables"""
 
-    # insert country
+    # insert country and get the default language
     language = fill_Countries()
 
     # those are cryoweb DE species an synonims
@@ -126,16 +126,28 @@ def fill_Species():
 
 
 def fill_Countries():
+    """Fill countries and return the default country (for languages)"""
+
     # define the default country for the default language
-    country, created = DictCountry.objects.get_or_create(
+    united_kingdom, created = DictCountry.objects.get_or_create(
         label='United Kingdom',
         term='NCIT_C17233',
         confidence=CURATED)
 
     if created is True:
+        logger.info("Created: %s" % (united_kingdom))
+
+    # add a country difficult to annotate with zooma
+    country, created = DictCountry.objects.get_or_create(
+        label='Colombia',
+        term='NCIT_C16449',
+        confidence=CURATED)
+
+    if created is True:
         logger.info("Created: %s" % (country))
 
-    return country
+    # I will return default language for translations
+    return united_kingdom
 
 
 def standardize_institute_name(original):
