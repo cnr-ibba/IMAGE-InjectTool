@@ -176,6 +176,27 @@
       {
         "value": "missing geographic information"
       }
+    ],
+    "Animal age at collection": [
+      {
+        "value": 4,
+        "units": "years"
+      }
+    ],
+    "Availability": [
+      {
+        "value": "mailto:test@example.com"
+      }
+    ],
+    "Developmental stage": [
+      {
+        "value": "adult",
+        "terms": [
+          {
+            "url": "http://www.ebi.ac.uk/efo/EFO_0001272"
+          }
+        ]
+      }
     ]
   },
   "sampleRelationships": [

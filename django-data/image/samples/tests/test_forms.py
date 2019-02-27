@@ -37,6 +37,7 @@ class UpdateSampleFormTest(SampleFeaturesMixin, TestCase):
             'developmental_stage',
             'physiological_stage',
             'animal_age_at_collection',
+            'animal_age_at_collection_units',
             'availability',
             'storage',
             'storage_processing',

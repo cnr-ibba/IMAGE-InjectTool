@@ -1,0 +1,26 @@
+[
+{
+  "model": "image_app.dictspecie",
+  "pk": 1,
+  "fields": {
+    "label": "Bos taurus",
+    "term": null
+  }
+},
+{
+  "model": "image_app.dictspecie",
+  "pk": 2,
+  "fields": {
+    "label": "Capra hircus",
+    "term": null
+  }
+},
+{
+  "model": "image_app.dictspecie",
+  "pk": 3,
+  "fields": {
+    "label": "Gallus gallus",
+    "term": null
+  }
+}
+]

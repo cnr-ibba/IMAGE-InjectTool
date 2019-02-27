@@ -458,6 +458,34 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         self.maxDiff = None
         self.assertEqual(reference, test)
 
+    def test_to_biosample_no_foreign(self):
+        """Testing JSON conversion for biosample submission without
+        foreign keys"""
+
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(base_dir, "biosample_sample.json")
+        handle = open(file_path)
+        reference = json.load(handle)
+
+        # fix release date to today
+        now = timezone.now()
+        reference['releaseDate'] = str(now.date())
+
+        # remove foreign keys from reference
+        for key in ["Organism part", "Developmental stage"]:
+            if key in reference["attributes"]:
+                del(reference["attributes"][key])
+
+        # remove foreing keys from sample object
+        self.sample.organism_part = None
+        self.sample.developmental_stage = None
+        self.sample.save()
+
+        test = self.sample.to_biosample()
+
+        self.maxDiff = None
+        self.assertEqual(reference, test)
+
     # TODO: test biosample with None rendering
 
     def test_uid_report(self):
