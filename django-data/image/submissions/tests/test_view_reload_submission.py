@@ -122,6 +122,7 @@ class SuccessfulReloadSubmissionViewTest(OwnerMixinTestCase, TestBase):
 
     def test_redirect(self):
         url = reverse('submissions:detail', kwargs={'pk': 1})
+        print(self.response.context)
         self.assertRedirects(self.response, url)
 
     def test_task_called(self):

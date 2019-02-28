@@ -16,10 +16,11 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.shortcuts import get_object_or_404, redirect
 
 from common.constants import (
-    WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE)
+    WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE)
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name
+from crbanim.tasks import ImportCRBAnimTask
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -64,6 +65,21 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
             res = import_from_cryoweb.delay(self.object.pk)
             logger.info(
                 "Start cryoweb importing process with task %s" % res.task_id)
+
+        # I will have a different loading function accordingly with data type
+        elif self.object.datasource_type == CRB_ANIM_TYPE:
+            # update object and force status
+            self.object.message = "waiting for data loading"
+            self.object.status = WAITING
+            self.object.save()
+
+            # create a task
+            my_task = ImportCRBAnimTask()
+
+            # a valid submission start a task
+            res = my_task.delay(self.object.pk)
+            logger.info(
+                "Start crbanim importing process with task %s" % res.task_id)
 
         else:
             message = "{datasource} import is not implemented".format(
@@ -196,10 +212,35 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
         self.object.status = WAITING
         self.object.save()
 
-        # a valid submission start a task
-        res = import_from_cryoweb.delay(self.object.pk)
-        logger.info(
-            "Start cryoweb reload process with task %s" % res.task_id)
+        # HINT: can I change datasource type?
+
+        # call the proper method
+        if self.object.datasource_type == CRYOWEB_TYPE:
+            # a valid submission start a task
+            res = import_from_cryoweb.delay(self.object.pk)
+            logger.info(
+                "Start cryoweb reload process with task %s" % res.task_id)
+
+        elif self.object.datasource_type == CRB_ANIM_TYPE:
+            # a valid submission start a task
+            my_task = ImportCRBAnimTask()
+
+            # a valid submission start a task
+            res = my_task.delay(self.object.pk)
+            logger.info(
+                "Start crbanim reload process with task %s" % res.task_id)
+
+        else:
+            message = "{datasource} reload is not implemented".format(
+                datasource=self.object.get_datasource_type_display())
+
+            messages.error(
+                self.request,
+                message,
+                extra_tags="alert alert-dismissible alert-danger")
+
+            # return invalid form
+            return self.form_invalid(form)
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())

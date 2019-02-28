@@ -13,7 +13,8 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 import common
-from common.constants import ERROR, CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE
+from common.constants import (
+    ERROR, CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE, WAITING)
 from image_app.models import DictCountry, Organization, Submission
 from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
@@ -31,6 +32,12 @@ class Initialize(TestCase):
         "image_app/organization",
     ]
 
+    data_sources_paths = {
+        CRYOWEB_TYPE: "cryoweb_test_data_only.sql",
+        CRB_ANIM_TYPE: "crbanim_test_data.csv",
+        TEMPLATE_TYPE: "crbanim_test_data.csv"  # point this to a real template
+    }
+
     def setUp(self):
         # login as a test user (defined in fixture)
         self.client = Client()
@@ -39,13 +46,24 @@ class Initialize(TestCase):
         self.url = reverse('submissions:create')
         self.response = self.client.get(self.url)
 
+    def tearDown(self):
+        if hasattr(self, "submission"):
+            # delete uploaded file if exists
+            fullpath = self.submission.uploaded_file.path
+
+            if os.path.exists(fullpath):
+                os.remove(fullpath)
+
+        # call super method
+        super().tearDown()
+
     def get_data(self, ds_type=CRYOWEB_TYPE):
         """Get data dictionary"""
 
-        # get data source path
+        # get data source path relying on type
         ds_path = os.path.join(
             common.__path__[0],
-            "cryoweb_test_data_only.sql"
+            self.data_sources_paths[ds_type]
         )
 
         # get required objects object
@@ -93,16 +111,18 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         # submit a cryoweb like dictionary
         self.response = self.client.post(
             self.url,
-            self.get_data(),
+            self.get_data(ds_type=CRYOWEB_TYPE),
             follow=True)
 
         # get the submission object
-        self.submission = Submission.objects.first()
+        self.submission = self.response.context['submission']
 
         # track mocked object
         self.my_task = my_task
 
     def tearDown(self):
+        """Override Initialize.tearDown to erase all submission objects"""
+
         # delete uploaded file if exists
         for submission in Submission.objects.all():
             fullpath = submission.uploaded_file.path
@@ -114,16 +134,20 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         super().tearDown()
 
     def test_new_submission_obj(self):
-        self.assertTrue(Submission.objects.exists())
+        self.submission.refresh_from_db()
+        self.assertEqual(Submission.objects.count(), 1)
+        self.assertEqual(self.submission.status, WAITING)
 
     def test_redirect(self):
         url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
         self.assertRedirects(self.response, url)
 
     def test_task_called(self):
+        self.assertTrue(self.my_task.called)
         self.my_task.assert_called_with(self.submission.pk)
 
-    def test_different_user(self):
+    @patch('cryoweb.tasks.import_from_cryoweb.delay')
+    def test_different_user(self, my_task):
         """Create a new submission with the same data for a different user"""
 
         # login as a different user
@@ -143,6 +167,9 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         url = reverse('submissions:detail', kwargs={'pk': submission.pk})
         self.assertRedirects(response, url)
 
+        # test called task
+        self.assertTrue(my_task.called)
+
 
 class InvalidCreateSubmissionViewTest(InvalidFormMixinTestCase, Initialize):
 
@@ -158,16 +185,6 @@ class InvalidCreateSubmissionViewTest(InvalidFormMixinTestCase, Initialize):
 
 
 class UnsupportedCreateSubmissionViewTest(Initialize):
-    def tearDown(self):
-        # delete uploaded file if exists
-        fullpath = self.submission.uploaded_file.path
-
-        if os.path.exists(fullpath):
-            os.remove(fullpath)
-
-        # call super method
-        super().tearDown()
-
     def test_template_loading(self):
         # submit a cryoweb like dictionary
         response = self.client.post(
@@ -189,7 +206,11 @@ class UnsupportedCreateSubmissionViewTest(Initialize):
         message = "Template import is not implemented"
         self.assertEqual(self.submission.message, message)
 
-    def test_crb_anim_loading(self):
+
+class SupportedCreateSubmissionViewTest(Initialize):
+    # patch to simulate data load
+    @patch('submissions.views.ImportCRBAnimTask.delay')
+    def test_crb_anim_loading(self, my_task):
         # submit a cryoweb like dictionary
         response = self.client.post(
             self.url,
@@ -197,6 +218,7 @@ class UnsupportedCreateSubmissionViewTest(Initialize):
             follow=True)
 
         # get the submission object
+        self.assertEqual(Submission.objects.count(), 1)
         self.submission = Submission.objects.first()
 
         # test redirect
@@ -204,8 +226,11 @@ class UnsupportedCreateSubmissionViewTest(Initialize):
         self.assertRedirects(response, url)
 
         # test status
-        self.assertEqual(self.submission.status, ERROR)
+        self.assertEqual(self.submission.status, WAITING)
 
         # test message
-        message = "CRB-Anim import is not implemented"
+        message = "waiting for data loading"
         self.assertEqual(self.submission.message, message)
+
+        # test task
+        self.assertTrue(my_task.called)
