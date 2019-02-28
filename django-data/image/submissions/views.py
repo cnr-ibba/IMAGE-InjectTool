@@ -231,6 +231,9 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
                 "Start crbanim reload process with task %s" % res.task_id)
 
         else:
+            # this is not an invalid form. Template is not implemented
+            # it is a error in our application
+            # TODO: call the proper method
             message = "{datasource} reload is not implemented".format(
                 datasource=self.object.get_datasource_type_display())
 
@@ -239,8 +242,10 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
                 message,
                 extra_tags="alert alert-dismissible alert-danger")
 
-            # return invalid form
-            return self.form_invalid(form)
+            # set an error message to this submission
+            self.object.message = message
+            self.object.status = ERROR
+            self.object.save()
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())
