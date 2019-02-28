@@ -204,41 +204,53 @@ def fill_uid_names(record, submission):
     return animal_name, sample_name
 
 
-def fill_uid_animal(record, animal_name, breed, submission):
+def fill_uid_animal(record, animal_name, breed, submission, animals):
     """Helper function to fill animal data in UID animal table"""
 
     # HINT: does CRBAnim models mother and father?
 
-    # determine sex. Check for values
-    sex = DictSex.objects.get(label__iexact=record.sex)
+    # check if such animal is already beed updated
+    if animal_name.name in animals:
+        logger.debug(
+            "Ignoring %s: already created or updated" % (animal_name))
 
-    # there's no birth_location for animal in CRBAnim
-    accuracy = MISSING
-
-    # create a new object. Using defaults to avoid collisions when
-    # updating data
-    # HINT: CRBanim has less attribute than cryoweb
-    defaults = {
-        'alternative_id': record.EBI_Biosample_identifier,
-        'breed': breed,
-        'sex': sex,
-        'birth_location_accuracy': accuracy,
-        'owner': submission.owner
-    }
-
-    # HINT: I could have the same animal again and again. Should I update
-    # every times?
-    animal, created = Animal.objects.update_or_create(
-        name=animal_name,
-        defaults=defaults)
-
-    if created:
-        logger.info("Created animal %s" % animal)
+        # return an animal object
+        animal = animals[animal_name.name]
 
     else:
-        logger.debug("Updating animal %s" % animal)
+        # determine sex. Check for values
+        sex = DictSex.objects.get(label__iexact=record.sex)
 
-    # i need to track animal to relate the sample
+        # there's no birth_location for animal in CRBAnim
+        accuracy = MISSING
+
+        # create a new object. Using defaults to avoid collisions when
+        # updating data
+        # HINT: CRBanim has less attribute than cryoweb
+        defaults = {
+            'alternative_id': record.EBI_Biosample_identifier,
+            'breed': breed,
+            'sex': sex,
+            'birth_location_accuracy': accuracy,
+            'owner': submission.owner
+        }
+
+        # HINT: I could have the same animal again and again. Should I update
+        # every times?
+        animal, created = Animal.objects.update_or_create(
+            name=animal_name,
+            defaults=defaults)
+
+        if created:
+            logger.info("Created animal %s" % animal)
+
+        else:
+            logger.debug("Updating animal %s" % animal)
+
+        # track this animal in dictionary
+        animals[animal_name.name] = animal
+
+    # I need to track animal to relate the sample
     return animal
 
 
@@ -300,7 +312,7 @@ def process_record(record, submission, animals, language):
     animal_name, sample_name = fill_uid_names(record, submission)
 
     # fill animal
-    animal = fill_uid_animal(record, animal_name, breed, submission)
+    animal = fill_uid_animal(record, animal_name, breed, submission, animals)
 
     # fill sample
     fill_uid_sample(record, sample_name, animal, submission)
@@ -331,8 +343,11 @@ def upload_crbanim(submission):
         # HINT: no traslations implemented, at the moment
         language = submission.gene_bank_country.label
 
+        # a dictionary in which store animal data
+        animals = {}
+
         for record in reader.data:
-            process_record(record, submission, language)
+            process_record(record, submission, animals, language)
 
     except Exception as exc:
         # save a message in database

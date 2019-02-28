@@ -110,7 +110,7 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
             None)
         data = list(data)
 
-        self.assertEqual(len(data), 1)
+        self.assertEqual(len(data), 2)
 
 
 class ProcessRecordTestCase(BaseTestCase, TestCase):
@@ -176,7 +176,8 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
             self.record,
             animal_name,
             breed,
-            self.submission)
+            self.submission,
+            {})
 
         # testing animal
         self.assertIsInstance(animal, Animal)
@@ -208,6 +209,9 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
 
         self.assertTrue(upload_crbanim(self.submission))
 
+        # reload submission
+        self.submission.refresh_from_db()
+
         # assert submission messages
         self.assertEqual(
             self.submission.status,
@@ -228,6 +232,11 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         """Testing importing with data into UID with errors"""
 
         self.assertFalse(upload_crbanim(self.submission))
+
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # test my mock method called
         self.assertTrue(my_check.called)
 
         # reload submission
