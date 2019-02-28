@@ -31,3 +31,4 @@ class BaseTestCase(DataSourceMixinTestCase):
 
         # track submission
         self.submission = Submission.objects.get(pk=1)
+        self.submission_id = 1

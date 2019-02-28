@@ -7,8 +7,13 @@ Created on Wed Feb 27 16:38:27 2019
 """
 
 from unittest.mock import patch
+from billiard.einfo import ExceptionInfo
 
+from django.core import mail
 from django.test import TestCase
+
+from common.constants import ERROR
+from image_app.models import Submission
 
 from .common import BaseTestCase
 from ..tasks import ImportCRBAnimTask
@@ -21,6 +26,37 @@ class ImportCRBAnimTaskTest(BaseTestCase, TestCase):
 
         # setting task
         self.my_task = ImportCRBAnimTask()
+
+    def test_on_failure(self):
+        """Testing on failure methods"""
+
+        exc = Exception("Test")
+        task_id = "test_task_id"
+        args = [self.submission_id]
+        kwargs = {}
+        einfo = ExceptionInfo
+
+        # call on_failure method
+        self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
+
+        # check submission status and message
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # check submission.state changed
+        self.assertEqual(submission.status, ERROR)
+        self.assertEqual(
+            submission.message,
+            "Error in CRBAnim loading: Test")
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in CRBAnim loading: %s" % self.submission_id,
+            email.subject)
 
     @patch("crbanim.tasks.upload_crbanim", return_value=True)
     def test_import_from_crbanim(self, my_upload):

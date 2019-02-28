@@ -8,6 +8,7 @@ Created on Wed Feb 27 16:38:37 2019
 
 from celery.utils.log import get_task_logger
 
+from common.constants import ERROR
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission
 
@@ -20,6 +21,29 @@ logger = get_task_logger(__name__)
 class ImportCRBAnimTask(MyTask):
     name = "Import CRBAnim"
     description = """Import CRBAnim data from CRBAnim data file"""
+
+    # Ovverride default on failure method
+    # This is not a failed validation for a wrong value, this is an
+    # error in task that mean an error in coding
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
+
+        # get submissio object
+        submission_obj = Submission.objects.get(pk=args[0])
+
+        # mark submission with ERROR
+        submission_obj.status = ERROR
+        submission_obj.message = ("Error in CRBAnim loading: %s" % (str(exc)))
+        submission_obj.save()
+
+        # send a mail to the user with the stacktrace (einfo)
+        submission_obj.owner.email_user(
+            "Error in CRBAnim loading: %s" % (args[0]),
+            ("Something goes wrong with crb-anim loading. Please report "
+             "this to InjectTool team\n\n %s" % str(einfo)),
+        )
+
+        # TODO: submit mail to admin
 
     def run(self, submission_id):
         """a function to upload data into UID"""
