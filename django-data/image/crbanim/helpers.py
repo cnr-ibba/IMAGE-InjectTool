@@ -50,7 +50,10 @@ class CRBAnimReader():
             Data = namedtuple("Data", self.header)
 
             # add records to data
-            for record in map(Data._make, reader):
+            for record in reader:
+                # replace all "\\N" occurences in a list
+                record = [None if i == "\\N" else i for i in record]
+                record = Data._make(record)
                 self.data.append(record)
 
         self.items = self.eval_columns()
@@ -180,10 +183,10 @@ def fill_uid_names(record, submission):
         owner=submission.owner)
 
     if created:
-        logger.info("Created animal %s" % animal_name)
+        logger.info("Created animal name %s" % animal_name)
 
     else:
-        logger.debug("Found animal %s" % animal_name)
+        logger.debug("Found animal name %s" % animal_name)
 
     # name record for sample
     sample_name, created = Name.objects.get_or_create(
@@ -192,10 +195,10 @@ def fill_uid_names(record, submission):
         owner=submission.owner)
 
     if created:
-        logger.info("Created sample %s" % sample_name)
+        logger.info("Created sample name %s" % sample_name)
 
     else:
-        logger.debug("Found sample %s" % sample_name)
+        logger.debug("Found sample name %s" % sample_name)
 
     # returning 2 Name instances
     return animal_name, sample_name
@@ -230,10 +233,10 @@ def fill_uid_animal(record, animal_name, breed, submission):
         defaults=defaults)
 
     if created:
-        logger.info("Created %s" % animal)
+        logger.info("Created animal %s" % animal)
 
     else:
-        logger.debug("Updating %s" % animal)
+        logger.debug("Updating animal %s" % animal)
 
     # i need to track animal to relate the sample
     return animal
@@ -251,10 +254,10 @@ def fill_uid_sample(record, sample_name, animal, submission):
     )
 
     if created:
-        logger.info("Created %s" % organism_part)
+        logger.info("Created uberon %s" % organism_part)
 
     else:
-        logger.debug("Found %s" % organism_part)
+        logger.debug("Found uberon %s" % organism_part)
 
     # create a new object. Using defaults to avoid collisions when
     # updating data
@@ -276,17 +279,17 @@ def fill_uid_sample(record, sample_name, animal, submission):
         defaults=defaults)
 
     if created:
-        logger.info("Created %s" % sample)
+        logger.info("Created sample %s" % sample)
 
     else:
-        logger.debug("Updating %s" % sample)
+        logger.debug("Updating sample %s" % sample)
 
     return sample
 
 
-def process_record(record, submission, language):
+def process_record(record, submission, animals, language):
     # HINT: record with a biosample id should be ignored, for the moment
-    if record.EBI_Biosample_identifier != "\\N":
+    if record.EBI_Biosample_identifier is not None:
         logger.warning("Ignoring %s: already in biosample!" % str(record))
         return
 

@@ -107,7 +107,7 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
         # filter out biosample records from mydata
         data = self.reader.filter_by_column_value(
             "EBI_Biosample_identifier",
-            "\\N")
+            None)
         data = list(data)
 
         self.assertEqual(len(data), 1)
@@ -129,7 +129,7 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         # filter out biosample records from mydata
         data = self.reader.filter_by_column_value(
             "EBI_Biosample_identifier",
-            "\\N")
+            None)
         data = list(data)
 
         # track the sample record for test
