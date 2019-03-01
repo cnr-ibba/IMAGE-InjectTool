@@ -33,6 +33,7 @@ InjectTool TODO
     * test for Update of one animal (submit only a thing)
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
+  - Submission summary: how many animals and/or samples in the submission?
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -78,6 +79,10 @@ InjectTool TODO
   - I could validate a data for an already submitted object (rules may change).
     but if the validation is ok, I don't need to change the status nor submit
     this object
+  - Validation summary (could combine with submission summary):
+    - How many unknown, pass, warning, and error
+    - If possible, what is the most occurred error, which may lead to batch
+      correction, e.g. add decimal degrees to the coordinate as units
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -93,8 +98,6 @@ InjectTool TODO
   - define a UID unique ID for samples and animals?
 
 * Regarding `EditSubmissionView`
-  - forms to edit data
-  - links to delete things
   - search?
 
 * Regarding django 3rd party modules:
@@ -131,6 +134,9 @@ InjectTool TODO
   - Navbar for tools (zooma, dictionary tables, etc)?
   - serving all 3rd party javascript scripts (jquery, bootstrap and popper using
     static files)
+  - sample detail page lacks of Collection Place field
+  - replace text placeholder (Lorem ipsum...)
+  - Pagination: missing jumping to a particular page function
 
 * Issues relative to UID:
   - rename `image_app` application into `uid`?
@@ -140,6 +146,15 @@ InjectTool TODO
     update cause is specific to Animal/Sample
   - Having a unknown animal as  mother/father should be equal having this foreign
     key with a NULL value
+  - animal age at collection could be derived from Collection date and animal birth
+    during import
+  - rename datasource as data source
+  - display the real name of file for the uploaded file
+    - not so easy, maybe: add a CharField for user filename; Create a custom
+      `django.forms.fields.FileField` or a validation function that track the
+      realfilename and set it to a hidden field. Save to a `model.CharField` and
+      display that field in DetailViews
+    - add the uploaded time for file?
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission
