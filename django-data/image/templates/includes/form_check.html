@@ -1,0 +1,18 @@
+
+{% load image_app_tags widget_tweaks %}
+
+<div class="form-check">
+  {% if field.errors %}
+    {% render_field field class="form-check-input is-invalid" %}
+  {% else %}
+    {% render_field field class="form-check-input" %}
+  {% endif %}
+  <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
+
+  {% if field.help_text %}
+  <small class="form-text text-muted">
+    {{ field.help_text|safe }}
+  </small>
+  {% endif %}
+
+</div>

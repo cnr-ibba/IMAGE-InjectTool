@@ -34,6 +34,7 @@ InjectTool TODO
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
   - Submission summary: how many animals and/or samples in the submission?
+  - Submission to biosample using threads?
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?

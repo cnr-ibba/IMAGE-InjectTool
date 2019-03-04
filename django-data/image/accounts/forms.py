@@ -44,7 +44,8 @@ class SignUpPersonForm(forms.ModelForm):
     # custom attributes
     agree_gdpr = forms.BooleanField(
         label="I accept IMAGE-InjectTool terms and conditions",
-        help_text="You have to agree in order to use IMAGE-InjectTool")
+        help_text="You have to agree in order to use IMAGE-InjectTool",
+        required=True)
 
     # this will be empty. If a bot tries to fill this, I will raise a
     # forms.ValidationError
