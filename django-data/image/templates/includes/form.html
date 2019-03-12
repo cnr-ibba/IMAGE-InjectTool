@@ -1,3 +1,4 @@
+
 {% load image_app_tags widget_tweaks %}
 
 {# non-field errors: It’s a collection of errors that are not related to a specific field #}
@@ -10,31 +11,12 @@
 {% endif %}
 
 {% for field in form.visible_fields %}
-  {# render form group #}
-  <div class="form-group">
-    {# check field types #}
-    {% if field|widget_type == 'checkboxinput' %}
-      <div class="form-check">
-        {% render_field field class="form-check-input" %}
-        <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
-      </div>
-    {% else %}
-      {{ field.label_tag }}
-      {% render_field field class=field|input_class %}
-    {% endif %}
+  {% if field|widget_type == 'checkboxinput' %}
+    {% include "includes/form_check.html" %}
+  {% else %}
+    {% include "includes/form_groups.html" %}
+  {% endif %}
 
-    {# Render errors and help text #}
-    {% for error in field.errors %}
-      <div class="invalid-feedback">
-        {{ error }}
-      </div>
-    {% endfor %}
-    {% if field.help_text %}
-      <small class="form-text text-muted">
-        {{ field.help_text|safe }}
-      </small>
-    {% endif %}
-  </div>
 {% endfor %}
 
 {% for field in form.hidden_fields %}
