@@ -12,19 +12,15 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 from django.utils import timezone
 
-from common.tests import (
-    FormMixinTestCase, InvalidFormMixinTestCase, MessageMixinTestCase)
-from image_app.models import Sample, Submission, ACCURACIES
+from common.tests import FormMixinTestCase, MessageMixinTestCase
+from common.constants import (
+    PRECISE, MISSING, READY, NEED_REVISION, LOADED)
+from image_app.models import Sample, Submission
 
 from ..views import UpdateSampleView
 from ..forms import UpdateSampleForm
 from .common import (
-    SampleFeaturesMixin, SampleViewTestMixin, SampleStatusMixin, READY,
-    NEED_REVISION, LOADED)
-
-# get accuracy levels
-PRECISE = ACCURACIES.get_value('precise')
-MISSING = ACCURACIES.get_value('missing')
+    SampleFeaturesMixin, SampleViewTestMixin, SampleStatusMixin)
 
 # get a timestamp
 NOW = timezone.now()
@@ -197,16 +193,10 @@ class SuccessfulUpdateSampleViewTest(
 
 
 class InvalidUpdateSampleViewTest(
-        SampleFeaturesMixin, InvalidFormMixinTestCase, TestCase):
+        SampleFeaturesMixin, TestCase):
 
     def setUp(self):
         """call base method"""
-
-        # The values I need to modify
-        self.description = "A new description"
-        self.location = "Milano"
-        self.latitude = "meow"
-        self.longitude = "bark"
 
         # a submission object
         self.submission = Submission.objects.get(pk=1)
@@ -221,20 +211,14 @@ class InvalidUpdateSampleViewTest(
 
         self.url = reverse("samples:update", kwargs={'pk': 1})
 
-        # there are no mandatory fields. Check against known validators
-        # and not providing breeds and sex
-        self.response = self.client.post(
-            self.url,
-            {'alternative_id': 11,
-             'description': self.description,
-             'collection_place': self.location,
-             'collection_place_latitude': self.latitude,
-             'collection_place_longitude': self.longitude,
-             'collection_place_accuracy': PRECISE,
-             'organism_part': 1},
-            follow=True)
+    def check_form_errors(self, response):
+        # check status
+        self.assertEqual(response.status_code, 200)
 
-    def test_no_update(self):
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+    def check_no_update(self):
         # get an sample object
         sample = Sample.objects.get(pk=1)
 
@@ -245,7 +229,7 @@ class InvalidUpdateSampleViewTest(
         self.assertEqual(sample.collection_place_longitude, None)
         self.assertEqual(sample.collection_place_accuracy, MISSING)
 
-    def test_statuses(self):
+    def check_statuses(self):
         # reload submission
         self.submission.refresh_from_db()
 
@@ -257,3 +241,49 @@ class InvalidUpdateSampleViewTest(
 
         # test status for sample (default one)
         self.assertEqual(sample.name.status, LOADED)
+
+    def test_fake_coordinates(self):
+        """Test form with text into numeric fields"""
+
+        # The values I need to modify
+        description = "A new description"
+        location = "Milano"
+        latitude = "meow"
+        longitude = "bark"
+
+        # there are no mandatory fields. Check against known validators
+        # and not providing breeds and sex
+        response = self.client.post(
+            self.url,
+            {'alternative_id': 11,
+             'description': description,
+             'collection_place': location,
+             'collection_place_latitude': latitude,
+             'collection_place_longitude': longitude,
+             'collection_place_accuracy': PRECISE,
+             'organism_part': 1},
+            follow=True)
+
+        self.check_form_errors(response)
+        self.check_no_update()
+        self.check_statuses()
+
+    def test_no_missing_with_location(self):
+        """Test missing coordinate with a location raise errors"""
+
+        # The values I need to modify
+        location = "Milano"
+
+        # there are no mandatory fields. Check against known validators
+        # and not providing breeds and sex
+        response = self.client.post(
+            self.url,
+            {'alternative_id': 11,
+             'collection_place': location,
+             'collection_place_accuracy': MISSING,
+             'organism_part': 1},
+            follow=True)
+
+        self.check_form_errors(response)
+        self.check_no_update()
+        self.check_statuses()

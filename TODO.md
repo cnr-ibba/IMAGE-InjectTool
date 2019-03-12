@@ -156,7 +156,11 @@ InjectTool TODO
       display that field in DetailViews
     - add the uploaded time for file?
   - Change WAITING in PROCESSING (implies something happpening)
-  - when adding collection place, accuracy level should change in MISSING
+  - when adding collection place, accuracy level should change in UNKNOWN
+  - deal with errors when create a submission with the same parameters of another
+    submission:
+      duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"
+        DETAIL:  Key (gene_bank_name, gene_bank_country_id, datasource_type, datasource_version, owner_id)=(Cryoweb DE, 7, 0, test, 2) already exists.
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission

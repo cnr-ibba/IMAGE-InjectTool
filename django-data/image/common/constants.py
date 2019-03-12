@@ -94,6 +94,7 @@ COMPLETED = STATUSES.get_value('completed')
 # get accuracy levels
 MISSING = ACCURACIES.get_value('missing')
 UNKNOWN = ACCURACIES.get_value('unknown')
+PRECISE = ACCURACIES.get_value('precise')
 
 # get different data sources types
 CRYOWEB_TYPE = DATA_TYPES.get_value('cryoweb')
