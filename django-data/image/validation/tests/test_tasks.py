@@ -417,7 +417,7 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         # check submission.state changed
         self.assertEqual(self.submission.status, NEED_REVISION)
         self.assertIn(
-            "Error in metadata rules",
+            "Error in metadata",
             self.submission.message)
 
         # test for model status. Is the name object

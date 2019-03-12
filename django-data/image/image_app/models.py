@@ -901,10 +901,12 @@ class Submission(BaseMixin, models.Model):
 
     # datasource field
     datasource_type = models.SmallIntegerField(
+        "Data source type",
         choices=[x.value for x in DATA_TYPES],
         help_text='example: CryoWeb')
 
     datasource_version = models.CharField(
+        "Data source version",
         max_length=255,
         blank=False,
         null=False,
