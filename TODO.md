@@ -35,6 +35,7 @@ InjectTool TODO
   - Think about renaming EditSubmissionView with a more useful name
   - Submission summary: how many animals and/or samples in the submission?
   - Submission to biosample using threads?
+  - mail to admin when there are issues in USI?
 
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -154,6 +155,8 @@ InjectTool TODO
       realfilename and set it to a hidden field. Save to a `model.CharField` and
       display that field in DetailViews
     - add the uploaded time for file?
+  - Change WAITING in PROCESSING (implies something happpening)
+  - when adding collection place, accuracy level should change in MISSING
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission
@@ -173,3 +176,6 @@ InjectTool TODO
     - https://gist.github.com/benbacardi/d6cd0fb8c85e1547c3c60f95f5b2d5e1
   - [customize queryset](https://stackoverflow.com/questions/22902457/django-listview-customising-queryset)
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
+
+* Related to registration module:
+  Biosample registration is AAP registration

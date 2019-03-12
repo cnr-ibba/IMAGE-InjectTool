@@ -16,6 +16,9 @@ from django import forms
 from django.core import validators
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.utils.safestring import mark_safe
+from django.utils.text import format_lazy
+from django.urls import reverse_lazy
 
 from betterforms.multiform import MultiModelForm
 from image_app.models import Person
@@ -43,7 +46,6 @@ class SignUpUserForm(UserCreationForm):
 class SignUpPersonForm(forms.ModelForm):
     # custom attributes
     agree_gdpr = forms.BooleanField(
-        label="I accept IMAGE-InjectTool terms and conditions",
         help_text="You have to agree in order to use IMAGE-InjectTool",
         required=True)
 
@@ -57,6 +59,24 @@ class SignUpPersonForm(forms.ModelForm):
     class Meta:
         model = Person
         fields = ('initials', 'affiliation', 'role')
+
+    def __init__(self, *args, **kwargs):
+        super(SignUpPersonForm, self).__init__(*args, **kwargs)
+
+        # The problem might be that the form is defined before the urls have
+        # been loaded. So, add label with reverse lazy when class
+        # is initialized
+        # https://stackoverflow.com/a/7430924
+        self.fields['agree_gdpr'].label = mark_safe(
+            # In order to evaluate lazy objects in a str.format() like syntax
+            # you now have to use format_lazy() instead.
+            # https://stackoverflow.com/a/54742333
+            format_lazy(
+                """I accept IMAGE-InjectTool <a href="{0}" target="_blank">"""
+                """terms and conditions</a>""",
+                reverse_lazy("about") + "#terms_and_conditions",
+            )
+        )
 
 
 class SignUpForm(MultiModelForm):

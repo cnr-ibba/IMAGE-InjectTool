@@ -12,7 +12,7 @@ from django.urls import resolve, reverse
 from common.tests import DataSourceMixinTestCase
 
 from ..models import User, Submission
-from ..views import DashBoardView, SummaryView
+from ..views import DashBoardView, SummaryView, AboutView
 
 
 class Initialize(TestCase):
@@ -83,6 +83,30 @@ class DashBoardViewTest(Initialize):
         # TODO: test resume submission link
 
     # TODO: test submission button inactive
+
+
+class AboutViewTest(Initialize):
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get the url for dashboard
+        self.url = reverse('about')
+
+        # get a response
+        self.response = self.client.get(self.url)
+
+    def test_status_code(self):
+        self.assertEqual(self.response.status_code, 200)
+
+    def test_url_resolves_view(self):
+        view = resolve('/about/')
+        self.assertIsInstance(view.func.view_class(), AboutView)
+
+    def test_terms_and_conditions(self):
+        url = reverse('about') + "#terms_and_conditions"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
 
 
 class SummaryViewTest(Initialize):
