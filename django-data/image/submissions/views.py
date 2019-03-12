@@ -37,18 +37,6 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     # i need to clearly specify it
     template_name = "submissions/submission_form.html"
 
-    def get_initial(self):
-        """
-        Returns the initial data to use for forms on this view.
-        """
-
-        initial = super(CreateSubmissionView, self).get_initial()
-
-        # set initial value for datasource type
-        initial['datasource_type'] = CRYOWEB_TYPE
-
-        return initial
-
     # add user to this object
     def form_valid(self, form):
         self.object = form.save(commit=False)
