@@ -163,13 +163,13 @@ class ValidateTask(MyTask):
         # return a message and I will set NEED_REVISION
         elif self.has_errors_in_rules(submission_statuses):
             message = (
-                "Error in metadata rules. Need revisions before submit")
+                "Error in metadata. Need revisions before submit")
 
             # mark submission with NEED_REVISION
             self.submission_fail(submission_obj, message)
 
             logger.warning(
-                "Error in metadata rules for submission %s" % (submission_obj))
+                "Error in metadata for submission %s" % (submission_obj))
 
             logger.debug("Results for submission %s: %s" % (
                 submission_id, submission_statuses))

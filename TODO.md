@@ -135,7 +135,6 @@ InjectTool TODO
   - Navbar for tools (zooma, dictionary tables, etc)?
   - serving all 3rd party javascript scripts (jquery, bootstrap and popper using
     static files)
-  - sample detail page lacks of Collection Place field
   - replace text placeholder (Lorem ipsum...)
   - Pagination: missing jumping to a particular page function
 
@@ -149,7 +148,6 @@ InjectTool TODO
     key with a NULL value
   - animal age at collection could be derived from Collection date and animal birth
     during import
-  - rename datasource as data source
   - display the real name of file for the uploaded file
     - not so easy, maybe: add a CharField for user filename; Create a custom
       `django.forms.fields.FileField` or a validation function that track the
