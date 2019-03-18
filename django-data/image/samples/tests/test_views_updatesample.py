@@ -14,7 +14,7 @@ from django.utils import timezone
 
 from common.tests import FormMixinTestCase, MessageMixinTestCase
 from common.constants import (
-    PRECISE, MISSING, READY, NEED_REVISION, LOADED)
+    PRECISE, MISSING, UNKNOWN, READY, NEED_REVISION, LOADED)
 from image_app.models import Sample, Submission
 
 from ..views import UpdateSampleView
@@ -227,7 +227,7 @@ class InvalidUpdateSampleViewTest(
         self.assertEqual(sample.collection_place, "deutschland")
         self.assertEqual(sample.collection_place_latitude, None)
         self.assertEqual(sample.collection_place_longitude, None)
-        self.assertEqual(sample.collection_place_accuracy, MISSING)
+        self.assertEqual(sample.collection_place_accuracy, UNKNOWN)
 
     def check_statuses(self):
         # reload submission

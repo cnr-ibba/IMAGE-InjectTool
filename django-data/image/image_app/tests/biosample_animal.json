@@ -168,12 +168,7 @@
     ],
     "EFABIS Breed country": [
       {
-        "value": "United Kingdom",
-        "terms": [
-          {
-            "url": "http://purl.obolibrary.org/obo/NCIT_C17233"
-          }
-        ]
+        "value": "United Kingdom"
       }
     ],
     "Sex": [

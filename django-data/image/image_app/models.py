@@ -540,8 +540,9 @@ class Animal(BioSampleMixin, models.Model):
         attributes['Supplied breed'] = format_attribute(
             value=self.breed.supplied_breed)
 
-        attributes[
-            'EFABIS Breed country'] = self.breed.country.format_attribute()
+        # HINT: Ideally, I could retrieve an ontology id for countries
+        attributes['EFABIS Breed country'] = format_attribute(
+            value=self.breed.country.label)
 
         attributes['Mapped breed'] = self.breed.format_attribute()
 

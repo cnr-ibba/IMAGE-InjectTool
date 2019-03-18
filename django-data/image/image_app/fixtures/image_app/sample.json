@@ -13,6 +13,7 @@
     "collection_place_latitude": null,
     "collection_place_longitude": null,
     "collection_place": "deutschland",
+    "collection_place_accuracy": 4,
     "organism_part": 1,
     "developmental_stage": 1,
     "physiological_stage": null,

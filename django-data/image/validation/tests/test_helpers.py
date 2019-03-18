@@ -55,7 +55,7 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
     def test_animal(self):
         # at the time of writing this reference data raise one warning
         reference = [
-            ("Warning", "Ontology provided for field EFABIS Breed country")]
+            ("Pass", "")]
 
         # get all animals
         animals = Animal.objects.all()
@@ -77,7 +77,7 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
                 return reference[i][1] in y
 
             matches = [search(message) for message in result.get_messages()]
-            self.assertIn(True, matches)
+            self.assertNotIn(False, matches)
 
     def test_sample(self):
         # at the time of writing this reference pass without problems

@@ -41,4 +41,10 @@ class MetaDataValidation():
     def validate(self, record):
         """Check attributes for record"""
 
-        return self.ruleset.validate(record)
+        # this validated in general way
+        result = self.ruleset.validate(record)
+
+        # this validate context (attributes that depends on another one)
+        result = validation.context_validation(record['attributes'], result)
+
+        return result
