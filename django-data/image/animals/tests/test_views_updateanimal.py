@@ -198,16 +198,10 @@ class SuccessfulUpdateAnimalViewTest(
 
 
 class InvalidUpdateAnimalViewTest(
-        AnimalFeaturesMixin, InvalidFormMixinTestCase, TestCase):
+        AnimalFeaturesMixin, TestCase):
 
     def setUp(self):
         """call base method"""
-
-        # The values I need to modify
-        self.description = "A new description"
-        self.location = "Milano"
-        self.latitude = "meow"
-        self.longitude = "bark"
 
         # a submission object
         self.submission = Submission.objects.get(pk=1)
@@ -220,20 +214,17 @@ class InvalidUpdateAnimalViewTest(
         self.client = Client()
         self.client.login(username='test', password='test')
 
+        # get update url
         self.url = reverse("animals:update", kwargs={'pk': 1})
 
-        # there are no mandatory fields. Check against known validators
-        # and not providing breeds and sex
-        self.response = self.client.post(
-            self.url,
-            {'description': self.description,
-             'birth_location': self.location,
-             'birth_location_latitude': self.latitude,
-             'birth_location_longitude': self.longitude,
-             'birth_location_accuracy': PRECISE},
-            follow=True)
+    def check_form_errors(self, response):
+        # check status
+        self.assertEqual(response.status_code, 200)
 
-    def test_no_update(self):
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+    def check_no_update(self):
         # get an animal object
         animal = Animal.objects.get(pk=1)
 
@@ -243,7 +234,7 @@ class InvalidUpdateAnimalViewTest(
         self.assertEqual(animal.birth_location_longitude, None)
         self.assertEqual(animal.birth_location_accuracy, MISSING)
 
-    def test_statuses(self):
+    def check_statuses(self):
         # reload submission
         self.submission.refresh_from_db()
 
@@ -255,3 +246,45 @@ class InvalidUpdateAnimalViewTest(
 
         # test status for animal (default one)
         self.assertEqual(animal.name.status, LOADED)
+
+    def test_fake_coordinates(self):
+        """Test form with text into numeric fields"""
+
+        # The values I need to modify
+        description = "A new description"
+        location = "Milano"
+        latitude = "meow"
+        longitude = "bark"
+
+        # there are no mandatory fields. Check against known validators
+        # and not providing breeds and sex
+        response = self.client.post(
+            self.url,
+            {'description': description,
+             'birth_location': location,
+             'birth_location_latitude': latitude,
+             'birth_location_longitude': longitude,
+             'birth_location_accuracy': PRECISE},
+            follow=True)
+
+        self.check_form_errors(response)
+        self.check_no_update()
+        self.check_statuses()
+
+    def test_no_missing_with_location(self):
+        """Test missing coordinate with a location raise errors"""
+
+        # The values I need to modify
+        location = "Milano"
+
+        # there are no mandatory fields. Check against known validators
+        # and not providing breeds and sex
+        response = self.client.post(
+            self.url,
+            {'birth_location': location,
+             'birth_location_accuracy': MISSING},
+            follow=True)
+
+        self.check_form_errors(response)
+        self.check_no_update()
+        self.check_statuses()

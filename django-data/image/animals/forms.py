@@ -10,6 +10,7 @@ from django import forms
 
 from image_app.models import Animal, DictBreed
 from common.forms import RequestFormMixin
+from common.constants import MISSING
 
 
 class UpdateAnimalForm(RequestFormMixin, forms.ModelForm):
@@ -42,3 +43,20 @@ class UpdateAnimalForm(RequestFormMixin, forms.ModelForm):
             'specie', 'country').filter(
                 country=animal.submission.gene_bank_country,
                 specie=animal.specie)
+
+    def clean(self):
+        # get my data
+        cleaned_data = super(UpdateAnimalForm, self).clean()
+        birth_location = cleaned_data.get("birth_location")
+        accuracy = cleaned_data.get("birth_location_accuracy")
+
+        if birth_location and accuracy == MISSING:
+            # HINT: can I have precise accuracy with no coordinate?
+            # TODO: what will happen with bulk update? need to implement
+            # the same validator
+            msg = ("You can't have missing geographic information with a "
+                   "birth location")
+            self.add_error('birth_location_accuracy', msg)
+
+            # raising an exception:
+            raise forms.ValidationError(msg, code='invalid')

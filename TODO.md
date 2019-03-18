@@ -42,7 +42,6 @@ InjectTool TODO
     Using google refine? For the moment, no duplicate can be inserted into database,
     the second occurrence will not be included in database.
   - tag problematic fields?
-  - Data need to be isolated from a user POV
   - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
     and its father
   - check for duplicate breeds - names
@@ -122,7 +121,6 @@ InjectTool TODO
     - breed and species annotation could start after loading data. Check for
       celery chains
   - breeds and countries need to be validated against dictionary tables
-  - "Semen" has not an ontology term
   - browse by languages, see all synonym in every language (add navigation links)
   - update ontology urls (see Jun's code)
   - mind spaces in language synonyms
@@ -156,7 +154,6 @@ InjectTool TODO
       display that field in DetailViews
     - add the uploaded time for file?
   - Change WAITING in PROCESSING (implies something happpening)
-  - when adding collection place, accuracy level should change in UNKNOWN
   - deal with errors when create a submission with the same parameters of another
     submission:
       duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"
