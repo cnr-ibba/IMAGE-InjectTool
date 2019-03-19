@@ -351,7 +351,9 @@ def upload_crbanim(submission):
     try:
         # check for species and sex like cryoweb does
         if not reader.check_sex():
-            raise CRBAnimImportError("You have to upload DictSex data")
+            raise CRBAnimImportError(
+                "Not all Sex terms are loaded into database: "
+                "check for %s in your dataset" % (reader.items['sex']))
 
         if not reader.check_species():
             raise CRBAnimImportError(

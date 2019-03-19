@@ -258,7 +258,7 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertTrue(Sample.objects.exists())
 
     @patch("crbanim.helpers.CRBAnimReader.check_species",
-           side_effect=Exception("Test message"))
+           return_value=False)
     def test_upload_crbanim_errors(self, my_check):
         """Testing importing with data into UID with errors"""
 
@@ -278,7 +278,36 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
             ERROR)
 
         self.assertIn(
-            "Test message",
+            "Some species are not loaded in UID database",
+            self.submission.message)
+
+        # assert data into database
+        self.assertFalse(db_has_data())
+        self.assertFalse(Animal.objects.exists())
+        self.assertFalse(Sample.objects.exists())
+
+    @patch("crbanim.helpers.CRBAnimReader.check_sex",
+           return_value=False)
+    def test_upload_crbanim_errors_with_sex(self, my_check):
+        """Testing importing with data into UID with errors"""
+
+        self.assertFalse(upload_crbanim(self.submission))
+
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # test my mock method called
+        self.assertTrue(my_check.called)
+
+        # reload submission
+        self.submission = Submission.objects.get(pk=1)
+
+        self.assertEqual(
+            self.submission.status,
+            ERROR)
+
+        self.assertIn(
+            "Not all Sex terms are loaded into database",
             self.submission.message)
 
         # assert data into database
