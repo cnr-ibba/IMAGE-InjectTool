@@ -347,13 +347,23 @@ def upload_crbanim(submission):
     reader = CRBAnimReader()
     reader.read_file(fullpath)
 
+    # a variable to store messages
+    messages = []
+
     # start data loading
     try:
         # check for species and sex like cryoweb does
         if not reader.check_sex():
-            raise CRBAnimImportError(
+            # HINT: ignoring warning about sex. This could deal with Unknown
+            # sex, but may raise exception if male or female are not known
+            # TODO: Add ontology for unknown and deal properly with this term
+            message = (
                 "Not all Sex terms are loaded into database: "
                 "check for %s in your dataset" % (reader.items['sex']))
+            logger.error(message)
+
+            # add message to messages array
+            messages.append(message)
 
         if not reader.check_species():
             raise CRBAnimImportError(
@@ -366,13 +376,23 @@ def upload_crbanim(submission):
         # a dictionary in which store animal data
         animals = {}
 
-        for record in reader.data:
+        # ok filter out unknown sex (case insensitive)
+        for record in reader.filter_by_column_values(
+                'sex',
+                ['male', 'female'],
+                ignorecase=True):
             process_record(record, submission, animals, language)
 
     except Exception as exc:
+        # set message:
+        message = "Error in importing data: %s" % (str(exc))
+
+        # add this message to messages
+        messages.insert(0, message)
+
         # save a message in database
         submission.status = ERROR
-        submission.message = "Error in importing data: %s" % (str(exc))
+        submission.message = "; ".join(messages)
         submission.save()
 
         # debug
@@ -385,7 +405,10 @@ def upload_crbanim(submission):
         message = "CRBAnim import completed for submission: %s" % (
             submission.id)
 
-        submission.message = message
+        # add this message to messages
+        messages.insert(0, message)
+
+        submission.message = "; ".join(messages)
         submission.status = LOADED
         submission.save()
 

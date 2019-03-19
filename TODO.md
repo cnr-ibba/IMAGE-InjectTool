@@ -158,6 +158,7 @@ InjectTool TODO
     submission:
       duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"
         DETAIL:  Key (gene_bank_name, gene_bank_country_id, datasource_type, datasource_version, owner_id)=(Cryoweb DE, 7, 0, test, 2) already exists.
+  - `Submission.message` as `ArrayField` (to store more messages?)
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission
