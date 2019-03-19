@@ -52,7 +52,8 @@ class CRBAnimReader():
             # add records to data
             for record in reader:
                 # replace all "\\N" occurences in a list
-                record = [None if i == "\\N" else i for i in record]
+                record = [None if col in ["\\N", ""]
+                          else col for col in record]
                 record = Data._make(record)
                 self.data.append(record)
 
@@ -83,13 +84,30 @@ class CRBAnimReader():
         for i, column in enumerate(self.header):
             logger.debug("%s: %s" % (column, self.data[num][i]))
 
-    def filter_by_column_value(self, column, value):
+    def filter_by_column_values(self, column, values, ignorecase=False):
+        if ignorecase is True:
+            # lower values
+            values = [value.lower() for value in values]
+
         for line in self.data:
-            if getattr(line, column) == value:
-                yield line
+            # search for case insensitive value (lower attrib in lower values)
+            if ignorecase is True:
+                if getattr(line, column).lower() in values:
+                    yield line
+
+                else:
+                    logger.debug("Filtering: %s" % (str(line)))
 
             else:
-                logger.debug("Filtering: %s" % (str(line)))
+                if getattr(line, column) in values:
+                    yield line
+
+                else:
+                    logger.debug("Filtering: %s" % (str(line)))
+
+            # ignore case or not
+
+        # cicle for line
 
     def __check_items(self, item_set, model, column):
         """General check of CRBanim items into database"""

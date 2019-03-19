@@ -105,12 +105,43 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
         """Filter records by column value"""
 
         # filter out biosample records from mydata
-        data = self.reader.filter_by_column_value(
+        data = self.reader.filter_by_column_values(
             "EBI_Biosample_identifier",
-            None)
+            [None])
         data = list(data)
 
         self.assertEqual(len(data), 2)
+
+    def test_filter_by_column_case(self):
+        """Filter records by column value case insensitive"""
+
+        # filter out biosample records from mydata
+        # record are all Female. No record after filtering case sensitive
+        data = self.reader.filter_by_column_values(
+            "sex",
+            ['female'],
+            ignorecase=False)
+        data = list(data)
+
+        self.assertEqual(len(data), 0)
+
+        # filtering female case insensitive
+        data = self.reader.filter_by_column_values(
+            "sex",
+            ['female'],
+            ignorecase=True)
+        data = list(data)
+
+        self.assertEqual(len(data), 3)
+
+        # No record after filtering male case insensitive
+        data = self.reader.filter_by_column_values(
+            "sex",
+            ['male'],
+            ignorecase=True)
+        data = list(data)
+
+        self.assertEqual(len(data), 0)
 
 
 class ProcessRecordTestCase(BaseTestCase, TestCase):
@@ -127,9 +158,9 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         self.reader.read_file(self.dst_path)
 
         # filter out biosample records from mydata
-        data = self.reader.filter_by_column_value(
+        data = self.reader.filter_by_column_values(
             "EBI_Biosample_identifier",
-            None)
+            [None])
         data = list(data)
 
         # track the sample record for test

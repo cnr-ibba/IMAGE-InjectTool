@@ -180,3 +180,6 @@ InjectTool TODO
 
 * Related to registration module:
   Biosample registration is AAP registration
+
+* Related to CRBanim
+  - deal with unknown sex (currently filter-out)
