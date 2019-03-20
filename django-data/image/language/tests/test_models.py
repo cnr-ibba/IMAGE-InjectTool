@@ -35,7 +35,7 @@ class SpecieSynonimTest(TestCase):
         qs = SpecieSynonim.check_synonims(["Cattle"], self.italy)
         self.assertEqual(len(qs), 1)
 
-        # check that I got the default eglis term for italy
+        # check that I got the default english term for italy
         test = qs.first()
         self.assertEqual(test.language.label, "United Kingdom")
 
@@ -43,8 +43,22 @@ class SpecieSynonimTest(TestCase):
         qs = SpecieSynonim.check_synonims(["Mucca"], self.italy)
         self.assertEqual(len(qs), 0)
 
+    def test_check_synonims_nospaces(self):
+        """Check for synonym in my language, no matters spaces"""
+
+        # search for a term with spaces
+        qs = SpecieSynonim.check_synonims(
+            ["Sheep (domestic)"], self.england)
+        self.assertEqual(len(qs), 1)
+
+        # search for a term without spaces
+        qs = SpecieSynonim.check_synonims(
+            ["Sheep(domestic)"], self.england)
+
+        self.assertEqual(len(qs), 1)
+
     def test_check_specie_by_synonim(self):
-        """If a specie has a synonim"""
+        """test if a specie has a synonim"""
 
         self.assertTrue(
             SpecieSynonim.check_specie_by_synonim(
@@ -58,3 +72,14 @@ class SpecieSynonimTest(TestCase):
         self.assertFalse(
             SpecieSynonim.check_specie_by_synonim(
                 "Mucca", self.italy))
+
+    def test_check_specie_by_synonim_nospaces(self):
+        """test if a specie has a synonim, no matters spaces"""
+
+        self.assertTrue(
+            SpecieSynonim.check_specie_by_synonim(
+                "Sheep (domestic)", self.england))
+
+        self.assertTrue(
+            SpecieSynonim.check_specie_by_synonim(
+                "Sheep(domestic)", self.england))

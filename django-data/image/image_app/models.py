@@ -5,6 +5,7 @@ import shlex
 
 from django.contrib.auth.models import User
 from django.db import connections, models
+from django.db.models import Func, Value, F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
@@ -19,6 +20,10 @@ from .helpers import format_attribute
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
+
+class Replace(Func):
+    function = 'REPLACE'
 
 
 # --- Mixins
@@ -326,15 +331,26 @@ class DictSpecie(DictBase, Confidence):
     def get_by_synonim(cls, synonim, language):
         """return an instance by synonim in supplied language or default one"""
 
+        # get a queryset with speciesynonim
+        qs = cls.objects.prefetch_related('speciesynonim_set')
+
+        # annotate queryset by removing spaces from speciesynonim word
+        qs = qs.annotate(
+            new_word=Replace('speciesynonim__word', Value(" "), Value("")),
+            language=F('speciesynonim__language__label'))
+
+        # now remove spaces from synonym
+        synonim = synonim.replace(" ", "")
+
         try:
-            specie = cls.objects.get(
-                speciesynonim__word=synonim,
-                speciesynonim__language__label=language)
+            specie = qs.get(
+                new_word=synonim,
+                language=language)
 
         except cls.DoesNotExist:
-            specie = cls.objects.get(
-                speciesynonim__word=synonim,
-                speciesynonim__language__label="United Kingdom")
+            specie = qs.get(
+                new_word=synonim,
+                language="United Kingdom")
 
         return specie
 

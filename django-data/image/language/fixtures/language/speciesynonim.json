@@ -16,5 +16,14 @@
     "language": 1,
     "word": "Sheep"
   }
+},
+{
+  "model": "language.speciesynonim",
+  "pk": 3,
+  "fields": {
+    "dictspecie": 2,
+    "language": 1,
+    "word": "Sheep (domestic)"
+  }
 }
 ]

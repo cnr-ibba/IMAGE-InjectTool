@@ -104,6 +104,21 @@ class DictSpecieTestCase(TestCase):
         with self.assertRaises(DictSpecie.DoesNotExist):
             DictSpecie.get_by_synonim('Foo', 'United Kingdom')
 
+    def test_get_specie_by_synonim_nospaces(self):
+        """Getting specie using synonim, no matters spaces"""
+
+        # assert with spaces
+        sus = DictSpecie.get_by_synonim('Pig (domestic)', 'United Kingdom')
+
+        self.assertEqual(sus.label, self.label)
+        self.assertEqual(sus.term, self.term)
+
+        # assert without spaces
+        sus = DictSpecie.get_by_synonim('Pig(domestic)', 'United Kingdom')
+
+        self.assertEqual(sus.label, self.label)
+        self.assertEqual(sus.term, self.term)
+
 
 class DictCountryTestCase(TestCase):
     """Testing DictCountry class"""

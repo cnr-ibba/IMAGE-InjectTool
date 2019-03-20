@@ -123,7 +123,6 @@ InjectTool TODO
   - breeds and countries need to be validated against dictionary tables
   - browse by languages, see all synonym in every language (add navigation links)
   - update ontology urls (see Jun's code)
-  - mind spaces in language synonyms
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,
@@ -184,3 +183,4 @@ InjectTool TODO
 
 * Related to CRBanim
   - deal with unknown sex (currently filter-out)
+  - search for species and synonyms (rainbow trout is a common name for Oncorhynchus mykiss)

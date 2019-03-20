@@ -7,5 +7,14 @@
     "language": 1,
     "word": "Pig"
   }
+},
+{
+  "model": "language.speciesynonim",
+  "pk": 2,
+  "fields": {
+    "dictspecie": 1,
+    "language": 1,
+    "word": "Pig (domestic)"
+  }
 }
 ]
