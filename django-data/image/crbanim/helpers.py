@@ -112,22 +112,23 @@ class CRBAnimReader():
     def __check_items(self, item_set, model, column):
         """General check of CRBanim items into database"""
 
+        # a list of not found terms and a status to see if something is missing
+        # or not
         not_found = []
+        result = True
 
         for item in item_set:
             # check for species in database
             if not model.objects.filter(label=item).exists():
                 not_found.append(item)
 
-        if len(not_found) == 0:
-            return True
-
-        else:
+        if len(not_found) != 0:
+            result = False
             logger.error(
                 "Those %s are not present in UID database:" % (column))
             logger.error(not_found)
 
-            return False
+        return result, not_found
 
     # a function to detect if crbanim species are in UID database or not
     # HINT: crbanim species are already in the form required from DictSpecies
@@ -352,22 +353,27 @@ def upload_crbanim(submission):
 
     # start data loading
     try:
-        # check for species and sex like cryoweb does
-        if not reader.check_sex():
+        # check for species and sex in a similar way as cryoweb does
+        check, not_found = reader.check_sex()
+
+        if not check:
             # HINT: ignoring warning about sex. This could deal with Unknown
             # sex, but may raise exception if male or female are not known
             # TODO: Add ontology for unknown and deal properly with this term
             message = (
                 "Not all Sex terms are loaded into database: "
-                "check for %s in your dataset" % (reader.items['sex']))
+                "check for %s in your dataset" % (not_found))
             logger.error(message)
 
             # add message to messages array
             messages.append(message)
 
-        if not reader.check_species():
+        check, not_found = reader.check_species()
+
+        if not check:
             raise CRBAnimImportError(
-                "Some species are not loaded in UID database")
+                "Some species are not loaded in UID database: "
+                "%s" % (not_found))
 
         # ok get languages from submission (useful for translation)
         # HINT: no traslations implemented, at the moment

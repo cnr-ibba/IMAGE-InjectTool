@@ -82,24 +82,36 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
     def test_check_species(self):
         """Test check species method"""
 
-        self.assertTrue(self.reader.check_species())
+        check, not_found = self.reader.check_species()
+
+        self.assertTrue(check)
+        self.assertEqual(len(not_found), 0)
 
         # changing species set
         DictSpecie.objects.filter(label='Bos taurus').delete()
 
+        check, not_found = self.reader.check_species()
+
         # the read species are not included in fixtures
-        self.assertFalse(self.reader.check_species())
+        self.assertFalse(check)
+        self.assertGreater(len(not_found), 0)
 
     def test_check_sex(self):
         """Test check sex method"""
 
-        self.assertTrue(self.reader.check_sex())
+        check, not_found = self.reader.check_sex()
+
+        self.assertTrue(check)
+        self.assertEqual(len(not_found), 0)
 
         # changing sex set
         DictSex.objects.filter(label='female').delete()
 
+        check, not_found = self.reader.check_sex()
+
         # the read species are not included in fixtures
-        self.assertFalse(self.reader.check_sex())
+        self.assertFalse(check)
+        self.assertGreater(len(not_found), 0)
 
     def test_filter_by_column(self):
         """Filter records by column value"""
@@ -258,7 +270,7 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertTrue(Sample.objects.exists())
 
     @patch("crbanim.helpers.CRBAnimReader.check_species",
-           return_value=False)
+           return_value=[False, 'Rainbow trout'])
     def test_upload_crbanim_errors(self, my_check):
         """Testing importing with data into UID with errors"""
 
@@ -287,7 +299,7 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertFalse(Sample.objects.exists())
 
     @patch("crbanim.helpers.CRBAnimReader.check_sex",
-           return_value=False)
+           return_value=[False, 'unknown'])
     def test_upload_crbanim_errors_with_sex(self, my_check):
         """Testing importing with data into UID with errors"""
 
