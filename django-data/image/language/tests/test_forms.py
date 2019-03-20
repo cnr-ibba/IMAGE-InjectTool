@@ -8,12 +8,12 @@ Created on Thu Nov  8 10:28:22 2018
 
 from django.test import TestCase
 
-from ..forms import SpecieSynonimForm
+from ..forms import SpecieSynonymForm
 
 
-class SpecieSynonimFormTest(TestCase):
+class SpecieSynonymFormTest(TestCase):
     def test_form_has_fields(self):
-        form = SpecieSynonimForm()
+        form = SpecieSynonymForm()
         expected = ['word', 'language', 'dictspecie']
         actual = list(field.name for field in form)
         self.assertSequenceEqual(expected, actual)

@@ -8,10 +8,10 @@ Created on Wed Nov  7 11:54:15 2018
 
 from django.contrib import admin
 
-from .models import SpecieSynonim
+from .models import SpecieSynonym
 
 
-class SpecieSynonimAdmin(admin.ModelAdmin):
+class SpecieSynonymAdmin(admin.ModelAdmin):
     list_display = ('word', 'dictspecie', 'language')
 
     list_filter = ('language', 'dictspecie')
@@ -20,4 +20,4 @@ class SpecieSynonimAdmin(admin.ModelAdmin):
 
 
 # Register your models here.
-admin.site.register(SpecieSynonim, SpecieSynonimAdmin)
+admin.site.register(SpecieSynonym, SpecieSynonymAdmin)

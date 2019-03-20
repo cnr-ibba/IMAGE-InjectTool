@@ -14,7 +14,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from common.constants import ERROR
-from language.models import SpecieSynonim
+from language.models import SpecieSynonym
 from image_app.models import (
     Submission, DictBreed, Name, Animal, Sample, DictSex,
     DictCountry, DictSpecie)
@@ -36,7 +36,7 @@ class BaseTestCase():
         'image_app/submission',
         'image_app/user',
         'language/dictspecie',
-        'language/speciesynonim'
+        'language/speciesynonym'
     ]
 
     # By default, fixtures are only loaded into the default database. If you
@@ -83,31 +83,31 @@ class CryoWebMixin(object):
 
 class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
     def test_check_species(self):
-        """Testing species and synonims"""
+        """Testing species and synonyms"""
 
         italy = DictCountry.objects.get(label="Italy")
         united_kingdom = DictCountry.objects.get(label="United Kingdom")
 
         self.assertTrue(check_species(united_kingdom))
 
-        # no species for this language, but using the default synonims
+        # no species for this language, but using the default synonyms
         self.assertTrue(check_species(italy))
 
-        # now delete a synonim
-        synonim = SpecieSynonim.objects.get(
+        # now delete a synonym
+        synonym = SpecieSynonym.objects.get(
             language__label='United Kingdom',
             word='Cattle')
-        synonim.delete()
+        synonym.delete()
 
         self.assertFalse(check_species(united_kingdom))
         self.assertFalse(check_species(italy))
 
         # assert a record in database
-        synonim = SpecieSynonim.objects.get(
+        synonym = SpecieSynonym.objects.get(
             language__label='United Kingdom',
             word='Cattle')
 
-        self.assertIsNone(synonim.dictspecie)
+        self.assertIsNone(synonym.dictspecie)
 
     def test_no_species(self):
         """Test no species in cryoweb database"""
@@ -169,16 +169,16 @@ class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):
             "You have to upload DictSex data",
             check_UID, self.submission)
 
-    def test_no_synonim(self):
-        # now delete a synonim
-        synonim = SpecieSynonim.objects.get(
+    def test_no_synonym(self):
+        # now delete a synonym
+        synonym = SpecieSynonym.objects.get(
             language__label='United Kingdom',
             word='Cattle')
-        synonim.delete()
+        synonym.delete()
 
         self.assertRaisesRegex(
             CryoWebImportError,
-            "Some species haven't a synonim!",
+            "Some species haven't a synonym!",
             check_UID, self.submission)
 
     def test_check_UID(self):

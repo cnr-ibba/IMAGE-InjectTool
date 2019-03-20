@@ -1,6 +1,6 @@
 [
 {
-  "model": "language.speciesynonim",
+  "model": "language.speciesynonym",
   "pk": 1,
   "fields": {
     "dictspecie": 1,
@@ -9,7 +9,7 @@
   }
 },
 {
-  "model": "language.speciesynonim",
+  "model": "language.speciesynonym",
   "pk": 2,
   "fields": {
     "dictspecie": 1,

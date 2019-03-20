@@ -15,8 +15,8 @@ from django.views.generic import ListView, UpdateView
 
 from image_app.models import DictCountry
 
-from .models import SpecieSynonim
-from .forms import SpecieSynonimForm
+from .models import SpecieSynonym
+from .forms import SpecieSynonymForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class CountryMixin(object):
     country = None
 
     # perform a join while getting queryset
-    queryset = SpecieSynonim.objects.select_related("language", "dictspecie")
+    queryset = SpecieSynonym.objects.select_related("language", "dictspecie")
 
     def get_queryset(self):
         """Read country if requested suing GET method"""
@@ -59,15 +59,15 @@ class CountryMixin(object):
 
 
 class ListSpeciesView(LoginRequiredMixin, CountryMixin, ListView):
-    model = SpecieSynonim
-    template_name = "language/speciesynonim_list.html"
+    model = SpecieSynonym
+    template_name = "language/speciesynonym_list.html"
     paginate_by = 10
     ordering = ['word']
 
 
 class UpdateSpeciesView(LoginRequiredMixin, CountryMixin, UpdateView):
-    form_class = SpecieSynonimForm
-    template_name = "language/speciesynonim_form.html"
+    form_class = SpecieSynonymForm
+    template_name = "language/speciesynonym_form.html"
 
     # https://stackoverflow.com/a/31275770/4385116
     # You can't use reverse with success_url, because then reverse is

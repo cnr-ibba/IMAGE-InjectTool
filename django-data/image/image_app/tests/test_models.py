@@ -68,7 +68,7 @@ class DictSpecieTestCase(TestCase):
         'image_app/dictcountry',
         'image_app/dictspecie',
         'image_app/ontology',
-        'image_app/speciesynonim'
+        'image_app/speciesynonym'
     ]
 
     def setUp(self):
@@ -86,35 +86,35 @@ class DictSpecieTestCase(TestCase):
                         label=self.label,
                         term=self.term))
 
-    def test_get_specie_by_synonim(self):
-        """Getting specie using synonim"""
+    def test_get_specie_by_synonym(self):
+        """Getting specie using synonym"""
 
-        sus = DictSpecie.get_by_synonim('Pig', 'United Kingdom')
+        sus = DictSpecie.get_by_synonym('Pig', 'United Kingdom')
 
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)
 
-        # assert a specie in a different language (synonim not defined)
-        sus = DictSpecie.get_by_synonim('Pig', 'Italy')
+        # assert a specie in a different language (synonym not defined)
+        sus = DictSpecie.get_by_synonym('Pig', 'Italy')
 
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)
 
         # using a word not registered returns no data
         with self.assertRaises(DictSpecie.DoesNotExist):
-            DictSpecie.get_by_synonim('Foo', 'United Kingdom')
+            DictSpecie.get_by_synonym('Foo', 'United Kingdom')
 
-    def test_get_specie_by_synonim_nospaces(self):
-        """Getting specie using synonim, no matters spaces"""
+    def test_get_specie_by_synonym_nospaces(self):
+        """Getting specie using synonym, no matters spaces"""
 
         # assert with spaces
-        sus = DictSpecie.get_by_synonim('Pig (domestic)', 'United Kingdom')
+        sus = DictSpecie.get_by_synonym('Pig (domestic)', 'United Kingdom')
 
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)
 
         # assert without spaces
-        sus = DictSpecie.get_by_synonim('Pig(domestic)', 'United Kingdom')
+        sus = DictSpecie.get_by_synonym('Pig(domestic)', 'United Kingdom')
 
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)

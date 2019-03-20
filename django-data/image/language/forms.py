@@ -10,15 +10,15 @@ from django import forms
 
 from image_app.models import DictCountry
 
-from .models import SpecieSynonim
+from .models import SpecieSynonym
 
 
-class SpecieSynonimForm(forms.ModelForm):
+class SpecieSynonymForm(forms.ModelForm):
     word = forms.CharField(disabled=True)
 
     language = forms.ModelChoiceField(
         DictCountry.objects.all(), disabled=True)
 
     class Meta:
-        model = SpecieSynonim
+        model = SpecieSynonym
         fields = ('word', 'language', 'dictspecie')

@@ -14,8 +14,8 @@ from common.tests import (
 from image_app.models import DictCountry, DictSpecie
 
 from ..views import ListSpeciesView, UpdateSpeciesView
-from ..forms import SpecieSynonimForm
-from ..models import SpecieSynonim
+from ..forms import SpecieSynonymForm
+from ..models import SpecieSynonym
 
 
 class BaseTest(TestCase):
@@ -23,7 +23,7 @@ class BaseTest(TestCase):
         "image_app/user",
         "image_app/dictcountry",
         "language/dictspecie",
-        "language/speciesynonim",
+        "language/speciesynonym",
     ]
 
     def setUp(self):
@@ -31,8 +31,8 @@ class BaseTest(TestCase):
         self.client = Client()
         self.client.login(username='test', password='test')
 
-    def create_synonim(self):
-        """Create a synonim for testing"""
+    def create_synonym(self):
+        """Create a synonym for testing"""
 
         # get a language from db
         self.language = DictCountry.objects.get(label="Italy")
@@ -41,11 +41,11 @@ class BaseTest(TestCase):
         self.specie = DictSpecie.objects.get(label="Bos taurus")
 
         # add a new speciesynonym obj
-        synonim = SpecieSynonim(word="Mucca", language=self.language)
-        synonim.save()
-        synonim.refresh_from_db()
+        synonym = SpecieSynonym(word="Mucca", language=self.language)
+        synonym.save()
+        synonym.refresh_from_db()
 
-        return synonim
+        return synonym
 
 
 # GeneralTestCase contains test against a non logged user, and the default
@@ -112,7 +112,7 @@ class ListSpeciesViewTest(GeneralMixinTestCase, BaseTest):
 class UpdateSpeciesViewTest(FormMixinTestCase, BaseTest):
     """A class to test language update species"""
 
-    form_class = SpecieSynonimForm
+    form_class = SpecieSynonymForm
 
     def setUp(self):
         """call base method"""
@@ -145,12 +145,12 @@ class SuccessfulUpdateSpeciesViewTest(BaseTest):
         """call base method"""
         super().setUp()
 
-        # create a synonim
-        synonim = self.create_synonim()
+        # create a synonym
+        synonym = self.create_synonym()
 
         self.url = reverse(
             "language:species-update",
-            kwargs={'pk': synonim.id}) + "?country=Italy"
+            kwargs={'pk': synonym.id}) + "?country=Italy"
 
         self.response = self.client.post(
             self.url,
@@ -162,11 +162,11 @@ class SuccessfulUpdateSpeciesViewTest(BaseTest):
         self.assertRedirects(self.response, url)
 
     def test_specie_updated(self):
-        # get a speciesynonim object
-        synonim = SpecieSynonim.objects.get(
+        # get a speciesynonym object
+        synonym = SpecieSynonym.objects.get(
             word="Mucca", language=self.language)
 
-        self.assertEqual(synonim.dictspecie, self.specie)
+        self.assertEqual(synonym.dictspecie, self.specie)
 
 
 class InvalidUpdateSpeciesViewTest(InvalidFormMixinTestCase, BaseTest):
@@ -175,18 +175,18 @@ class InvalidUpdateSpeciesViewTest(InvalidFormMixinTestCase, BaseTest):
         """call base method"""
         super().setUp()
 
-        # create a synonim
-        synonim = self.create_synonim()
+        # create a synonym
+        synonym = self.create_synonym()
 
         self.url = reverse(
             "language:species-update",
-            kwargs={'pk': synonim.id})
+            kwargs={'pk': synonym.id})
 
         self.response = self.client.post(self.url, {})
 
     def test_no_update(self):
-        # get a speciesynonim object
-        synonim = SpecieSynonim.objects.get(
+        # get a speciesynonym object
+        synonym = SpecieSynonym.objects.get(
             word="Mucca", language=self.language)
 
-        self.assertIsNone(synonim.dictspecie)
+        self.assertIsNone(synonym.dictspecie)

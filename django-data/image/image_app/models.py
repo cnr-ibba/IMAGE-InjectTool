@@ -328,28 +328,28 @@ class DictSpecie(DictBase, Confidence):
         unique_together = (("label", "term"),)
 
     @classmethod
-    def get_by_synonim(cls, synonim, language):
-        """return an instance by synonim in supplied language or default one"""
+    def get_by_synonym(cls, synonym, language):
+        """return an instance by synonym in supplied language or default one"""
 
-        # get a queryset with speciesynonim
-        qs = cls.objects.prefetch_related('speciesynonim_set')
+        # get a queryset with speciesynonym
+        qs = cls.objects.prefetch_related('speciesynonym_set')
 
-        # annotate queryset by removing spaces from speciesynonim word
+        # annotate queryset by removing spaces from speciesynonym word
         qs = qs.annotate(
-            new_word=Replace('speciesynonim__word', Value(" "), Value("")),
-            language=F('speciesynonim__language__label'))
+            new_word=Replace('speciesynonym__word', Value(" "), Value("")),
+            language=F('speciesynonym__language__label'))
 
         # now remove spaces from synonym
-        synonim = synonim.replace(" ", "")
+        synonym = synonym.replace(" ", "")
 
         try:
             specie = qs.get(
-                new_word=synonim,
+                new_word=synonym,
                 language=language)
 
         except cls.DoesNotExist:
             specie = qs.get(
-                new_word=synonim,
+                new_word=synonym,
                 language="United Kingdom")
 
         return specie

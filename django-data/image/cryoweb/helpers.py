@@ -21,7 +21,7 @@ from common.constants import LOADED, ERROR, MISSING, UNKNOWN
 from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
-from language.models import SpecieSynonim
+from language.models import SpecieSynonym
 
 from .models import db_has_data as cryoweb_has_data
 from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
@@ -33,9 +33,9 @@ logger = logging.getLogger(__name__)
 # --- check functions
 
 
-# a function to detect if cryoweb species have synonims or not
+# a function to detect if cryoweb species have synonyms or not
 def check_species(country):
-    """Check all cryoweb species for a synonim in a supplied language or
+    """Check all cryoweb species for a synonym in a supplied language or
     the default one, ie: check_species(country). country is an
     image_app.models.DictCountry.label"""
 
@@ -52,25 +52,25 @@ def check_species(country):
     # debug
     logger.debug("Got %s species from %s" % (words, database_name))
 
-    # test with language.models.SpecieSynonim methods
-    synonims = SpecieSynonim.check_synonims(words, country)
+    # test with language.models.SpecieSynonym methods
+    synonyms = SpecieSynonym.check_synonyms(words, country)
 
     # check that numbers are equal
-    if len(words) == synonims.count():
-        logger.debug("Each species has a synonim in %s language" % (country))
+    if len(words) == synonyms.count():
+        logger.debug("Each species has a synonym in %s language" % (country))
         return True
 
-    elif len(words) > synonims.count():
+    elif len(words) > synonyms.count():
         logger.warning(
-            "Some species haven't a synonim for language: '%s'!" % (country))
-        logger.debug("Following terms lack of synonim:")
+            "Some species haven't a synonym for language: '%s'!" % (country))
+        logger.debug("Following terms lack of synonym:")
 
         for word in words:
-            if not SpecieSynonim.check_specie_by_synonim(word, country):
+            if not SpecieSynonym.check_specie_by_synonym(word, country):
                 logger.debug("%s has no specie related" % (word))
 
                 # add specie in speciesynonym table
-                synonym, created = SpecieSynonim.objects.get_or_create(
+                synonym, created = SpecieSynonym.objects.get_or_create(
                     word=word,
                     language=country)
 
@@ -80,7 +80,7 @@ def check_species(country):
         # check_specie fails, since there are words not related to species
         return False
 
-    # may I see this case? For instance when filling synonims?
+    # may I see this case? For instance when filling synonyms?
     else:
         raise NotImplementedError("Not implemented")
 
@@ -98,10 +98,10 @@ def check_UID(submission):
     if len(DictSex.objects.all()) == 0:
         raise CryoWebImportError("You have to upload DictSex data")
 
-    # test for specie synonims in submission language or defaul one
-    # otherwise, fill synonim table with new terms then throw exception
+    # test for specie synonyms in submission language or defaul one
+    # otherwise, fill synonym table with new terms then throw exception
     if not check_species(submission.gene_bank_country):
-        raise CryoWebImportError("Some species haven't a synonim!")
+        raise CryoWebImportError("Some species haven't a synonym!")
 
     # return a status
     return True
@@ -209,8 +209,8 @@ def fill_uid_breeds(submission):
     for v_breed_specie in VBreedsSpecies.objects.all():
         # get specie. Since I need a dictionary tables, DictSpecie is
         # already filled
-        specie = DictSpecie.get_by_synonim(
-            synonim=v_breed_specie.ext_species,
+        specie = DictSpecie.get_by_synonym(
+            synonym=v_breed_specie.ext_species,
             language=language)
 
         # get country for breeds. Ideally will be the same of submission,
@@ -283,8 +283,8 @@ def fill_uid_animals(submission):
     # cycle over animals
     for v_animal in VAnimal.objects.all():
         # get specie translated by dictionary
-        specie = DictSpecie.get_by_synonim(
-            synonim=v_animal.ext_species,
+        specie = DictSpecie.get_by_synonym(
+            synonym=v_animal.ext_species,
             language=language)
 
         # get breed name through VBreedsSpecies model

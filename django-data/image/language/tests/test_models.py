@@ -10,14 +10,14 @@ from django.test import TestCase
 
 from image_app.models import DictCountry
 
-from ..models import SpecieSynonim
+from ..models import SpecieSynonym
 
 
-class SpecieSynonimTest(TestCase):
+class SpecieSynonymTest(TestCase):
     fixtures = [
         "image_app/dictcountry",
         "language/dictspecie",
-        "language/speciesynonim"
+        "language/speciesynonym"
     ]
 
     def setUp(self):
@@ -25,14 +25,14 @@ class SpecieSynonimTest(TestCase):
         self.italy = DictCountry.objects.get(label="Italy")
         self.england = DictCountry.objects.get(label="United Kingdom")
 
-    def test_check_synonims(self):
+    def test_check_synonyms(self):
         """Check for synonym in my language"""
 
-        qs = SpecieSynonim.check_synonims(["Cattle"], self.england)
+        qs = SpecieSynonym.check_synonyms(["Cattle"], self.england)
         self.assertEqual(len(qs), 1)
 
         # search for bos taurus in italian language (map to default)
-        qs = SpecieSynonim.check_synonims(["Cattle"], self.italy)
+        qs = SpecieSynonym.check_synonyms(["Cattle"], self.italy)
         self.assertEqual(len(qs), 1)
 
         # check that I got the default english term for italy
@@ -40,46 +40,46 @@ class SpecieSynonimTest(TestCase):
         self.assertEqual(test.language.label, "United Kingdom")
 
         # search for bos taurus in italian language (no map)
-        qs = SpecieSynonim.check_synonims(["Mucca"], self.italy)
+        qs = SpecieSynonym.check_synonyms(["Mucca"], self.italy)
         self.assertEqual(len(qs), 0)
 
-    def test_check_synonims_nospaces(self):
+    def test_check_synonyms_nospaces(self):
         """Check for synonym in my language, no matters spaces"""
 
         # search for a term with spaces
-        qs = SpecieSynonim.check_synonims(
+        qs = SpecieSynonym.check_synonyms(
             ["Sheep (domestic)"], self.england)
         self.assertEqual(len(qs), 1)
 
         # search for a term without spaces
-        qs = SpecieSynonim.check_synonims(
+        qs = SpecieSynonym.check_synonyms(
             ["Sheep(domestic)"], self.england)
 
         self.assertEqual(len(qs), 1)
 
-    def test_check_specie_by_synonim(self):
-        """test if a specie has a synonim"""
+    def test_check_specie_by_synonym(self):
+        """test if a specie has a synonym"""
 
         self.assertTrue(
-            SpecieSynonim.check_specie_by_synonim(
+            SpecieSynonym.check_specie_by_synonym(
                 "Cattle", self.england))
 
         self.assertTrue(
-            SpecieSynonim.check_specie_by_synonim(
+            SpecieSynonym.check_specie_by_synonym(
                 "Cattle", self.italy))
 
         # no map for this word
         self.assertFalse(
-            SpecieSynonim.check_specie_by_synonim(
+            SpecieSynonym.check_specie_by_synonym(
                 "Mucca", self.italy))
 
-    def test_check_specie_by_synonim_nospaces(self):
-        """test if a specie has a synonim, no matters spaces"""
+    def test_check_specie_by_synonym_nospaces(self):
+        """test if a specie has a synonym, no matters spaces"""
 
         self.assertTrue(
-            SpecieSynonim.check_specie_by_synonim(
+            SpecieSynonym.check_specie_by_synonym(
                 "Sheep (domestic)", self.england))
 
         self.assertTrue(
-            SpecieSynonim.check_specie_by_synonim(
+            SpecieSynonym.check_specie_by_synonym(
                 "Sheep(domestic)", self.england))

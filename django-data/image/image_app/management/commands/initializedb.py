@@ -21,7 +21,7 @@ from django.core.management import BaseCommand
 from common.constants import OBO_URL, CURATED
 from image_app.models import (DictCountry, DictRole, DictSex, DictSpecie,
                               Ontology, Organization)
-from language.models import SpecieSynonim
+from language.models import SpecieSynonym
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -87,14 +87,14 @@ def fill_DictRoles():
     return role
 
 
-# a function to fill up dictspecie and speciesynonim
+# a function to fill up dictspecie and speciesynonym
 def fill_Species():
     """Populate cryoweb dictionary tables"""
 
     # insert country and get the default language
     language = fill_Countries()
 
-    # those are cryoweb DE species an synonims
+    # those are cryoweb DE species an synonyms
     cryoweb = {
         'Cattle': 'Bos taurus',
         'Chicken': 'Gallus gallus',
@@ -116,13 +116,13 @@ def fill_Species():
         if created is True:
             logger.info("Created: %s" % (specie))
 
-        synonim, created = SpecieSynonim.objects.get_or_create(
+        synonym, created = SpecieSynonym.objects.get_or_create(
             dictspecie=dictspecie,
             language=language,
             word=word)
 
         if created is True:
-            logger.info("Created: %s" % (synonim))
+            logger.info("Created: %s" % (synonym))
 
 
 def fill_Countries():
@@ -233,7 +233,7 @@ class Command(BaseCommand):
         # fill DictRoles table
         fill_DictRoles()
 
-        # import synonims
+        # import synonyms
         fill_Species()
 
         # import organizations

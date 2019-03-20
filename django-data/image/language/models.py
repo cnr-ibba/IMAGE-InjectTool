@@ -17,7 +17,7 @@ class Replace(Func):
 
 
 # Create your models here.
-class SpecieSynonim(models.Model):
+class SpecieSynonym(models.Model):
     # linking to others modules
     dictspecie = models.ForeignKey(
         'image_app.DictSpecie',
@@ -52,7 +52,7 @@ class SpecieSynonim(models.Model):
             new_word=Replace('word', Value(" "), Value("")))
 
     @classmethod
-    def check_synonims(cls, words, country):
+    def check_synonyms(cls, words, country):
         """Map words to country language or default one"""
 
         # get defaul language
@@ -61,7 +61,7 @@ class SpecieSynonim(models.Model):
         # remove spaces from words
         words = [word.replace(" ", "") for word in words]
 
-        # get synonims in my language. First remove space from qs
+        # get synonyms in my language. First remove space from qs
         qs = cls.remove_spaces()
 
         # the filter by provided words
@@ -74,7 +74,7 @@ class SpecieSynonim(models.Model):
         return qs.order_by('word').distinct('word')
 
     @classmethod
-    def check_specie_by_synonim(cls, word, country):
+    def check_specie_by_synonym(cls, word, country):
         """Test for a word in supplied language or default one"""
 
         # get defaul language
