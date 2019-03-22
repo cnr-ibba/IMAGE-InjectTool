@@ -22,7 +22,8 @@ class BaseTestCase(DataSourceMixinTestCase):
         'image_app/dictrole',
         'image_app/dictsex',
         'image_app/organization',
-        'image_app/user'
+        'image_app/user',
+        'language/speciesynonym'
     ]
 
     def setUp(self):

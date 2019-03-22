@@ -14,7 +14,7 @@ from django.test import TestCase
 from common.constants import ERROR, LOADED
 from image_app.models import (
     Submission, db_has_data, DictSpecie, DictSex, DictBreed, Name, Animal,
-    Sample, DictUberon)
+    Sample, DictUberon, DictCountry)
 
 from ..helpers import (
     logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
@@ -82,7 +82,10 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
     def test_check_species(self):
         """Test check species method"""
 
-        check, not_found = self.reader.check_species()
+        # get a country
+        country = DictCountry.objects.get(label="United Kingdom")
+
+        check, not_found = self.reader.check_species(country)
 
         self.assertTrue(check)
         self.assertEqual(len(not_found), 0)
@@ -90,7 +93,7 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
         # changing species set
         DictSpecie.objects.filter(label='Bos taurus').delete()
 
-        check, not_found = self.reader.check_species()
+        check, not_found = self.reader.check_species(country)
 
         # the read species are not included in fixtures
         self.assertFalse(check)
@@ -178,11 +181,14 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         # track the sample record for test
         self.record = data[0]
 
+        # set a country
+        self.country = DictCountry.objects.get(label="United Kingdom")
+
     def test_fill_uid_breed(self):
         """testing fill_uid_breed"""
 
         # call method
-        breed = fill_uid_breed(self.record)
+        breed = fill_uid_breed(self.record, self.country)
 
         # testing output
         self.assertIsInstance(breed, DictBreed)
@@ -201,7 +207,7 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         self.assertEqual(sample_name.name, self.record.sample_identifier)
 
     def test_fill_uid_animal_and_samples(self):
-        breed = fill_uid_breed(self.record)
+        breed = fill_uid_breed(self.record, self.country)
 
         # creating name
         animal_name = Name.objects.create(

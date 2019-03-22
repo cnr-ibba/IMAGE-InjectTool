@@ -85,13 +85,10 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
     def test_check_species(self):
         """Testing species and synonyms"""
 
-        italy = DictCountry.objects.get(label="Italy")
         united_kingdom = DictCountry.objects.get(label="United Kingdom")
 
+        # test for species synonoms for cryoweb
         self.assertTrue(check_species(united_kingdom))
-
-        # no species for this language, but using the default synonyms
-        self.assertTrue(check_species(italy))
 
         # now delete a synonym
         synonym = SpecieSynonym.objects.get(
@@ -100,14 +97,6 @@ class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
         synonym.delete()
 
         self.assertFalse(check_species(united_kingdom))
-        self.assertFalse(check_species(italy))
-
-        # assert a record in database
-        synonym = SpecieSynonym.objects.get(
-            language__label='United Kingdom',
-            word='Cattle')
-
-        self.assertIsNone(synonym.dictspecie)
 
     def test_no_species(self):
         """Test no species in cryoweb database"""

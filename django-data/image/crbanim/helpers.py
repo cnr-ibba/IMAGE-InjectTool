@@ -16,6 +16,7 @@ from common.constants import LOADED, ERROR, MISSING
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon)
+from language.helpers import check_species_synonyms
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -131,14 +132,26 @@ class CRBAnimReader():
         return result, not_found
 
     # a function to detect if crbanim species are in UID database or not
-    # HINT: crbanim species are already in the form required from DictSpecies
-    # tables, no need to search for language
-    def check_species(self):
+    def check_species(self, country):
         """Check if all species are defined in UID DictSpecies"""
 
+        # CRBAnim usually have species in the form required for UID
+        # However sometimes there could be a common name, not a DictSpecie one
         column = 'species_latin_name'
 
-        return self.__check_items(self.items[column], DictSpecie, column)
+        check, not_found = self.__check_items(
+            self.items[column], DictSpecie, column)
+
+        if check is False:
+            # try to check in dictionary table
+            logger.info("Searching for %s in dictionary tables" % (not_found))
+
+            # if this function return True, I found all synonyms
+            if check_species_synonyms(not_found, country) is True:
+                return True, []
+
+        # if I arrive here, there are species that I couldn't find
+        return check, not_found
 
     # check that dict sex table contains data
     def check_sex(self):
@@ -151,12 +164,21 @@ class CRBAnimReader():
         return self.__check_items(item_set, DictSex, column)
 
 
-def fill_uid_breed(record):
+def fill_uid_breed(record, language):
     """Fill DioctBreed from a crbanim record"""
 
-    # get a DictSpecie object. Species are in latin names, so I don't need
-    # a translation
-    specie = DictSpecie.objects.get(label=record.species_latin_name)
+    # get a DictSpecie object. Species are in latin names, but I can
+    # find also a common name in translation tables
+    try:
+        specie = DictSpecie.objects.get(label=record.species_latin_name)
+
+    except DictSpecie.DoesNotExist:
+        logger.info("Search %s in synonyms" % (record.species_latin_name))
+        # search for language synonym (if I arrived here a synonym should
+        # exists)
+        specie = DictSpecie.get_by_synonym(
+            synonym=record.species_latin_name,
+            language=language)
 
     # get country name using pycountries
     country_name = pycountry.countries.get(
@@ -330,7 +352,7 @@ def process_record(record, submission, animals, language):
         return
 
     # filling breeds
-    breed = fill_uid_breed(record)
+    breed = fill_uid_breed(record, language)
 
     # filling name tables
     animal_name, sample_name = fill_uid_names(record, submission)
@@ -365,7 +387,7 @@ def upload_crbanim(submission):
 
             raise CRBAnimImportError(message)
 
-        check, not_found = reader.check_species()
+        check, not_found = reader.check_species(submission.gene_bank_country)
 
         if not check:
             raise CRBAnimImportError(
