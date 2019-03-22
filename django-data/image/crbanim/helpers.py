@@ -269,7 +269,8 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
         # updating data
         # HINT: CRBanim has less attribute than cryoweb
         defaults = {
-            'alternative_id': record.EBI_Biosample_identifier,
+            # HINT: is a duplication of name. Can this be non-mandatory?
+            'alternative_id': animal_name.name,
             'breed': breed,
             'sex': sex,
             'birth_location_accuracy': accuracy,
@@ -315,8 +316,8 @@ def fill_uid_sample(record, sample_name, animal, submission):
     # create a new object. Using defaults to avoid collisions when
     # updating data
     defaults = {
-        # can't be EBI_Biosample_identifier
-        # 'alternative_id': v_vessel.db_vessel,
+        # HINT: is a duplication of name. Can this be non-mandatory?
+        'alternative_id': sample_name.name,
         'collection_date': record.sampling_date,
         'protocol': record.sampling_protocol_url,
         'organism_part': organism_part,
@@ -324,7 +325,8 @@ def fill_uid_sample(record, sample_name, animal, submission):
         # 'description': v_vessel.comment,
         'owner': submission.owner,
         'storage': " ".join([
-            record.sample_container_type, record.sample_storage_temperature])
+            record.sample_container_type, record.sample_storage_temperature]),
+        'availability': record.sample_availability
     }
 
     sample, created = Sample.objects.update_or_create(

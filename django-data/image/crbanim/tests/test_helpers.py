@@ -52,6 +52,8 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
             'BRC_country',
             'sample_identifier',
             'EBI_Biosample_identifier',
+            'sample_availability',
+            'sample_bibliographic_refrences',
             'animal_ID',
             'sex',
             'species_latin_name',

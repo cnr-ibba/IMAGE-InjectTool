@@ -190,4 +190,5 @@ InjectTool TODO
   Biosample registration is AAP registration
 
 * Related to CRBanim
-  - search for species and synonyms (rainbow trout is a common name for Oncorhynchus mykiss)
+  - alternative_id issue (now is a duplicate of sample/animal name)
+  - deal with biosample records
