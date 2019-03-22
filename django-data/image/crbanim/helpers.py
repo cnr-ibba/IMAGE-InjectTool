@@ -319,6 +319,11 @@ def fill_uid_sample(record, sample_name, animal, submission):
 
 
 def process_record(record, submission, animals, language):
+    # Peter mail 26/02/19 18:30: I agree that it sounds like we will
+    # need to create sameAs BioSamples for the IMAGE project, and it makes
+    # sense that the inject tool is able to do this.  It may be that we
+    # tackle these cases after getting the main part of the inject tool
+    # functioning and hold or ignore these existing BioSamples for now.
     # HINT: record with a biosample id should be ignored, for the moment
     if record.EBI_Biosample_identifier is not None:
         logger.warning("Ignoring %s: already in biosample!" % str(record))
@@ -348,25 +353,17 @@ def upload_crbanim(submission):
     reader = CRBAnimReader()
     reader.read_file(fullpath)
 
-    # a variable to store messages
-    messages = []
-
     # start data loading
     try:
         # check for species and sex in a similar way as cryoweb does
         check, not_found = reader.check_sex()
 
         if not check:
-            # HINT: ignoring warning about sex. This could deal with Unknown
-            # sex, but may raise exception if male or female are not known
-            # TODO: Add ontology for unknown and deal properly with this term
             message = (
                 "Not all Sex terms are loaded into database: "
                 "check for %s in your dataset" % (not_found))
-            logger.error(message)
 
-            # add message to messages array
-            messages.append(message)
+            raise CRBAnimImportError(message)
 
         check, not_found = reader.check_species()
 
@@ -382,23 +379,16 @@ def upload_crbanim(submission):
         # a dictionary in which store animal data
         animals = {}
 
-        # ok filter out unknown sex (case insensitive)
-        for record in reader.filter_by_column_values(
-                'sex',
-                ['male', 'female'],
-                ignorecase=True):
+        for record in reader.data:
             process_record(record, submission, animals, language)
 
     except Exception as exc:
         # set message:
         message = "Error in importing data: %s" % (str(exc))
 
-        # add this message to messages
-        messages.insert(0, message)
-
         # save a message in database
         submission.status = ERROR
-        submission.message = "; ".join(messages)
+        submission.message = message
         submission.save()
 
         # debug
@@ -411,10 +401,7 @@ def upload_crbanim(submission):
         message = "CRBAnim import completed for submission: %s" % (
             submission.id)
 
-        # add this message to messages
-        messages.insert(0, message)
-
-        submission.message = "; ".join(messages)
+        submission.message = message
         submission.status = LOADED
         submission.save()
 

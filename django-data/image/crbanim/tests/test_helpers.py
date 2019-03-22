@@ -303,7 +303,7 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
     def test_upload_crbanim_errors_with_sex(self, my_check):
         """Testing importing with data into UID with errors"""
 
-        self.assertTrue(upload_crbanim(self.submission))
+        self.assertFalse(upload_crbanim(self.submission))
 
         # reload submission
         self.submission.refresh_from_db()
@@ -316,18 +316,18 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
 
         self.assertEqual(
             self.submission.status,
-            LOADED)
+            ERROR)
 
         # check for two distinct messages
         self.assertIn(
             "Not all Sex terms are loaded into database",
             self.submission.message)
 
-        self.assertIn(
+        self.assertNotIn(
             "CRBAnim import completed for submission",
             self.submission.message)
 
         # assert data into database
-        self.assertTrue(db_has_data())
-        self.assertTrue(Animal.objects.exists())
-        self.assertTrue(Sample.objects.exists())
+        self.assertFalse(db_has_data())
+        self.assertFalse(Animal.objects.exists())
+        self.assertFalse(Sample.objects.exists())

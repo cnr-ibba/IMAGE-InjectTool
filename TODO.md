@@ -36,7 +36,15 @@ InjectTool TODO
   - Submission summary: how many animals and/or samples in the submission?
   - Submission to biosample using threads?
   - mail to admin when there are issues in USI?
-
+  - implement the sameAs key for already submitted biosamples:
+    ```
+    "sampleRelationships": [
+      {
+        "relationshipNature": "same as",
+        "alias": "502-W-133-4FE274B"
+      }
+    ]
+    ```
 * regarding issues in data into UID:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
     Using google refine? For the moment, no duplicate can be inserted into database,
@@ -182,5 +190,4 @@ InjectTool TODO
   Biosample registration is AAP registration
 
 * Related to CRBanim
-  - deal with unknown sex (currently filter-out)
   - search for species and synonyms (rainbow trout is a common name for Oncorhynchus mykiss)

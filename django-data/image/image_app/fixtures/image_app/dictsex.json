@@ -14,5 +14,13 @@
     "label": "female",
     "term": "PATO_0000383"
   }
+},
+{
+  "model": "image_app.dictsex",
+  "pk": 3,
+  "fields": {
+    "label": "unknown",
+    "term": "OBI_0000858"
+  }
 }
 ]

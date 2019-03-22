@@ -60,7 +60,7 @@ NCIT;{obo_url};NCI Thesaurus OBO Edition
 
 
 def fill_DictSex():
-    # define two DictSex objects
+    # define three DictSex objects
     male, created = DictSex.objects.get_or_create(
         label='male', term='PATO_0000384')
 
@@ -72,6 +72,12 @@ def fill_DictSex():
 
     if created is True:
         logger.info("Created: %s" % (female))
+
+    unknown, created = DictSex.objects.get_or_create(
+        label='unknown', term='OBI_0000858')
+
+    if created is True:
+        logger.info("Created: %s" % (unknown))
 
 
 # a function to fill up DictRoles
