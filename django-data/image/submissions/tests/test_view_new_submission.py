@@ -35,6 +35,7 @@ class Initialize(TestCase):
     data_sources_paths = {
         CRYOWEB_TYPE: "cryoweb_test_data_only.sql",
         CRB_ANIM_TYPE: "crbanim_test_data.csv",
+        "latin_type": "crbanim_test_data_latin-1.csv",
         TEMPLATE_TYPE: "crbanim_test_data.csv"  # point this to a real template
     }
 
@@ -79,7 +80,7 @@ class Initialize(TestCase):
             'organization': self.organization.id,
             'datasource_type': ds_type,
             'datasource_version': '0.1',
-            'uploaded_file': open(ds_path),
+            'uploaded_file': open(ds_path, "rb"),
         }
 
         return data
@@ -234,3 +235,20 @@ class SupportedCreateSubmissionViewTest(Initialize):
 
         # test task
         self.assertTrue(my_task.called)
+
+    @patch('submissions.views.ImportCRBAnimTask.delay')
+    def test_crb_anim_wrong_encoding(self, my_task):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_type="latin_type"))
+
+        # check errors
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+        # no submissions
+        self.assertFalse(Submission.objects.exists())
+
+        # test task
+        self.assertFalse(my_task.called)

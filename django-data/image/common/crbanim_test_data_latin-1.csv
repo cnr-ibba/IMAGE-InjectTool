@@ -1,0 +1,10 @@
+BRC_identifier;BRC_name;associated_research_project_name;BRC_responsible_last_name;BRC_responsible_first_name;BRC_contact_email;organization_name;organisation_adress;organization_url;organization_country;BRC_address;BRC_url;BRC_country;sample_identifier;EBI_Biosample_identifier;animal_ID;sex;species_latin_name;NCBI_taxo_id;breed_name;country_of_origin;sampling_protocol_url;sampling_date;sample_type_name;sample_type_identifier;sample_type_ontology;body_part_name;body_part_identifier;body_part_ontology;animal_birth_date;sample_storage_temperature;sample_container_type;sample_fixer_nature
+FAKE IDENTIFIER;FAKE @NAME;FAKEPROJECT;Bennett;Justin;michaellopez@yahoo.com;Robertson, Mckinney and Gilbert;"8795 Lewis Union Suite 160
+Port Lorishire, MT 86527";https://woodard-gilbert.biz/;Libyan Arab Jamahiriya;"21170 Darren Summit
+Jacobmouth, TX 72273";http://www.lowe-cannon.com/;Albania;FAKE726008;\N;ANIMAL:::2;Female;Capra hircus;9913;White Leghorn;FR;http://www.stark.net/;1979-01-13;tissue;FMA:67095;Uber-anatomy ontology (UBERON);bone marrow;99999;99996;2015-05-16;-80°C;Tube 2-15ml;\N
+FAKE IDENTIFIER;FAKE @NAME;FAKEPROJECT;Bennett;Justin;michaellopez@yahoo.com;Robertson, Mckinney and Gilbert;"8795 Lewis Union Suite 160
+Port Lorishire, MT 86527";https://woodard-gilbert.biz/;Libyan Arab Jamahiriya;"21170 Darren Summit
+Jacobmouth, TX 72273";http://www.lowe-cannon.com/;Albania;FAKE760848;\N;ANIMAL:::2;Female;Capra hircus;9913;White Leghorn;FR;https://larson-cook.com/;2017-07-15;unknown;UBERON:0000479;Uber-anatomy ontology (UBERON);uterus;99997;99996;2015-04-07;-80°C;Tube 2-15ml;\N
+FAKE IDENTIFIER;FAKE @NAME;FAKEPROJECT;Bennett;Justin;michaellopez@yahoo.com;Robertson, Mckinney and Gilbert;"8795 Lewis Union Suite 160
+Port Lorishire, MT 86527";https://woodard-gilbert.biz/;Libyan Arab Jamahiriya;"21170 Darren Summit
+Jacobmouth, TX 72273";http://www.lowe-cannon.com/;Albania;FAKE571911;FAKEA359353362;ANIMAL:::1;Female;Bos taurus;9925;White Leghorn;FR;https://burns.org/;2018-07-18;tissue;FMA:67095;9999999;corpus luteum;99995;99996;1981-07-06;-80°C;Tube 2-15ml;\N
