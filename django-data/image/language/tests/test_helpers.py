@@ -35,6 +35,26 @@ class CheckSpecie(TestCase):
         # If I don't find a synonym, I will return False
         self.assertFalse(result)
 
+        # there is no create with defaul parameters
+        self.assertRaises(
+            SpecieSynonym.DoesNotExist,
+            SpecieSynonym.objects.get,
+            word="Pecora")
+
+    def test_check_species_synonyms_create(self):
+        """Testing species and synonyms"""
+
+        country = DictCountry.objects.get(label="Italy")
+
+        # search for words, where one synonym is not present
+        words = ["Cattle", "Pecora"]
+
+        # check result
+        result = check_species_synonyms(words, country, create=True)
+
+        # If I don't find a synonym, I will return False
+        self.assertFalse(result)
+
         # now I have a synonym without species
         synonym = SpecieSynonym.objects.get(word="Pecora")
         self.assertEqual(synonym.language, country)

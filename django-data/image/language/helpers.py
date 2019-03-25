@@ -14,7 +14,11 @@ from .models import SpecieSynonym
 logger = logging.getLogger(__name__)
 
 
-def check_species_synonyms(words, country):
+def check_species_synonyms(words, country, create=False):
+    """Check if every words is a synonym of a specie or not. If auto_create
+    is true, this function will create a row in synonym table (with unkwnon
+    relationship with species)"""
+
     # test with language.models.SpecieSynonym methods
     synonyms = SpecieSynonym.check_synonyms(words, country)
 
@@ -32,13 +36,8 @@ def check_species_synonyms(words, country):
             if not SpecieSynonym.check_specie_by_synonym(word, country):
                 logger.debug("%s has no specie related" % (word))
 
-                # add specie in speciesynonym table
-                synonym, created = SpecieSynonym.objects.get_or_create(
-                    word=word,
-                    language=country)
-
-                if created:
-                    logger.debug("Added synonym %s" % (synonym))
+            if create is True:
+                create_specie_synonym(word, country)
 
         # check_specie fails, since there are words not related to species
         return False
@@ -46,3 +45,14 @@ def check_species_synonyms(words, country):
     # may I see this case? For instance when filling synonyms?
     else:
         raise NotImplementedError("Not implemented")
+
+
+def create_specie_synonym(word, country):
+    """add specie in speciesynonym table"""
+
+    synonym, created = SpecieSynonym.objects.get_or_create(
+        word=word,
+        language=country)
+
+    if created:
+        logger.debug("Added synonym %s" % (synonym))

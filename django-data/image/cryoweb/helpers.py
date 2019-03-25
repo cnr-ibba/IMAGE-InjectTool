@@ -53,7 +53,8 @@ def check_species(country):
     logger.debug("Got %s species from %s" % (words, database_name))
 
     # check if every word as a synonym (a specie)
-    return check_species_synonyms(words, country)
+    # (And create synonyms if don't exist)
+    return check_species_synonyms(words, country, create=True)
 
 
 # a function specific for cryoweb import path to ensure that all required
