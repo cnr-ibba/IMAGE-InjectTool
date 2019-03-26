@@ -23,7 +23,7 @@ class ValidationResult(models.Model):
             null=True)
 
     messages = ArrayField(
-        models.CharField(max_length=255, blank=True),
+        models.TextField(max_length=255, blank=True),
         default=list
     )
 

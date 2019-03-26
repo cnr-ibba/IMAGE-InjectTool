@@ -15,7 +15,7 @@ from collections import defaultdict, namedtuple
 from common.constants import LOADED, ERROR, MISSING
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
-    DictUberon)
+    DictUberon, Publication)
 from language.helpers import check_species_synonyms
 
 # Get an instance of a logger
@@ -229,11 +229,23 @@ def fill_uid_names(record, submission):
     else:
         logger.debug("Found animal name %s" % animal_name)
 
+    # get a publication (if present)
+    publication = None
+
+    # HINT: mind this mispelling
+    if record.sample_bibliographic_refrences:
+        publication, created = Publication.objects.get_or_create(
+            doi=record.sample_bibliographic_refrences)
+
+        if created:
+            logger.info("Created publication %s" % publication)
+
     # name record for sample
     sample_name, created = Name.objects.get_or_create(
         name=record.sample_identifier,
         submission=submission,
-        owner=submission.owner)
+        owner=submission.owner,
+        publication=publication)
 
     if created:
         logger.info("Created sample name %s" % sample_name)
