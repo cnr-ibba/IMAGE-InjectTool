@@ -9,6 +9,7 @@ Created on Wed Jan 30 10:42:14 2019
 from collections import defaultdict
 
 from django import template
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 register = template.Library()
@@ -38,7 +39,8 @@ def get_badge(name):
     badge_class = badge_types[status]
 
     # get messages
-    messages_str = "<br>".join(name.validationresult.messages)
+    messages_str = "<br>".join(
+        escape(message) for message in name.validationresult.messages)
 
     # set result string
     if status == 'Pass':
