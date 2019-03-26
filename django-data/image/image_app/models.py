@@ -274,6 +274,7 @@ class DictCountry(DictBase, Confidence):
         verbose_name = "country"
         verbose_name_plural = "countries"
         unique_together = (("label", "term"),)
+        ordering = ['label']
 
 
 class DictSex(DictBase):
@@ -855,7 +856,10 @@ class Organization(BaseMixin, models.Model):
         on_delete=models.PROTECT)
 
     def __str__(self):
-        return self.name
+        return "%s (%s)" % (self.name, self.country.label)
+
+    class Meta:
+        ordering = ['name', 'country']
 
 
 class Publication(BaseMixin, models.Model):
