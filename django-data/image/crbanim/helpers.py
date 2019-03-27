@@ -332,7 +332,7 @@ def fill_uid_sample(record, sample_name, animal, submission):
     animal_birth_date = parse_date(record.animal_birth_date)
     sampling_date = parse_date(record.sampling_date)
     animal_age_at_collection, time_units = image_timedelta(
-        animal_birth_date, sampling_date)
+        sampling_date, animal_birth_date)
 
     # create a new object. Using defaults to avoid collisions when
     # updating data

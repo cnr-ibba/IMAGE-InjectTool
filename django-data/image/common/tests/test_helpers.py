@@ -6,7 +6,6 @@ Created on Wed Mar 27 14:35:36 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-
 from django.test import TestCase
 from django.utils.dateparse import parse_date
 
@@ -26,11 +25,14 @@ class TestImageTimedelta(TestCase):
         self.assertEqual(years, 1)
         self.assertEqual(units, constants.YEARS)
 
-        # assert date inversion
-        years, units = image_timedelta(t2, t1)
+        with self.assertLogs('common.helpers', level="WARNING") as cm:
+            # assert date inversion (returns None)
+            years, units = image_timedelta(t2, t1)
 
-        self.assertEqual(years, 1)
+        self.assertEqual(years, None)
         self.assertEqual(units, constants.YEARS)
+        self.assertEqual(len(cm.output), 1)
+        self.assertIn("t2>t1", cm.output[0])
 
     def test_months(self):
         t1 = parse_date("2019-03-27")
@@ -49,3 +51,15 @@ class TestImageTimedelta(TestCase):
 
         self.assertEqual(days, 7)
         self.assertEqual(units, constants.DAYS)
+
+    def test_unknown_date(self):
+        t1 = parse_date("2019-03-20")
+        t2 = parse_date("1900-01-01")
+
+        with self.assertLogs('common.helpers', level="WARNING") as cm:
+            years, units = image_timedelta(t1, t2)
+
+        self.assertIsNone(years)
+        self.assertEqual(units, constants.YEARS)
+        self.assertEqual(len(cm.output), 1)
+        self.assertIn("Ignoring one date", cm.output[0])
