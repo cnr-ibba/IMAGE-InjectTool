@@ -58,7 +58,7 @@ class TestBase(DataSourceMixinTestCase, TestCase):
 
         # get data source path relying on type
         ds_path = os.path.join(
-            common.__path__[0],
+            common.tests.__path__[0],
             self.data_sources_paths[ds_type]
         )
 
