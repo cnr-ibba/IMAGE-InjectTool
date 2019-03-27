@@ -107,3 +107,5 @@ CURATED = CONFIDENCES.get_value('curated')
 
 # get time units
 YEARS = TIME_UNITS.get_value('years')
+MONTHS = TIME_UNITS.get_value('months')
+DAYS = TIME_UNITS.get_value('days')

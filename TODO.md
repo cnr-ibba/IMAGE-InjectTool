@@ -45,7 +45,7 @@ InjectTool TODO
       }
     ]
     ```
-* regarding issues in data into UID:
+* regarding issues in cryoweb:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
     Using google refine? For the moment, no duplicate can be inserted into database,
     the second occurrence will not be included in database.
@@ -53,6 +53,7 @@ InjectTool TODO
   - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
     and its father
   - check for duplicate breeds - names
+  - Animal AGE at collection: (v_vessel.production_dt - v_animal.birth_dt) if > 0
 
 * NGINX media folder can serve media files (jpg, etc).
   - add subdirs in media folder `data_source/`
@@ -80,7 +81,7 @@ InjectTool TODO
     - Add a special confidence status when supplied breed is different from
       mapped_breed (need revisions)
 
-* Data validation:
+* Regarding Data validation:
   - mock up time consuming modules (`validation.tests.test_helpers`)
     - hard task: maybe pickling `image_validation.use_ontology.OntologyCache`?
   - Can validation start after data load, and after calling zooma? See celery
@@ -92,6 +93,7 @@ InjectTool TODO
     - How many unknown, pass, warning, and error
     - If possible, what is the most occurred error, which may lead to batch
       correction, e.g. add decimal degrees to the coordinate as units
+  - reloading submission shuold be invalidate validationresults
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -153,8 +155,6 @@ InjectTool TODO
     update cause is specific to Animal/Sample
   - Having a unknown animal as  mother/father should be equal having this foreign
     key with a NULL value
-  - animal age at collection could be derived from Collection date and animal birth
-    during import
   - display the real name of file for the uploaded file
     - not so easy, maybe: add a CharField for user filename; Create a custom
       `django.forms.fields.FileField` or a validation function that track the
@@ -167,6 +167,8 @@ InjectTool TODO
       duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"
         DETAIL:  Key (gene_bank_name, gene_bank_country_id, datasource_type, datasource_version, owner_id)=(Cryoweb DE, 7, 0, test, 2) already exists.
   - `Submission.message` as `ArrayField` (to store more messages?)
+  - [Soft-delete](https://github.com/upgrad/django-deletes) items? can I store
+    items with a `deleted` attribute?
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission
@@ -193,3 +195,4 @@ InjectTool TODO
 * Related to CRBanim
   - alternative_id issue (now is a duplicate of sample/animal name)
   - deal with biosample records
+  - Animal AGE at collection (animal_birth_date – sampling_date) if >0

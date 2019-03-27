@@ -11,9 +11,14 @@ Common tests mixins
 import os
 import shutil
 
+from django.test import TestCase
 from django.urls import reverse
 from django.test import Client
+from django.utils.dateparse import parse_date
 from django.contrib.messages import get_messages
+
+from . import constants
+from .helpers import image_timedelta
 
 
 class LoginMixinTestCase(object):
@@ -154,3 +159,22 @@ class PersonMixinTestCase(object):
         person.role_id = 1
         person.initials = "T"
         person.save()
+
+
+class TestImageTimedelta(TestCase):
+    """A class to test common.helpers.image_timedelta functions"""
+
+    def test_years(self):
+        t1 = parse_date("2019-03-27")
+        t2 = parse_date("2018-03-27")
+
+        years, units = image_timedelta(t1, t2)
+
+        self.assertEqual(years, 1)
+        self.assertEqual(units, constants.YEAR)
+
+        # assert date inversion
+        years, units = image_timedelta(t2, t1)
+
+        self.assertEqual(years, 1)
+        self.assertEqual(units, constants.YEAR)

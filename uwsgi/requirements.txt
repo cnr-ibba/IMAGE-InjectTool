@@ -19,6 +19,7 @@ django_celery_beat==1.4.0
 django-celery-email==2.0.1
 pycountry
 python-magic
+python-dateutil==2.7.5
 git+https://github.com/cnr-ibba/pyUSIrest.git@b07c54830d57603ba052821b43ad36e11bdab62c
 # pyUSIrest==0.2.1
 git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@c1d22248b2d13e4d29d3a374500b6ffcba4bcc12

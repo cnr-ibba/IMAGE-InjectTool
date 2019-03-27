@@ -249,7 +249,7 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
 
         # testing sample attributes
         organism_part = DictUberon.objects.get(
-            label__iexact=self.record.body_part_name)
+            label__iexact=self.record.sample_type_name)
         self.assertEqual(sample.organism_part, organism_part)
 
 

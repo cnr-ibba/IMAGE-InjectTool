@@ -12,7 +12,10 @@ import pycountry
 
 from collections import defaultdict, namedtuple
 
+from django.utils.dateparse import parse_date
+
 from common.constants import LOADED, ERROR, MISSING
+from common.helpers import image_timedelta
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
@@ -316,7 +319,7 @@ def fill_uid_sample(record, sample_name, animal, submission):
     # get a organism part. Organism parts need to be in lowercases
     # waht sample_type_name stands for?
     organism_part, created = DictUberon.objects.get_or_create(
-        label=record.body_part_name.lower()
+        label=record.sample_type_name.lower()
     )
 
     if created:
@@ -324,6 +327,12 @@ def fill_uid_sample(record, sample_name, animal, submission):
 
     else:
         logger.debug("Found uberon %s" % organism_part)
+
+    # calculate animal age at collection
+    animal_birth_date = parse_date(record.animal_birth_date)
+    sampling_date = parse_date(record.sampling_date)
+    animal_age_at_collection, time_units = image_timedelta(
+        animal_birth_date, sampling_date)
 
     # create a new object. Using defaults to avoid collisions when
     # updating data
@@ -338,7 +347,9 @@ def fill_uid_sample(record, sample_name, animal, submission):
         'owner': submission.owner,
         'storage': " ".join([
             record.sample_container_type, record.sample_storage_temperature]),
-        'availability': record.sample_availability
+        'availability': record.sample_availability,
+        'animal_age_at_collection': animal_age_at_collection,
+        'animal_age_at_collection_units': time_units
     }
 
     sample, created = Sample.objects.update_or_create(

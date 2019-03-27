@@ -18,6 +18,7 @@ from decouple import AutoConfig
 from django.conf import settings
 
 from common.constants import LOADED, ERROR, MISSING, UNKNOWN
+from common.helpers import image_timedelta
 from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
@@ -359,6 +360,13 @@ def fill_uid_samples(submission):
         else:
             logger.debug("Found %s" % organism_part)
 
+        # get a v_animal instance to get access to animal birth date
+        v_animal = VAnimal.objects.get(db_animal=v_vessel.db_animal)
+
+        # derive animal age at collection
+        animal_age_at_collection, time_units = image_timedelta(
+            v_vessel.production_dt, v_animal.birth_dt)
+
         # create a new object. Using defaults to avoid collisions when
         # updating data
         defaults = {
@@ -368,7 +376,9 @@ def fill_uid_samples(submission):
             'organism_part': organism_part,
             'animal': animal,
             'description': v_vessel.comment,
-            'owner': submission.owner
+            'owner': submission.owner,
+            'animal_age_at_collection': animal_age_at_collection,
+            'animal_age_at_collection_units': time_units
         }
 
         sample, created = Sample.objects.update_or_create(
