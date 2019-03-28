@@ -10,6 +10,11 @@ import logging
 
 from dateutil.relativedelta import relativedelta
 
+from django.contrib.admin.utils import NestedObjects
+from django.db import DEFAULT_DB_ALIAS
+from django.utils.text import capfirst
+from django.utils.encoding import force_text
+
 from .constants import YEARS, MONTHS, DAYS
 
 # Get an instance of a logger
@@ -39,3 +44,27 @@ def image_timedelta(t1, t2):
 
     else:
         return rdelta.days, DAYS
+
+
+# https://stackoverflow.com/a/39533619/4385116
+# inspired django.contrib.admin.utils.get_deleted_objects, this function
+# tries to determine all related objects starting from a provied one
+# HINT: similar function at https://gist.github.com/nealtodd/4594575
+def get_deleted_objects(objs, db_alias=DEFAULT_DB_ALIAS):
+    # NestedObjects is an imporovement of django.db.models.deletion.Collector
+    collector = NestedObjects(using=db_alias)
+    collector.collect(objs)
+
+    def format_callback(obj):
+        opts = obj._meta
+        no_edit_link = '%s: %s' % (capfirst(opts.verbose_name),
+                                   force_text(obj))
+        return no_edit_link
+
+    to_delete = collector.nested(format_callback)
+    protected = [format_callback(obj) for obj in collector.protected]
+    model_count = {
+        model._meta.verbose_name_plural:
+            len(objs) for model, objs in collector.model_objs.items()}
+
+    return to_delete, model_count, protected

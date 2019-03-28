@@ -79,7 +79,7 @@
       <div class="dropdown-menu">
         <a class="dropdown-item" href="{% url 'submissions:reload' pk=submission.pk %}">Reload datasource</a>
         <a class="dropdown-item" href="#">Update submission</a>
-        <a class="dropdown-item" href="#">Delete submission</a>
+        <a class="dropdown-item" href="{% url 'submissions:delete' pk=submission.pk %}">Delete submission</a>
       </div>
     </div>
   </div>

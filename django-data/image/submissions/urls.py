@@ -30,4 +30,7 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/reload/$',
         views.ReloadSubmissionView.as_view(),
         name='reload'),
+    url(r'^(?P<pk>[-\w]+)/delete/$',
+        views.DeleteSubmissionView.as_view(),
+        name='delete'),
 ]

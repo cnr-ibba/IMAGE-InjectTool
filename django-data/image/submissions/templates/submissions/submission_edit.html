@@ -32,7 +32,7 @@
             {% endif %}
             {# deal with name.samples #}
           </td>
-          <td>{{ name.biosample_id }}</td>
+          <td><a href="https://wwwdev.ebi.ac.uk/biosamples/samples/{{ name.biosample_id }}">{{ name.biosample_id }}</a></td>
           <td>{{ name|get_badge }}</td>
           <td>{{ name.last_changed }}</td>
           <td>{{ name.last_submitted }}</td>

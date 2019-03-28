@@ -12,11 +12,14 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
+from django.views.generic import (
+    CreateView, DetailView, ListView, UpdateView, DeleteView)
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE)
+from common.helpers import get_deleted_objects
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name
@@ -237,3 +240,34 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())
+
+
+class DeleteSubmissionView(OwnerMixin, DeleteView):
+    model = Submission
+    template_name = "submissions/submission_confirm_delete.html"
+    success_url = reverse_lazy('image_app:dashboard')
+
+    # https://stackoverflow.com/a/39533619/4385116
+    def get_context_data(self, **kwargs):
+        # determining related objects
+        # TODO: move this to a custom AJAX call
+        context = super().get_context_data(**kwargs)
+
+        deletable_objects, model_count, protected = get_deleted_objects(
+            [self.object])
+
+        # get only sample and animals from model_count
+        info_deleted = {}
+
+        items = ['animals', 'samples']
+
+        for item in items:
+            if item in model_count:
+                info_deleted[item] = model_count[item]
+
+        context['deletable_objects'] = deletable_objects
+        context['model_count'] = dict(model_count).items()
+        context['info_deleted'] = dict(info_deleted).items()
+        context['protected'] = protected
+
+        return context

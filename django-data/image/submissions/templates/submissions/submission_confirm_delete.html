@@ -1,0 +1,71 @@
+
+{% extends "base.html" %}
+
+{% load static %}
+{% load validation_tags %}
+
+{% block title %}
+  Submission {{ submission.pk }} Confirm Delete
+{% endblock title %}
+
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock custom-css %}
+
+{% block content %}
+
+<h1 class="text-center logo my-4">
+  Delete <em>{{ submission.title|truncatechars:30 }}?</em>
+</h1>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10 col-sm-12">
+    <div class="card">
+      <div class="card-body">
+        {# https://stackoverflow.com/a/39533619/4385116 #}
+        {% if info_deleted|length > 0 %}
+          <h3>All those items will be also deleted:</h3>
+          <table class="table table-hover table-responsive-sm">
+            <thead>
+              <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for model_name, object_count in info_deleted %}
+                <tr class="{% cycle 'table-primary' 'table-secondary' %}">
+                  <th>{{ model_name|capfirst }}</th>
+                  <td>{{ object_count }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <h3>No other items will be deleted with this submission</h3>
+        {% endif %}
+        <!--
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Amount</th>
+          </tr>
+          {% for model_name, object_count in model_count %}
+            <tr>
+              <td>{{ model_name|capfirst }}</td>
+              <td>{{ object_count }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+        -->
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <input type="submit" class="btn btn-danger" value="Delete">
+          <a href="{% url 'submissions:detail' pk=submission.pk %}" class="btn btn-secondary" role="button">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
