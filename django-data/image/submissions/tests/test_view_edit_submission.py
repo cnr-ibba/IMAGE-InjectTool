@@ -10,12 +10,12 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 from django.utils.http import urlquote
 
-from common.constants import (
-    WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
+from common.constants import NEED_REVISION
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
 from image_app.models import Submission
 
 from ..views import EditSubmissionView
+from .common import SubmissionStatusMixin
 
 
 class EditSubmissionViewTest(
@@ -111,7 +111,7 @@ class EditSubmissionViewTest(
         # TODO: test for samples Update/Delete Views
 
 
-class EditSubmissionViewStatusesTest(TestCase):
+class EditSubmissionViewStatusesTest(SubmissionStatusMixin, TestCase):
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",
@@ -130,80 +130,3 @@ class EditSubmissionViewStatusesTest(TestCase):
         # get a submission object
         self.submission = Submission.objects.get(pk=1)
         self.redirect_url = self.submission.get_absolute_url()
-
-    def test_waiting(self):
-        """Test waiting statuses return to submission detail"""
-
-        # update statuses
-        self.submission.status = WAITING
-        self.submission.save()
-
-        # test redirect
-        response = self.client.get(self.url)
-        self.assertRedirects(response, self.redirect_url)
-
-    def test_loaded(self):
-        """Test loaded status"""
-
-        # force submission status
-        self.submission.status = LOADED
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_submitted(self):
-        """Test submitted status"""
-
-        # force submission status
-        self.submission.status = SUBMITTED
-        self.submission.save()
-
-        # test redirect
-        response = self.client.get(self.url)
-        self.assertRedirects(response, self.redirect_url)
-
-    def test_error(self):
-        """Test error status"""
-
-        # force submission status
-        self.submission.status = ERROR
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_need_revision(self):
-        """Test need_revision status"""
-
-        # force submission status
-        self.submission.status = NEED_REVISION
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_ready(self):
-        """Test ready status"""
-
-        # force submission status
-        self.submission.status = READY
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-    def test_completed(self):
-        """Test completed status"""
-
-        # force submission status
-        self.submission.status = COMPLETED
-        self.submission.save()
-
-        # test no redirect
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)

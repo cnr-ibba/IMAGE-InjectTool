@@ -247,6 +247,25 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
     template_name = "submissions/submission_confirm_delete.html"
     success_url = reverse_lazy('image_app:dashboard')
 
+    def dispatch(self, request, *args, **kwargs):
+        handler = super(DeleteSubmissionView, self).dispatch(
+                request, *args, **kwargs)
+
+        # here I've done get_queryset. Check for submission status
+        if hasattr(self, "object") and not self.object.can_edit():
+            message = "Cannot delete %s: submission status is: %s" % (
+                    self.object, self.object.get_status_display())
+
+            logger.warning(message)
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect(self.object.get_absolute_url())
+
+        return handler
+
     # https://stackoverflow.com/a/39533619/4385116
     def get_context_data(self, **kwargs):
         # determining related objects
@@ -265,9 +284,25 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
             if item in model_count:
                 info_deleted[item] = model_count[item]
 
-        context['deletable_objects'] = deletable_objects
-        context['model_count'] = dict(model_count).items()
+        # add info to context
         context['info_deleted'] = dict(info_deleted).items()
-        context['protected'] = protected
 
         return context
+
+    # https://ccbv.co.uk/projects/Django/1.11/django.views.generic.edit/DeleteView/#delete
+    def delete(self, request, *args, **kwargs):
+        """
+        Add a message after calling base delete method
+        """
+
+        httpresponseredirect = super().delete(request, *args, **kwargs)
+
+        message = "Submission %s was successfully deleted" % self.object.title
+        logger.info(message)
+
+        messages.info(
+            request=self.request,
+            message=message,
+            extra_tags="alert alert-dismissible alert-info")
+
+        return httpresponseredirect
