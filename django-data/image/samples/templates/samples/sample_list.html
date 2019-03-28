@@ -1,7 +1,7 @@
 
 {% extends "base.html" %}
 
-{% load validation_tags %}
+{% load validation_tags biosample_tags %}
 
 {% block title %}
   Sample List
@@ -29,7 +29,7 @@
           {% include "samples/sample_buttons.html" %}
         </td>
         <td><a href="{% url 'submissions:detail' pk=sample.submission.pk %}">{{ sample.submission.title }}</a> </td>
-        <td>{{ sample.name.biosample_id }}</td>
+        <td>{{ sample.name.biosample_id|get_biosample_link }}</td>
         <td>{{ sample.name|get_badge }}</td>
       </tr>
     {% endfor %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% load validation_tags %}
+{% load validation_tags biosample_tags %}
 
 {% block title %}
   Edit Submission Data for {{ submission.title }}
@@ -32,7 +32,7 @@
             {% endif %}
             {# deal with name.samples #}
           </td>
-          <td><a href="https://wwwdev.ebi.ac.uk/biosamples/samples/{{ name.biosample_id }}">{{ name.biosample_id }}</a></td>
+          <td>{{ name.biosample_id|get_biosample_link }}</td>
           <td>{{ name|get_badge }}</td>
           <td>{{ name.last_changed }}</td>
           <td>{{ name.last_submitted }}</td>

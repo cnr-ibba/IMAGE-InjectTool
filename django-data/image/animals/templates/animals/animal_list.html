@@ -1,7 +1,7 @@
 
 {% extends "base.html" %}
 
-{% load validation_tags %}
+{% load validation_tags biosample_tags %}
 
 {% block title %}
   Animal List
@@ -29,7 +29,7 @@
           {% include "animals/animal_buttons.html" %}
         </td>
         <td><a href="{% url 'submissions:detail' pk=animal.submission.pk %}">{{ animal.submission.title }}</a> </td>
-        <td>{{ animal.name.biosample_id }}</td>
+        <td>{{ animal.name.biosample_id|get_biosample_link }}</td>
         <td>{{ animal.name|get_badge }}</td>
       </tr>
     {% endfor %}
