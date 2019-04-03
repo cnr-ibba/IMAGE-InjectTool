@@ -36,12 +36,14 @@ class CRBAnimReader():
         self.header = None
         self.dialect = None
         self.items = None
+        self.filename = None
 
     def read_file(self, filename):
         """Read crb anim files and set tit to class attribute"""
 
         with open(filename, newline='') as csvfile:
             # initialize data
+            self.filename = filename
             self.data = []
             self.dialect = csv.Sniffer().sniff(csvfile.read(2048))
             csvfile.seek(0)
@@ -315,11 +317,20 @@ def fill_uid_sample(record, sample_name, animal, submission):
     """Helper function to fill animal data in UID sample table"""
 
     # name and animal name come from parameters
+    organism_part_label = None
+    sample_type_name = record.sample_type_name.lower()
+    body_part_name = record.body_part_name.lower()
+
+    # sylvain has proposed to apply the following decision rule:
+    if body_part_name != "unknown" and body_part_name != "not relevant":
+        organism_part_label = body_part_name
+
+    else:
+        organism_part_label = sample_type_name
 
     # get a organism part. Organism parts need to be in lowercases
-    # waht sample_type_name stands for?
     organism_part, created = DictUberon.objects.get_or_create(
-        label=record.sample_type_name.lower()
+        label=organism_part_label
     )
 
     if created:

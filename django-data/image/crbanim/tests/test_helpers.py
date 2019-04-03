@@ -178,78 +178,102 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         data = self.reader.filter_by_column_values(
             "EBI_Biosample_identifier",
             [None])
-        data = list(data)
+        self.data = list(data)
 
         # track the sample record for test
-        self.record = data[0]
+        self.record = self.data[0]
 
         # set a country
         self.country = DictCountry.objects.get(label="United Kingdom")
 
+        # fill object to test inserts. Fill breed
+        self.breed = fill_uid_breed(self.record, self.country)
+
+        # fill names
+        self.animal_name, self.sample_name = fill_uid_names(
+            self.record, self.submission)
+
+        # filling animal and samples
+        self.animal = fill_uid_animal(
+            self.record,
+            self.animal_name,
+            self.breed,
+            self.submission,
+            {})
+
+        # testing samples
+        self.sample = fill_uid_sample(
+            self.record,
+            self.sample_name,
+            self.animal,
+            self.submission)
+
     def test_fill_uid_breed(self):
         """testing fill_uid_breed"""
 
-        # call method
-        breed = fill_uid_breed(self.record, self.country)
-
         # testing output
-        self.assertIsInstance(breed, DictBreed)
-        self.assertEqual(breed.supplied_breed, self.record.breed_name)
-        self.assertEqual(breed.specie.label, self.record.species_latin_name)
+        self.assertIsInstance(self.breed, DictBreed)
+        self.assertEqual(self.breed.supplied_breed, self.record.breed_name)
+        self.assertEqual(
+            self.breed.specie.label, self.record.species_latin_name)
 
     def test_fill_uid_names(self):
-        # calling method
-        animal_name, sample_name = fill_uid_names(self.record, self.submission)
-
         # testing output
-        self.assertIsInstance(animal_name, Name)
-        self.assertIsInstance(sample_name, Name)
+        self.assertIsInstance(self.animal_name, Name)
+        self.assertIsInstance(self.sample_name, Name)
 
-        self.assertEqual(animal_name.name, self.record.animal_ID)
-        self.assertEqual(sample_name.name, self.record.sample_identifier)
+        self.assertEqual(self.animal_name.name, self.record.animal_ID)
+        self.assertEqual(self.sample_name.name, self.record.sample_identifier)
 
-    def test_fill_uid_animal_and_samples(self):
-        breed = fill_uid_breed(self.record, self.country)
+    def test_fill_uid_animals(self):
+        # testing animal
+        self.assertIsInstance(self.animal, Animal)
+
+        # testing animal attributes
+        sex = DictSex.objects.get(label__iexact=self.record.sex)
+        self.assertEqual(self.animal.sex, sex)
+
+    def test_fill_uid_samples(self):
+        # testing sample
+        self.assertIsInstance(self.sample, Sample)
+
+        # testing sample attributes
+        organism_part = DictUberon.objects.get(
+            label__iexact="bone marrow")
+        self.assertEqual(self.sample.organism_part, organism_part)
+
+    def test_organism_part(self):
+        """Check that an 'unknown' organims_part generate a DictUberon
+        relying on sample_type_name (see crbanim_test_data.csv file)"""
+
+        # get a new record
+        record = self.data[1]
+
+        # fill breeds
+        breed = fill_uid_breed(record, self.country)
 
         # creating name
-        animal_name = Name.objects.create(
-            name=self.record.animal_ID,
-            submission=self.submission,
-            owner=self.submission.owner)
+        animal_name, sample_name = fill_uid_names(
+            record, self.submission)
 
-        sample_name = Name.objects.create(
-            name=self.record.sample_identifier,
-            submission=self.submission,
-            owner=self.submission.owner)
-
-        # testing method
+        # filling animal and samples
         animal = fill_uid_animal(
-            self.record,
+            record,
             animal_name,
             breed,
             self.submission,
             {})
 
-        # testing animal
-        self.assertIsInstance(animal, Animal)
-
-        # testing animal attributes
-        sex = DictSex.objects.get(label__iexact=self.record.sex)
-        self.assertEqual(animal.sex, sex)
-
         # testing samples
         sample = fill_uid_sample(
-            self.record,
+            record,
             sample_name,
             animal,
             self.submission)
 
-        # testing animal
-        self.assertIsInstance(sample, Sample)
-
         # testing sample attributes
         organism_part = DictUberon.objects.get(
-            label__iexact=self.record.sample_type_name)
+            label__iexact="uterus")
         self.assertEqual(sample.organism_part, organism_part)
 
 
