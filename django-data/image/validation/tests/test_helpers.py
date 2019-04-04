@@ -13,7 +13,7 @@ from django.test import TestCase
 from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
-from ..helpers import MetaDataValidation
+from ..helpers import MetaDataValidation, SubmissionReport
 
 
 class SubmissionTestCase(PersonMixinTestCase, TestCase):
@@ -175,3 +175,25 @@ class RulesTestCase(TestCase):
         # test image metadata rules
         self.assertIsInstance(ruleset_check, list)
         self.assertEqual(len(ruleset_check), 0)
+
+
+class SubmissionReportTestCase(TestCase):
+    fixtures = [
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/name',
+        'image_app/organization',
+        'image_app/publication',
+        'image_app/submission',
+        'image_app/user',
+        'validation/validationresult'
+    ]
+
+    def setUp(self):
+        self.submission = Submission.objects.get(pk=1)
+        self.submissionreport = SubmissionReport(self.submission)
+
+    def test_process_errors(self):
+        report = self.submissionreport.process_errors()
+        self.assertIsInstance(report, dict)
+        self.assertEqual(report, {})
