@@ -14,6 +14,7 @@ from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
 from ..helpers import MetaDataValidation, SubmissionReport
+from ..models import ValidationResult
 
 
 class SubmissionTestCase(PersonMixinTestCase, TestCase):
@@ -193,7 +194,83 @@ class SubmissionReportTestCase(TestCase):
         self.submission = Submission.objects.get(pk=1)
         self.submissionreport = SubmissionReport(self.submission)
 
+        # set names
+        self.animal_name = Name.objects.get(pk=3)
+        self.sample_name = Name.objects.get(pk=4)
+
+        # track validationresult object
+        self.validationresult = ValidationResult.objects.get(pk=1)
+
     def test_process_errors(self):
         report = self.submissionreport.process_errors()
         self.assertIsInstance(report, dict)
         self.assertEqual(report, {})
+
+    def update_message(self, message):
+        self.validationresult.status = "Error"
+        self.validationresult.messages = [message]
+        self.validationresult.save()
+
+    def test_process_error_unmanaged(self):
+        # modify validation results object
+        message = "Unmanaged error"
+        self.update_message(message)
+
+        with self.assertLogs('validation.helpers', level="ERROR") as log:
+            report = self.submissionreport.process_errors()
+
+        self.assertEqual(report, {})
+
+        # log.output is a list of rows for each logger message
+        self.assertEqual(len(log.output), 1)
+        self.assertIn("Cannot parse: '%s'" % message, log.output[0])
+
+    def test_patterns1(self):
+        # define test strings for patterns
+        message = (
+            'Error: <link> of field Availability is message for Record test')
+        self.update_message(message)
+
+        with self.assertLogs('validation.helpers', level="DEBUG") as log:
+            report = self.submissionreport.process_errors()
+
+        self.assertEqual(len(report), 1)
+        self.assertEqual(len(log.output), 5)
+        self.assertIn(
+            "DEBUG:validation.helpers:parse1: Got 'link','Availability' and "
+            "'message'",
+            log.output)
+
+    def test_patterns2(self):
+        # define test strings for patterns
+        message = (
+            'reason meow for the field myfield which blah, blah for Record '
+            'test')
+        self.update_message(message)
+
+        with self.assertLogs('validation.helpers', level="DEBUG") as log:
+            report = self.submissionreport.process_errors()
+
+        self.assertEqual(len(report), 1)
+        self.assertEqual(len(log.output), 5)
+        self.assertIn(
+            "DEBUG:validation.helpers:parse2: Got 'reason meow','myfield' "
+            "and 'blah, blah'",
+            log.output)
+
+    def test_patterns3(self):
+        # define test strings for patterns
+        message = (
+            'Provided value term does not match to the provided ontology '
+            'for Record test')
+        self.update_message(message)
+
+        with self.assertLogs('validation.helpers', level="DEBUG") as log:
+            report = self.submissionreport.process_errors()
+
+        self.assertEqual(len(report), 1)
+        self.assertEqual(len(log.output), 5)
+        self.assertIn(
+            "DEBUG:validation.helpers:parse3: Got 'term' and 'does not match "
+            "to the provided ontology'",
+            log.output)
