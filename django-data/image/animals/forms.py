@@ -14,9 +14,17 @@ from common.constants import MISSING
 
 
 class UpdateAnimalForm(RequestFormMixin, forms.ModelForm):
-    disabled_name = forms.CharField(disabled=True, label="Name")
-    disabled_mother = forms.CharField(disabled=True, label="Mother")
-    disabled_father = forms.CharField(disabled=True, label="Father")
+    disabled_name = forms.CharField(
+        disabled=True,
+        label="Name")
+    disabled_mother = forms.CharField(
+        disabled=True,
+        label="Mother",
+        required=False)
+    disabled_father = forms.CharField(
+        disabled=True,
+        label="Father",
+        required=False)
 
     class Meta:
         model = Animal
