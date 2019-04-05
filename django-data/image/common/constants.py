@@ -109,3 +109,18 @@ CURATED = CONFIDENCES.get_value('curated')
 YEARS = TIME_UNITS.get_value('years')
 MONTHS = TIME_UNITS.get_value('months')
 DAYS = TIME_UNITS.get_value('days')
+
+# define sample storage types
+SAMPLE_STORAGE_TYPES = [
+    "ambient temperature",
+    "cut slide",
+    "frozen, -80 degrees Celsius freezer",
+    "frozen, -20 degrees Celsius freezer",
+    "frozen, liquid nitrogen",
+    "frozen, vapor phase",
+    "paraffin block",
+    "RNAlater, frozen -20 degrees Celsius",
+    "TRIzol, frozen",
+    "paraffin block at ambient temperatures (+15 to +30 degrees Celsius)",
+    "freeze dried"
+]

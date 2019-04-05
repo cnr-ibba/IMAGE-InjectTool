@@ -64,7 +64,6 @@ InjectTool TODO
     [here](https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html).
     Others solutions could be [autocomplete fields](http://django-extensions.readthedocs.io/en/latest/admin_extensions.html?highlight=ForeignKeyAutocompleteAdmin)
     or using [django-salmonella](https://github.com/lincolnloop/django-dynamic-raw-id)
-  - Using LoginRequiredMixin for class based view authentication (update all classes)
   - django `contettype` framework to model relations between Name and Sample and
     animal
   - see [django_filters](https://django-filter.readthedocs.io/) and [django_tables](https://django-tables2.readthedocs.io/en/latest/).
@@ -93,7 +92,8 @@ InjectTool TODO
     - How many unknown, pass, warning, and error
     - If possible, what is the most occurred error, which may lead to batch
       correction, e.g. add decimal degrees to the coordinate as units
-  - reloading submission shuold be invalidate validationresults
+  - reloading submission should invalidate validationresults
+  - calculate submission statics after validation
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown
@@ -118,7 +118,6 @@ InjectTool TODO
   - read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - [django-crispy-forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html)
   - add cookie agreement (external module or custom one?)
-  - add [datepicker](https://fengyuanchen.github.io/datepicker/). See [here](https://simpleisbetterthancomplex.com/tutorial/2019/01/03/how-to-use-date-picker-with-django.html#fengyuan-chens-datepicker) for more details
 
 * Regarding tests:
   - implement functional testing
@@ -167,6 +166,7 @@ InjectTool TODO
   - `Submission.message` as `ArrayField` (to store more messages?)
   - [Soft-delete](https://github.com/upgrad/django-deletes) items? can I store
     items with a `deleted` attribute?
+  - `Sample.storage_type` and `Sample.storage_processing` as enum values?
 
 * Think about a message module to store info useful to the user (into a view):
   - The token is expired during submission; resume submission

@@ -6,6 +6,7 @@ Created on Thu Feb 21 15:37:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import re
 import csv
 import logging
 import pycountry
@@ -14,7 +15,7 @@ from collections import defaultdict, namedtuple
 
 from django.utils.dateparse import parse_date
 
-from common.constants import LOADED, ERROR, MISSING
+from common.constants import LOADED, ERROR, MISSING, SAMPLE_STORAGE_TYPES
 from common.helpers import image_timedelta
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
@@ -314,6 +315,20 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
     return animal
 
 
+def find_storage_type(record):
+    # get temperature as a number
+    match = re.search(r'(-?[\d]+)', record.sample_storage_temperature)
+
+    if match:
+        for storage_type in SAMPLE_STORAGE_TYPES:
+            if match.groups()[0] in storage_type:
+                return storage_type
+
+    # return a default object as we used until now
+    return " ".join([
+            record.sample_container_type, record.sample_storage_temperature])
+
+
 def fill_uid_sample(record, sample_name, animal, submission):
     """Helper function to fill animal data in UID sample table"""
 
@@ -357,8 +372,7 @@ def fill_uid_sample(record, sample_name, animal, submission):
         'animal': animal,
         # 'description': v_vessel.comment,
         'owner': submission.owner,
-        'storage': " ".join([
-            record.sample_container_type, record.sample_storage_temperature]),
+        'storage': find_storage_type(record),
         'availability': record.sample_availability,
         'animal_age_at_collection': animal_age_at_collection,
         'animal_age_at_collection_units': time_units
