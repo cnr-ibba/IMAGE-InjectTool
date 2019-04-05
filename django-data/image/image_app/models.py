@@ -510,7 +510,7 @@ class Animal(BioSampleMixin, models.Model):
         null=True,
         related_name='mother_of')
 
-    # HINT: and birth date?
+    birth_date = models.DateField(blank=True, null=True)
 
     # TODO: need to set this value? How?
     birth_location = models.CharField(
@@ -564,6 +564,11 @@ class Animal(BioSampleMixin, models.Model):
         attributes['Mapped breed'] = self.breed.format_attribute()
 
         attributes['Sex'] = self.sex.format_attribute()
+
+        # a datetime object should be not be converted in string here,
+        # otherwise will not be filtered if NULL
+        attributes['Birth date'] = format_attribute(
+            value=self.birth_date, units="YYYY-MM-DD")
 
         attributes["Birth location"] = format_attribute(
             value=self.birth_location)
@@ -723,8 +728,10 @@ class Sample(BioSampleMixin, models.Model):
         attributes['Derived from'] = format_attribute(
             value=self.animal.name.name)
 
+        # a datetime object should be not be converted in string here,
+        # otherwise will not be filtered if NULL
         attributes['Collection date'] = format_attribute(
-            value=str(self.collection_date), units="YYYY-MM-DD")
+            value=self.collection_date, units="YYYY-MM-DD")
 
         attributes['Collection place'] = format_attribute(
             value=self.collection_place)

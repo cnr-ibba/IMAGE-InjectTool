@@ -78,6 +78,10 @@ def format_attribute(value, terms=None, library_uri=OBO_URL, units=None):
     if value is None:
         return None
 
+    # pay attention to datetime objects
+    if isinstance(value, datetime.date):
+        value = str(value)
+
     # HINT: need I deal with multiple values?
 
     result = {}
