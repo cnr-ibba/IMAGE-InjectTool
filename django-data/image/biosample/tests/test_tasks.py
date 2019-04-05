@@ -243,9 +243,9 @@ class SubmitTestCase(SubmitMixin, TestCase):
 
         # creating mock samples
         my_samples = [
-            Mock(**{'alias': 'animal_1',
+            Mock(**{'alias': 'IMAGEA000000001',
                     'title': 'a 4-year old pig organic fed'}),
-            Mock(**{'alias': 'sample_1',
+            Mock(**{'alias': 'IMAGES000000001',
                     'title': 'semen collected when the animal turns to 4'}),
         ]
 

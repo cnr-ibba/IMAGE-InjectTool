@@ -105,9 +105,6 @@ InjectTool TODO
 * Biosample manager user should do:
   - ask for user intervention / notify success
 
-* Regarding table `Name`:
-  - define a UID unique ID for samples and animals?
-
 * Regarding `EditSubmissionView`
   - search?
 

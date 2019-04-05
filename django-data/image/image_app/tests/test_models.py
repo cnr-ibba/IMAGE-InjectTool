@@ -296,7 +296,7 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
 
-        reference = "animal_%s" % (self.animal.id)
+        reference = "IMAGEA000000001"
 
         test = self.animal.get_biosample_id()
         self.assertEqual(reference, test)
@@ -443,7 +443,7 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
     def test_get_biosample_id(self):
         """Get a biosample id or a temporary id"""
 
-        reference = "sample_%s" % (self.sample.id)
+        reference = "IMAGES000000001"
 
         test = self.sample.get_biosample_id()
         self.assertEqual(reference, test)

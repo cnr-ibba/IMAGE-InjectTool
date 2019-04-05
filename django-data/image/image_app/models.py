@@ -82,6 +82,11 @@ class BioSampleMixin(BaseMixin):
         raise NotImplementedError(
             "You need to define this method in your class")
 
+    def get_biosample_id(self):
+        """Get the biosample id or a temporary name"""
+
+        return self.name.biosample_id or self.biosample_alias
+
     def get_attributes(self):
         """Common attribute definition. Attribute name is the name in
         metadata rules"""
@@ -538,11 +543,9 @@ class Animal(BioSampleMixin, models.Model):
     def specie(self):
         return self.breed.specie
 
-    def get_biosample_id(self):
-        """Get the biosample id or a temporary name"""
-
-        return self.name.biosample_id or "animal_%s" % (
-                self.id)
+    @property
+    def biosample_alias(self):
+        return 'IMAGEA{0:09d}'.format(self.id)
 
     def get_attributes(self):
         """Return attributes like biosample needs"""
@@ -709,11 +712,9 @@ class Sample(BioSampleMixin, models.Model):
     def specie(self):
         return self.animal.breed.specie
 
-    def get_biosample_id(self):
-        """Get the biosample id or a temporary name"""
-
-        return self.name.biosample_id or "sample_%s" % (
-                self.id)
+    @property
+    def biosample_alias(self):
+        return 'IMAGES{0:09d}'.format(self.id)
 
     def get_attributes(self):
         """Return attributes like biosample needs"""

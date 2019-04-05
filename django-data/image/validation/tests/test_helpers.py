@@ -145,7 +145,7 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
 
         reference = [
             ('Wrong JSON structure: no title field for record with '
-             'alias as animal_1'),
+             'alias as IMAGEA000000001'),
         ]
 
         # get my animal
