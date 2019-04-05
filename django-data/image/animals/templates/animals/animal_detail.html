@@ -128,18 +128,22 @@
       <td>{{ animal.sex }}</td>
     </tr>
     <tr class="table-secondary">
+      <th scope="row">Birth date:</th>
+      <td>{{ animal.birth_date }}</td>
+    </tr>
+    <tr class="table-primary">
       <th scope="row">Birth location:</th>
       <td>{{ animal.birth_location }}</td>
     </tr>
-    <tr class="table-primary">
+    <tr class="table-secondary">
       <th scope="row">Birth location longitude:</th>
       <td>{{ animal.birth_location_longitude }}</td>
     </tr>
-    <tr class="table-secondary">
+    <tr class="table-primary">
       <th scope="row">Birth location latitude:</th>
       <td>{{ animal.birth_location_latitude }}</td>
     </tr>
-    <tr class="table-primary">
+    <tr class="table-secondary">
       <th scope="row">Birth location accuracy:</th>
       <td>{{ animal.get_birth_location_accuracy_display }}</td>
     </tr>

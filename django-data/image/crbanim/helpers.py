@@ -290,6 +290,7 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
             'alternative_id': animal_name.name,
             'breed': breed,
             'sex': sex,
+            'birth_date': record.animal_birth_date,
             'birth_location_accuracy': accuracy,
             'owner': submission.owner
         }

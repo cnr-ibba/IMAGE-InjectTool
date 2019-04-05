@@ -118,6 +118,7 @@ InjectTool TODO
   - read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - [django-crispy-forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html)
   - add cookie agreement (external module or custom one?)
+  - add [datepicker](https://fengyuanchen.github.io/datepicker/). See [here](https://simpleisbetterthancomplex.com/tutorial/2019/01/03/how-to-use-date-picker-with-django.html#fengyuan-chens-datepicker) for more details
 
 * Regarding tests:
   - implement functional testing

@@ -304,6 +304,7 @@ def fill_uid_animals(submission):
             'sex': sex,
             'father': father,
             'mother': mother,
+            'birth_date': v_animal.birth_dt,
             'birth_location_latitude': v_animal.latitude,
             'birth_location_longitude': v_animal.longitude,
             'birth_location_accuracy': accuracy,

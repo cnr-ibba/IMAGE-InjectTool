@@ -65,8 +65,8 @@ class UpdateAnimalViewTest(
 
     def test_form_inputs(self):
         # csrfmiddlewaretoken is tested by FormMixinTestCase
-        self.assertContains(self.response, '<div class="form-group">', 11)
-        self.assertContains(self.response, '<input type="text"', 6)
+        self.assertContains(self.response, '<div class="form-group">', 12)
+        self.assertContains(self.response, '<input type="text"', 7)
         self.assertContains(self.response, '<input type="number"', 2)
         self.assertContains(self.response, '<select ', 3)
         self.assertContains(

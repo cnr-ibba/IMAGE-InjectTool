@@ -515,7 +515,10 @@ class Animal(BioSampleMixin, models.Model):
         null=True,
         related_name='mother_of')
 
-    birth_date = models.DateField(blank=True, null=True)
+    birth_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text='example: 2019-04-01')
 
     # TODO: need to set this value? How?
     birth_location = models.CharField(
@@ -651,7 +654,10 @@ class Sample(BioSampleMixin, models.Model):
 
     protocol = models.CharField(max_length=255, blank=True, null=True)
 
-    collection_date = models.DateField(blank=True, null=True)
+    collection_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text='example: 2019-04-01')
     collection_place_latitude = models.FloatField(blank=True, null=True)
     collection_place_longitude = models.FloatField(blank=True, null=True)
     collection_place = models.CharField(max_length=255, blank=True, null=True)

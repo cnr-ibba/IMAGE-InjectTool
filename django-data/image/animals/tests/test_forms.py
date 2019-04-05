@@ -30,6 +30,7 @@ class UpdateAnimalFormTest(AnimalFeaturesMixin, TestCase):
             'sex',
             'disabled_mother',
             'disabled_father',
+            'birth_date',
             'birth_location',
             'birth_location_latitude',
             'birth_location_longitude',
