@@ -11,7 +11,7 @@
 
 <h1>Submission Detail for <em>{{ submission.title }}</em></h1>
 
-<table class="table table-hover table-responsive-sm">
+<table class="table table-hover table-responsive-md">
   <tbody>
     <tr class="table-primary">
       <th scope="row">Submission Title:</th>
@@ -66,15 +66,15 @@
 <div class="container mt-3">
   <div class="row">
     {# disabling a button if waiting variable is set to true #}
-    <div class="col-sm-4 mt-2 lead text-center"><a class="btn btn-primary btn-lg btn-block {% if not edit %}disabled{% endif %}" href="{% url 'submissions:edit' pk=submission.pk %}" role="button">Edit data</a></div>
-    <div class="col-sm-4 mt-2 lead text-center"><a class="btn btn-warning btn-lg btn-block {% if not validate %}disabled{% endif %}" href="javascript:{document.getElementById('validate').submit()}" role="button">Validate</a></div>
-    <div class="col-sm-4 mt-2 lead text-center"><a class="btn btn-success btn-lg btn-block {% if not submit %}disabled{% endif %}" href="javascript:{document.getElementById('submit').submit()}" role="button">Submit</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-primary btn-lg btn-block {% if not edit %}disabled{% endif %}" href="{% url 'submissions:edit' pk=submission.pk %}" role="button">Edit data</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-warning btn-lg btn-block {% if not validate %}disabled{% endif %}" href="javascript:{document.getElementById('validate').submit()}" role="button">Validate</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-success btn-lg btn-block {% if not submit %}disabled{% endif %}" href="javascript:{document.getElementById('submit').submit()}" role="button">Submit</a></div>
   </div>
   <div class="row">
-    <div class="col-sm-4 mt-2 lead text-center"><a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Submissions List</a></div>
-    <div class="col-sm-4 mt-2 lead text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Submissions List</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a></div>
     {# TODO: disable button if necessary #}
-    <div class="col-sm-4 mt-2 lead text-center btn-group">
+    <div class="col-md-4 mt-2 text-center btn-group">
       <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not edit %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Danger Zone</button>
       <div class="dropdown-menu">
         <a class="dropdown-item" href="{% url 'submissions:reload' pk=submission.pk %}">Reload datasource</a>

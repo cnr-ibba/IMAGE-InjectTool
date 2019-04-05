@@ -173,10 +173,10 @@
 <div class="container mt-3">
   <div class="row">
     {# disabling a button if waiting variable is set to true #}
-    <div class="col-lg-3 col-md-12 mt-2 lead text-center"><a class="btn btn-primary btn-lg btn-block" href="{% url 'samples:list' %}" role="button">Back to Sample list</a></div>
-    <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'submissions:detail' pk=sample.submission.pk %}" role="button">Back to Submission</a></div>
-    <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-warning btn-lg btn-block {% if not sample.can_edit %}disabled{% endif %}" href="{% url 'samples:update' pk=sample.pk %}" role="button">Edit Sample</a></div>
-    <div class="col-lg-3 col-md-4 mt-2 lead text-center"><a class="btn btn-danger btn-lg btn-block  {% if not sample.can_delete %}disabled{% endif %}" href="{% url 'samples:delete' pk=sample.pk %}" role="button">Delete Sample</a></div>
+    <div class="col-lg-3 col-md-12 mt-2 text-center"><a class="btn btn-primary btn-lg btn-block" href="{% url 'samples:list' %}" role="button">Back to Sample list</a></div>
+    <div class="col-lg-3 col-md-4 mt-2 text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'submissions:detail' pk=sample.submission.pk %}" role="button">Back to Submission</a></div>
+    <div class="col-lg-3 col-md-4 mt-2 text-center"><a class="btn btn-warning btn-lg btn-block {% if not sample.can_edit %}disabled{% endif %}" href="{% url 'samples:update' pk=sample.pk %}" role="button">Edit Sample</a></div>
+    <div class="col-lg-3 col-md-4 mt-2 text-center"><a class="btn btn-danger btn-lg btn-block  {% if not sample.can_delete %}disabled{% endif %}" href="{% url 'samples:delete' pk=sample.pk %}" role="button">Delete Sample</a></div>
   </div>
 </div>
 
