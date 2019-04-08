@@ -962,7 +962,8 @@ class Submission(BaseMixin, models.Model):
     # when submission is created
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # TODO: add a field for last update
+    # https://simpleisbetterthancomplex.com/tips/2016/05/23/django-tip-4-automatic-datetime-fields.html
+    updated_at = models.DateTimeField(auto_now=True)
 
     # a column to track submission status
     status = models.SmallIntegerField(

@@ -169,10 +169,13 @@ class AnimalAdmin(admin.ModelAdmin):
 
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
-        'title', 'gene_bank_name', 'gene_bank_country', 'datasource_type',
-        'datasource_version', 'organization', 'status', 'owner',
-        'biosample_submission_id'
+        'title', 'description', 'gene_bank_name', 'gene_bank_country',
+        'datasource_type', 'datasource_version', 'organization', 'created_at',
+        'updated_at', 'status', 'owner', 'biosample_submission_id'
     )
+
+    # I cannot edit a auto_add_now field
+    readonly_fields = ('created_at', 'updated_at')
 
     list_filter = ('owner', 'status')
 
