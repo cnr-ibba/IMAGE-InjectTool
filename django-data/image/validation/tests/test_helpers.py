@@ -13,7 +13,7 @@ from django.test import TestCase
 from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
-from ..helpers import MetaDataValidation, SubmissionReport
+from ..helpers import MetaDataValidation, ValidationSummary
 from ..models import ValidationResult
 
 
@@ -178,7 +178,7 @@ class RulesTestCase(TestCase):
         self.assertEqual(len(ruleset_check), 0)
 
 
-class SubmissionReportTestCase(TestCase):
+class ValidationSummaryTestCase(TestCase):
     fixtures = [
         'image_app/dictcountry',
         'image_app/dictrole',
@@ -192,7 +192,7 @@ class SubmissionReportTestCase(TestCase):
 
     def setUp(self):
         self.submission = Submission.objects.get(pk=1)
-        self.submissionreport = SubmissionReport(self.submission)
+        self.validationsummary = ValidationSummary(self.submission)
 
         # set names
         self.animal_name = Name.objects.get(pk=3)
@@ -202,7 +202,7 @@ class SubmissionReportTestCase(TestCase):
         self.validationresult = ValidationResult.objects.get(pk=1)
 
     def test_process_errors(self):
-        report = self.submissionreport.process_errors()
+        report = self.validationsummary.process_errors()
         self.assertIsInstance(report, dict)
         self.assertEqual(report, {})
 
@@ -217,9 +217,9 @@ class SubmissionReportTestCase(TestCase):
         self.update_message(message)
 
         with self.assertLogs('validation.helpers', level="ERROR") as log:
-            report = self.submissionreport.process_errors()
+            report = self.validationsummary.process_errors()
 
-        self.assertEqual(report, {})
+        self.assertEqual(len(report), 1)
 
         # log.output is a list of rows for each logger message
         self.assertEqual(len(log.output), 1)
@@ -232,7 +232,7 @@ class SubmissionReportTestCase(TestCase):
         self.update_message(message)
 
         with self.assertLogs('validation.helpers', level="DEBUG") as log:
-            report = self.submissionreport.process_errors()
+            report = self.validationsummary.process_errors()
 
         self.assertEqual(len(report), 1)
         self.assertEqual(len(log.output), 5)
@@ -249,7 +249,7 @@ class SubmissionReportTestCase(TestCase):
         self.update_message(message)
 
         with self.assertLogs('validation.helpers', level="DEBUG") as log:
-            report = self.submissionreport.process_errors()
+            report = self.validationsummary.process_errors()
 
         self.assertEqual(len(report), 1)
         self.assertEqual(len(log.output), 5)
@@ -266,11 +266,34 @@ class SubmissionReportTestCase(TestCase):
         self.update_message(message)
 
         with self.assertLogs('validation.helpers', level="DEBUG") as log:
-            report = self.submissionreport.process_errors()
+            report = self.validationsummary.process_errors()
 
         self.assertEqual(len(report), 1)
         self.assertEqual(len(log.output), 5)
         self.assertIn(
             "DEBUG:validation.helpers:parse3: Got 'term' and 'does not match "
             "to the provided ontology'",
+            log.output)
+
+    def test_update_message(self):
+        # define an error message as for test_pattern1
+        message = (
+            'Error: <link> of field Availability is message for Record test')
+        self.update_message(message)
+
+        # get another validation result object and assign errors
+        validationresult = ValidationResult()
+        validationresult.status = "Error"
+        validationresult.messages = [message]
+        validationresult.name = self.sample_name
+        validationresult.save()
+
+        with self.assertLogs('validation.helpers', level="DEBUG") as log:
+            report = self.validationsummary.process_errors()
+
+        self.assertEqual(len(report), 1)
+        self.assertEqual(len(log.output), 6)
+        self.assertIn(
+            "DEBUG:validation.helpers:parse1: Got 'link','Availability' and "
+            "'message'",
             log.output)

@@ -9,6 +9,8 @@ Created on Tue Feb 19 16:15:35 2019
 import re
 import logging
 
+from django.utils.text import Truncator
+
 from image_validation import validation
 from image_validation.static_parameters import ruleset_filename as \
     IMAGE_RULESET
@@ -58,18 +60,32 @@ class MetaDataValidation():
         return result
 
 
-class SubmissionReport():
+class ValidationSummary():
     """A class to deal with error messages and submission"""
 
     def __init__(self, submission_obj):
         """Istantiate a report object from Submission"""
 
         # get all names belonging to this submission
-        self.names = Name.objects.filter(
-            submission=submission_obj).select_related("validationresult")
+        self.names = Name.objects.select_related(
+                "validationresult",
+                "animal",
+                "sample").filter(
+                    submission=submission_obj)
+
+        # here I will have 5 queries, each one executed when calling count
+        # or when iterating queryset
+
+        # count animal and samples
+        self.n_animals = self.names.filter(animal__isnull=False).count()
+        self.n_samples = self.names.filter(sample__isnull=False).count()
 
         # filter names which have errors
         self.errors = self.names.exclude(validationresult__status="Pass")
+
+        # count animal and samples with issues
+        self.n_animal_issues = self.errors.filter(animal__isnull=False).count()
+        self.n_sample_issues = self.errors.filter(sample__isnull=False).count()
 
         # setting patterns
         self.pattern1 = re.compile(
@@ -103,6 +119,10 @@ class SubmissionReport():
                     logger.debug("Processed message: %s" % (message))
                 else:
                     logger.error("Cannot parse: '%s'" % message)
+
+                    # assign those values to report
+                    key = ("unmanaged", Truncator(message).words(10))
+                    self.__update_report(key, error.id)
 
             # block error message
 

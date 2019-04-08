@@ -24,6 +24,7 @@ from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name
 from crbanim.tasks import ImportCRBAnimTask
+from validation.helpers import ValidationSummary
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -128,7 +129,16 @@ class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
         self.submission = self.object
 
         # Call the base implementation first to get a context
-        return super(DetailSubmissionView, self).get_context_data(**kwargs)
+        context = super(DetailSubmissionView, self).get_context_data(**kwargs)
+
+        # add submission report to context
+        validation_summary = ValidationSummary(self.submission)
+
+        # HINT: is this computational intensive?
+        validation_summary.process_errors()
+        context["validation_summary"] = validation_summary
+
+        return context
 
 
 # a detail view since I need to operate on a submission object

@@ -92,6 +92,8 @@ InjectTool TODO
     - How many unknown, pass, warning, and error
     - If possible, what is the most occurred error, which may lead to batch
       correction, e.g. add decimal degrees to the coordinate as units
+    - SubmissionReport must be calculated once, or cached (if this,must be
+      invalidated when validation happens)
   - reloading submission should invalidate validationresults
   - calculate submission statics after validation
 
