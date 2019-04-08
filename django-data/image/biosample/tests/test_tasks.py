@@ -12,12 +12,14 @@ from billiard.einfo import ExceptionInfo
 from pytest import raises
 from collections import Counter
 from unittest.mock import patch, Mock, PropertyMock
+from datetime import timedelta
 
 from celery.exceptions import Retry
 
 from django.test import TestCase
 from django.conf import settings
 from django.core import mail
+from django.utils import timezone
 
 from common.constants import (
     LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
@@ -360,19 +362,19 @@ class FetchMixin():
         super().setUp()
 
         # get a submission object
-        submission = Submission.objects.get(pk=1)
+        self.submission_obj = Submission.objects.get(pk=1)
 
         # set a status which I can fetch_status
-        submission.status = SUBMITTED
-        submission.biosample_submission_id = "test-fetch"
-        submission.save()
+        self.submission_obj.status = SUBMITTED
+        self.submission_obj.biosample_submission_id = "test-fetch"
+        self.submission_obj.save()
 
         # set status for names, like submittask does. Only sample not unknown
         # are submitted
         Name.objects.exclude(name__contains="unknown").update(status=SUBMITTED)
 
         # track submission ID
-        self.submission_id = submission.id
+        self.submission_obj_id = self.submission_obj.id
 
         # start root object
         self.my_root = self.mock_root.return_value
@@ -430,11 +432,11 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         # Add samples
         my_sample1 = Mock()
         my_sample1.name = "test-animal"
-        my_sample1.alias = "animal_1"
+        my_sample1.alias = "IMAGEA000000001"
         my_sample1.accession = "SAMEA0000001"
         my_sample2 = Mock()
         my_sample2.name = "test-sample"
-        my_sample2.alias = "sample_1"
+        my_sample2.alias = "IMAGES000000001"
         my_sample2.accession = "SAMEA0000002"
         my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
@@ -442,8 +444,8 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         self.common_tests(my_submission)
 
         # assert status for submissions
-        submission = Submission.objects.get(pk=self.submission_id)
-        self.assertEqual(submission.status, COMPLETED)
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, COMPLETED)
 
         # check name status changed
         qs = Name.objects.filter(status=COMPLETED)
@@ -465,11 +467,11 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         # Add samples
         my_sample1 = Mock()
         my_sample1.name = "test-animal"
-        my_sample1.alias = "animal_1"
+        my_sample1.alias = "IMAGEA000000001"
         my_sample1.accession = None
         my_sample2 = Mock()
         my_sample2.name = "test-sample"
-        my_sample2.alias = "sample_1"
+        my_sample2.alias = "IMAGES000000001"
         my_sample2.accession = None
         my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
@@ -477,8 +479,8 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         self.common_tests(my_submission)
 
         # assert status for submissions
-        submission = Submission.objects.get(pk=self.submission_id)
-        self.assertEqual(submission.status, SUBMITTED)
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
@@ -562,12 +564,12 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         # Add samples
         my_sample1 = Mock()
         my_sample1.name = "test-animal"
-        my_sample1.alias = "animal_1"
+        my_sample1.alias = "IMAGEA000000001"
         my_sample2 = Mock()
         my_sample2.name = "test-sample"
-        my_sample2.alias = "sample_1"
+        my_sample2.alias = "IMAGES000000001"
 
-        # simulate that animal_1 has errors
+        # simulate that IMAGEA000000001 has errors
         my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
         # track object
@@ -578,8 +580,8 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         self.common_tests(self.my_submission)
 
         # assert submission status
-        submission = Submission.objects.get(pk=self.submission_id)
-        self.assertEqual(submission.status, NEED_REVISION)
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, NEED_REVISION)
 
         # check name status changed
         qs = Name.objects.filter(status=NEED_REVISION)
@@ -596,7 +598,7 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         email = mail.outbox[0]
 
         self.assertEqual(
-            "Error in biosample submission %s" % self.submission_id,
+            "Error in biosample submission %s" % self.submission_obj_id,
             email.subject)
 
 
@@ -615,8 +617,8 @@ class FetchDraftTestCase(FetchMixin, TestCase):
         self.common_tests(my_submission)
 
         # assert status for submissions
-        submission = Submission.objects.get(pk=self.submission_id)
-        self.assertEqual(submission.status, SUBMITTED)
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
 
         # testing a finalized biosample condition
         self.assertTrue(my_submission.finalize.called)
@@ -635,8 +637,8 @@ class FetchDraftTestCase(FetchMixin, TestCase):
         self.common_tests(my_submission)
 
         # assert status for submissions
-        submission = Submission.objects.get(pk=self.submission_id)
-        self.assertEqual(submission.status, SUBMITTED)
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
 
         # testing a not finalized biosample condition
         self.assertFalse(my_submission.finalize.called)
@@ -655,11 +657,66 @@ class FetchDraftTestCase(FetchMixin, TestCase):
         self.common_tests(my_submission)
 
         # assert status for submissions
-        submission = Submission.objects.get(pk=self.submission_id)
-        self.assertEqual(submission.status, SUBMITTED)
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
 
         # testing a not finalized biosample condition
         self.assertFalse(my_submission.finalize.called)
+
+
+class FetchLongTaskTestCase(FetchMixin, TestCase):
+    """A submission wich remain in the same status for a long time"""
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # a still running submission
+        self.my_submission = Mock()
+        self.my_submission.name = "test-fetch"
+        self.my_submission.status = 'Submitted'
+
+        # passing submission to Mocked Root
+        self.my_root.get_submission_by_name.return_value = self.my_submission
+
+        # make "now" 2 months ago
+        testtime = timezone.now() - timedelta(days=60)
+
+        # https://devblog.kogan.com/blog/testing-auto-now-datetime-fields-in-django
+        with patch('django.utils.timezone.now') as mock_now:
+            mock_now.return_value = testtime
+
+            # update submission updated time with an older date than now
+            self.submission_obj.updated_at = testtime
+            self.submission_obj.save()
+
+    def test_email_sent(self):
+        # assert task and mock methods called
+        self.common_tests(self.my_submission)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission %s" % self.submission_obj_id,
+            email.subject)
+
+    def test_submission_error(self):
+        # assert task and mock methods called
+        self.common_tests(self.my_submission)
+
+        # check submission.state changed
+        self.submission_obj.refresh_from_db()
+
+        self.assertEqual(self.submission_obj.status, ERROR)
+        self.assertIn(
+            "Biosample subission {} remained with the same status".format(
+                    self.submission_obj),
+            self.submission_obj.message
+            )
 
 
 class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
@@ -677,12 +734,9 @@ class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
         self.my_root.get_submission_by_name.return_value = self.my_submission
 
     def update_status(self, status):
-        # get a submission object
-        submission = Submission.objects.get(pk=self.submission_id)
-
         # change status
-        submission.status = status
-        submission.save()
+        self.submission_obj.status = status
+        self.submission_obj.save()
 
     # override FetchMixing methods
     def common_tests(self, status):
@@ -702,8 +756,8 @@ class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
         self.assertFalse(self.my_submission.follow_url.called)
 
         # assert status for submissions
-        submission = Submission.objects.get(pk=self.submission_id)
-        self.assertEqual(submission.status, status)
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, status)
 
     def test_loaded(self):
         """Test fecth_status with a loaded submission"""

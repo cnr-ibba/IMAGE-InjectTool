@@ -24,7 +24,7 @@ from common.tasks import redis_lock
 from common.constants import (
     ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
-from .helpers import get_auth, get_manager_auth
+from .helpers import get_auth, get_manager_auth, parse_image_alias
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -32,6 +32,9 @@ logger = get_task_logger(__name__)
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
+
+# a threshold of days to determine a very long task
+MAX_DAYS = 5
 
 
 class SubmissionData(object):
@@ -236,6 +239,7 @@ class SubmitTask(MyTask):
         """Create or update a sample (or a animal) in USI"""
 
         # alias could be animal_XXX or a biosample id
+        # TODO: is biosample_alias?
         alias = sample_obj.get_biosample_id()
 
         # check in my submitted samples
@@ -394,41 +398,8 @@ class FetchStatusTask(MyTask):
 
         # Update submission status if completed
         if submission.status == 'Completed':
-            # cicle along samples
-            for sample in submission.get_samples():
-                # derive pk and table from alias
-                table, pk = sample.alias.split("_")
-                table, pk = table.capitalize(), int(pk)
-
-                # if no accession, return without doing anything
-                if sample.accession is None:
-                    logger.error("No accession found for sample %s" % (sample))
-                    logger.error("Ignoring submission %s" % (submission))
-                    return
-
-                if table == 'Sample':
-                    sample_obj = Sample.objects.get(pk=pk)
-                    sample_obj.name.status = COMPLETED
-                    sample_obj.name.biosample_id = sample.accession
-                    sample_obj.name.save()
-
-                elif table == 'Animal':
-                    animal_obj = Animal.objects.get(pk=pk)
-                    animal_obj.name.status = COMPLETED
-                    animal_obj.name.biosample_id = sample.accession
-                    animal_obj.name.save()
-
-                else:
-                    raise Exception("Unknown table %s" % (table))
-
-            # update submission
-            submission_obj.status = COMPLETED
-            submission_obj.message = "Successful submission into biosample"
-            submission_obj.save()
-
-            logger.info(
-                "Submission %s is now completed and recorded into UID" % (
-                    submission))
+            # fetch biosample ids with a proper function
+            self.complete(submission, submission_obj)
 
         elif submission.status == 'Draft':
             # check validation. If it is ok, finalize submission
@@ -446,6 +417,30 @@ class FetchStatusTask(MyTask):
                     (status))
 
         elif submission.status == 'Submitted':
+            # send mail to user for very long tasks
+            if (timezone.now() - submission_obj.updated_at).days > MAX_DAYS:
+                message = (
+                    "Biosample subission %s remained with the same status "
+                    "for more than %s days. Please report it to InjectTool "
+                    "team" % (submission_obj, MAX_DAYS))
+                submission_obj.status = ERROR
+                submission_obj.message = message
+                submission_obj.save()
+
+                logger.error("Errors for submission: %s" % (submission))
+                logger.error(message)
+
+                # send a mail to the user
+                submission_obj.owner.email_user(
+                    "Error in biosample submission %s" % (
+                        submission_obj.id),
+                    ("Something goes wrong with biosample submission. Please "
+                     "report this to InjectTool team\n\n %s" % str(
+                             submission.data)),
+                )
+
+                return
+
             logger.info(
                 "Submission %s is '%s'. Waiting for biosample "
                 "ids" % (submission.id, submission.status))
@@ -474,8 +469,7 @@ class FetchStatusTask(MyTask):
 
             for sample in samples:
                 # derive pk and table from alias
-                table, pk = sample.alias.split("_")
-                table, pk = table.capitalize(), int(pk)
+                table, pk = parse_image_alias(sample.alias)
 
                 logger.debug("%s in table %s has errors!!!" % (sample, table))
 
@@ -510,6 +504,42 @@ class FetchStatusTask(MyTask):
             logger.info("Finalizing submission %s" % (
                 submission.name))
             submission.finalize()
+
+    def complete(self, submission, submission_obj):
+        # cicle along samples
+        for sample in submission.get_samples():
+            # derive pk and table from alias
+            table, pk = parse_image_alias(sample.alias)
+
+            # if no accession, return without doing anything
+            if sample.accession is None:
+                logger.error("No accession found for sample %s" % (sample))
+                logger.error("Ignoring submission %s" % (submission))
+                return
+
+            if table == 'Sample':
+                sample_obj = Sample.objects.get(pk=pk)
+                sample_obj.name.status = COMPLETED
+                sample_obj.name.biosample_id = sample.accession
+                sample_obj.name.save()
+
+            elif table == 'Animal':
+                animal_obj = Animal.objects.get(pk=pk)
+                animal_obj.name.status = COMPLETED
+                animal_obj.name.biosample_id = sample.accession
+                animal_obj.name.save()
+
+            else:
+                raise Exception("Unknown table %s" % (table))
+
+        # update submission
+        submission_obj.status = COMPLETED
+        submission_obj.message = "Successful submission into biosample"
+        submission_obj.save()
+
+        logger.info(
+            "Submission %s is now completed and recorded into UID" % (
+                submission))
 
 
 # register explicitly tasks
