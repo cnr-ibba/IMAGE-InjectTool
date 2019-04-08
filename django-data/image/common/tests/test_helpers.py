@@ -63,3 +63,15 @@ class TestImageTimedelta(TestCase):
         self.assertEqual(units, constants.YEARS)
         self.assertEqual(len(cm.output), 1)
         self.assertIn("Ignoring one date", cm.output[0])
+
+    def test_null_date(self):
+        t1 = None
+        t2 = parse_date("1900-01-01")
+
+        with self.assertLogs('common.helpers', level="WARNING") as cm:
+            years, units = image_timedelta(t1, t2)
+
+        self.assertIsNone(years)
+        self.assertEqual(units, constants.YEARS)
+        self.assertEqual(len(cm.output), 1)
+        self.assertIn("One date is NULL", cm.output[0])

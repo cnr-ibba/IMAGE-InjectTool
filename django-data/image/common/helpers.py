@@ -25,6 +25,10 @@ def image_timedelta(t1, t2):
     """A function to deal with image time intervals. Returns a number and
     time unit"""
 
+    if t1 is None or t2 is None:
+        logger.warning("One date is NULL ({0}, {1}) ignoring".format(t2, t1))
+        return None, YEARS
+
     if t2 > t1:
         logger.warning("t2>t1 ({0}, {1}) ignoring".format(t2, t1))
         return None, YEARS

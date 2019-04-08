@@ -364,7 +364,7 @@ def fill_uid_samples(submission):
         # get a v_animal instance to get access to animal birth date
         v_animal = VAnimal.objects.get(db_animal=v_vessel.db_animal)
 
-        # derive animal age at collection
+        # derive animal age at collection. THis function deals with NULL valies
         animal_age_at_collection, time_units = image_timedelta(
             v_vessel.production_dt, v_animal.birth_dt)
 
