@@ -402,6 +402,12 @@ class FetchStatusTask(MyTask):
             self.complete(submission, submission_obj)
 
         elif submission.status == 'Draft':
+            # check for a long task
+            if self.submission_has_issues(submission, submission_obj):
+                # return to the caller. I've just marked the submission with
+                # errors and sent a mail to the user
+                return
+
             # check validation. If it is ok, finalize submission
             status = submission.get_status()
 
@@ -417,28 +423,10 @@ class FetchStatusTask(MyTask):
                     (status))
 
         elif submission.status == 'Submitted':
-            # send mail to user for very long tasks
-            if (timezone.now() - submission_obj.updated_at).days > MAX_DAYS:
-                message = (
-                    "Biosample subission %s remained with the same status "
-                    "for more than %s days. Please report it to InjectTool "
-                    "team" % (submission_obj, MAX_DAYS))
-                submission_obj.status = ERROR
-                submission_obj.message = message
-                submission_obj.save()
-
-                logger.error("Errors for submission: %s" % (submission))
-                logger.error(message)
-
-                # send a mail to the user
-                submission_obj.owner.email_user(
-                    "Error in biosample submission %s" % (
-                        submission_obj.id),
-                    ("Something goes wrong with biosample submission. Please "
-                     "report this to InjectTool team\n\n %s" % str(
-                             submission.data)),
-                )
-
+            # check for a long task
+            if self.submission_has_issues(submission, submission_obj):
+                # return to the caller. I've just marked the submission with
+                # errors and sent a mail to the user
                 return
 
             logger.info(
@@ -457,6 +445,33 @@ class FetchStatusTask(MyTask):
             # HINT: thrown an exception?
             logger.warning("Unknown status %s for submission %s" % (
                 submission.status, submission.name))
+
+    def submission_has_issues(self, submission, submission_obj):
+        if (timezone.now() - submission_obj.updated_at).days > MAX_DAYS:
+            message = (
+                "Biosample subission %s remained with the same status "
+                "for more than %s days. Please report it to InjectTool "
+                "team" % (submission_obj, MAX_DAYS))
+            submission_obj.status = ERROR
+            submission_obj.message = message
+            submission_obj.save()
+
+            logger.error("Errors for submission: %s" % (submission))
+            logger.error(message)
+
+            # send a mail to the user
+            submission_obj.owner.email_user(
+                "Error in biosample submission %s" % (
+                    submission_obj.id),
+                ("Something goes wrong with biosample submission. Please "
+                 "report this to InjectTool team\n\n %s" % str(
+                         submission.data)),
+            )
+
+            return True
+
+        else:
+            return False
 
     # a function to finalize a submission
     def finalize(self, submission, submission_obj):

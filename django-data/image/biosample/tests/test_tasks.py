@@ -671,14 +671,6 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
         # calling my base setup
         super().setUp()
 
-        # a still running submission
-        self.my_submission = Mock()
-        self.my_submission.name = "test-fetch"
-        self.my_submission.status = 'Submitted'
-
-        # passing submission to Mocked Root
-        self.my_root.get_submission_by_name.return_value = self.my_submission
-
         # make "now" 2 months ago
         testtime = timezone.now() - timedelta(days=60)
 
@@ -690,7 +682,12 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
             self.submission_obj.updated_at = testtime
             self.submission_obj.save()
 
-    def test_email_sent(self):
+    def test_error_in_submitted_status(self):
+        # a still running submission
+        self.my_submission = Mock()
+        self.my_submission.name = "test-fetch"
+        self.my_submission.status = 'Submitted'
+
         # assert task and mock methods called
         self.common_tests(self.my_submission)
 
@@ -704,9 +701,34 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
             "Error in biosample submission %s" % self.submission_obj_id,
             email.subject)
 
-    def test_submission_error(self):
+        # check submission.state changed
+        self.submission_obj.refresh_from_db()
+
+        self.assertEqual(self.submission_obj.status, ERROR)
+        self.assertIn(
+            "Biosample subission {} remained with the same status".format(
+                    self.submission_obj),
+            self.submission_obj.message
+            )
+
+    def test_error_in_draft_status(self):
+        # a still running submission
+        self.my_submission = Mock()
+        self.my_submission.name = "test-fetch"
+        self.my_submission.status = 'Draft'
+
         # assert task and mock methods called
         self.common_tests(self.my_submission)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission %s" % self.submission_obj_id,
+            email.subject)
 
         # check submission.state changed
         self.submission_obj.refresh_from_db()
