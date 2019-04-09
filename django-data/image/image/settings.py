@@ -172,7 +172,7 @@ LOGGING = {
     },
     'loggers': {
         'celery': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console'],
             'propagate': True,
         },
@@ -190,7 +190,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'cryoweb': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console'],
         },
         'zooma': {
@@ -214,10 +214,6 @@ LOGGING = {
             'handlers': ['console'],
         },
         'validation': {
-            'level': 'DEBUG',
-            'handlers': ['console'],
-        },
-        'validation.helpers': {
             'level': 'INFO',
             'handlers': ['console'],
         },
@@ -234,7 +230,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'crbanim': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console'],
         },
     },

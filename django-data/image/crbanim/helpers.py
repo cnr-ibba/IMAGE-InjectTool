@@ -246,7 +246,7 @@ def fill_uid_names(record, submission):
         owner=submission.owner)
 
     if created:
-        logger.info("Created animal name %s" % animal_name)
+        logger.debug("Created animal name %s" % animal_name)
 
     else:
         logger.debug("Found animal name %s" % animal_name)
@@ -260,7 +260,7 @@ def fill_uid_names(record, submission):
             doi=record.sample_bibliographic_references)
 
         if created:
-            logger.info("Created publication %s" % publication)
+            logger.debug("Created publication %s" % publication)
 
     # name record for sample
     sample_name, created = Name.objects.get_or_create(
@@ -270,7 +270,7 @@ def fill_uid_names(record, submission):
         publication=publication)
 
     if created:
-        logger.info("Created sample name %s" % sample_name)
+        logger.debug("Created sample name %s" % sample_name)
 
     else:
         logger.debug("Found sample name %s" % sample_name)
@@ -319,7 +319,7 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
             defaults=defaults)
 
         if created:
-            logger.info("Created animal %s" % animal)
+            logger.debug("Created animal %s" % animal)
 
         else:
             logger.debug("Updating animal %s" % animal)
@@ -344,7 +344,7 @@ def find_storage_type(record):
         return mapping[record.sample_storage_temperature]
 
     else:
-        logging.warning("Couldn' find %s in storage types mapping" % (
+        logging.warning("Couldn't find %s in storage types mapping" % (
             record.sample_storage_temperature))
 
         return None
@@ -404,7 +404,7 @@ def fill_uid_sample(record, sample_name, animal, submission):
         defaults=defaults)
 
     if created:
-        logger.info("Created sample %s" % sample)
+        logger.debug("Created sample %s" % sample)
 
     else:
         logger.debug("Updating sample %s" % sample)

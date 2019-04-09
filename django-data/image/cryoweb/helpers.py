@@ -232,7 +232,7 @@ def fill_uid_names(submission):
             owner=submission.owner)
 
         if created:
-            logger.info("Created %s" % name)
+            logger.debug("Created %s" % name)
 
         else:
             logger.debug("Found %s" % name)
@@ -317,7 +317,7 @@ def fill_uid_animals(submission):
             defaults=defaults)
 
         if created:
-            logger.info("Created %s" % animal)
+            logger.debug("Created %s" % animal)
 
         else:
             logger.debug("Updating %s" % animal)
@@ -340,7 +340,7 @@ def fill_uid_samples(submission):
             owner=submission.owner)
 
         if created:
-            logger.info("Created %s" % name)
+            logger.debug("Created %s" % name)
 
         else:
             logger.debug("Found %s" % name)
@@ -387,7 +387,7 @@ def fill_uid_samples(submission):
             defaults=defaults)
 
         if created:
-            logger.info("Created %s" % sample)
+            logger.debug("Created %s" % sample)
 
         else:
             logger.debug("Updating %s" % sample)
