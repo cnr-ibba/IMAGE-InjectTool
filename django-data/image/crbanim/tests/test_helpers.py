@@ -6,8 +6,11 @@ Created on Fri Feb 22 15:49:18 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import os
 import logging
+
 from unittest.mock import patch
+from collections import namedtuple
 
 from django.test import TestCase
 
@@ -18,7 +21,7 @@ from image_app.models import (
 
 from ..helpers import (
     logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
-    fill_uid_animal, fill_uid_sample)
+    fill_uid_animal, fill_uid_sample, find_storage_type)
 from .common import BaseTestCase
 
 
@@ -160,6 +163,27 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
 
         self.assertEqual(len(data), 0)
 
+    def test_is_valid(self):
+        """Test recognizing a good CRBanim file"""
+
+        check, not_found = self.reader.is_valid(self.dst_path)
+
+        # a good crbanim file returns True and an empty list
+        self.assertTrue(check)
+        self.assertEqual(not_found, [])
+
+        # assert a not good file. self.base_dir comes from
+        # common.tests.mixins.DataSourceMixinTestCase
+        filename = os.path.join(
+            self.base_dir,
+            "Mapping_rules_CRB-Anim_InjectTool_v1.csv")
+
+        check, not_found = self.reader.is_valid(filename)
+
+        # a invalid crbanim file returns False and a list
+        self.assertFalse(check)
+        self.assertGreater(len(not_found), 0)
+
 
 class ProcessRecordTestCase(BaseTestCase, TestCase):
     """A class to test function which process record"""
@@ -275,6 +299,17 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         organism_part = DictUberon.objects.get(
             label__iexact="uterus")
         self.assertEqual(sample.organism_part, organism_part)
+
+    def test_find_storage_type(self):
+        result = find_storage_type(self.record)
+        self.assertEqual(result, "frozen, -80 degrees Celsius freezer")
+
+        # create a fare record object
+        Data = namedtuple("Data", ["sample_storage_temperature"])
+        record = Data._make(["meow"])
+
+        result = find_storage_type(record)
+        self.assertIsNone(result)
 
 
 class UploadCRBAnimTestCase(BaseTestCase, TestCase):

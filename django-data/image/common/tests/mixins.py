@@ -102,6 +102,7 @@ class DataSourceMixinTestCase(object):
     dst_path = None
     model = None
     datasource_filename = None
+    base_dir = os.path.dirname(os.path.abspath(__file__))
 
     @classmethod
     def setUpClass(cls):
@@ -118,8 +119,7 @@ class DataSourceMixinTestCase(object):
         datasource_filename = os.path.basename(submission.uploaded_file.path)
 
         if not os.path.exists(cls.dst_path):
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            src_path = os.path.join(base_dir, datasource_filename)
+            src_path = os.path.join(cls.base_dir, datasource_filename)
             shutil.copy(src_path, cls.dst_path)
             cls.uploaded_file = True
 

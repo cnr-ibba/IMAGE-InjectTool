@@ -31,12 +31,64 @@ class CRBAnimImportError(Exception):
 
 
 class CRBAnimReader():
+    mandatory_columns = [
+            'sex',
+            'species_latin_name',
+            'country_of_origin',
+            'breed_name',
+            'animal_ID',
+            'sample_bibliographic_references',
+            'sample_identifier',
+            'animal_birth_date',
+            'sample_storage_temperature',
+            'sample_type_name',
+            'body_part_name',
+            'sampling_date',
+            'sampling_protocol_url',
+            'sample_availability',
+            'EBI_Biosample_identifier',
+        ]
+
     def __init__(self):
         self.data = None
         self.header = None
         self.dialect = None
         self.items = None
         self.filename = None
+
+    def parse_dialect(self, filename):
+        """Determine dialect of a CSV"""
+
+        with open(filename, newline='') as csvfile:
+            dialect = csv.Sniffer().sniff(csvfile.read(2048))
+
+        return dialect
+
+    def is_valid(self, filename):
+        """Try to determine if CRBanim has at least the required columns
+        or not"""
+
+        dialect = self.parse_dialect(filename)
+
+        with open(filename, newline='') as csvfile:
+            # read csv file
+            reader = csv.reader(csvfile, dialect)
+            header = next(reader)
+
+        not_found = []
+
+        for column in self.mandatory_columns:
+            if column not in header:
+                not_found.append(column)
+
+        if len(not_found) == 0:
+            logger.debug("%s seems to be a valid CRBanim file" % (filename))
+            return True, []
+
+        else:
+            logger.error("%s laks of mandatory CRBanim columns %s" % (
+                filename, not_found))
+            return False, not_found
 
     def read_file(self, filename):
         """Read crb anim files and set tit to class attribute"""
@@ -45,8 +97,7 @@ class CRBAnimReader():
             # initialize data
             self.filename = filename
             self.data = []
-            self.dialect = csv.Sniffer().sniff(csvfile.read(2048))
-            csvfile.seek(0)
+            self.dialect = self.parse_dialect(self.filename)
 
             # read csv file
             reader = csv.reader(csvfile, self.dialect)
