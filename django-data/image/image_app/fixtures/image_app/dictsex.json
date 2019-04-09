@@ -19,7 +19,7 @@
   "model": "image_app.dictsex",
   "pk": 3,
   "fields": {
-    "label": "unknown",
+    "label": "record of unknown sex",
     "term": "OBI_0000858"
   }
 }

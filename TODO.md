@@ -132,6 +132,7 @@ InjectTool TODO
   - browse by languages, see all synonym in every language (add navigation links)
   - update ontology urls (see Jun's code)
   - add a custom synonym manually
+  - organism parts shold be modelled in dictionary tables (ex Hair (Peli) -> strand of hair (UBERON_0001037))
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,

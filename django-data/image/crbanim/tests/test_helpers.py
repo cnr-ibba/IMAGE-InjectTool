@@ -133,7 +133,7 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
         """Filter records by column value case insensitive"""
 
         # filter out biosample records from mydata
-        # record are all Female. No record after filtering case sensitive
+        # record have capital letter. No record after filtering case sensitive
         data = self.reader.filter_by_column_values(
             "sex",
             ['female'],
@@ -149,12 +149,12 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
             ignorecase=True)
         data = list(data)
 
-        self.assertEqual(len(data), 3)
+        self.assertEqual(len(data), 1)
 
-        # No record after filtering male case insensitive
+        # No record after filtering foo case insensitive
         data = self.reader.filter_by_column_values(
             "sex",
-            ['male'],
+            ['foo'],
             ignorecase=True)
         data = list(data)
 

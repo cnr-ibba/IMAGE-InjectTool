@@ -74,7 +74,7 @@ def fill_DictSex():
         logger.info("Created: %s" % (female))
 
     unknown, created = DictSex.objects.get_or_create(
-        label='unknown', term='OBI_0000858')
+        label='record of unknown sex', term='OBI_0000858')
 
     if created is True:
         logger.info("Created: %s" % (unknown))

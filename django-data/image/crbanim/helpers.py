@@ -6,7 +6,6 @@ Created on Thu Feb 21 15:37:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import re
 import csv
 import logging
 import pycountry
@@ -15,7 +14,7 @@ from collections import defaultdict, namedtuple
 
 from django.utils.dateparse import parse_date
 
-from common.constants import LOADED, ERROR, MISSING, SAMPLE_STORAGE_TYPES
+from common.constants import LOADED, ERROR, MISSING
 from common.helpers import image_timedelta
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
@@ -53,6 +52,9 @@ class CRBAnimReader():
             reader = csv.reader(csvfile, self.dialect)
             self.header = next(reader)
 
+            # find sex index column
+            sex_idx = self.header.index('sex')
+
             # create a namedtuple object
             Data = namedtuple("Data", self.header)
 
@@ -61,6 +63,14 @@ class CRBAnimReader():
                 # replace all "\\N" occurences in a list
                 record = [None if col in ["\\N", ""]
                           else col for col in record]
+
+                # 'unknown' sex should be replaced with 'record of unknown sex'
+                if record[sex_idx].lower() == 'unknown':
+                    logger.debug(
+                        "Changing '%s' with '%s'" % (
+                            record[sex_idx], 'record of unknown sex'))
+                    record[sex_idx] = 'record of unknown sex'
+
                 record = Data._make(record)
                 self.data.append(record)
 
