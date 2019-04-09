@@ -131,9 +131,9 @@ class CRBAnimReader():
 
         if len(not_found) != 0:
             result = False
-            logger.error(
+            logger.warning(
                 "Those %s are not present in UID database:" % (column))
-            logger.error(not_found)
+            logger.warning(not_found)
 
         return result, not_found
 
@@ -154,9 +154,15 @@ class CRBAnimReader():
 
             # if this function return True, I found all synonyms
             if check_species_synonyms(not_found, country) is True:
+                logger.info("Found %s in dictionary tables" % not_found)
+
+                # return True and an empty list for check and not found items
                 return True, []
 
         # if I arrive here, there are species that I couldn't find
+        logger.error("Couldnt' find those species in dictionary tables:")
+        logger.error(not_found)
+
         return check, not_found
 
     # check that dict sex table contains data
@@ -239,9 +245,9 @@ def fill_uid_names(record, submission):
     publication = None
 
     # HINT: mind this mispelling
-    if record.sample_bibliographic_refrences:
+    if record.sample_bibliographic_references:
         publication, created = Publication.objects.get_or_create(
-            doi=record.sample_bibliographic_refrences)
+            doi=record.sample_bibliographic_references)
 
         if created:
             logger.info("Created publication %s" % publication)
@@ -316,17 +322,22 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
 
 
 def find_storage_type(record):
-    # get temperature as a number
-    match = re.search(r'(-?[\d]+)', record.sample_storage_temperature)
+    """Determine a sample storage relying on a dictionary"""
 
-    if match:
-        for storage_type in SAMPLE_STORAGE_TYPES:
-            if match.groups()[0] in storage_type:
-                return storage_type
+    mapping = {
+        '-196°C': 'frozen, liquid nitrogen',
+        '-20°C': 'frozen, -20 degrees Celsius freezer',
+        '-30°C': 'frozen, -20 degrees Celsius freezer',
+        '-80°C': 'frozen, -80 degrees Celsius freezer'}
 
-    # return a default object as we used until now
-    return " ".join([
-            record.sample_container_type, record.sample_storage_temperature])
+    if record.sample_storage_temperature in mapping:
+        return mapping[record.sample_storage_temperature]
+
+    else:
+        logging.warning("Couldn' find %s in storage types mapping" % (
+            record.sample_storage_temperature))
+
+        return None
 
 
 def fill_uid_sample(record, sample_name, animal, submission):
