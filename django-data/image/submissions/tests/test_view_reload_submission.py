@@ -65,6 +65,8 @@ class TestBase(DataSourceMixinTestCase, TestCase):
         # define test data
         data = {
             'uploaded_file': open(ds_path),
+            'datasource_type': ds_type,
+            'datasource_version': "reload",
             'agree_reload': True
         }
 
@@ -89,7 +91,9 @@ class ReloadSubmissionViewTest(
     def test_form_inputs(self):
 
         # total input is n of form fields + (CSRF) + 1 file + 1 checkbox
-        self.assertContains(self.response, '<input', 3)
+        # +1 select + text
+        self.assertContains(self.response, '<input', 4)
+        self.assertContains(self.response, '<select', 1)
         self.assertContains(self.response, 'type="file"', 1)
         self.assertContains(self.response, 'type="checkbox"', 1)
 

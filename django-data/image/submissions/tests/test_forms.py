@@ -32,6 +32,8 @@ class ReloadFormTest(TestCase):
     def test_form_has_fields(self):
         form = ReloadForm()
         expected = [
+            'datasource_type',
+            'datasource_version',
             'uploaded_file',
             'agree_reload',
         ]

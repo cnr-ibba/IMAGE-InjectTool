@@ -6,6 +6,7 @@ Created on Thu Feb 21 15:37:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import io
 import csv
 import logging
 import pycountry
@@ -56,51 +57,58 @@ class CRBAnimReader():
         self.items = None
         self.filename = None
 
-    def parse_dialect(self, filename):
-        """Determine dialect of a CSV"""
+    @classmethod
+    def get_dialect(cls, chunk):
+        """Determine dialect of a CSV from a chunk"""
 
-        with open(filename, newline='') as csvfile:
-            dialect = csv.Sniffer().sniff(csvfile.read(2048))
+        return csv.Sniffer().sniff(chunk)
 
-        return dialect
-
-    def is_valid(self, filename):
+    @classmethod
+    def is_valid(cls, chunk):
         """Try to determine if CRBanim has at least the required columns
         or not"""
 
-        dialect = self.parse_dialect(filename)
+        dialect = cls.get_dialect(chunk)
 
-        with open(filename, newline='') as csvfile:
-            # read csv file
-            reader = csv.reader(csvfile, dialect)
-            header = next(reader)
+        # get a handle from a string
+        handle = io.StringIO(chunk)
+
+        # read chunk
+        reader = csv.reader(handle, dialect)
+        header = next(reader)
 
         not_found = []
 
-        for column in self.mandatory_columns:
+        for column in cls.mandatory_columns:
             if column not in header:
                 not_found.append(column)
 
         if len(not_found) == 0:
-            logger.debug("%s seems to be a valid CRBanim file" % (filename))
+            logger.debug("This seems to be a valid CRBanim file")
             return True, []
 
         else:
-            logger.error("%s laks of mandatory CRBanim columns %s" % (
-                filename, not_found))
+            logger.error("Couldn't not find mandatory CRBanim columns %s" % (
+                not_found))
             return False, not_found
 
     def read_file(self, filename):
         """Read crb anim files and set tit to class attribute"""
 
-        with open(filename, newline='') as csvfile:
+        with open(filename, newline='') as handle:
             # initialize data
             self.filename = filename
             self.data = []
-            self.dialect = self.parse_dialect(self.filename)
+
+            # get dialect
+            chunk = handle.read(2048)
+            self.dialect = self.get_dialect(chunk)
+
+            # restart filename from the beginning
+            handle.seek(0)
 
             # read csv file
-            reader = csv.reader(csvfile, self.dialect)
+            reader = csv.reader(handle, self.dialect)
             self.header = next(reader)
 
             # find sex index column

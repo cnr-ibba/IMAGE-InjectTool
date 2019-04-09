@@ -166,7 +166,10 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
     def test_is_valid(self):
         """Test recognizing a good CRBanim file"""
 
-        check, not_found = self.reader.is_valid(self.dst_path)
+        with open(self.dst_path) as handle:
+            chunk = handle.read(2048)
+
+        check, not_found = self.reader.is_valid(chunk)
 
         # a good crbanim file returns True and an empty list
         self.assertTrue(check)
@@ -178,7 +181,10 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
             self.base_dir,
             "Mapping_rules_CRB-Anim_InjectTool_v1.csv")
 
-        check, not_found = self.reader.is_valid(filename)
+        with open(filename) as handle:
+            chunk = handle.read(2048)
+
+        check, not_found = self.reader.is_valid(chunk)
 
         # a invalid crbanim file returns False and a list
         self.assertFalse(check)

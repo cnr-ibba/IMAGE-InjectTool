@@ -32,11 +32,20 @@ class Initialize(TestCase):
         "image_app/organization",
     ]
 
-    data_sources_paths = {
+    data_sources_files = {
         CRYOWEB_TYPE: "cryoweb_test_data_only.sql",
         CRB_ANIM_TYPE: "crbanim_test_data.csv",
         "latin_type": "crbanim_test_data_latin-1.csv",
-        TEMPLATE_TYPE: "crbanim_test_data.csv"  # point this to a real template
+        TEMPLATE_TYPE: "crbanim_test_data.csv",  # point to a real template
+        "not_valid_crbanim": "Mapping_rules_CRB-Anim_InjectTool_v1.csv"
+    }
+
+    data_sources_types = {
+        CRYOWEB_TYPE: CRYOWEB_TYPE,
+        CRB_ANIM_TYPE: CRB_ANIM_TYPE,
+        "latin_type": CRB_ANIM_TYPE,
+        TEMPLATE_TYPE: TEMPLATE_TYPE,
+        "not_valid_crbanim": CRB_ANIM_TYPE
     }
 
     def setUp(self):
@@ -58,13 +67,16 @@ class Initialize(TestCase):
         # call super method
         super().tearDown()
 
-    def get_data(self, ds_type=CRYOWEB_TYPE):
+    def get_data(self, ds_file=CRYOWEB_TYPE):
         """Get data dictionary"""
+
+        # get ds_type reling on ds_file
+        ds_type = self.data_sources_types[ds_file]
 
         # get data source path relying on type
         ds_path = os.path.join(
             common.tests.__path__[0],
-            self.data_sources_paths[ds_type]
+            self.data_sources_files[ds_file]
         )
 
         # get required objects object
@@ -112,7 +124,7 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         # submit a cryoweb like dictionary
         self.response = self.client.post(
             self.url,
-            self.get_data(ds_type=CRYOWEB_TYPE),
+            self.get_data(ds_file=CRYOWEB_TYPE),
             follow=True)
 
         # get the submission object
@@ -190,7 +202,7 @@ class UnsupportedCreateSubmissionViewTest(Initialize):
         # submit a cryoweb like dictionary
         response = self.client.post(
             self.url,
-            self.get_data(ds_type=TEMPLATE_TYPE),
+            self.get_data(ds_file=TEMPLATE_TYPE),
             follow=True)
 
         # get the submission object
@@ -215,7 +227,7 @@ class SupportedCreateSubmissionViewTest(Initialize):
         # submit a cryoweb like dictionary
         response = self.client.post(
             self.url,
-            self.get_data(ds_type=CRB_ANIM_TYPE),
+            self.get_data(ds_file=CRB_ANIM_TYPE),
             follow=True)
 
         # get the submission object
@@ -241,7 +253,24 @@ class SupportedCreateSubmissionViewTest(Initialize):
         # submit a cryoweb like dictionary
         response = self.client.post(
             self.url,
-            self.get_data(ds_type="latin_type"))
+            self.get_data(ds_file="latin_type"))
+
+        # check errors
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+        # no submissions
+        self.assertFalse(Submission.objects.exists())
+
+        # test task
+        self.assertFalse(my_task.called)
+
+    @patch('submissions.views.ImportCRBAnimTask.delay')
+    def test_crb_anim_wrong_columns(self, my_task):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file="not_valid_crbanim"))
 
         # check errors
         form = response.context.get('form')
