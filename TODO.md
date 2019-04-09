@@ -53,7 +53,6 @@ InjectTool TODO
   - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
     and its father
   - check for duplicate breeds - names
-  - Animal AGE at collection: (v_vessel.production_dt - v_animal.birth_dt) if > 0
 
 * NGINX media folder can serve media files (jpg, etc).
   - add subdirs in media folder `data_source/`
@@ -150,8 +149,6 @@ InjectTool TODO
   - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
-  - Publications could be placed in Animal/Sample table: it could be easier to
-    update cause is specific to Animal/Sample
   - Having a unknown animal as  mother/father should be equal having this foreign
     key with a NULL value
   - display the real name of file for the uploaded file
@@ -160,7 +157,7 @@ InjectTool TODO
       realfilename and set it to a hidden field. Save to a `model.CharField` and
       display that field in DetailViews
     - add the uploaded time for file?
-  - Change WAITING in PROCESSING (implies something happpening)
+  - Change WAITING in PROCESSING (implies something happening)
   - deal with errors when create a submission with the same parameters of another
     submission:
       duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"
