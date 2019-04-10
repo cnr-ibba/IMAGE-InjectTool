@@ -33,7 +33,6 @@ InjectTool TODO
     * test for Update of one animal (submit only a thing)
   - what if a token expires during a submission?
   - Think about renaming EditSubmissionView with a more useful name
-  - Submission summary: how many animals and/or samples in the submission?
   - Submission to biosample using threads?
   - mail to admin when there are issues in USI?
   - implement the sameAs key for already submitted biosamples:
@@ -95,6 +94,7 @@ InjectTool TODO
       invalidated when validation happens)
   - reloading submission should invalidate validationresults
   - calculate submission statics after validation
+  - templatetags for ValidationSummary
 
 * Regarding data fields and attributes:
   - Mother and Father are not mandatory, for the moment; They should have unknown

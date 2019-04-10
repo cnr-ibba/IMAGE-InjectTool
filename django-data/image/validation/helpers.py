@@ -9,6 +9,7 @@ Created on Tue Feb 19 16:15:35 2019
 import re
 import logging
 
+from django.db.models import Q
 from django.utils.text import Truncator
 
 from image_validation import validation
@@ -80,12 +81,30 @@ class ValidationSummary():
         self.n_animals = self.names.filter(animal__isnull=False).count()
         self.n_samples = self.names.filter(sample__isnull=False).count()
 
+        logger.debug("Got %s animal and %s samples in total" % (
+            self.n_animals, self.n_samples))
+
+        # count animal and samples with unknown validation
+        self.n_animal_unknown = self.names.filter(
+            animal__isnull=False, validationresult__isnull=True).count()
+        self.n_sample_unknown = self.names.filter(
+            sample__isnull=False, validationresult__isnull=True).count()
+
+        logger.debug("Got %s animal and %s samples with unknown validation" % (
+            self.n_animal_unknown, self.n_sample_unknown))
+
         # filter names which have errors
-        self.errors = self.names.exclude(validationresult__status="Pass")
+        self.errors = self.names.exclude(
+            Q(validationresult__status="Pass") |
+            Q(validationresult__isnull=True)
+        )
 
         # count animal and samples with issues
         self.n_animal_issues = self.errors.filter(animal__isnull=False).count()
         self.n_sample_issues = self.errors.filter(sample__isnull=False).count()
+
+        logger.debug("Got %s animal and %s samples with issues" % (
+            self.n_animal_issues, self.n_sample_issues))
 
         # setting patterns
         self.pattern1 = re.compile(

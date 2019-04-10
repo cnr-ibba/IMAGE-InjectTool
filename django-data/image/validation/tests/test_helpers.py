@@ -180,13 +180,20 @@ class RulesTestCase(TestCase):
 
 class ValidationSummaryTestCase(TestCase):
     fixtures = [
+        'image_app/animal',
+        'image_app/dictbreed',
         'image_app/dictcountry',
         'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
         'image_app/name',
         'image_app/organization',
         'image_app/publication',
         'image_app/submission',
         'image_app/user',
+        'image_app/sample',
         'validation/validationresult'
     ]
 
@@ -200,6 +207,15 @@ class ValidationSummaryTestCase(TestCase):
 
         # track validationresult object
         self.validationresult = ValidationResult.objects.get(pk=1)
+
+    def test_initialization(self):
+        """Test that ValidationSummary is correctly initialized"""
+
+        self.assertEqual(self.validationsummary.n_animal_issues, 0)
+        self.assertEqual(self.validationsummary.n_sample_issues, 0)
+
+        self.assertEqual(self.validationsummary.n_animal_unknown, 0)
+        self.assertEqual(self.validationsummary.n_sample_unknown, 1)
 
     def test_process_errors(self):
         report = self.validationsummary.process_errors()
@@ -235,7 +251,7 @@ class ValidationSummaryTestCase(TestCase):
             report = self.validationsummary.process_errors()
 
         self.assertEqual(len(report), 1)
-        self.assertEqual(len(log.output), 5)
+        self.assertEqual(len(log.output), 2)
         self.assertIn(
             "DEBUG:validation.helpers:parse1: Got 'link','Availability' and "
             "'message'",
@@ -252,7 +268,7 @@ class ValidationSummaryTestCase(TestCase):
             report = self.validationsummary.process_errors()
 
         self.assertEqual(len(report), 1)
-        self.assertEqual(len(log.output), 5)
+        self.assertEqual(len(log.output), 2)
         self.assertIn(
             "DEBUG:validation.helpers:parse2: Got 'reason meow','myfield' "
             "and 'blah, blah'",
@@ -269,7 +285,7 @@ class ValidationSummaryTestCase(TestCase):
             report = self.validationsummary.process_errors()
 
         self.assertEqual(len(report), 1)
-        self.assertEqual(len(log.output), 5)
+        self.assertEqual(len(log.output), 2)
         self.assertIn(
             "DEBUG:validation.helpers:parse3: Got 'term' and 'does not match "
             "to the provided ontology'",
@@ -292,7 +308,7 @@ class ValidationSummaryTestCase(TestCase):
             report = self.validationsummary.process_errors()
 
         self.assertEqual(len(report), 1)
-        self.assertEqual(len(log.output), 6)
+        self.assertEqual(len(log.output), 4)
         self.assertIn(
             "DEBUG:validation.helpers:parse1: Got 'link','Availability' and "
             "'message'",

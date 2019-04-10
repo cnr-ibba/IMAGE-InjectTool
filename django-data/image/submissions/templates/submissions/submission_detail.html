@@ -56,11 +56,27 @@
     </tr>
     <tr class="table-primary">
       <th scope="row">N. of Animals</th>
-      <td>{{ validation_summary.n_animals }} ({{ validation_summary.n_animal_issues }} with issues in validation)</td>
+      <td>
+        {{ validation_summary.n_animals }}
+        {% if validation_summary.n_animal_issues %}
+          ({{ validation_summary.n_animal_issues }} with issues in validation)
+        {% endif %}
+        {% if validation_summary.n_animal_unknown %}
+          ({{ validation_summary.n_animal_unknown }} with unknown validation )
+        {% endif %}
+      </td>
     </tr>
     <tr class="table-secondary">
       <th scope="row">N. of Samples</th>
-      <td>{{ validation_summary.n_samples }} ({{ validation_summary.n_sample_issues }} with issues in validation)</td>
+      <td>
+        {{ validation_summary.n_samples }}
+        {% if validation_summary.n_sample_issues %}
+          ({{ validation_summary.n_sample_issues }} with issues in validation)
+        {% endif %}
+        {% if validation_summary.n_sample_unknown %}
+          ({{ validation_summary.n_sample_unknown }} with unknown validation)
+        {% endif %}
+      </td>
     </tr>
   </tbody>
 </table>
