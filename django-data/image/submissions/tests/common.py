@@ -6,8 +6,46 @@ Created on Thu Mar 28 16:25:39 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import os
+
+import common.tests
+
 from common.constants import (
-    WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
+    WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED,
+    CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE)
+
+
+class SubmissionFormMixin():
+
+    data_sources_files = {
+        CRYOWEB_TYPE: "cryoweb_test_data_only.sql",
+        CRB_ANIM_TYPE: "crbanim_test_data.csv",
+        "latin_type": "crbanim_test_data_latin-1.csv",
+        TEMPLATE_TYPE: "crbanim_test_data.csv",  # point to a real template
+        "not_valid_crbanim": "Mapping_rules_CRB-Anim_InjectTool_v1.csv"
+    }
+
+    data_sources_types = {
+        CRYOWEB_TYPE: CRYOWEB_TYPE,
+        CRB_ANIM_TYPE: CRB_ANIM_TYPE,
+        "latin_type": CRB_ANIM_TYPE,
+        TEMPLATE_TYPE: TEMPLATE_TYPE,
+        "not_valid_crbanim": CRB_ANIM_TYPE
+    }
+
+    def get_data(self, ds_file=CRYOWEB_TYPE):
+        """Get data dictionary"""
+
+        # get ds_type reling on ds_file
+        ds_type = self.data_sources_types[ds_file]
+
+        # get data source path relying on type
+        ds_path = os.path.join(
+            common.tests.__path__[0],
+            self.data_sources_files[ds_file]
+        )
+
+        return ds_type, ds_path
 
 
 class SubmissionStatusMixin():

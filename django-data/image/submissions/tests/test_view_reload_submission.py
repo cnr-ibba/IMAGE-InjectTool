@@ -13,7 +13,6 @@ from unittest.mock import patch
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
-import common
 from common.tests import (
     FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase,
     DataSourceMixinTestCase, MessageMixinTestCase, StatusMixinTestCase)
@@ -21,11 +20,12 @@ from common.constants import (
     CRB_ANIM_TYPE, CRYOWEB_TYPE, TEMPLATE_TYPE, ERROR, WAITING)
 from image_app.models import Submission
 
+from .common import SubmissionFormMixin
 from ..views import ReloadSubmissionView
 from ..forms import ReloadForm
 
 
-class TestBase(DataSourceMixinTestCase, TestCase):
+class TestBase(SubmissionFormMixin, DataSourceMixinTestCase, TestCase):
     # define attribute in DataSourceMixinTestCase
     model = Submission
 
@@ -37,12 +37,6 @@ class TestBase(DataSourceMixinTestCase, TestCase):
         "image_app/submission"
     ]
 
-    data_sources_paths = {
-        CRYOWEB_TYPE: "cryoweb_test_data_only.sql",
-        CRB_ANIM_TYPE: "crbanim_test_data.csv",
-        TEMPLATE_TYPE: "crbanim_test_data.csv"  # point this to a real template
-    }
-
     def setUp(self):
         # call base method
         super().setUp()
@@ -53,18 +47,28 @@ class TestBase(DataSourceMixinTestCase, TestCase):
 
         self.url = reverse('submissions:reload', kwargs={'pk': 1})
 
-    def get_data(self, ds_type=CRYOWEB_TYPE):
+    def tearDown(self):
+        if hasattr(self, "submission"):
+            # read written file
+            self.submission.refresh_from_db()
+
+            # delete uploaded file if exists
+            fullpath = self.submission.uploaded_file.path
+
+            if os.path.exists(fullpath):
+                os.remove(fullpath)
+
+        # call super method
+        super().tearDown()
+
+    def get_data(self, ds_file=CRYOWEB_TYPE):
         """Get data dictionary"""
 
-        # get data source path relying on type
-        ds_path = os.path.join(
-            common.tests.__path__[0],
-            self.data_sources_paths[ds_type]
-        )
+        ds_type, ds_path = super().get_data(ds_file)
 
         # define test data
         data = {
-            'uploaded_file': open(ds_path),
+            'uploaded_file': open(ds_path, "rb"),
             'datasource_type': ds_type,
             'datasource_version': "reload",
             'agree_reload': True
@@ -110,20 +114,6 @@ class ReloadSubmissionViewTest(
 
 
 class SuccessfulReloadMixin(StatusMixinTestCase):
-    def tearDown(self):
-        if hasattr(self, "submission"):
-            # read written file
-            self.submission.refresh_from_db()
-
-            # delete uploaded file if exists
-            fullpath = self.submission.uploaded_file.path
-
-            if os.path.exists(fullpath):
-                os.remove(fullpath)
-
-        # call super method
-        super().tearDown()
-
     def test_redirect(self):
         url = reverse('submissions:detail', kwargs={'pk': 1})
         self.assertRedirects(self.response, url)
@@ -176,6 +166,36 @@ class InvalidReloadSubmissionViewTest(
         self.assertFalse(self.my_task.called)
 
 
+class ReloadValidationTest(TestBase):
+    @patch('submissions.views.ImportCRBAnimTask.delay')
+    def test_crb_anim_wrong_encoding(self, my_task):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file="latin_type"))
+
+        # check errors
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+        # test task
+        self.assertFalse(my_task.called)
+
+    @patch('submissions.views.ImportCRBAnimTask.delay')
+    def test_crb_anim_wrong_columns(self, my_task):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file="not_valid_crbanim"))
+
+        # check errors
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+        # test task
+        self.assertFalse(my_task.called)
+
+
 class CRBAnimReloadSubmissionViewTest(
         SuccessfulReloadMixin, TestBase):
 
@@ -194,7 +214,7 @@ class CRBAnimReloadSubmissionViewTest(
         # this post request create a new data_source file
         self.response = self.client.post(
             self.url,
-            self.get_data(ds_type=CRB_ANIM_TYPE),
+            self.get_data(ds_file=CRB_ANIM_TYPE),
             follow=True)
 
         # track task
@@ -217,7 +237,7 @@ class TemplateReloadSubmissionViewTest(
         # this post request create a new data_source file
         self.response = self.client.post(
             self.url,
-            self.get_data(ds_type=TEMPLATE_TYPE),
+            self.get_data(ds_file=TEMPLATE_TYPE),
             follow=True)
 
     def tearDown(self):

@@ -12,17 +12,17 @@ from unittest.mock import patch
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-import common
 from common.constants import (
     ERROR, CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE, WAITING)
 from image_app.models import DictCountry, Organization, Submission
 from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
+from .common import SubmissionFormMixin
 from ..forms import SubmissionForm
 from ..views import CreateSubmissionView
 
 
-class Initialize(TestCase):
+class Initialize(SubmissionFormMixin, TestCase):
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
@@ -31,22 +31,6 @@ class Initialize(TestCase):
         "image_app/dictcountry",
         "image_app/organization",
     ]
-
-    data_sources_files = {
-        CRYOWEB_TYPE: "cryoweb_test_data_only.sql",
-        CRB_ANIM_TYPE: "crbanim_test_data.csv",
-        "latin_type": "crbanim_test_data_latin-1.csv",
-        TEMPLATE_TYPE: "crbanim_test_data.csv",  # point to a real template
-        "not_valid_crbanim": "Mapping_rules_CRB-Anim_InjectTool_v1.csv"
-    }
-
-    data_sources_types = {
-        CRYOWEB_TYPE: CRYOWEB_TYPE,
-        CRB_ANIM_TYPE: CRB_ANIM_TYPE,
-        "latin_type": CRB_ANIM_TYPE,
-        TEMPLATE_TYPE: TEMPLATE_TYPE,
-        "not_valid_crbanim": CRB_ANIM_TYPE
-    }
 
     def setUp(self):
         # login as a test user (defined in fixture)
@@ -70,14 +54,7 @@ class Initialize(TestCase):
     def get_data(self, ds_file=CRYOWEB_TYPE):
         """Get data dictionary"""
 
-        # get ds_type reling on ds_file
-        ds_type = self.data_sources_types[ds_file]
-
-        # get data source path relying on type
-        ds_path = os.path.join(
-            common.tests.__path__[0],
-            self.data_sources_files[ds_file]
-        )
+        ds_type, ds_path = super().get_data(ds_file)
 
         # get required objects object
         self.country = DictCountry.objects.get(pk=1)
