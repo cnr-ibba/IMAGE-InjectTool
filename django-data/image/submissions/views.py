@@ -41,6 +41,14 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     # i need to clearly specify it
     template_name = "submissions/submission_form.html"
 
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            message="Please correct the errors below",
+            extra_tags="alert alert-dismissible alert-danger")
+
+        return super(CreateSubmissionView, self).form_invalid(form)
+
     # add user to this object
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -204,6 +212,14 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
     form_class = ReloadForm
     model = Submission
     template_name = 'submissions/submission_reload.html'
+
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            message="Please correct the errors below",
+            extra_tags="alert alert-dismissible alert-danger")
+
+        return super(ReloadSubmissionView, self).form_invalid(form)
 
     def form_valid(self, form):
         self.object = form.save(commit=False)

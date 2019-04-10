@@ -36,9 +36,11 @@ class SubmissionFormMixin():
         magic_line = magic.from_buffer(chunk)
         file_type = magic_line.split(",")[0]
 
-        if "UTF-8" not in file_type:
+        if "UTF-8" not in file_type and "ASCII" not in file_type:
             # create message and add error
-            msg = "Error: file not in UTF-8 format: format was %s" % file_type
+            msg = (
+                "Error: file not in UTF-8 nor ASCII format: "
+                "format was %s" % file_type)
 
             # raising an exception:
             raise forms.ValidationError(msg, code='invalid')
@@ -79,7 +81,7 @@ class SubmissionForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
         )
 
         help_texts = {
-            'uploaded_file': 'Need to be in UTF-8 format',
+            'uploaded_file': 'Need to be in UTF-8 or ASCII format',
         }
 
 
@@ -100,5 +102,5 @@ class ReloadForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
         )
 
         help_texts = {
-            'uploaded_file': 'Need to be in UTF-8 format',
+            'uploaded_file': 'Need to be in UTF-8 or ASCII format',
         }
