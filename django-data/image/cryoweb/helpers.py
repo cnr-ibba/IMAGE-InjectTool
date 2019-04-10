@@ -174,7 +174,7 @@ def upload_cryoweb(submission_id):
 def fill_uid_breeds(submission):
     """Fill UID DictBreed model. Require a submission instance"""
 
-    logger.debug("fill_uid_breeds() started")
+    logger.info("fill_uid_breeds() started")
 
     # get submission language
     language = submission.gene_bank_country.label
@@ -207,12 +207,12 @@ def fill_uid_breeds(submission):
             country=country)
 
         if created:
-            logger.info("Created %s" % breed)
+            logger.info("Created %s:%s" % (breed, country))
 
         else:
-            logger.debug("Found %s" % breed)
+            logger.debug("Found %s:%s" % (breed, country))
 
-    logger.debug("fill_uid_breeds() completed")
+    logger.info("fill_uid_breeds() completed")
 
 
 def fill_uid_names(submission):
@@ -260,11 +260,20 @@ def fill_uid_animals(submission):
             synonym=v_animal.ext_species,
             language=language)
 
-        # get breed name through VBreedsSpecies model
+        # get breed name and country through VBreedsSpecies model
         efabis_mcname = v_animal.efabis_mcname
+        efabis_country = v_animal.efabis_country
+
+        # get a country object
+        country = DictCountry.objects.get(label=efabis_country)
+
+        # a breed could be specie/country specific
         breed = DictBreed.objects.get(
             supplied_breed=efabis_mcname,
-            specie=specie)
+            specie=specie,
+            country=country)
+
+        logger.debug("Selected breed is %s" % (breed))
 
         # get name for this animal and for mother and father
         logger.debug("Getting %s as my name" % (v_animal.ext_animal))

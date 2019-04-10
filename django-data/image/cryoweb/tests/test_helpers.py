@@ -29,6 +29,7 @@ from ..models import db_has_data, truncate_database, BreedsSpecies
 class BaseTestCase():
     # import this file and populate database once
     fixtures = [
+        'cryoweb/dictbreed',
         'image_app/dictcountry',
         'image_app/dictrole',
         'image_app/dictsex',
@@ -253,11 +254,17 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
 
         # check breed upload
         queryset = DictBreed.objects.all()
-        breeds = [dictbreed.supplied_breed for dictbreed in queryset]
 
-        self.assertEqual(len(queryset), 2)
+        breeds = [(dictbreed.supplied_breed, dictbreed.country.label)
+                  for dictbreed in queryset]
+
+        self.assertEqual(len(queryset), 4)
         self.assertListEqual(
-            breeds, ['Aberdeen Angus', 'Ostfriesisches Milchschaf'],
+            breeds, [
+                ('Bunte Bentheimer', 'United Kingdom'),
+                ('Ostfriesisches Milchschaf', 'Italy'),
+                ('Aberdeen Angus', 'Germany'),
+                ('Ostfriesisches Milchschaf', 'Germany')],
             msg="Check breeds loaded")
 
         # check name upload (5 animal, 1 sample)

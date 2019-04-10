@@ -972,6 +972,15 @@ class VAnimal(models.Model):
 
         return entry.efabis_mcname
 
+    @property
+    def efabis_country(self):
+        "Retrieve efabis country from breed_species table"
+
+        # HINT: is this unique in VBreedsSpecies?
+        entry = VBreedsSpecies.objects.get(db_breed=self.db_breed)
+
+        return entry.efabis_country
+
     def get_sire(self):
         """Retrieve sire of this animal from VAnimal table"""
 

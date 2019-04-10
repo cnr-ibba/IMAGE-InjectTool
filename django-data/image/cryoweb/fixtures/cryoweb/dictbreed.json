@@ -1,0 +1,26 @@
+[
+{
+  "model": "image_app.dictbreed",
+  "pk": 1,
+  "fields": {
+    "supplied_breed": "Bunte Bentheimer",
+    "mapped_breed": "Bentheim Black Pied",
+    "mapped_breed_term": "LBO_0000347",
+    "confidence": null,
+    "country": 1,
+    "specie": 1
+  }
+},
+{
+  "model": "image_app.dictbreed",
+  "pk": 2,
+  "fields": {
+    "supplied_breed": "Ostfriesisches Milchschaf",
+    "mapped_breed": null,
+    "mapped_breed_term": null,
+    "confidence": null,
+    "country": 2,
+    "specie": 2
+  }
+}
+]

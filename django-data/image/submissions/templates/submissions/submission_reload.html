@@ -23,7 +23,7 @@
             <strong>Warning! by reloading data you will replace existing data. Old data
             not described in the new file will remain unchanged</strong>
           </p>
-          <form method="post" enctype="multipart/form-data">
+          <form method="post" enctype="multipart/form-data" novalidate>
               {% csrf_token %}
               {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
               {% include 'includes/form.html' %}
