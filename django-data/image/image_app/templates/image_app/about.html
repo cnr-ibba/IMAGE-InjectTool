@@ -6,14 +6,94 @@
 
 {% block content %}
   <h1>About IMAGE-InjectTool</h1>
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-  <h2 id="terms_and_conditions">Term and conditions</h2>
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-  <p class="lead">
-    <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Dashboard</a>
-  </p>
-{% endblock content %}
 
-<a href="#"></a>
+  <h2>Introduction</h2>
+
+  <p class="text-justify">
+    One key challenge of that <a href="http://www.imageh2020.eu/">IMAGE</a> addresses
+    is the integration and transparent use of the vast information stored within
+    more than 60 gene banks/genetic collections spanning 20 European countries,
+    together with the collection of newly generated data. Information to be collected
+    and integrated through the IMAGE portal is currently stored in local databases
+    such as the ones at gene banks, research institution, breeding companies.
+    A wide range of systems is used to store data representing genebank and
+    genomic collections: from simple excel files to large national well-structured
+    databases.
+  </p>
+  <p class="text-justify">
+    Submission of historical data to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples</a>,
+    the reference archive for IMAGE, is facilitated to invite participation and
+    to ensure standardization of the data.  <a href="https://www.ncbi.nlm.nih.gov/pubmed/21364801/">Cryoweb</a>
+    is a web-based software for the documentation and storage of gene bank data.
+    Currently, the majority of National gene banks are using Cryoweb to manage
+    their information.  In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
+    database collects and store information for reproductive and genomic material
+    of domestic animals (mammals, birds, fishes and shellfishes) in the country.
+    Other countries have developed relational databases (i.e. using MySQL
+    management system) to manage their collections.
+  </p>
+  <p class="lead text-primary text-justify">
+    <strong>
+      The IMAGE-InjectTool project is a tool which will make easier
+      uploading data into Biosample from the user point of view.
+    </strong>
+  </p>
+
+  <h2>Methods</h2>
+
+  <p class="text-justify">
+    We developed a single Inject tool helping gene bank/genomic collections
+    managers to enhance, standardise, tag and submit their gene bank data to a
+    <a href="https://www.wp5image.eu/">Common Data Pool</a> that integrates all
+    gene bank records from across Europe. The Inject tool uses a well-defined
+    metadata ruleset ensuring high quality and comparable data across the diverse
+    collections originating in different storage formats and languages.
+  </p>
+  <p class="text-justify">
+    The system relies on a <a href="https://docs.docker.com/compose/">docker-compose</a>
+    instance of some custom <a href="https://www.docker.com/">docker</a> images:
+    the user will interact on a web application rendered using
+    <a href="https://www.nginx.com/">NgINX</a>, while
+    on the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
+    stores user data and a <a href="https://www.djangoproject.com/">django</a>
+    image render pages in <a href="https://getbootstrap.com/">Bootstrap 4</a> in
+    order to display data and proving tools able to do data manipulation. A
+    <a href="http://www.celeryproject.org/">Celery</a> and a
+    <a href="https://redis.io/">Redis</a> instances perform long tasks such as
+    the data validation process, data submissions to biosample and monitoring of
+    biosample submission statuses.
+  </p>
+  <p class="text-justify">
+    All those processed are addressed by the system, requiring user intervention
+    only to fix data error and to provide mandatory data as described in
+    <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+    rules. User will be able to upload data from their cryoweb instances or
+    excel spreadsheet defined in the metadata rules context.
+    The project is manly written in <a href="https://www.python.org/downloads/">Python3</a>
+    using the <a href="http://www.obeythetestinggoat.com/">test-driven</a> approach system,
+    which consists in defining test cases and coding in order to pass each test
+    resulting in a more stable system. A live version of the system is available
+    at <a href="{% url 'index' %}">{{ request.build_absolute_uri }}</a> while
+    the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">on github</a>
+  </p>
+
+  <h2 id="terms_and_conditions">Term and conditions</h2>
+
+  <p class="text-justify">
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  </p>
+
+  <h2>Uploading data into BioSamples</h2>
+
+  <p class="text-justify">
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  </p>
+
+  <p class="text-justify">
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  </p>
+
+  <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
+  <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Dashboard</a>
+  
+{% endblock content %}
