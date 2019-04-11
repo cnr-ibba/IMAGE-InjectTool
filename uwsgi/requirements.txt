@@ -10,7 +10,7 @@ pytest-django
 django-widget-tweaks
 requests
 django-betterforms
-django-registration-redux
+django-registration-redux==2.5
 tornado>=4.2.0,<6.0.0
 celery==4.2.1
 redis==3.2.0
