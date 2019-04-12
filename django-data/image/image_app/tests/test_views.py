@@ -14,7 +14,8 @@ from common.tests import (
     OwnerMixinTestCase, LoginMixinTestCase)
 
 from ..models import Submission
-from ..views import DashBoardView, SummaryView, AboutView, IndexView
+from ..views import (
+    DashBoardView, SummaryView, AboutView, IndexView, PrivacyView, TermsView)
 
 
 class Initialize(TestCase):
@@ -75,10 +76,8 @@ class AboutViewTest(StatusMixinTestCase, Initialize):
         # create a test user
         super().setUp()
 
-        # get the url for dashboard
+        # get the url and a respose
         self.url = reverse('about')
-
-        # get a response
         self.response = self.client.get(self.url)
 
     def test_url_resolves_view(self):
@@ -89,6 +88,34 @@ class AboutViewTest(StatusMixinTestCase, Initialize):
         url = reverse('about') + "#terms_and_conditions"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+class PrivacyViewTest(StatusMixinTestCase, Initialize):
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get the url and a respose
+        self.url = reverse('privacy-policy')
+        self.response = self.client.get(self.url)
+
+    def test_url_resolves_view(self):
+        view = resolve('/privacy/')
+        self.assertIsInstance(view.func.view_class(), PrivacyView)
+
+
+class TermsViewTest(StatusMixinTestCase, Initialize):
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get the url and a respose
+        self.url = reverse('terms-and-conditions')
+        self.response = self.client.get(self.url)
+
+    def test_url_resolves_view(self):
+        view = resolve('/terms/')
+        self.assertIsInstance(view.func.view_class(), TermsView)
 
 
 class SummaryViewTest(GeneralMixinTestCase, Initialize):

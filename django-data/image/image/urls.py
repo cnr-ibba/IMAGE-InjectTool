@@ -19,7 +19,8 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 # importing image views
-from image_app.views import AboutView, IndexView, protected_view
+from image_app.views import (
+    AboutView, IndexView, protected_view, TermsView, PrivacyView)
 
 # renaming admin app (login, admin brand and page title)
 # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/change_text.html
@@ -29,6 +30,12 @@ admin.site.index_title = "Welcome to IMAGE InjectTool Admin"
 
 urlpatterns = [
     url(r'^$', IndexView.as_view(), name='index'),
+    url(r'^admin/', admin.site.urls),
+    url(r'^about/$', AboutView.as_view(), name='about'),
+    url(r'^privacy/$', PrivacyView.as_view(), name='privacy-policy'),
+    url(r'^terms/$', TermsView.as_view(), name='terms-and-conditions'),
+    url(r"^protected/(?P<path>.*)$",
+        protected_view),
     url(r'^login/$',
         auth_views.LoginView.as_view(
             template_name='accounts/login.html'),
@@ -69,10 +76,6 @@ urlpatterns = [
         include(
             ('samples.urls', 'samples'),
             namespace='samples')),
-    url(r'^admin/', admin.site.urls),
-    url(r'^about/$', AboutView.as_view(), name='about'),
-    url(r"^protected/(?P<path>.*)$",
-        protected_view)
 ]
 
 # Activate django-debug-toolbar only when settings.DEBUG is True
