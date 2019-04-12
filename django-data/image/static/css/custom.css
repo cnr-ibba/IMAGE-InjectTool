@@ -10,3 +10,8 @@
 .navbar-brand {
   font-family: 'Peralta', cursive;
 }
+
+p {
+  /* equal to assign class="text-justify" */
+  text-align: justify !important;
+}

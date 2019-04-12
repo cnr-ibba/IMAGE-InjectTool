@@ -23,11 +23,8 @@
     <!-- fontawesome -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 
-    <title>
-      {# Title Extensions go inside the block #}
-      {% block title %}
-        Base Template Title
-      {% endblock title %}
+    <title> {# Title Extensions go inside the block #}
+      {% block title %}Base Template Title{% endblock title %}
     </title>
   </head>
 
@@ -48,8 +45,14 @@
             <li class="nav-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
               <a class="nav-link" href="{% url 'index' %}">Home <span class="sr-only">(current)</span></a>
             </li>
-            <li class="nav-item {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
-              <a class="nav-link" href="{% url 'about' %}">About</a>
+            <li class="nav-item dropdown {% if request.resolver_match.url_name in 'about,terms-and-conditions,privacy-policy' %}active{% endif %}">
+              <a class="nav-link dropdown-toggle" href="#" id="aboutMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">About</a>
+              <div class="dropdown-menu" aria-labelledby="aboutMenu">
+                <a class="dropdown-item {% if request.resolver_match.url_name in 'about' %}active{% endif %}" href="{% url 'about' %}">About IMAGE-InjectTool</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item {% if request.resolver_match.url_name in 'terms-and-conditions' %}active{% endif %}" href="{% url 'terms-and-conditions' %}">Terms and Conditions</a>
+                <a class="dropdown-item {% if request.resolver_match.url_name in 'privacy-policy' %}active{% endif %}" href="{% url 'privacy-policy' %}">Privacy Policy</a>
+              </div>
             </li>
             {% if user.is_authenticated %}
               {% if user.is_staff %}
