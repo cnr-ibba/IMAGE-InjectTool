@@ -1,0 +1,43 @@
+
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}Uploading data into BioSamples{% endblock title %}
+
+{% block content %}
+
+  <h1>Uploading data into BioSamples</h1>
+
+  <p>The following slides illustrate the procedure to input a cryoweb dataset into the Biosample archive, thus subsequently making it available on the IMAGE portal</p>
+
+  <section>
+    <h2>Signing Up and registering to EBI AAP</h2>
+    <p>Click on Sign-Up in the right-upper corner of InjectTool site and start to fill the form. You have to provide a valid email address and select your organization from the provided list. If you don't find your organization, you have to contact InjectTool developers.</p>
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/01-signup.png' %}" alt="Sign-Up">
+      <img class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
+    </div>
+    <p>After registration is complete, you will receive a mail to the address used for registration. Click on the activation link, and follow the instructions to create a new EBI AAP account</p>
+
+  </section>
+
+  <div class="card my-3">
+    <div class="card-body">
+      <!-- 16:9 aspect ratio -->
+      <div class="embed-responsive embed-responsive-16by9">
+        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/_etbI5wPwxY"></iframe>
+      </div>
+      <p class="card-text mt-2">InjectTool video demostration</p>
+    </div>
+  </div>
+
+  <div class="row justify-content-around">
+    <div class="col-lg-4">
+      <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
+    </div>
+    <div class="col-lg-4">
+      <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Dashboard</a>
+    </div>
+  </div>
+
+{% endblock content %}

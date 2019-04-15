@@ -46,6 +46,10 @@ class TermsView(TemplateView):
     template_name = "image_app/terms_and_conditions.html"
 
 
+class AboutUploadingView(TemplateView):
+    template_name = "image_app/uploading_data.html"
+
+
 class DashBoardView(LoginRequiredMixin, TemplateView):
     template_name = "image_app/dashboard.html"
 

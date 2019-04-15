@@ -20,7 +20,8 @@ from django.contrib.auth import views as auth_views
 
 # importing image views
 from image_app.views import (
-    AboutView, IndexView, protected_view, TermsView, PrivacyView)
+    AboutView, IndexView, protected_view, TermsView, PrivacyView,
+    AboutUploadingView)
 
 # renaming admin app (login, admin brand and page title)
 # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/change_text.html
@@ -34,6 +35,9 @@ urlpatterns = [
     url(r'^about/$', AboutView.as_view(), name='about'),
     url(r'^privacy/$', PrivacyView.as_view(), name='privacy-policy'),
     url(r'^terms/$', TermsView.as_view(), name='terms-and-conditions'),
+    url(r'^about_uploading/$',
+        AboutUploadingView.as_view(),
+        name='about-uploading'),
     url(r"^protected/(?P<path>.*)$",
         protected_view),
     url(r'^login/$',

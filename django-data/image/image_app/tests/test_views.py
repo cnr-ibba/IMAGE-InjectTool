@@ -15,7 +15,8 @@ from common.tests import (
 
 from ..models import Submission
 from ..views import (
-    DashBoardView, SummaryView, AboutView, IndexView, PrivacyView, TermsView)
+    DashBoardView, SummaryView, AboutView, IndexView, PrivacyView, TermsView,
+    AboutUploadingView)
 
 
 class Initialize(TestCase):
@@ -111,6 +112,20 @@ class TermsViewTest(StatusMixinTestCase, Initialize):
     def test_url_resolves_view(self):
         view = resolve('/terms/')
         self.assertIsInstance(view.func.view_class(), TermsView)
+
+
+class AboutUploadingViewTest(StatusMixinTestCase, Initialize):
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get the url and a respose
+        self.url = reverse('about-uploading')
+        self.response = self.client.get(self.url)
+
+    def test_url_resolves_view(self):
+        view = resolve('/about_uploading/')
+        self.assertIsInstance(view.func.view_class(), AboutUploadingView)
 
 
 class SummaryViewTest(GeneralMixinTestCase, Initialize):
