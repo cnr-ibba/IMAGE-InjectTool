@@ -84,11 +84,6 @@ class AboutViewTest(StatusMixinTestCase, Initialize):
         view = resolve('/about/')
         self.assertIsInstance(view.func.view_class(), AboutView)
 
-    def test_terms_and_conditions(self):
-        url = reverse('about') + "#terms_and_conditions"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
 
 class PrivacyViewTest(StatusMixinTestCase, Initialize):
     def setUp(self):

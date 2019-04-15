@@ -74,7 +74,7 @@ class SignUpPersonForm(forms.ModelForm):
             format_lazy(
                 """I accept IMAGE-InjectTool <a href="{0}" target="_blank">"""
                 """terms and conditions</a>""",
-                reverse_lazy("about") + "#terms_and_conditions",
+                reverse_lazy("terms-and-conditions"),
             )
         )
 

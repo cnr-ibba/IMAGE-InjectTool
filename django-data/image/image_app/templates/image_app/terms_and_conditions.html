@@ -1,6 +1,8 @@
 
 {% extends "base.html" %}
 
+{% load image_app_tags %}
+
 {% block title %}Terms and Conditions{% endblock title %}
 
 {% block content %}
@@ -9,7 +11,7 @@
 
 <p>Welcome to InjectTool!</p>
 
-<p>These terms and conditions outline the rules and regulations for the use of IBBA-CNR's Website, located at <a href="{% url 'index' %}">{{ request.build_absolute_uri }}</a>.</p>
+<p>These terms and conditions outline the rules and regulations for the use of IBBA-CNR's Website, located at <a href="{% url 'index' %}">{% absolute_url '/image/' %}</a>.</p>
 
 <p>By accessing this website we assume you accept these terms and conditions. Do not continue to use InjectTool if you do not agree to take all of the terms and conditions stated on this page. Our Terms and Conditions were created with the help of the <a href="https://termsandconditionsgenerator.com">Terms And Conditions Generator</a> and the <a href="https://privacy-policy-template.com">Privacy Policy Template</a>.</p>
 
@@ -17,9 +19,9 @@
 
 <h3><strong>Cookies</strong></h3>
 
-<p>We employ the use of cookies. By accessing InjectTool, you agreed to use cookies in agreement with the IBBA-CNR's Privacy Policy.</p>
+<p>We employ the use of cookies. By accessing InjectTool, you agreed to use cookies in agreement with the IBBA-CNR's <a href="{% url 'privacy-policy' %}">Privacy Policy</a>.</p>
 
-<p>Most interactive websites use cookies to let us retrieve the user’s details for each visit. Cookies are used by our website to enable the functionality of certain areas to make it easier for people visiting our website. Some of our affiliate/advertising partners may also use cookies.</p>
+<p>Most interactive websites use cookies to let us retrieve the user’s details for each visit. Cookies are used by our website to enable the functionality of certain areas to make it easier for people visiting our website. Some of our affiliate partners may also use cookies.</p>
 
 <h3><strong>License</strong></h3>
 
@@ -102,7 +104,7 @@
 
 <h3><strong>Your Privacy</strong></h3>
 
-<p>Please read Privacy Policy</p>
+<p>Please read <a href="{% url 'privacy-policy' %}">Privacy Policy</a></p>
 
 <h3><strong>Reservation of Rights</strong></h3>
 

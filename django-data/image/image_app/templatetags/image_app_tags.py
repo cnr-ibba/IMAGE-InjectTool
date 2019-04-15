@@ -30,6 +30,16 @@ def get_git_link():
     return link + version.decode('utf8')
 
 
+# https://docs.djangoproject.com/en/2.2/howto/custom-template-tags/#django.template.Library.simple_tag
+# https://stackoverflow.com/a/2160298/4385116
+@register.simple_tag(takes_context=True)
+def absolute_url(context, name):
+    """Return full basolute using url name"""
+
+    request = context['request']
+    return request.build_absolute_uri(name)
+
+
 # form fields
 @register.filter
 def field_type(bound_field):

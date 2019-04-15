@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load image_app_tags %}
+
 {% block title %}About IMAGE-InjectTool{% endblock title %}
 
 {% block content %}
@@ -71,14 +73,8 @@
     using the <a href="http://www.obeythetestinggoat.com/">test-driven</a> approach system,
     which consists in defining test cases and coding in order to pass each test
     resulting in a more stable system. A live version of the system is available
-    at <a href="{% url 'index' %}">{{ request.build_absolute_uri }}</a> while
+    at <a href="{% url 'index' %}">{% absolute_url '/image/' %}</a> while
     the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">on github</a>
-  </p>
-
-  <h2 id="terms_and_conditions">Term and conditions</h2>
-
-  <p>
-    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
   </p>
 
   <h2>Uploading data into BioSamples</h2>

@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 
+{% load image_app_tags %}
+
 {% block title %}Privacy Policy for IBBA-CNR{% endblock title %}
 
 {% block content %}
 
 <h1>Privacy Policy for IBBA-CNR</h1>
 
-<p>At InjectTool, accessible from <a href="{% url 'index' %}">{{ request.build_absolute_uri }}</a>, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by InjectTool and how we use it.</p>
+<p>At InjectTool, accessible from <a href="{% url 'index' %}">{% absolute_url '/image/' %}</a>, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by InjectTool and how we use it.</p>
 
 <p>If you have additional questions or require more information about our Privacy Policy, do not hesitate to contact us through email at <a href="mailto:bioinfo.ibba@gmail.com?subject=feedback">bioinfo.ibba@gmail.com</a></p>
 
