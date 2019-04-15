@@ -2,6 +2,11 @@
 {% extends "base.html" %}
 {% load staticfiles %}
 
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}" />
+{% endblock custom-css %}
+
+
 {% block title %}Uploading data into BioSamples{% endblock title %}
 
 {% block content %}
@@ -15,7 +20,8 @@
     <p>Click on Sign-Up in the right-upper corner of InjectTool site and start to fill the form. You have to provide a valid email address and select your organization from the provided list. If you don't find your organization, you have to contact InjectTool developers.</p>
     <div class="row align-items-center">
       <img class="img-thumbnail mx-auto float-left" src="{% static 'images/01-signup.png' %}" alt="Sign-Up">
-      <img class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
+      <img href="{% static 'images/02-signup.png' %}" data-fancybox data-caption="Sign up in InjectTool" class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
+
     </div>
     <p>After registration is complete, you will receive a mail to the address used for registration. Click on the activation link, and follow the instructions to create a new EBI AAP account</p>
 
@@ -41,3 +47,16 @@
   </div>
 
 {% endblock content %}
+
+{% block custom-js %}
+  <script src="{% static 'js/jquery.fancybox.min.js' %}"></script>
+  <script>
+    // https://simpleisbetterthancomplex.com/tutorial/2019/01/03/how-to-use-date-picker-with-django.html#fengyuan-chens-datepicker
+    // https://github.com/fengyuanchen/datepicker
+    $(function () {
+      $('[data-fancybox]').fancybox({
+  	     // Options will go here
+      });
+    });
+  </script>
+{% endblock custom-js %}
