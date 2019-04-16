@@ -1,5 +1,6 @@
 <!doctype html>
 {% load staticfiles %}
+{% load django_simple_cookie_consent_tags %}
 {% load image_app_tags %}
 <html lang="en">
   <head>
@@ -21,6 +22,9 @@
 
     <!-- fontawesome -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+
+    <!-- cookie-conset -->
+    {% display_cookie_consent %}
 
     <title> {# Title Extensions go inside the block #}
       {% block title %}Base Template Title{% endblock title %}
