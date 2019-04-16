@@ -1,20 +1,34 @@
 
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block title %}
-  Register User
+  Create a new AAP profile
 {% endblock title %}
 
-{% block content %}
-  <p>
-    Please specify a password to generate your biosample credentials. This password
-    will <strong>never</strong> registered into InjectTool
-  </p>
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock custom-css %}
 
-  <form method="post" novalidate>
-      {% csrf_token %}
-      {% include 'includes/form.html' %}
-      <button type="submit" class="btn btn-success">Create User</button>
-      <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
-  </form>
+{% block content %}
+  <h1 class="text-center logo mb-4">Create a new AAP profile</h1>
+
+  <div class="row justify-content-center">
+    <div class="card">
+      <div class="card-body">
+        <p class="card-text">
+          Please specify a password to generate your <a href="https://explore.aai.ebi.ac.uk/home" target="_blank">AAP profile</a>.
+          This password will <strong>never</strong> registered into InjectTool
+        </p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% include 'includes/form.html' %}
+            <button type="submit" class="btn btn-success">Create User</button>
+            <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
 {% endblock content %}

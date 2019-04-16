@@ -118,7 +118,6 @@ InjectTool TODO
     documentation
   - read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - [django-crispy-forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html)
-  - add cookie agreement (external module or custom one?)
 
 * Regarding tests:
   - implement functional testing
@@ -194,3 +193,5 @@ InjectTool TODO
   - alternative_id issue (now is a duplicate of sample/animal name)
   - deal with biosample records
   - Animal AGE at collection (animal_birth_date – sampling_date) if >0
+  - Don't write new species from crbanim data - should be added manually
+    (Rainbow Trouth is not a specie)

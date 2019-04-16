@@ -12,7 +12,7 @@ class Account(models.Model):
     team = models.ForeignKey(
         'ManagedTeam',
         on_delete=models.CASCADE,
-        help_text="Your Biosample Team")
+        help_text="Your AAP Team")
 
     def __str__(self):
         full_name = " ".join([self.user.first_name, self.user.last_name])

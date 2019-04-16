@@ -156,7 +156,7 @@ class SuccessfulRegisterUserViewTests(Basetest):
         self.check_messages(
             response,
             "warning",
-            "Your biosample account is already registered"
+            "Your AAP profile is already registered"
         )
 
 

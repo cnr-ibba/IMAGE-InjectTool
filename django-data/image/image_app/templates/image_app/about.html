@@ -77,7 +77,10 @@
     the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">on github</a>
   </p>
 
-  <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-  <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Dashboard</a>
+  <div class="row justify-content-around">
+    <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Dashboard</a>
+  </div>
+
 
 {% endblock content %}

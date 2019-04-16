@@ -43,7 +43,8 @@ config = AutoConfig(search_path=settings_dir)
 # languages with multiple inheritance, mixins can be used to add enhanced
 # functionality and behavior to classes.
 class TokenMixin(object):
-    """Register account if a biosample account is not registered"""
+    """Get common stuff for Token visualization. Redirect to AAP registration
+    if no valid AAP credentials are found for request.user"""
 
     def get_initial(self):
         """
@@ -69,7 +70,7 @@ class TokenMixin(object):
             logger.warning("Error for user:%s: not managed" % user)
             messages.warning(
                 request=self.request,
-                message='You need to register a valid biosample account',
+                message='You need to register a valid AAP profile',
                 extra_tags="alert alert-dismissible alert-warning")
 
             return redirect('accounts:registration_activation_complete')
@@ -102,13 +103,15 @@ class RegisterMixin(object):
             logger.warning("Error for user:%s: Already registered" % user)
             messages.warning(
                 request=self.request,
-                message='Your biosample account is already registered',
+                message='Your AAP profile is already registered',
                 extra_tags="alert alert-dismissible alert-warning")
 
             return redirect('image_app:dashboard')
 
 
 class MyFormMixin(object):
+    """Common stuff for token generation"""
+
     success_url_message = "Please set this variable"
     success_url = reverse_lazy("image_app:dashboard")
 
@@ -175,6 +178,10 @@ class MyFormMixin(object):
 
 
 class GenerateTokenView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
+    """Generate AAP token. If user is not registered, redirect to accounts
+    registration_activation_complete through TokenMixin. If yes generate
+    token through MyFormMixin"""
+
     template_name = 'biosample/generate_token.html'
     form_class = GenerateTokenForm
     success_url_message = 'Token generated!'
@@ -196,7 +203,7 @@ class GenerateTokenView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
         # This method is called when valid form data has been POSTed.
         # It should return an HttpResponse.
 
-        # call AuthMixin method and generate token. Check user/password
+        # call MyFormMixin method and generate token. Check user/password
         if not self.generate_token(form):
             return self.form_invalid(form)
 
@@ -244,6 +251,8 @@ class TokenView(LoginRequiredMixin, TokenMixin, TemplateView):
 
 class RegisterUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin,
                        CreateView):
+    """Register an already existent AAP account"""
+
     template_name = 'biosample/register_user.html'
     form_class = RegisterUserForm
     success_url_message = 'Account registered'
@@ -279,6 +288,8 @@ class RegisterUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin,
 
 
 class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
+    """Create a new AAP account"""
+
     template_name = 'biosample/create_user.html'
     form_class = CreateUserForm
     success_url_message = "Account created"
@@ -413,6 +424,8 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
 
 class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
+    """Call a submission task. Check that a token exists and that it's valid"""
+
     form_class = SubmitForm
     template_name = 'biosample/submit.html'
     submission_id = None

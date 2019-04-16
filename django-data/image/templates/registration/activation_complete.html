@@ -4,15 +4,24 @@
 {% block title %}{% trans "Account Activated" %}{% endblock %}
 
 {% block content %}
+  <h1>Your registration is almost done</h1>
   <p>
-      <h1>Your registration is almost done</h1>
-      Your account is now activated. Now you need to provide an existing <a href="https://explore.aai.ebi.ac.uk/home">AAP account</a>
-      or generate a new one. <strong>Please note that we don't store any EBI password inside IMAGE-InjecTool system!</strong>
+    Your InjectTool account is now activated. Now you need to add an
+    <a href="https://explore.aai.ebi.ac.uk/home">AAP profile</a> in order to submit
+    data to Biosamples. You can provide an existing AAP account or generate a new one using
+    InjectTool. If you don't know what to choose, please select <em>Generate a new AAP account</em>
+    button below.
   </p>
-  <p class="lead">
-    <a class="btn btn-info btn-lg" href="{% url 'biosample:register' %}" role="button">Add an existing account</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'biosample:create' %}" role="button">Generate a new account</a>
+  <p class="text-danger">
+    Please note that we don't store any 3rd party passwords inside IMAGE-InjecTool system! Please
+    keey track of your AAP credentials. InjectTool is not able to modify an AAP profile,
+    you will need to contact EBI.
   </p>
+
+  <div class="row justify-content-around">
+    <a class="btn btn-info btn-lg" href="{% url 'biosample:register' %}" role="button">Add an existing AAP account</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'biosample:create' %}" role="button">Generate a new AAP account</a>
+  </div>
 {% endblock %}
 
 

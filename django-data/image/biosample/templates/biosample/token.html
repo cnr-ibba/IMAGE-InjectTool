@@ -8,34 +8,34 @@
 {% endblock title %}
 
 {% block content %}
-  <table class="table table-hover">
+  <h1>Your EBI-AAP token information</h1>
+
+  <table class="table table-hover table-responsive-sm">
     <tbody>
       <tr class="table-info">
-        <th scope="row">Biosample User:</th>
+        <th scope="row">AAP User:</th>
         <td>{{ name }}</td>
       </tr>
       <tr class="table-default">
-        <th scope="row">Biosample Team:</th>
+        <th scope="row">AAP Team:</th>
         <td>{{ team }}</td>
       </tr>
       {% if auth %}
         <tr class="table-success">
-          <th scope="row">Biosample Token</th>
+          <th scope="row">AAP Token</th>
           <td id="claims">{{ auth }}</td>
         </tr>
       {% else %}
         <tr class="table-warning">
-          <th scope="row">Biosample Token</th>
+          <th scope="row">AAP Token</th>
           <td>No valid token</td>
         </tr>
       {% endif %}
     </tbody>
   </table>
 
-  <p>
-    <a href="{% url 'biosample:token-generation' %}" class="btn btn-success" role="button">Generate a new token</a>
-    <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
-  </p>
+  <a href="{% url 'biosample:token-generation' %}" class="btn btn-success" role="button">Generate a new token</a>
+  <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
 
 {% endblock content %}
 
