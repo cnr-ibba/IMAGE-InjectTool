@@ -88,6 +88,14 @@ TEMPLATES = [
     },
 ]
 
+
+# Setting migration directories for 3rd party modules
+# https://stackoverflow.com/a/26947339
+MIGRATION_MODULES = {
+    'django_simple_cookie_consent': 'image.site-migrations',
+}
+
+
 WSGI_APPLICATION = 'image.wsgi.application'
 
 
