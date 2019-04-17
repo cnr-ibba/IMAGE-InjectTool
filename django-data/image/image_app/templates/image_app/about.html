@@ -7,79 +7,101 @@
 {% block content %}
   <h1>About IMAGE-InjectTool</h1>
 
-  <h2>Introduction</h2>
+  <section>
+    <h2>Introduction</h2>
 
-  <p>
-    One key challenge of that <a href="http://www.imageh2020.eu/">IMAGE</a> addresses
-    is the integration and transparent use of the vast information stored within
-    more than 60 gene banks/genetic collections spanning 20 European countries,
-    together with the collection of newly generated data. Information to be collected
-    and integrated through the IMAGE portal is currently stored in local databases
-    such as the ones at gene banks, research institution, breeding companies.
-    A wide range of systems is used to store data representing genebank and
-    genomic collections: from simple excel files to large national well-structured
-    databases.
-  </p>
-  <p>
-    Submission of historical data to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples</a>,
-    the reference archive for IMAGE, is facilitated to invite participation and
-    to ensure standardization of the data.  <a href="https://www.ncbi.nlm.nih.gov/pubmed/21364801/">Cryoweb</a>
-    is a web-based software for the documentation and storage of gene bank data.
-    Currently, the majority of National gene banks are using Cryoweb to manage
-    their information.  In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
-    database collects and store information for reproductive and genomic material
-    of domestic animals (mammals, birds, fishes and shellfishes) in the country.
-    Other countries have developed relational databases (i.e. using MySQL
-    management system) to manage their collections.
-  </p>
-  <p class="lead text-primary text-justify">
-    <strong>
-      The IMAGE-InjectTool project is a tool which will make easier
-      uploading data into Biosample from the user point of view.
-    </strong>
-  </p>
+    <p>
+      One key challenge of that <a href="http://www.imageh2020.eu/">IMAGE</a> addresses
+      is the integration and transparent use of the vast information stored within
+      more than 60 gene banks/genetic collections spanning 20 European countries,
+      together with the collection of newly generated data. Information to be collected
+      and integrated through the IMAGE portal is currently stored in local databases
+      such as the ones at gene banks, research institution, breeding companies.
+      A wide range of systems is used to store data representing genebank and
+      genomic collections: from simple excel files to large national well-structured
+      databases.
+    </p>
+    <p>
+      Submission of historical data to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples</a>,
+      the reference archive for IMAGE, is facilitated to invite participation and
+      to ensure standardization of the data.  <a href="https://www.ncbi.nlm.nih.gov/pubmed/21364801/">Cryoweb</a>
+      is a web-based software for the documentation and storage of gene bank data.
+      Currently, the majority of National gene banks are using Cryoweb to manage
+      their information.  In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
+      database collects and store information for reproductive and genomic material
+      of domestic animals (mammals, birds, fishes and shellfishes) in the country.
+      Other countries have developed relational databases (i.e. using MySQL
+      management system) to manage their collections.
+    </p>
+    <p class="lead text-primary text-justify">
+      <strong>
+        The IMAGE-InjectTool project is a tool which will make easier
+        uploading data into Biosample from the user point of view.
+      </strong>
+    </p>
 
-  <h2>Methods</h2>
+  </section>
 
-  <p>
-    We developed a single Inject tool helping gene bank/genomic collections
-    managers to enhance, standardise, tag and submit their gene bank data to a
-    <a href="https://www.wp5image.eu/">Common Data Pool</a> that integrates all
-    gene bank records from across Europe. The Inject tool uses a well-defined
-    metadata ruleset ensuring high quality and comparable data across the diverse
-    collections originating in different storage formats and languages.
-  </p>
-  <p>
-    The system relies on a <a href="https://docs.docker.com/compose/">docker-compose</a>
-    instance of some custom <a href="https://www.docker.com/">docker</a> images:
-    the user will interact on a web application rendered using
-    <a href="https://www.nginx.com/">NgINX</a>, while
-    on the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
-    stores user data and a <a href="https://www.djangoproject.com/">django</a>
-    image render pages in <a href="https://getbootstrap.com/">Bootstrap 4</a> in
-    order to display data and proving tools able to do data manipulation. A
-    <a href="http://www.celeryproject.org/">Celery</a> and a
-    <a href="https://redis.io/">Redis</a> instances perform long tasks such as
-    the data validation process, data submissions to biosample and monitoring of
-    biosample submission statuses.
-  </p>
-  <p>
-    All those processed are addressed by the system, requiring user intervention
-    only to fix data error and to provide mandatory data as described in
-    <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
-    rules. User will be able to upload data from their cryoweb instances or
-    excel spreadsheet defined in the metadata rules context.
-    The project is manly written in <a href="https://www.python.org/downloads/">Python3</a>
-    using the <a href="http://www.obeythetestinggoat.com/">test-driven</a> approach system,
-    which consists in defining test cases and coding in order to pass each test
-    resulting in a more stable system. A live version of the system is available
-    at <a href="{% url 'index' %}">{% absolute_url '/image/' %}</a> while
-    the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">on github</a>
-  </p>
+  <section>
+    <h2>Methods</h2>
+
+    <p>
+      We developed a single Inject tool helping gene bank/genomic collections
+      managers to enhance, standardise, tag and submit their gene bank data to a
+      <a href="https://www.wp5image.eu/">Common Data Pool</a> that integrates all
+      gene bank records from across Europe. The Inject tool uses a well-defined
+      metadata ruleset ensuring high quality and comparable data across the diverse
+      collections originating in different storage formats and languages.
+    </p>
+    <p>
+      The system relies on a <a href="https://docs.docker.com/compose/">docker-compose</a>
+      instance of some custom <a href="https://www.docker.com/">docker</a> images:
+      the user will interact on a web application rendered using
+      <a href="https://www.nginx.com/">NgINX</a>, while
+      on the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
+      stores user data and a <a href="https://www.djangoproject.com/">django</a>
+      image render pages in <a href="https://getbootstrap.com/">Bootstrap 4</a> in
+      order to display data and proving tools able to do data manipulation. A
+      <a href="http://www.celeryproject.org/">Celery</a> and a
+      <a href="https://redis.io/">Redis</a> instances perform long tasks such as
+      the data validation process, data submissions to biosample and monitoring of
+      biosample submission statuses.
+    </p>
+    <p>
+      All those processed are addressed by the system, requiring user intervention
+      only to fix data error and to provide mandatory data as described in
+      <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      rules. User will be able to upload data from their cryoweb instances or
+      excel spreadsheet defined in the metadata rules context.
+      The project is manly written in <a href="https://www.python.org/downloads/">Python3</a>
+      using the <a href="http://www.obeythetestinggoat.com/">test-driven</a> approach system,
+      which consists in defining test cases and coding in order to pass each test
+      resulting in a more stable system. A live version of the system is available
+      at <a href="{% url 'index' %}">{% absolute_url '/image/' %}</a> while
+      the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">on github</a>
+    </p>
+
+  </section>
+
+  <section id="injecttool_test_site">
+    <h2>InjectTool test site</h2>
+
+    <p>
+      This site is currently in testing phase. While we can register user and upload
+      their data, we currently do a submission to
+      <a href="https://submission-test.ebi.ac.uk/api/">Biosamples API test server</a>.
+      For this reason, data submitted through InjectTool to Biosamples will never persists and
+      will be deleted from Biosamples test servers every week. We are doing our best
+      to develop and testing stuff in order to achieve a persistent submission of
+      data in Biosample servers
+    </p>
+
+  </section>
+
 
   <div class="row justify-content-around">
     <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Dashboard</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'about-uploading' %}" role="button">Uploading data into Biosamples</a>
   </div>
 
 

@@ -5,6 +5,13 @@
 {% endblock title %}
 
 {% block content %}
+
+  <div class="alert alert-dismissible alert-warning">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    <h4 class="alert-heading">Beta version</h4>
+    <p class="mb-0">This site is currently in developing-testing phase. Your data will be submitted to a Biosamples test server. More info in our <a href="{% url 'about' %}#injecttool_test_site" class="alert-link">about section</a>.</p>
+  </div>
+
   <div class="jumbotron">
     <h1 class="display-4">Welcome to the IMAGE InjectTool!</h1>
     <p class="lead">Help users to upload data into Biosample</p>
