@@ -38,7 +38,7 @@
     to create a new EBI AAP profile</p>
 
     <div class="row align-items-center">
-      <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left" src="{% static 'images/03-create_aap.png' %}" width="25%" alt="Generate a new AAP profile">
+      <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left w-25" src="{% static 'images/03-create_aap.png' %}" alt="Generate a new AAP profile">
       <img href="{% static 'images/04-aap-profile.png' %}" data-fancybox data-caption="Fill form and generate a new AAP profile" class="img-thumbnail mx-auto float-right" src="{% static 'images/04-aap-profile-thumbnail.png' %}" alt="Generate a new AAP profile Form">
     </div>
 
@@ -60,10 +60,90 @@
   <section>
     <h2 class="mt-3">Starting a new submission</h2>
 
-    <h3>Creating a cryoweb dump</h3>
+    <p>
+      Before starting a new InjectTool submission, you need to prepare data to upload. Currently,
+      InjectTool support data import from <a href="#cryoweb_dump">Cryoweb</a> and <a href="#crbanim_dump">CRBanim</a>. The <a href="#template_file">Template</a> data upload
+      has to be implemented a the time of writing.
+    </p>
+
+
+    <h3><a class="anchor" id="cryoweb_dump"></a>Creating a cryoweb dump</h3>
+
+    <p>
+      Cryoweb data need to be imported as <em>data-only</em> dumps, as described from
+      Postgres pgdump <a href="https://www.postgresql.org/docs/9.6/app-pgdump.html">documentation</a>.
+      First of all, search for cryoweb database. You can login to postgres database
+      and the get database list with <code>\l</code> command, as in the following example:
+    </p>
+
+    <pre class="bg-secondary">
+# psql -U postgres -h localhost
+psql (9.1.24)
+SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)
+Type "help" for help.
+
+postgres=# \l
+                                   List of databases
+   Name    |    Owner    | Encoding |   Collate   |    Ctype    |   Access privileges
+-----------+-------------+----------+-------------+-------------+-----------------------
+ cryo1     | apiis_admin | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ postgres  | postgres    | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ template0 | postgres    | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |             |          |             |             | postgres=CTc/postgres
+ template1 | postgres    | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |             |          |             |             | postgres=CTc/postgres
+(4 rows)
+
+    </pre>
+
+    <p>
+      <code>cryo1</code>, owned by <code>apiis_admin</code>, is the target database we need to dump.
+      Other databases are system databases. Next, make a <em>data-only</em>
+      dump using the <code>--data-only</code> parameter for the <code>apiis_admin</code>
+      schema, as in the following example:
+    </p>
+
+    <pre class="bg-secondary">
+# pg_dump -U apiis_admin -h localhost --encoding=UTF8 --column-inserts --data-only --schema apiis_admin cryo1 > cryoweb_data_only_dump.sql
+    </pre>
+
+    <p>
+      <code>cryoweb_data_only_dump.sql</code> will be a plain text-file in <code>UTF8</code> encoding
+      we need in order to create a new submission from cryoweb data. Those are the first line of such
+      <em>data-only</em> dump:
+    </p>
+
+    <pre class="bg-secondary pre-scrollable">
+--
+-- PostgreSQL database dump
+--
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+SET search_path = apiis_admin, pg_catalog;
+
+--
+-- Data for Name: animal; Type: TABLE DATA; Schema: apiis_admin; Owner: apiis_admin
+--
+
+INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, birth_dt, birth_year, latitude, longitude, image_id, db_org, la_rep, la_rep_dt, last_change_dt, last_change_user, dirty, chk_lvl, guid, owner, version, synch, db_hybrid, comment, file_id) VALUES (851, 816, 2, 118, 2022, 366, NULL, '1999', NULL, NULL, NULL, 144, NULL, NULL, '2010-03-26 12:12:02', 'vsa', NULL, NULL, 12389, 'Italy', 2, NULL, NULL, NULL, NULL);
+INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, birth_dt, birth_year, latitude, longitude, image_id, db_org, la_rep, la_rep_dt, last_change_dt, last_change_user, dirty, chk_lvl, guid, owner, version, synch, db_hybrid, comment, file_id) VALUES (852, 1, 2, 118, 2022, 366, NULL, NULL, NULL, NULL, NULL, 144, NULL, NULL, '2010-03-26 12:12:00', 'vsa', NULL, NULL, 12391, 'Italy', 3, NULL, NULL, NULL, NULL);
+    </pre>
+
+    <h3><a id="crbanim_dump"></a>Creating a crbanim dump</h3>
 
     <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+
+    <h3><a id="template_file"></a>Creating a template file</h3>
+
+    <p>
+      Data import from Template file is not yet supported
+    </p>
+
   </section>
 
   <section>
