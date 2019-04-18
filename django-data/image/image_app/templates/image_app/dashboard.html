@@ -13,10 +13,10 @@
   <div class="alert alert-dismissible alert-warning">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     <h4 class="alert-heading">Beta version</h4>
-    <p class="mb-0">This site is currently in developing-testing phase. Your data will be submitted to a Biosamples test server. More info in our <a href="{% url 'about' %}#injecttool_test_site" class="alert-link">about section</a>.</p>
-  </div>
+    <p class="mb-0">This site is currently in development testing stage. Your data will be submitted to a BioSamples test server. More info in our <a href="{% url 'about' %}#injecttool_test_site" class="alert-link">about section</a>.</p>
+  </div> (TODO: probably move to the higher level template e.g. base.html, not on individual pages)
 
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. （TODO to be replaced)</p>
 
   <div class="card-deck pt-5">
 
@@ -24,7 +24,7 @@
       <div class="card-header">Submit</div>
       <div class="card-body">
         <h4 class="card-title">Create New Submission</h4>
-        <p class="card-text">Upload your data into Inject-Tool database and start a new submission!</p>
+        <p class="card-text">Upload your data into Inject-Tool and start a new submission!</p>
         <p class="lead text-center">
           <a class="btn btn-primary btn-lg" href="{% url 'submissions:create' %}" role="button">Create</a>
         </p>
@@ -35,12 +35,12 @@
     {% have_submission user as submissions %}
 
     <div class="card border-primary mb-3" style="">
-      <div class="card-header">Resume</div>
+      <div class="card-header">View</div>
       <div class="card-body">
-        <h4 class="card-title">Resume Your Submissions</h4>
-        <p class="card-text">Fix errors an validate your data in order to countinue submission</p>
+        <h4 class="card-title">View Existing Submissions</h4>
+        <p class="card-text">List all existing submissions</p>
         <p class="lead text-center">
-          <a class="btn btn-secondary btn-lg {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">Resume</a>
+          <a class="btn btn-secondary btn-lg {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">List</a>
         </p>
       </div>
     </div>
