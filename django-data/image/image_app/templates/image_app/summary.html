@@ -4,19 +4,19 @@
 {% load submissions_tags %}
 
 {% block title %}
-  InjectTool Data Summary
+  Inject Tool Data Summary
 {% endblock title %}
 
 {% block content %}
 
-  <h1>InjectTool Summary</h1>
+  <h1>Inject Tool Summary</h1>
 
   <ul>
-    <li>You have {{datasource_count}} data sources loaded
-      ({{datasource_completed}} uploaded into biosample)
+    <li>You have {{datasource_count}} data sources loaded (TODO: not sure what does data source mean, submission be better? If it is the data source I understand, more than one submissions could be from one data source. one archived in BioSamples and the rest not, what to do? The numbers could be misleading)
+      ({{datasource_completed}} uploaded into BioSamples)
     </li>
-    <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
-    <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
+    <li>You have {{uid_report.n_of_animals}} animals loaded into Inject Tool</li>
+    <li>You have {{uid_report.n_of_samples}} samples loaded into Inject Tool</li>
     <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
     <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
     <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
