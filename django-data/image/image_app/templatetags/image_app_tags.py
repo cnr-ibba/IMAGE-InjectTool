@@ -9,6 +9,7 @@ Created on Fri May 11 14:52:46 2018
 import subprocess
 
 from django import template
+from django.conf import settings
 
 register = template.Library()
 
@@ -38,6 +39,17 @@ def absolute_url(context, name):
 
     request = context['request']
     return request.build_absolute_uri(name)
+
+
+@register.simple_tag()
+def get_admin_email():
+    """Return admin email from image.settings"""
+
+    ADMINS = settings.ADMINS
+
+    # return  the first email address
+    if len(ADMINS) > 0:
+        return ADMINS[0][1]
 
 
 # form fields

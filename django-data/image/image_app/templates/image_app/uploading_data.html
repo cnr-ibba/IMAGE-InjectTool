@@ -1,6 +1,9 @@
 
 {% extends "base.html" %}
+
 {% load staticfiles %}
+
+{% load image_app_tags %}
 
 {% block custom-css %}
   <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}" />
@@ -22,30 +25,35 @@
       in the right-upper corner of Inject Tool site and
       start to sign up with Inject tool. In the form, you have to provide a valid email address and
       select your organization from the provided list. If you don't find
-      your organization, you need to contact InjectTool developers (TODO: link required here).</p>
+      your organization, you need to <a href="mailto:{% get_admin_email %}?subject=feedback">contact</a> InjectTool developers.</p>
 
     <div class="row align-items-center">
       <img class="img-thumbnail mx-auto float-left" src="{% static 'images/01-signup.png' %}" alt="Sign-Up">
       <img href="{% static 'images/02-signup.png' %}" data-fancybox data-caption="Sign up in Inject Tool" class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
     </div>
 
-    <p class="my-3">After registration is complete, you will receive an email to the address
-    used for registration. Click on the activation link, in order to complete Inject Tool registration.  Now you will require an
-    <a href="https://explore.aai.ebi.ac.uk/home" target="_blank">EBI AAP profile (TODO: a beta notice is required as this profile cannot be used in the production)</a> in order to submit your data into BioSamples.
-    Please note that we can't store your AAP credentials on our site. You need
-    to keep record of AAP credentials, otherwise you will not be able to submit your data to BioSamples. Click on
-    <em>Generate a new AAP profile button</em> a fill out the form by proving a strong password
-    to create a new EBI AAP profile</p> (TODO does not make sense at all)
+    <p class="my-3">After registration is complete, you will receive an email to
+    the address used for registration. Click on the activation link, in order to
+    complete Inject Tool registration.  Now you will require an
+    <a href="https://explore.aai.ebi.ac.uk/home" target="_blank">EBI AAP profile</a>
+    in order to submit your data into BioSamples.
+    Please note that we can't store your AAP credentials on our site, you need
+    to keep record of AAP credentials, otherwise you will not be able to submit
+    your data to BioSamples. Please note also that this site is in beta stage,
+    so this registration will be done on Biosample tests servers. Click on
+    <em>Generate a new AAP profile button</em> a fill out the form by providing
+    a strong password to create a new EBI AAP profile:</p>
 
     <div class="row align-items-center">
       <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left w-25" src="{% static 'images/03-create_aap.png' %}" alt="Generate a new AAP profile">
       <img href="{% static 'images/04-aap-profile.png' %}" data-fancybox data-caption="Fill form and generate a new AAP profile" class="img-thumbnail mx-auto float-right" src="{% static 'images/04-aap-profile-thumbnail.png' %}" alt="Generate a new AAP profile Form">
     </div>
 
-    <p class="my-3">If the registration is successful, you will generate a new AAP token. (TODO: misleading. Describe how to generate the token. After the successful registration for AAP profile, a token will be generated automatically)
-      This token is stored in your browser session and will be used to perform
+    <p class="my-3">If the registration is successful, you will be able to generate
+      a new AAP token. This token is stored in your browser session and will be used to perform
       BioSamples submission. The token will be valid for one hour. When submitting
-      data to BioSamples, Inject Tool will check token validity and will ask the user to generate a new token if necessary. You can check your token
+      data to BioSamples, Inject Tool will check token validity and will ask
+      the user to generate a new token if necessary. You can check your token
       status by cliking on <a href="{% url 'biosample:token' %}">My Token</a> on
       your username dropdown list in the right upper side of the page
     </p>
@@ -62,13 +70,13 @@
     <p>
       Before starting a new submission with Inject Tool, you need to prepare data to upload. Currently,
       Inject Tool support data files from <a href="#cryoweb_dump">Cryoweb</a> and <a href="#crbanim_dump">CRB-Anim</a>. The <a href="#template_file">Template</a> data upload will be implemented in a later stage
-      
+
     </p>
 
 
     <h3><a class="anchor" id="cryoweb_dump"></a>Creating a cryoweb dump</h3>
 
-    <p> （TODO: open to discussion whether too much details regarding how to dump Cryoweb which should be explained in Cryoweb document or even refers to PostgreSQL documentation)
+    <p>
       Cryoweb data need to be imported as <em>data-only</em> dumps, as described from
       Postgres pgdump <a href="https://www.postgresql.org/docs/9.6/app-pgdump.html">documentation</a>.
       First of all, search for cryoweb database. You can login to postgres database

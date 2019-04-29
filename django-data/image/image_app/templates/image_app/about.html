@@ -15,21 +15,23 @@
       is the integration and transparent use of the vast information stored within
       more than 60 gene banks/genetic collections spanning 20 European countries,
       together with the collection of newly generated data. Information to be collected
-      and integrated through the IMAGE portal is currently stored in each individual's local databases
-      at gene banks, research institutions, breeding companies etc. which utilizes a wide range of systems : from simple excel files to large national well-structured
-      databases.
+      and integrated through the IMAGE portal is currently stored in each
+      individual's local databases at gene banks, research institutions, breeding
+      companies etc. which utilizes a wide range of systems : from simple excel
+      files to large national well-structured databases.
     </p>
     <p>
       <a href="https://www.ncbi.nlm.nih.gov/pubmed/21364801/">Cryoweb</a>
       is a web-based software for the documentation and storage of gene bank data.
       Currently, the majority of National gene banks are using Cryoweb to manage
-      their information.  In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
+      their information. In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
       database collects and stores information for reproductive and genomic material
       of domestic animals (mammals, birds, fishes and shellfishes) in the country.
       Other countries have developed relational databases to manage their collections.
-      Submission of sample data to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples</a>,
-      the reference archive for IMAGE, is facilitated to invite participation and
-      to ensure standardization of the data. (TODO: do not understand what is to be said here)
+      Using InjectTool, data derived from different sources can be standardized and
+      validated against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      standards and finally submitted to <a href="https://www.ebi.ac.uk/biosamples/">EBI BioSamples</a>,
+      which has been chosen as the reference archive for all IMAGE data.
     </p>
     <p class="lead text-primary text-justify">
       <strong>
@@ -58,16 +60,19 @@
       <a href="https://www.nginx.com/">Nginx</a>, while
       on the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
       stores user data and a <a href="https://www.djangoproject.com/">Django</a>
-      image renders pages in <a href="https://getbootstrap.com/">Bootstrap 4</a> in
-      order to display data and proving tools able to do data manipulation. (TODO providing tools for data manipulation?) A
+      image renders pages in HTML using <a href="https://getbootstrap.com/">Bootstrap 4</a>
+      in order to display data and proving forms able to do data manipulation. A
       <a href="http://www.celeryproject.org/">Celery</a> and a
       <a href="https://redis.io/">Redis</a> instances perform long tasks such as
       the data validation process, data submissions to biosample and monitoring of
       biosample submission statuses.
     </p>
     <p>
-      All those processed are addressed by the system (TODO do not understand), requiring user intervention
-      only to fix data error and to provide mandatory data. (TODO: more specific please, otherwise it sounds like all mandatory data requires manual input)  User will be able to upload data from their Cryoweb dump files or
+      No user intervention is required to validate/submit data through InjectTool,
+      however a manual revision is required if the validation process fails
+      against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      standards. 
+      User will be able to upload data from their Cryoweb dump files or
       excel spreadsheet defined in the metadata rules context.
       The project is mainly written in <a href="https://www.python.org/downloads/">Python 3</a>
       using the <a href="http://www.obeythetestinggoat.com/">test-driven</a> approach. A live version of the system is available
@@ -83,9 +88,12 @@
     <p>
       This site is currently in testing phase. We currently submit data to
       <a href="https://wwwdev.ebi.ac.uk/biosamples/">BioSamples test server</a>.
-      Therefore data submitted through InjectTool will be deleted from BioSamples test servers every week. 
-      We are doing our best
-      to shorten the test period while making the system as reliable as possible. We welcome any feedback/comment/suggestion which can be submitted via (TODO add the method) to make Inject tool better.
+      Therefore data submitted through InjectTool will be deleted from BioSamples
+      test servers every week. We are doing our best to shorten the test period
+      while making the system as reliable as possible. We welcome any
+      feedback/comment/suggestion which can be submitted by
+      <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
+      to make Inject tool better.
     </p>
 
   </section>
