@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 from django.db import migrations
 
 
+cookie_policy_link = "/image/privacy/"
+
+
 def forwards_func(apps, schema_editor):
     # We get the model from the versioned app registry;
     # if we directly import it, it'll be the wrong version
@@ -12,7 +15,7 @@ def forwards_func(apps, schema_editor):
         "message": ("This website uses cookies to ensure you get the best "
                     "experience on our website."),
         "button_text": "Got it!",
-        "cookie_policy_link": "privacy/",
+        "cookie_policy_link": cookie_policy_link,
         "cookie_policy_link_text": "Learn more",
         "banner_colour": "#2FA4E7",
         "banner_text_colour": "#ffffff",
@@ -37,7 +40,7 @@ def reverse_func(apps, schema_editor):
         "message": ("This website uses cookies to ensure you get the best "
                     "experience on our website."),
         "button_text": "Got it!",
-        "cookie_policy_link": "privacy/",
+        "cookie_policy_link": cookie_policy_link,
         "cookie_policy_link_text": "Learn more",
         "banner_colour": "#2FA4E7",
         "banner_text_colour": "#ffffff",
