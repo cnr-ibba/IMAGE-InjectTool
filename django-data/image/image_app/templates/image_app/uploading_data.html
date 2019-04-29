@@ -22,19 +22,19 @@
     <h2>Signing Up and registering to EBI AAP</h2>
 
     <p>Click on <a href="{% url 'accounts:registration_register' %}">Sign-Up</a>
-      in the right-upper corner of Inject Tool site and
-      start to sign up with Inject tool. In the form, you have to provide a valid email address and
+      in the right-upper corner of InjectTool site and
+      start to sign up with InjectTool. In the form, you have to provide a valid email address and
       select your organization from the provided list. If you don't find
       your organization, you need to <a href="mailto:{% get_admin_email %}?subject=feedback">contact</a> InjectTool developers.</p>
 
     <div class="row align-items-center">
       <img class="img-thumbnail mx-auto float-left" src="{% static 'images/01-signup.png' %}" alt="Sign-Up">
-      <img href="{% static 'images/02-signup.png' %}" data-fancybox data-caption="Sign up in Inject Tool" class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
+      <img href="{% static 'images/02-signup.png' %}" data-fancybox data-caption="Sign up in InjectTool" class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
     </div>
 
     <p class="my-3">After registration is complete, you will receive an email to
     the address used for registration. Click on the activation link, in order to
-    complete Inject Tool registration.  Now you will require an
+    complete InjectTool registration.  Now you will require an
     <a href="https://explore.aai.ebi.ac.uk/home" target="_blank">EBI AAP profile</a>
     in order to submit your data into BioSamples.
     Please note that we can't store your AAP credentials on our site, you need
@@ -52,7 +52,7 @@
     <p class="my-3">If the registration is successful, you will be able to generate
       a new AAP token. This token is stored in your browser session and will be used to perform
       BioSamples submission. The token will be valid for one hour. When submitting
-      data to BioSamples, Inject Tool will check token validity and will ask
+      data to BioSamples, InjectTool will check token validity and will ask
       the user to generate a new token if necessary. You can check your token
       status by cliking on <a href="{% url 'biosample:token' %}">My Token</a> on
       your username dropdown list in the right upper side of the page
@@ -68,8 +68,8 @@
     <h2 class="mt-3">Starting a new submission</h2>
 
     <p>
-      Before starting a new submission with Inject Tool, you need to prepare data to upload. Currently,
-      Inject Tool support data files from <a href="#cryoweb_dump">Cryoweb</a> and <a href="#crbanim_dump">CRB-Anim</a>. The <a href="#template_file">Template</a> data upload will be implemented in a later stage
+      Before starting a new submission with InjectTool, you need to prepare data to upload. Currently,
+      InjectTool support data files from <a href="#cryoweb_dump">Cryoweb</a> and <a href="#crbanim_dump">CRB-Anim</a>. The <a href="#template_file">Template</a> data upload will be implemented in a later stage
 
     </p>
 
@@ -154,7 +154,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
   </section>
 
   <section>
-    <h2>Inject Tool demostration video</h2>
+    <h2>InjectTool demostration video</h2>
 
     <div class="card my-3">
       <div class="card-body">
@@ -162,7 +162,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
         <div class="embed-responsive embed-responsive-16by9">
           <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/_etbI5wPwxY"></iframe>
         </div>
-        <p class="card-text mt-2">Inject Tool video demostration</p>
+        <p class="card-text mt-2">InjectTool video demostration</p>
       </div>
     </div>
 
