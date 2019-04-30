@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}" />
 {% endblock custom-css %}
 
-
 {% block title %}Uploading data into BioSamples{% endblock title %}
 
 {% block content %}
@@ -65,14 +64,12 @@
   </section>
 
   <section>
-    <h2 class="mt-3">Starting a new submission</h2>
+    <h2 class="mt-3">Preparing a new submission</h2>
 
     <p>
       Before starting a new submission with InjectTool, you need to prepare data to upload. Currently,
       InjectTool support data files from <a href="#cryoweb_dump">Cryoweb</a> and <a href="#crbanim_dump">CRB-Anim</a>. The <a href="#template_file">Template</a> data upload will be implemented in a later stage
-
     </p>
-
 
     <h3><a class="anchor" id="cryoweb_dump"></a>Creating a cryoweb dump</h3>
 
@@ -143,7 +140,29 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
     <h3><a id="crbanim_dump"></a>Creating a CRB-Anim dump</h3>
 
-    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+    <p>
+      Data from CRB-Anim can be imported using a standard CSV file. However, in
+      order to import data correctly, CSV file has to start with a header column
+      in which those column are defined (the order of them doesn't matter):
+      <code>
+        'sex',
+        'species_latin_name',
+        'country_of_origin',
+        'breed_name',
+        'animal_ID',
+        'sample_bibliographic_references',
+        'sample_identifier',
+        'animal_birth_date',
+        'sample_storage_temperature',
+        'sample_type_name',
+        'body_part_name',
+        'sampling_date',
+        'sampling_protocol_url',
+        'sample_availability',
+        'EBI_Biosample_identifier'
+      </code>
+
+    </p>
 
     <h3><a id="template_file"></a>Creating a template file</h3>
 
@@ -154,7 +173,41 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
   </section>
 
   <section>
-    <h2>InjectTool demostration video</h2>
+    <h2 class="mt-3">Starting a new submission</h2>
+    <p>
+      From the <a href="{% url 'image_app:dashboard' %}">Dashboard</a> page, click
+      on <a href="{% url 'submissions:create' %}">Create</a> submission button,
+      and then fill the form properly: each filled value will be used for biosample
+      submission. The <em>Gene bank country</em> field is important since it
+      will be used to traslate terms from the provided language into the standard
+      english used for Biosamples submission. Another important field is the
+      <em>Data source type</em> which will be used to import data from the different
+      data sources types (<a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
+      or <a href="#template_file">Template</a> format). Then you have to choose the
+      file to upload using the <em>Uploaded file</em> field. File should be
+      in plain text and UTF-8 or ASCII encoding, or the uploading process will
+      be rejected.
+    </p>
+
+    <div class="row align-items-center">
+      <img href="{% static 'images/07-create-submission-1.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left" src="{% static 'images/07-create-submission-1-thumbnail.png' %}" alt="Create a new Submission">
+      <img href="{% static 'images/08-create-submission-2.png' %}" data-fancybox data-caption="Fill form and generate a new AAP profile" class="img-thumbnail mx-auto float-right" src="{% static 'images/08-create-submission-2-thumbnail.png' %}" alt="New Submission Form">
+    </div>
+
+    <p>
+      After the submission is created, data will be imported in background by the
+      system. When submission status has the <em>Loaded</em> state, data are imported
+      with success from your data source and need to be validated before submission.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="mt-3">InjectTool demostration video</h2>
+
+    <p>
+      The following video shows the main steps starting from user registration to biosample
+      submission:
+    </p>
 
     <div class="card my-3">
       <div class="card-body">

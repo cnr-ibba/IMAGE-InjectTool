@@ -80,6 +80,29 @@
       the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">here</a>
     </p>
 
+    <h3>Submission statuses</h3>
+    <p>
+      Processes like data import, data validation and submission to Biosamples
+      requires time and can't be accomplished in the same time required to get
+      an HTML page. For this reason, InjectTool performs long tasks asynchronously
+      in the background, in order to render web pages fast. However, you can't
+      modify your data while performing such long tasks, otherwise you could invalidate
+      valid-data during a submission process. In such way, we have defined
+      different submission statuses relying on which tasks are accomplished
+      on your data. Statuses may change when tasks are completed,
+      you should try to reload the page in order to see updates in statuses. We
+      plan to develop status updates in the visualized page without user intervention.
+      Current statuses are:
+      <ul>
+        <li>
+          <strong>Loaded:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </li>
+        <li>
+          <strong>Waiting:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </li>
+      </ul>
+    </p>
+
   </section>
 
   <section id="injecttool_test_site">
