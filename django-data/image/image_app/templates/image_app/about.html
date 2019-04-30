@@ -80,7 +80,8 @@
       the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">here</a>
     </p>
 
-    <h3>Submission statuses</h3>
+    <h3><a class="anchor" id="submission_statuses"></a>Submission statuses</h3>
+
     <p>
       Processes like data import, data validation and submission to Biosamples
       requires time and can't be accomplished in the same time required to get
@@ -95,10 +96,44 @@
       Current statuses are:
       <ul>
         <li>
-          <strong>Loaded:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          <strong>Loaded:</strong> Data were correctly imported from your data sources.
+          You need to validate them before submitting to biosample
         </li>
         <li>
-          <strong>Waiting:</strong> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          <strong>Waiting:</strong> Some tasks are currently running on your data, you
+          can't edit or delete your data or perform other tasks like validation or
+          submission to biosample. All links or buttons related to such changes are
+          disabled, and you have to wait in order to modify your data again. Try to
+          reload the page in order to update submission status.
+        </li>
+        <li>
+          <strong>Error:</strong> This status should never be seen. This status
+          could be determined by an issue in InjectTool. You may receive an email describing
+          what is gone wrong, please forward this email to InjectTool
+          <a href="mailto:{% get_admin_email %}?subject=feedback">developers</a>
+          by describing also what you are doing when you got this particular status.
+        </li>
+        <li>
+          <strong>Ready:</strong> Submission has been validated with success and
+          could be submitted to Biosamples
+        </li>
+        <li>
+          <strong>Need revision:</strong> Submission has issues in validation or
+          in Biosamples submission. You need to check error message and fix your
+          data accordingly. Modifing or deleting your data in any other submission
+          states, will result in a <em>Need revision</em> status. You have to
+          validate your submission with success to get a <em>Ready</em> state and
+          being able to submit your data to Biosample.
+        </li>
+        <li>
+          <strong>Submitted:</strong> Data have been submitted to Biosamples using
+          API. The system is waiting for Biosamples response in order to get a Biosamples
+          ID.
+        </li>
+        <li>
+          <strong>Completed:</strong> Data were submitted to biosample with success and
+          have received a Biosamples ID. Congratulations! now your data are published
+          in Biosamples archives.
         </li>
       </ul>
     </p>
