@@ -1,0 +1,92 @@
+// a comment line to compile this file with atom sass-autocompile package
+
+// loading cerulean variables
+@import "variables";
+
+// importing custom mixin
+@import "mixins";
+
+//custom variables
+$footer-height: 3.75rem; // 60px with default 16px font-size
+$footer-padding: 1rem;
+$font-family: 'Peralta', cursive;
+
+// https://gist.github.com/jonathantneal/d0460e5c2d5d7f9bc5e6
+//@include font-face(Peralta, ../fonts/Peralta-Regular.ttf, null, null, ttf);
+// ($name, $path, $weight: null, $style: null, $exts: eot woff2 woff ttf svg)
+@include font-face("Peralta", "../fonts/Peralta-Regular", 400, "normal", ttf);
+
+// @font-face {
+//   font-family: 'Peralta';
+//   font-style: normal;
+//   font-weight: 400;
+//   src: url('../fonts/Peralta-Regular.ttf')  format("truetype"),
+//        local('Peralta'), local('Peralta-Regular');
+// }
+
+// defining classes
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: $footer-height;
+}
+
+.navbar-brand {
+  font-family: $font-family;
+}
+
+h1 {
+  font-family: $font-family;
+
+  a {
+    &:hover, &:active {
+      /* this means that a link under a h1 will never be underlined on
+         mouse hover event */
+      text-decoration: none;
+      color: $cyan;
+    }
+  }
+}
+
+p, li {
+  /* equal to assign class="text-justify" */
+  /* !important will override others text-align attributes, for example from parents*/
+  text-align: justify !important;
+}
+
+code {
+  font-size: 80%;
+}
+
+/* fixed-page-header-overlaps-in-page-anchors
+   https://stackoverflow.com/a/28824157/4385116 */
+:target::before {
+  content: "";
+  display: block;
+  /* fixed header height*/
+  height: 4rem;
+  /* negative fixed header height */
+  margin: -4rem 0 0;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: $footer-height;
+  /* Vertically center the text there */
+  line-height: $footer-height;
+  background-color: $gray-200;
+
+  > .container {
+    padding-right: $footer-padding;
+    padding-left: $footer-padding;
+  }
+}
