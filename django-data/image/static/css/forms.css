@@ -2,14 +2,3 @@
 body {
   background-image: url(../images/palm-leaf.png);
 }
-
-.logo {
-  font-family: 'Peralta', cursive;
-}
-
-/* this means that a link under a logo class will never be underlined on
-   mouse hover event */
-.logo a:hover,
-.logo a:active {
-  text-decoration: none;
-}

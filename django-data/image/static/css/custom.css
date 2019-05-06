@@ -7,14 +7,40 @@
        local('Peralta'), local('Peralta-Regular');
 }
 
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+
 .navbar-brand {
   font-family: 'Peralta', cursive;
 }
+
+h1 {
+  font-family: 'Peralta', cursive;
+}
+
+/* this means that a link under a h1 will never be underlined on
+   mouse hover event */
+h1 a:hover,
+h1 a:active {
+  text-decoration: none;
+}
+
 
 p, li {
   /* equal to assign class="text-justify" */
   /* !important will override others text-align attributes, for example from parents*/
   text-align: justify !important;
+}
+
+code {
+  font-size: 80%;
 }
 
 /* fixed-page-header-overlaps-in-page-anchors
@@ -28,16 +54,6 @@ p, li {
 
 /* Sticky footer styles
 -------------------------------------------------- */
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
-}
-
 .footer {
   position: absolute;
   bottom: 0;
@@ -48,20 +64,7 @@ body {
   background-color: #f5f5f5;
 }
 
-
-/* Custom page CSS
--------------------------------------------------- */
-/* Not required for template or sticky footer method. */
-
-body > .container {
-  padding: 60px 15px 0;
-}
-
 .footer > .container {
   padding-right: 15px;
   padding-left: 15px;
-}
-
-code {
-  font-size: 80%;
 }
