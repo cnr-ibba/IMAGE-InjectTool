@@ -7,12 +7,8 @@ body {
   font-family: 'Peralta', cursive;
 }
 
-/*
-.logo a {
-  color: rgba(0,0,0,.9);
-}
-*/
-
+/* this means that a link under a logo class will never be underlined on
+   mouse hover event */
 .logo a:hover,
 .logo a:active {
   text-decoration: none;
