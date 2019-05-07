@@ -15,9 +15,10 @@ import traceback
 from collections import Counter
 from celery.utils.log import get_task_logger
 
-from common.constants import READY, ERROR, LOADED, NEED_REVISION
+from common.constants import (
+    READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES)
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Sample, Animal, STATUSES
+from image_app.models import Submission, Sample, Animal
 
 from .models import ValidationResult as ValidationResultModel
 from .helpers import MetaDataValidation
@@ -278,13 +279,10 @@ class ValidateTask(MyTask):
             messages = result.get_messages()
             overall_status = result.get_overall_status()
 
-        logger.debug(
-            "Marking %s with '%s' status (%s)" % (
-                model, key2status[status], messages))
-
         # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
             validationresult = model.name.validationresult
+
         else:
             validationresult = ValidationResultModel()
             model.name.validationresult = validationresult
@@ -294,9 +292,21 @@ class ValidateTask(MyTask):
         validationresult.status = overall_status
         validationresult.save()
 
-        # update model status and save
-        model.name.status = status
-        model.name.save()
+        # ok, don't update Name statuses for submitted objects which
+        # already are in biosamples and pass validation
+        if model.name.status == COMPLETED and status == READY:
+            logger.debug(
+                "Ignoring %s: status was '%s' and validation is OK" % (
+                    model, key2status[model.name.status]))
+
+        else:
+            logger.debug(
+                "Marking %s with '%s' status (%s)" % (
+                    model, key2status[status], messages))
+
+            # update model status and save
+            model.name.status = status
+            model.name.save()
 
     def submission_fail(self, submission_obj, message, status=NEED_REVISION):
         """Mark a submission with NEED_REVISION status"""
