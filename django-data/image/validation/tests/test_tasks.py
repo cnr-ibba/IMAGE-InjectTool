@@ -19,7 +19,7 @@ from image_validation.ValidationResult import (
 from django.core import mail
 from django.test import TestCase
 
-from common.constants import LOADED, ERROR, READY, NEED_REVISION
+from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, Animal, Sample
 
@@ -34,7 +34,9 @@ class PickableMock(Mock):
         return (Mock, ())
 
 
-class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
+class ValidateSubmissionMixin(PersonMixinTestCase):
+    """A mixin to define common stuff for testing data validation"""
+
     # an attribute for PersonMixinTestCase
     person = Person
 
@@ -78,6 +80,9 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
 
         # setting tasks
         self.my_task = ValidateTask()
+
+
+class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
 
     def test_on_failure(self):
         """Testing on failure methods"""
@@ -441,6 +446,10 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
 
+
+class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
+    """Check database statuses after calling validation"""
+
     def check_status(self, status, messages, name_status):
         """Test if I can update status for a model that pass validation"""
 
@@ -489,3 +498,90 @@ class ValidateSubmissionTest(PersonMixinTestCase, TestCase):
         name_status = NEED_REVISION
 
         self.check_status(status, messages, name_status)
+
+
+class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
+    """Check database statuses after calling validation for an updated
+    submission (a submission completed and submitted to biosample in which
+    I want to modify a thing)"""
+
+    def setUp(self):
+        # call base method
+        super().setUp()
+
+        # update submission status. Simulate a completed submission in which
+        # I want to update something
+        self.submission.status = NEED_REVISION
+        self.submission.save()
+
+        # update name objects. In this case, animal was modified
+        self.animal_name.status = NEED_REVISION
+        self.animal_name.save()
+
+        # sample is supposed to be submitted with success
+        self.sample_name.status = COMPLETED
+        self.sample_name.biosample_id = "FAKES123456"
+        self.sample_name.save()
+
+    def update_status(self, status, messages, name_status):
+        """Test if I can update status for a model that pass validation"""
+
+        # modelling validation same result for every object
+        result = PickableMock()
+        result.get_overall_status.return_value = status
+        result.get_messages.return_value = messages
+
+        submission_statuses = Counter(
+            {'Pass': 0,
+             'Warning': 0,
+             'Error': 0,
+             'JSON': 0})
+
+        # calling update statuses on both objects
+        self.my_task.update_statuses(submission_statuses, self.animal, result)
+        self.my_task.update_statuses(submission_statuses, self.sample, result)
+
+        # refreshing data from db
+        self.animal_name.refresh_from_db()
+        self.sample_name.refresh_from_db()
+
+    def test_update_status_pass(self):
+        status = 'Pass'
+        messages = ['Passed all tests']
+        name_status = READY
+
+        self.update_status(status, messages, name_status)
+
+        # asserting status change for animal
+        self.assertEqual(self.animal_name.status, name_status)
+
+        # validationresult is tested outside this class
+
+        # sample status is unchanged
+        self.assertEqual(self.sample_name.status, COMPLETED)
+
+    def test_update_status_warning(self):
+        status = 'Warning'
+        messages = ['issued a warning']
+        name_status = READY
+
+        self.update_status(status, messages, name_status)
+
+        # asserting status change for animal
+        self.assertEqual(self.animal_name.status, name_status)
+
+        # sample status is unchanged
+        self.assertEqual(self.sample_name.status, COMPLETED)
+
+    def test_update_status_error(self):
+        status = 'Error'
+        messages = ['issued an error']
+        name_status = NEED_REVISION
+
+        self.update_status(status, messages, name_status)
+
+        # asserting status change for animal
+        self.assertEqual(self.animal_name.status, name_status)
+
+        # sample status is changed since don't pass validation
+        self.assertEqual(self.sample_name.status, name_status)
