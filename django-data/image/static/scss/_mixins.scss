@@ -1,5 +1,7 @@
+
 // =============================================================================
 // String Replace
+// https://gist.github.com/jonathantneal/d0460e5c2d5d7f9bc5e6
 // =============================================================================
 
 @function str-replace($string, $search, $replace: "") {
@@ -13,7 +15,34 @@
 }
 
 // =============================================================================
+// String Split
+// https://stackoverflow.com/a/42295154/4385116
+// =============================================================================
+@function str-split($string, $separator) {
+    // empty array/list
+    $split-arr: ();
+    // first index of separator in string
+    $index : str-index($string, $separator);
+    // loop through string
+    @while $index != null {
+        // get the substring from the first character to the separator
+        $item: str-slice($string, 1, $index - 1);
+        // push item to array
+        $split-arr: append($split-arr, $item);
+        // remove item and separator from string
+        $string: str-slice($string, $index + 1);
+        // find new index of separator
+        $index : str-index($string, $separator);
+    }
+    // add the remaining string to list (the last item)
+    $split-arr: append($split-arr, $string);
+
+    @return $split-arr;
+}
+
+// =============================================================================
 // Font Face
+// https://gist.github.com/jonathantneal/d0460e5c2d5d7f9bc5e6
 // =============================================================================
 
 @mixin font-face($name, $path, $weight: null, $style: null, $exts: eot woff2 woff ttf svg) {
@@ -39,6 +68,9 @@
 		font-family: quote($name);
 		font-style: $style;
 		font-weight: $weight;
+		// use both url() and local() together, so that the user's installed copy
+		// of the font is used if available, falling back to downloading a copy of
+		// the font if it's not found on the user's device.
 		src: $src, local(quote($name));
 	}
 }

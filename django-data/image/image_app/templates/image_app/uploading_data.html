@@ -80,7 +80,7 @@
       and then get database list with <code>\l</code> command, as in the following example:
     </p>
 
-    <pre class="bg-secondary">
+    <pre>
 # psql -U postgres -h localhost
 psql (9.1.24)
 SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)
@@ -107,7 +107,7 @@ postgres=# \l
       schema, as in the following example:
     </p>
 
-    <pre class="bg-secondary">
+    <pre>
 # pg_dump -U apiis_admin -h localhost --encoding=UTF8 --column-inserts --data-only --schema apiis_admin cryo1 > cryoweb_data_only_dump.sql
     </pre>
 
@@ -117,7 +117,7 @@ postgres=# \l
       <em>data-only</em> dump:
     </p>
 
-    <pre class="bg-secondary pre-scrollable">
+    <pre class="pre-scrollable">
 --
 -- PostgreSQL database dump
 --

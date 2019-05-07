@@ -186,12 +186,6 @@ InjectTool TODO
   - [customize queryset](https://stackoverflow.com/questions/22902457/django-listview-customising-queryset)
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
 
-* Related to registration module:
-  Biosample registration is AAP registration
-
 * Related to CRBanim
   - alternative_id issue (now is a duplicate of sample/animal name)
   - deal with biosample records
-  - Animal AGE at collection (animal_birth_date – sampling_date) if >0
-  - Don't write new species from crbanim data - should be added manually
-    (Rainbow Trouth is not a specie)

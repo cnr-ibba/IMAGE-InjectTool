@@ -12,7 +12,6 @@ $footer-padding: 1rem;
 $font-family: 'Peralta', cursive;
 
 // https://gist.github.com/jonathantneal/d0460e5c2d5d7f9bc5e6
-//@include font-face(Peralta, ../fonts/Peralta-Regular.ttf, null, null, ttf);
 // ($name, $path, $weight: null, $style: null, $exts: eot woff2 woff ttf svg)
 @include font-face("Peralta", "../fonts/Peralta-Regular", 400, "normal", ttf);
 
@@ -58,8 +57,13 @@ p, li {
   text-align: justify !important;
 }
 
+// for code snippets
 code {
   font-size: 80%;
+}
+
+pre {
+  background-color: $gray-200 !important;
 }
 
 /* fixed-page-header-overlaps-in-page-anchors
