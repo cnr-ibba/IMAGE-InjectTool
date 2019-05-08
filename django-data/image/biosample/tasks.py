@@ -210,20 +210,26 @@ class SubmitTask(MyTask):
                 name__submission=submission_data.submission_obj):
 
             # add animal if not yet submitted, or patch it
-            if animal.name.status != SUBMITTED:
+            if animal.name.status not in [SUBMITTED, COMPLETED]:
                 logger.info("Appending animal %s" % (animal))
 
                 # check if animal is already submitted, otherwise patch
                 self.__create_or_update(animal, submission_data)
 
+            else:
+                logger.debug("Appending animal %s" % (animal))
+
             # Add their specimen
             for sample in animal.sample_set.all():
                 # add sample if not yet submitted
-                if sample.name.status != SUBMITTED:
+                if sample.name.status not in [SUBMITTED, COMPLETED]:
                     logger.info("Appending sample %s" % (sample))
 
                     # check if sample is already submitted, otherwise patch
                     self.__create_or_update(sample, submission_data)
+
+                else:
+                    logger.debug("Ignoring sample %s" % (sample))
 
         logger.info("submission completed")
 

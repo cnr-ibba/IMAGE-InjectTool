@@ -31,8 +31,10 @@ from ..models import ManagedTeam
 from .common import SubmitMixin, generate_token
 
 
-class SubmitTestCase(SubmitMixin, TestCase):
+class RedisMixin():
+    """A class to setup a test token in redis database"""
 
+    # this will be the token key in redis database
     submission_key = "token:submission:1:test"
 
     @classmethod
@@ -57,6 +59,9 @@ class SubmitTestCase(SubmitMixin, TestCase):
             cls.redis.delete(cls.submission_key)
 
         super().tearDownClass()
+
+
+class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
 
     def setUp(self):
         # call Mixin emthod
@@ -319,6 +324,67 @@ class SubmitTestCase(SubmitMixin, TestCase):
         self.assertEqual(
             "Error in biosample submission %s" % self.submission_id,
             email.subject)
+
+
+class UpdateSubmissionTestCase(SubmitMixin, RedisMixin, TestCase):
+    """Test a submission for an already completed submission which
+    receives one update, is valid and need to be updated in biosample"""
+
+    def setUp(self):
+        # call Mixin method
+        super().setUp()
+
+        # Track Name objects
+        self.animal_name = Name.objects.get(pk=3)
+        self.sample_name = Name.objects.get(pk=4)
+
+        # update name objects. In this case, animal was modified
+        self.animal_name.status = READY
+        self.animal_name.save()
+
+        # sample is supposed to be submitted with success
+        self.sample_name.status = COMPLETED
+        self.sample_name.biosample_id = "FAKES123456"
+        self.sample_name.save()
+
+        # setting tasks
+        self.my_task = SubmitTask()
+
+    def test_submit(self):
+        """Test submitting into biosample"""
+
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission_obj.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        self.assertEqual(
+            self.submission_obj.message,
+            "Waiting for biosample validation")
+        self.assertEqual(
+            self.submission_obj.biosample_submission_id,
+            "new-submission")
+
+        # check name status changed for animal
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.status, SUBMITTED)
+
+        # check that sample status is unchanged
+        self.sample_name.refresh_from_db()
+        self.assertEqual(self.sample_name.status, COMPLETED)
+
+        # assert called mock objects
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertTrue(self.my_team.create_submission.called)
+        self.assertFalse(self.my_root.get_submission_by_name.called)
+        self.assertEqual(self.new_submission.create_sample.call_count, 1)
+        self.assertFalse(self.new_submission.propertymock.called)
 
 
 class FetchMixin():
