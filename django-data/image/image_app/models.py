@@ -601,7 +601,7 @@ class Animal(BioSampleMixin, models.Model):
         result = {}
 
         # define mandatory fields
-        result['alias'] = self.get_biosample_id()
+        result['alias'] = self.biosample_alias
         result['title'] = self.name.name
 
         if release_date:
@@ -792,7 +792,7 @@ class Sample(BioSampleMixin, models.Model):
         result = {}
 
         # define mandatory fields
-        result['alias'] = self.get_biosample_id()
+        result['alias'] = self.biosample_alias
         result['title'] = self.name.name
 
         if release_date:

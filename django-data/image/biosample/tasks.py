@@ -238,9 +238,8 @@ class SubmitTask(MyTask):
     def __create_or_update(self, sample_obj, submission_data):
         """Create or update a sample (or a animal) in USI"""
 
-        # alias could be animal_XXX or a biosample id
-        # TODO: is biosample_alias?
-        alias = sample_obj.get_biosample_id()
+        # alias is used to reference the same objects
+        alias = sample_obj.biosample_alias
 
         # check in my submitted samples
         if alias in submission_data.submitted_samples:

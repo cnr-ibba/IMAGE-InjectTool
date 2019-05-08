@@ -31,6 +31,10 @@ ADMINS = [('Admin', 'bioinfo.ibba@gmail.com'), ]
 
 ALLOWED_HOSTS = ['*']
 
+
+# --- INSTALLED_APPS
+
+
 # Installed app order:
 # - django default applications
 # - downloaded applications
@@ -101,6 +105,9 @@ MIGRATION_MODULES = {
 WSGI_APPLICATION = 'image.wsgi.application'
 
 
+# --- DATABASES
+
+
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
@@ -159,6 +166,9 @@ AUTH_PASSWORD_VALIDATORS = [
                  'NumericPasswordValidator'),
     },
 ]
+
+
+# --- LOGGING
 
 
 # enable logging on terminal
@@ -248,6 +258,9 @@ LOGGING = {
 }
 
 
+# --- Site settings
+
+
 # internal ips (used for django-toolbar)
 # consider docker network ip addresses
 INTERNAL_IPS = [
@@ -314,6 +327,10 @@ ACCOUNT_ACTIVATION_DAYS = 7
 # registration-redux email type
 REGISTRATION_EMAIL_HTML = False
 
+
+# --- Mail settings
+
+
 # simply displaying them in the console
 # https://simpleisbetterthancomplex.com/series/2017/09/25/a-complete-beginners-guide-to-django-part-4.html#console-email-backend
 EMAIL_BACKEND = config(
@@ -331,6 +348,10 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
 EMAIL_PORT = config('EMAIL_PORT', cast=int, default=1025)
+
+
+# --- Redis and Celery settings
+
 
 # Redis settings
 REDIS_HOST = 'redis'
