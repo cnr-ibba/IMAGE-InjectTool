@@ -176,6 +176,32 @@ class SubmitTask(MyTask):
 
             return "success"
 
+        # TODO: should I rename this execption with a more informative name
+        # when token expires during a submission?
+        except RuntimeError as exc:
+            logger.error("Error in biosample submission: %s" % exc)
+
+            message = (
+                "Your token is expired: please submit again to resume "
+                "submission")
+
+            logger.error(message)
+
+            # add message to submission. Change status to READY
+            submission_data.submission_obj.status = READY
+            submission_data.submission_obj.message = message
+            submission_data.submission_obj.save()
+
+            # send a mail to the user with the stacktrace (einfo)
+            submission_data.owner.email_user(
+                "Error in biosample submission %s" % (
+                    submission_data.submission_id),
+                ("Your token is expired during submission. Click on submit "
+                 "button to generate a new token and resume your submission"),
+                )
+
+            return "success"
+
         # retry a task under errors
         # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
         except Exception as exc:
@@ -489,23 +515,18 @@ class FetchStatusTask(MyTask):
         sould be Animal or Sample to update the approriate object. Sample
         is a USI sample object"""
 
-        # track a key for this error message
-        key = None
-
         if table == 'Sample':
-            sample_obj = Sample.objects.get(pk=pk)
-            sample_obj.name.status = NEED_REVISION
-            sample_obj.name.save()
-            key = sample_obj
+            Table = Sample
 
         elif table == 'Animal':
-            animal_obj = Animal.objects.get(pk=pk)
-            animal_obj.name.status = NEED_REVISION
-            animal_obj.name.save()
-            key = animal_obj
+            Table = Animal
 
         else:
             raise Exception("Unknown table %s" % (table))
+
+        sample_obj = Table.objects.get(pk=pk)
+        sample_obj.name.status = NEED_REVISION
+        sample_obj.name.save()
 
         # get a USI validation result
         validation_result = sample.get_validation_result()
@@ -514,7 +535,7 @@ class FetchStatusTask(MyTask):
         errorMessages = validation_result.errorMessages
 
         # return an error for each object
-        return {str(key): errorMessages}
+        return {str(sample_obj): errorMessages}
 
     # a function to finalize a submission
     def finalize(self, submission, submission_obj):

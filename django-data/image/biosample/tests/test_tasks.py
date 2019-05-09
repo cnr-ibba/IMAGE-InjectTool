@@ -64,7 +64,7 @@ class RedisMixin():
 class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
 
     def setUp(self):
-        # call Mixin emthod
+        # call Mixin method
         super().setUp()
 
         # setting tasks
@@ -324,6 +324,57 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(
             "Error in biosample submission %s" % self.submission_id,
             email.subject)
+
+    def test_token_expired(self):
+        """Testing token expiring during a submission"""
+
+        # simulating a token expiring during a submission
+        self.new_submission.create_sample.side_effect = RuntimeError(
+                "Your token is expired")
+
+        # calling task
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission_obj.refresh_from_db()
+
+        # check submission.state return to ready (if it was valid before,
+        # should be valid again, if rules are the same)
+        self.assertEqual(self.submission_obj.status, READY)
+        self.assertEqual(
+            self.submission_obj.message,
+            "Your token is expired: please submit again to resume submission")
+        self.assertEqual(
+            self.submission_obj.biosample_submission_id,
+            "new-submission")
+
+        # check name status unchanged
+        qs = Name.objects.filter(status=READY)
+        self.assertEqual(len(qs), 2)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission 1",
+            email.subject)
+
+        # assert called mock objects
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertTrue(self.my_team.create_submission.called)
+        self.assertFalse(self.my_root.get_submission_by_name.called)
+
+        # is called once. With the first call, I got an exception and I
+        # dont't do the second request
+        self.assertEqual(self.new_submission.create_sample.call_count, 1)
+        self.assertFalse(self.new_submission.propertymock.called)
 
 
 class UpdateSubmissionTestCase(SubmitMixin, RedisMixin, TestCase):
@@ -694,8 +745,7 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
 
     def test_email_sent(self):
         # assert task and mock methods called
-        # self.common_tests()
-        super().common_tests(self.my_submission)
+        self.common_tests()
 
         # test email sent
         self.assertEqual(len(mail.outbox), 1)
