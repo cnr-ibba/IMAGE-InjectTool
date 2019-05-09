@@ -293,12 +293,12 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
         self.animal = Animal.objects.get(pk=1)
         self.submission = self.animal.submission
 
-    def test_get_biosample_id(self):
+    def test_get_accession(self):
         """Get a biosample id or a temporary id"""
 
         reference = "IMAGEA000000001"
 
-        test = self.animal.get_biosample_id()
+        test = self.animal.get_accession()
         self.assertEqual(reference, test)
 
         # assign a different biosample id
@@ -306,7 +306,7 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
         self.animal.name.biosample_id = reference
         self.animal.save()
 
-        test = self.animal.get_biosample_id()
+        test = self.animal.get_accession()
         self.assertEqual(reference, test)
 
     def test_to_biosample(self):
@@ -440,12 +440,12 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         # set submission
         self.submission = self.sample.submission
 
-    def test_get_biosample_id(self):
+    def test_get_accession(self):
         """Get a biosample id or a temporary id"""
 
         reference = "IMAGES000000001"
 
-        test = self.sample.get_biosample_id()
+        test = self.sample.get_accession()
         self.assertEqual(reference, test)
 
         # assign a different biosample id
@@ -453,7 +453,7 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         self.sample.name.biosample_id = reference
         self.sample.save()
 
-        test = self.sample.get_biosample_id()
+        test = self.sample.get_accession()
         self.assertEqual(reference, test)
 
     def test_to_biosample(self):

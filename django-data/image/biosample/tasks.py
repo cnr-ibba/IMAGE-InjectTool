@@ -205,12 +205,17 @@ class SubmitTask(MyTask):
         logger.info("Fetching data and add to submission %s" % (
             usi_submission_name))
 
+        # When the status is in this list, I can't submit this sample, since
+        # is already submitted by this submission or by a previous one
+        # and I don't want to submit the same thing if is not necessary
+        not_managed_statuses = [SUBMITTED, COMPLETED]
+
         # HINT: what happen if a token expire while submitting?
         for animal in Animal.objects.filter(
                 name__submission=submission_data.submission_obj):
 
             # add animal if not yet submitted, or patch it
-            if animal.name.status not in [SUBMITTED, COMPLETED]:
+            if animal.name.status not in not_managed_statuses:
                 logger.info("Appending animal %s" % (animal))
 
                 # check if animal is already submitted, otherwise patch
@@ -222,7 +227,7 @@ class SubmitTask(MyTask):
             # Add their specimen
             for sample in animal.sample_set.all():
                 # add sample if not yet submitted
-                if sample.name.status not in [SUBMITTED, COMPLETED]:
+                if sample.name.status not in not_managed_statuses:
                     logger.info("Appending sample %s" % (sample))
 
                     # check if sample is already submitted, otherwise patch
@@ -280,7 +285,7 @@ class SubmitTask(MyTask):
         # check that a submission is still editable
         if submission_data.usi_submission.status != "Draft":
             logger.warning(
-                "Error for submission '%s': current status is '%s'" % (
+                "Cannot recover submission '%s': current status is '%s'" % (
                     usi_submission_name,
                     submission_data.usi_submission.status))
 
@@ -305,7 +310,7 @@ class SubmitTask(MyTask):
             submission_data.team_name)
 
         # create a new submission
-        logger.info("Creating a new submission for %s" % (team.name))
+        logger.info("Creating a new submission for '%s'" % (team.name))
         submission_data.usi_submission = team.create_submission()
 
         # track submission_id in table

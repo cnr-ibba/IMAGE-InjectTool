@@ -82,8 +82,14 @@ class BioSampleMixin(BaseMixin):
         raise NotImplementedError(
             "You need to define this method in your class")
 
-    def get_biosample_id(self):
-        """Get the biosample id or a temporary name"""
+    @property
+    def biosample_id(self):
+        """Get the biosample_id of an object"""
+
+        return self.name.biosample_id
+
+    def get_accession(self):
+        """Get the biosample_id of an object or its alias if not defined"""
 
         return self.name.biosample_id or self.biosample_alias
 
@@ -165,6 +171,39 @@ class BioSampleMixin(BaseMixin):
         attributes['Species'] = self.specie.format_attribute()
 
         return attributes
+
+    def to_biosample(self, release_date=None):
+        """Common stuff to generate a biopsample object"""
+
+        result = {}
+
+        # define mandatory fields
+        result['alias'] = self.biosample_alias
+        result['title'] = self.name.name
+
+        # in case of update, I need to provide the old accession in payload
+        if self.biosample_id and self.biosample_id != '':
+            result['accession'] = self.biosample_id
+
+        if release_date:
+            result['releaseDate'] = release_date
+
+        else:
+            now = timezone.now()
+            result['releaseDate'] = str(now.date())
+
+        result['taxonId'] = self.specie.taxon_id
+
+        result['taxon'] = self.specie.label
+
+        # define optinal fields
+        if self.description:
+            result['description'] = self.description
+
+        # define attributes that will be customized in Animal and sample
+        result['attributes'] = self.get_attributes()
+
+        return result
 
     def __can_I(self, names):
         """Return True id self.status in statuses"""
@@ -598,28 +637,9 @@ class Animal(BioSampleMixin, models.Model):
     def to_biosample(self, release_date=None):
         """get a json from animal for biosample submission"""
 
-        result = {}
-
-        # define mandatory fields
-        result['alias'] = self.biosample_alias
-        result['title'] = self.name.name
-
-        if release_date:
-            result['releaseDate'] = release_date
-        else:
-            now = timezone.now()
-            result['releaseDate'] = str(now.date())
-
-        result['taxonId'] = self.specie.taxon_id
-
-        result['taxon'] = self.specie.label
-
-        # define optinal fields
-        if self.description:
-            result['description'] = self.description
-
-        # define attributes
-        result['attributes'] = self.get_attributes()
+        # call methods defined in BioSampleMixin and get result
+        # with USI mandatory keys and attributes
+        result = super().to_biosample(release_date)
 
         # TODO: define relationship
         result['sampleRelationships'] = []
@@ -789,32 +809,13 @@ class Sample(BioSampleMixin, models.Model):
     def to_biosample(self, release_date=None):
         """get a json from sample for biosample submission"""
 
-        result = {}
+        # call methods defined in BioSampleMixin and get result
+        # with USI mandatory keys and attributes
+        result = super().to_biosample(release_date)
 
-        # define mandatory fields
-        result['alias'] = self.biosample_alias
-        result['title'] = self.name.name
-
-        if release_date:
-            result['releaseDate'] = release_date
-        else:
-            now = timezone.now()
-            result['releaseDate'] = str(now.date())
-
-        result['taxonId'] = self.specie.taxon_id
-
-        result['taxon'] = self.specie.label
-
-        # define optinal fields
-        if self.description:
-            result['description'] = self.description
-
-        # define attributes
-        result['attributes'] = self.get_attributes()
-
-        # define relationship
+        # define relationship (get animal alias)
         result['sampleRelationships'] = [{
-            "alias": self.animal.get_biosample_id(),
+            "alias": self.animal.get_accession(),
             "relationshipNature": "derived from",
         }]
 
