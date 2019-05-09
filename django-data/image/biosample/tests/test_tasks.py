@@ -624,38 +624,78 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         my_submission = Mock()
         my_submission.name = "test-fetch"
         my_submission.status = 'Draft'
-        my_submission.has_errors.return_value = Counter({True: 1})
-        my_submission.get_status.return_value = Counter({'Complete': 1})
+        my_submission.has_errors.return_value = Counter({True: 1, False: 1})
+        my_submission.get_status.return_value = Counter({'Complete': 2})
 
-        # Add samples
+        # Add samples. Suppose that first failed, second is ok
+        my_validation_result1 = Mock()
+        my_validation_result1.errorMessages = {
+            'Ena': [
+                'a sample message',
+            ]
+        }
+
         my_sample1 = Mock()
         my_sample1.name = "test-animal"
         my_sample1.alias = "IMAGEA000000001"
+        my_sample1.has_errors.return_value = True
+        my_sample1.get_validation_result.return_value = my_validation_result1
+
+        # sample2 is ok
+        my_validation_result2 = Mock()
+        my_validation_result2.errorMessages = None
+
         my_sample2 = Mock()
         my_sample2.name = "test-sample"
         my_sample2.alias = "IMAGES000000001"
+        my_sample2.has_errors.return_value = False
+        my_sample2.get_validation_result.return_value = my_validation_result2
 
         # simulate that IMAGEA000000001 has errors
         my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
-        # track object
+        # track objects
         self.my_submission = my_submission
+        self.my_validation_result1 = my_validation_result1
+        self.my_validation_result2 = my_validation_result2
+        self.my_sample1 = my_sample1
+        self.my_sample2 = my_sample2
+
+        # track names
+        self.animal_name = Name.objects.get(pk=3)
+        self.sample_name = Name.objects.get(pk=4)
+
+    def common_tests(self):
+        # assert task and mock methods called
+        super().common_tests(self.my_submission)
+
+        # assert custom mock attributes called
+        self.assertTrue(self.my_sample1.has_errors.called)
+        self.assertTrue(self.my_sample1.get_validation_result.called)
+
+        # if sample has no errors, no all methods will be called
+        self.assertTrue(self.my_sample2.has_errors.called)
+        self.assertFalse(self.my_sample2.get_validation_result.called)
 
     def test_fetch_status(self):
         # assert task and mock methods called
-        self.common_tests(self.my_submission)
+        self.common_tests()
 
         # assert submission status
         self.submission_obj.refresh_from_db()
         self.assertEqual(self.submission_obj.status, NEED_REVISION)
 
-        # check name status changed
-        qs = Name.objects.filter(status=NEED_REVISION)
-        self.assertEqual(len(qs), 2)
+        # check name status changed only for animal (not sample)
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.status, NEED_REVISION)
+
+        self.sample_name.refresh_from_db()
+        self.assertEqual(self.sample_name.status, SUBMITTED)
 
     def test_email_sent(self):
         # assert task and mock methods called
-        self.common_tests(self.my_submission)
+        # self.common_tests()
+        super().common_tests(self.my_submission)
 
         # test email sent
         self.assertEqual(len(mail.outbox), 1)
@@ -666,6 +706,9 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         self.assertEqual(
             "Error in biosample submission %s" % self.submission_obj_id,
             email.subject)
+
+        # check for error messages in object
+        self.assertIn("a sample message", email.body)
 
 
 class FetchDraftTestCase(FetchMixin, TestCase):

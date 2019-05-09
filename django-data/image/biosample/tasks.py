@@ -7,6 +7,7 @@ Created on Tue Oct  2 16:07:58 2018
 """
 
 import os
+import json
 import redis
 import traceback
 
@@ -483,10 +484,45 @@ class FetchStatusTask(MyTask):
         else:
             return False
 
+    def __sample_has_errors(self, sample, table, pk):
+        """Helper metod to mark a (animal/sample) with its own errors. Table
+        sould be Animal or Sample to update the approriate object. Sample
+        is a USI sample object"""
+
+        # track a key for this error message
+        key = None
+
+        if table == 'Sample':
+            sample_obj = Sample.objects.get(pk=pk)
+            sample_obj.name.status = NEED_REVISION
+            sample_obj.name.save()
+            key = sample_obj
+
+        elif table == 'Animal':
+            animal_obj = Animal.objects.get(pk=pk)
+            animal_obj.name.status = NEED_REVISION
+            animal_obj.name.save()
+            key = animal_obj
+
+        else:
+            raise Exception("Unknown table %s" % (table))
+
+        # get a USI validation result
+        validation_result = sample.get_validation_result()
+
+        # TODO: should I store validation_result error in validation tables?
+        errorMessages = validation_result.errorMessages
+
+        # return an error for each object
+        return {str(key): errorMessages}
+
     # a function to finalize a submission
     def finalize(self, submission, submission_obj):
         # get errors for a submission
         errors = submission.has_errors()
+
+        # collect all error messages in a list
+        messages = []
 
         if True in errors:
             # get sample with errors then update database
@@ -496,28 +532,31 @@ class FetchStatusTask(MyTask):
                 # derive pk and table from alias
                 table, pk = parse_image_alias(sample.alias)
 
-                logger.debug("%s in table %s has errors!!!" % (sample, table))
+                # need to check if this sample/animals has errors or not
+                if sample.has_errors():
+                    logger.warning(
+                        "%s in table %s has errors!!!" % (sample, table))
 
-                if table == 'Sample':
-                    sample_obj = Sample.objects.get(pk=pk)
-                    sample_obj.name.status = NEED_REVISION
-                    sample_obj.name.save()
+                    # mark this sample since has problems
+                    errorMessages = self.__sample_has_errors(
+                        sample, table, pk)
 
-                elif table == 'Animal':
-                    animal_obj = Animal.objects.get(pk=pk)
-                    animal_obj.name.status = NEED_REVISION
-                    animal_obj.name.save()
+                    # append this into error messages list
+                    messages.append(errorMessages)
 
-                else:
-                    raise Exception("Unknown table %s" % (table))
+                # if a sample has no errors, status will be the same
 
             logger.error("Errors for submission: %s" % (submission))
             logger.error("Fix them, then finalize")
 
+            # report error via mai
+            email_body = "Some items needs revision:\n\n" + \
+                json.dumps(messages, indent=2)
+
             # send a mail for this submission
             submission_obj.owner.email_user(
                 "Error in biosample submission %s" % (submission_obj.id),
-                "Some items needs revision",
+                email_body,
             )
 
             # Update status for submission
