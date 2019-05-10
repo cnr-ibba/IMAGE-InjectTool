@@ -88,11 +88,6 @@ class BioSampleMixin(BaseMixin):
 
         return self.name.biosample_id
 
-    def get_accession(self):
-        """Get the biosample_id of an object or its alias if not defined"""
-
-        return self.name.biosample_id or self.biosample_alias
-
     def get_attributes(self):
         """Common attribute definition. Attribute name is the name in
         metadata rules"""
@@ -814,10 +809,19 @@ class Sample(BioSampleMixin, models.Model):
         result = super().to_biosample(release_date)
 
         # define relationship (get animal alias)
-        result['sampleRelationships'] = [{
-            "alias": self.animal.get_accession(),
-            "relationshipNature": "derived from",
-        }]
+        # HINT: if animal is already uploaded, should I use accession as
+        # relationship key? I need to test for biosample_id existance
+        # and then use keys properly
+        if self.animal.biosample_id and self.animal.biosample_id != '':
+            result['sampleRelationships'] = [{
+                "accession": self.animal.biosample_id,
+                "relationshipNature": "derived from",
+            }]
+        else:
+            result['sampleRelationships'] = [{
+                "alias": self.animal.biosample_alias,
+                "relationshipNature": "derived from",
+            }]
 
         return result
 
