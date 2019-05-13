@@ -15,6 +15,8 @@ from pyUSIrest.auth import Auth
 
 from django.conf import settings
 
+from image_app.models import Animal, Sample
+
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
@@ -59,3 +61,19 @@ def parse_image_alias(alias):
     pk = int(padded_pk)
 
     return table, pk
+
+
+def get_model_object(table, pk):
+    """Get a model object relying on table name (Sample/Alias) and pk"""
+
+    # get sample object
+    if table == "Animal":
+        sample_obj = Animal.objects.get(pk=pk)
+
+    elif table == "Sample":
+        sample_obj = Sample.objects.get(pk=pk)
+
+    else:
+        raise Exception("Unknown table '%s'" % (table))
+
+    return sample_obj
