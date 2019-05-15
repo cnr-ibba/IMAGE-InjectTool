@@ -25,13 +25,7 @@ InjectTool TODO
 
 * Regarding data submissions
   - How I can update an already loaded biosample using a different submission from
-    the first one?
-  - what happens if I update something after submission to biosample? need I track
-    what changes I see and patch in a new submission?
-    * No resubmission of already submitted data (with biosample id) if data isn't
-      changed
-    * test for Update of one animal (submit only a thing)
-  - what if a token expires during a submission?
+    the first one? Need to refator things in user spaces (no same name for same user)
   - Think about renaming EditSubmissionView with a more useful name
   - Submission to biosample using threads?
   - mail to admin when there are issues in USI?
@@ -44,6 +38,10 @@ InjectTool TODO
       }
     ]
     ```
+  - Supposing a submission has issues in USI validation. Shuold I track it in
+    validation tables? should I have tables for USI errors, since if the
+    data is validated using `image_validation` is not a user error?
+    
 * regarding issues in cryoweb:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
     Using google refine? For the moment, no duplicate can be inserted into database,
@@ -54,7 +52,8 @@ InjectTool TODO
   - check for duplicate breeds - names
 
 * NGINX media folder can serve media files (jpg, etc).
-  - add subdirs in media folder `data_source/`
+  - add subdirs in media folder `data_source/` - using a subdir for each template
+    could avoid name collision and visualize the original file name
 
 * Django enhancements
   - all foreign keys in django.admin dropdown lists are rendered in HTML page, and this make the

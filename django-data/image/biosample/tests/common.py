@@ -71,8 +71,9 @@ class SubmitMixin(PersonMixinTestCase):
         self.submission_obj.status = READY
         self.submission_obj.save()
 
-        # set status for names, like validation does
-        Name.objects.all().update(status=READY)
+        # set status for names, like validation does. Update only animal
+        # and sample names using their PKs
+        Name.objects.filter(pk__in=[3, 4]).update(status=READY)
 
         # track submission ID
         self.submission_id = self.submission_obj.id

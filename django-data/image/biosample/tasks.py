@@ -7,6 +7,7 @@ Created on Tue Oct  2 16:07:58 2018
 """
 
 import os
+import json
 import redis
 import traceback
 
@@ -24,7 +25,8 @@ from common.tasks import redis_lock
 from common.constants import (
     ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
-from .helpers import get_auth, get_manager_auth, parse_image_alias
+from .helpers import (
+    get_auth, get_manager_auth, parse_image_alias, get_model_object)
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -175,6 +177,32 @@ class SubmitTask(MyTask):
 
             return "success"
 
+        # TODO: should I rename this execption with a more informative name
+        # when token expires during a submission?
+        except RuntimeError as exc:
+            logger.error("Error in biosample submission: %s" % exc)
+
+            message = (
+                "Your token is expired: please submit again to resume "
+                "submission")
+
+            logger.error(message)
+
+            # add message to submission. Change status to READY
+            submission_data.submission_obj.status = READY
+            submission_data.submission_obj.message = message
+            submission_data.submission_obj.save()
+
+            # send a mail to the user with the stacktrace (einfo)
+            submission_data.owner.email_user(
+                "Error in biosample submission %s" % (
+                    submission_data.submission_id),
+                ("Your token is expired during submission. Click on submit "
+                 "button to generate a new token and resume your submission"),
+                )
+
+            return "success"
+
         # retry a task under errors
         # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
         except Exception as exc:
@@ -205,12 +233,17 @@ class SubmitTask(MyTask):
         logger.info("Fetching data and add to submission %s" % (
             usi_submission_name))
 
+        # When the status is in this list, I can't submit this sample, since
+        # is already submitted by this submission or by a previous one
+        # and I don't want to submit the same thing if is not necessary
+        not_managed_statuses = [SUBMITTED, COMPLETED]
+
         # HINT: what happen if a token expire while submitting?
         for animal in Animal.objects.filter(
                 name__submission=submission_data.submission_obj):
 
             # add animal if not yet submitted, or patch it
-            if animal.name.status not in [SUBMITTED, COMPLETED]:
+            if animal.name.status not in not_managed_statuses:
                 logger.info("Appending animal %s" % (animal))
 
                 # check if animal is already submitted, otherwise patch
@@ -222,7 +255,7 @@ class SubmitTask(MyTask):
             # Add their specimen
             for sample in animal.sample_set.all():
                 # add sample if not yet submitted
-                if sample.name.status not in [SUBMITTED, COMPLETED]:
+                if sample.name.status not in not_managed_statuses:
                     logger.info("Appending sample %s" % (sample))
 
                     # check if sample is already submitted, otherwise patch
@@ -280,7 +313,7 @@ class SubmitTask(MyTask):
         # check that a submission is still editable
         if submission_data.usi_submission.status != "Draft":
             logger.warning(
-                "Error for submission '%s': current status is '%s'" % (
+                "Cannot recover submission '%s': current status is '%s'" % (
                     usi_submission_name,
                     submission_data.usi_submission.status))
 
@@ -305,7 +338,7 @@ class SubmitTask(MyTask):
             submission_data.team_name)
 
         # create a new submission
-        logger.info("Creating a new submission for %s" % (team.name))
+        logger.info("Creating a new submission for '%s'" % (team.name))
         submission_data.usi_submission = team.create_submission()
 
         # track submission_id in table
@@ -478,10 +511,33 @@ class FetchStatusTask(MyTask):
         else:
             return False
 
+    def __sample_has_errors(self, sample, table, pk):
+        """Helper metod to mark a (animal/sample) with its own errors. Table
+        sould be Animal or Sample to update the approriate object. Sample
+        is a USI sample object"""
+
+        # get sample/animal object relying on table name and pk
+        sample_obj = get_model_object(table, pk)
+
+        sample_obj.name.status = NEED_REVISION
+        sample_obj.name.save()
+
+        # get a USI validation result
+        validation_result = sample.get_validation_result()
+
+        # TODO: should I store validation_result error in validation tables?
+        errorMessages = validation_result.errorMessages
+
+        # return an error for each object
+        return {str(sample_obj): errorMessages}
+
     # a function to finalize a submission
     def finalize(self, submission, submission_obj):
         # get errors for a submission
         errors = submission.has_errors()
+
+        # collect all error messages in a list
+        messages = []
 
         if True in errors:
             # get sample with errors then update database
@@ -491,28 +547,31 @@ class FetchStatusTask(MyTask):
                 # derive pk and table from alias
                 table, pk = parse_image_alias(sample.alias)
 
-                logger.debug("%s in table %s has errors!!!" % (sample, table))
+                # need to check if this sample/animals has errors or not
+                if sample.has_errors():
+                    logger.warning(
+                        "%s in table %s has errors!!!" % (sample, table))
 
-                if table == 'Sample':
-                    sample_obj = Sample.objects.get(pk=pk)
-                    sample_obj.name.status = NEED_REVISION
-                    sample_obj.name.save()
+                    # mark this sample since has problems
+                    errorMessages = self.__sample_has_errors(
+                        sample, table, pk)
 
-                elif table == 'Animal':
-                    animal_obj = Animal.objects.get(pk=pk)
-                    animal_obj.name.status = NEED_REVISION
-                    animal_obj.name.save()
+                    # append this into error messages list
+                    messages.append(errorMessages)
 
-                else:
-                    raise Exception("Unknown table %s" % (table))
+                # if a sample has no errors, status will be the same
 
             logger.error("Errors for submission: %s" % (submission))
             logger.error("Fix them, then finalize")
 
+            # report error via mai
+            email_body = "Some items needs revision:\n\n" + \
+                json.dumps(messages, indent=2)
+
             # send a mail for this submission
             submission_obj.owner.email_user(
                 "Error in biosample submission %s" % (submission_obj.id),
-                "Some items needs revision",
+                email_body,
             )
 
             # Update status for submission
@@ -537,20 +596,13 @@ class FetchStatusTask(MyTask):
                 logger.error("Ignoring submission %s" % (submission))
                 return
 
-            if table == 'Sample':
-                sample_obj = Sample.objects.get(pk=pk)
-                sample_obj.name.status = COMPLETED
-                sample_obj.name.biosample_id = sample.accession
-                sample_obj.name.save()
+            # get sample/animal object relying on table name and pk
+            sample_obj = get_model_object(table, pk)
 
-            elif table == 'Animal':
-                animal_obj = Animal.objects.get(pk=pk)
-                animal_obj.name.status = COMPLETED
-                animal_obj.name.biosample_id = sample.accession
-                animal_obj.name.save()
-
-            else:
-                raise Exception("Unknown table %s" % (table))
+            # update statuses
+            sample_obj.name.status = COMPLETED
+            sample_obj.name.biosample_id = sample.accession
+            sample_obj.name.save()
 
         # update submission
         submission_obj.status = COMPLETED
