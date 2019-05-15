@@ -45,10 +45,44 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
+# The suffix(es) of source filenames.
+# You can specify multiple suffix as a list of string:
+source_suffix = ['.rst', '.md']
+
+# The master toctree document.
+master_doc = 'index'
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+
+# The name of the Pygments (syntax highlighting) style to use.
+pygments_style = 'sphinx'
+
+# If true, `todo` and `todoList` produce output, else they produce nothing.
+todo_include_todos = False
+
+
+# document __init__ class method
+# https://stackoverflow.com/questions/5599254/how-to-use-sphinxs-autodoc-to-document-a-classs-init-self-method
+def skip(app, what, name, obj, skip, options):
+    if name == "__init__":
+        return False
+    return skip
+
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
+
+
+# Link to other projects’ documentation
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3.6', None),
+    'django': (
+        'http://docs.djangoproject.com/en/dev/',
+        'https://docs.djangoproject.com/en/dev/_objects/'),
+    }
 
 
 # -- Options for HTML output -------------------------------------------------

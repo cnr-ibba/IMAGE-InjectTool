@@ -7,12 +7,12 @@ Welcome to IMAGE-InjectTool's documentation!
 ============================================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Contents:
 
-   modules/all-about-me.rst
-   modules/models.rst
-   modules/views.rst
+   modules/common
+   modules/submissions
+
 
 Indices and tables
 ==================
