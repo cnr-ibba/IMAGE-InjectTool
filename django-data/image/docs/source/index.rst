@@ -6,9 +6,29 @@
 Welcome to IMAGE-InjectTool's documentation!
 ============================================
 
+General Documentation
+---------------------
+
+Overview of InjectTool
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: General
+
+   general/about_injecttool
+   general/install_and_configure
+   general/uid
+   general/apps_and_modules
+
+
+Module Documentation
+--------------------
+
+Documentation by modules
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Modules
 
    modules/common
    modules/submissions
