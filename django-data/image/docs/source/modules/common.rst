@@ -1,8 +1,10 @@
-Common
-======
+Common App
+==========
 
-Views
------
+.. _common-app:
+
+common.views
+------------
 
 .. automodule:: common.views
    :members:
