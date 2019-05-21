@@ -32,11 +32,25 @@ class Replace(Func):
 # Adding a classmethod to Category if you want to enable truncate
 # https://books.agiliq.com/projects/django-orm-cookbook/en/latest/truncate.html
 class BaseMixin(object):
-    "Base class for cryoweb tables"
+    """Base class for UID tables. It implement common stuff for all UID
+    tables::
+
+        from image_app.models import BaseMixin
+
+        class Submission(BaseMixin):
+            pass
+
+    """
 
     @classmethod
     def truncate(cls):
-        """Truncate table"""
+        """
+        Truncate table data and restart indexes from 0::
+
+            from image_app.models import Submission
+
+            Submission.truncate()
+        """
 
         # Django.db.connections is a dictionary-like object that allows you
         # to retrieve a specific connection using its alias
@@ -48,33 +62,57 @@ class BaseMixin(object):
 
 
 class BioSampleMixin(BaseMixin):
-    """Common methods for animal and samples"""
+    """
+    Common methods for animal and samples useful in biosample generation
+    Need to called with data into biosample or animals::
+
+        from image_app.models import Animal
+
+        animal = Animal.objects.get(pk=1)
+        biosample_data = animal.to_biosample()
+
+    """
 
     def __str__(self):
         return str(self.name)
 
     @property
     def person(self):
+        """Retrieve :py:class:`Person` information from owner relationship"""
+
         return self.owner.person
 
     @property
     def organization(self):
+        """Return :py:class:`Organization` relationship from related
+        :py:class:`Submission` object"""
+
         return self.name.submission.organization
 
     @property
     def gene_bank_country(self):
+        """Return :py:class:`DictCountry` relationship from related
+        :py:class:`Submission` object"""
+
         return self.name.submission.gene_bank_country
 
     @property
     def gene_bank_name(self):
+        """Return gene bank name from related :py:class:`Submission` object"""
+
         return self.name.submission.gene_bank_name
 
     @property
     def data_source_id(self):
+        """Get Data source id (original animal/sample name) from related
+        :py:class:`Name` object"""
+
         return self.name.name
 
     @property
     def submission(self):
+        """Get related :py:class:`Submission` object throgh :py:class:`Name`
+        """
         return self.name.submission
 
     @property
@@ -84,7 +122,8 @@ class BioSampleMixin(BaseMixin):
 
     @property
     def biosample_id(self):
-        """Get the biosample_id of an object"""
+        """Get the biosample_id of an object (need to be submitted and
+        retrieved sing USI)"""
 
         return self.name.biosample_id
 
@@ -94,8 +133,13 @@ class BioSampleMixin(BaseMixin):
         return self.name.biosample_id or self.biosample_alias
 
     def get_attributes(self):
-        """Common attribute definition. Attribute name is the name in
-        metadata rules"""
+        """Common attribute definition required from Animal and samples. Need
+        to be called inside Animal/sample get_atribute method. Keys
+        is the name in metadata rules
+
+        Returns:
+            dict: a dictionary object
+        """
 
         attributes = {}
 
@@ -173,7 +217,17 @@ class BioSampleMixin(BaseMixin):
         return attributes
 
     def to_biosample(self, release_date=None):
-        """Common stuff to generate a biopsample object"""
+        """
+        Common stuff to generate a biosample object. Need to be called
+        inside Animal/Sample to_biosample method
+
+        Args:
+            release_date (str): data will no be published before this day
+                (YYYY-MM-DD)
+
+        Returns:
+            dict: a dictionary object
+        """
 
         result = {}
 
@@ -206,7 +260,15 @@ class BioSampleMixin(BaseMixin):
         return result
 
     def __can_I(self, names):
-        """Return True id self.status in statuses"""
+        """
+        Return True id self.status in statuses
+
+        Args:
+            names (list): a list of :py:class:`common.constants.STATUSES`
+
+        Returns:
+            bool
+        """
 
         statuses = [x.value[0] for x in STATUSES if x.name in names]
 
@@ -217,14 +279,24 @@ class BioSampleMixin(BaseMixin):
             return False
 
     def can_edit(self):
-        """Returns True if I can edit a sample/animal"""
+        """Returns True if I can edit a sample/animal according to submission
+        status
+
+        Returns:
+            bool
+        """
 
         names = ['waiting', 'submitted']
 
         return self.__can_I(names)
 
     def can_delete(self):
-        """Returns True if I can delete a sample/animal"""
+        """Returns True if I can delete a sample/animal according to submission
+        status
+
+        Returns:
+            bool
+        """
 
         names = ['waiting', 'submitted']
 
@@ -236,7 +308,17 @@ class BioSampleMixin(BaseMixin):
 
 # helper classes
 class DictBase(BaseMixin, models.Model):
-    """Base class for dictionary tables"""
+    """
+    Abstract class to be inherited to all dictionary tables. It models fields
+    like ``label`` (the revised term like submitter or blood) and
+    ``term`` (the ontology id as the final part of the URI link)
+
+    The fixed part of the URI could be customized from :py:class:`Ontology`
+    by setting ``library_name`` class attribute accordingly::
+
+        class DictRole(DictBase):
+            library_name = 'EFO'
+    """
 
     library_name = None
 
@@ -263,6 +345,19 @@ class DictBase(BaseMixin, models.Model):
                 term=self.term)
 
     def format_attribute(self):
+        """
+        Format an object instance as a dictionary used by biosample, for
+        example::
+
+            [{
+                'value': 'submitter',
+                'terms': [{'url': 'http://www.ebi.ac.uk/efo/EFO_0001741'}]
+            }]
+
+        the fixed part of URI link is defined by ``library_name`` class
+        attribute
+        """
+
         if self.library_name is None:
             logger.warning("library_name not defined")
             library_uri = OBO_URL
@@ -278,7 +373,10 @@ class DictBase(BaseMixin, models.Model):
 
 
 class Confidence(BaseMixin, models.Model):
-    """Add confidence to models"""
+    """
+    Abstract class which add :ref:`confidence <Common confidences>`
+    to models
+    """
 
     # confidence field (enum)
     confidence = models.SmallIntegerField(

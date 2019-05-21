@@ -31,6 +31,7 @@ Documentation by modules
    :caption: Modules
 
    modules/common
+   modules/image_app
    modules/submissions
 
 

@@ -17,7 +17,7 @@ Django apps
 - **crbanim**: implement stuff regarding CRBanim data import into :ref:`The Unified Internal Database`
 - **cryoweb**: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
 - **image**: django configuration files
-- **image_app**: implement stuff related to :ref:`The Unified Internal Database` and
+- :ref:`image_app <image_app-app>`: implement stuff related to :ref:`The Unified Internal Database` and
   views like index, dashboard, about, ...
 - **language**: implement stuff related to language module implementation and to
   resolve common names (ie Cow) into more scientific names (ie Bos taurus)
