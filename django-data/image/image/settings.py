@@ -313,6 +313,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 #     STATIC_ROOT,
 # ]
 
+# The numeric mode (i.e. 0o644) to set newly uploaded files to. For more
+# information about what these modes mean, see the documentation for os.chmod()
+# If this isn’t given or is None, you’ll get operating-system dependent
+# behavior. On most platforms, temporary files will have a mode of 0o600,
+# and files saved from memory will be saved using the system’s standard umask.
+# For security reasons, these permissions aren’t applied to the temporary files
+#  that are stored in FILE_UPLOAD_TEMP_DIR.
+# This setting also determines the default permissions for collected static
+# files when using the collectstatic management command. See collectstatic for
+# details on overriding it.
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 # restrict access to media URLs
 # https://gist.github.com/cobusc/ea1d01611ef05dacb0f33307e292abf4
 PROTECTED_MEDIA_ROOT = os.path.join(BASE_DIR, "protected/")
