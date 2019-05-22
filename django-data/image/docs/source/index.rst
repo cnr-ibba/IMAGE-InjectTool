@@ -12,7 +12,7 @@ General Documentation
 Overview of InjectTool
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: General
 
    general/about_injecttool
@@ -27,7 +27,7 @@ Module Documentation
 Documentation by modules
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Modules
 
    modules/common

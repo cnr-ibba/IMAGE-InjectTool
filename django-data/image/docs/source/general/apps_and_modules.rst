@@ -22,7 +22,8 @@ Django apps
 - **language**: implement stuff related to language module implementation and to
   resolve common names (ie Cow) into more scientific names (ie Bos taurus)
 - **samples**: Implement all stuff to visualize and manage Samples (specimen from organim)
-- :ref:`submissions <submissions-app>`
+- :ref:`submissions <submissions-app>`: Implement all stuff regarding submission (uploading
+  user data, starting task as validation and submission, call Sample and Animal views)
 - **validation**: Perform validation stuff by calling `IMAGE-ValidationTool`_
 - **zooma**: Annotate dictionary tables in order to provide ontology informations
   using `zooma`_ API.
