@@ -7,6 +7,7 @@ Created on Wed Mar 27 12:50:16 2019
 """
 
 import logging
+import websockets
 
 from dateutil.relativedelta import relativedelta
 
@@ -72,3 +73,13 @@ def get_deleted_objects(objs, db_alias=DEFAULT_DB_ALIAS):
             len(objs) for model, objs in collector.model_objs.items()}
 
     return to_delete, model_count, protected
+
+
+async def send_message_to_websocket(message, pk):
+    """
+    Function will create websocket object and send message to django-channels
+    :param message: message to send to websocket
+    :param pk: primary key of submission
+    """
+    async with websockets.connect('ws://asgi:8001/image/ws/submissions/{}/'.format(pk)) as websocket:
+        await websocket.send(message)

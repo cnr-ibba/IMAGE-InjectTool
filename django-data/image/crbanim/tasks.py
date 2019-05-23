@@ -7,8 +7,10 @@ Created on Wed Feb 27 16:38:37 2019
 """
 
 from celery.utils.log import get_task_logger
+import asyncio
 
-from common.constants import ERROR
+from common.constants import ERROR, STATUSES
+from common.helpers import send_message_to_websocket
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission
 
@@ -35,6 +37,8 @@ class ImportCRBAnimTask(MyTask):
         submission_obj.status = ERROR
         submission_obj.message = ("Error in CRBAnim loading: %s" % (str(exc)))
         submission_obj.save()
+
+        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], args[0]))
 
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
