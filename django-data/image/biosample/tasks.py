@@ -20,7 +20,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Animal, Sample
+from image_app.models import Submission, Animal
 from common.tasks import redis_lock
 from common.constants import (
     ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)

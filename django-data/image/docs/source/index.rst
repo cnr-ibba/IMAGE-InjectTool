@@ -20,6 +20,7 @@ Overview of InjectTool
    general/install_and_configure
    general/databases
    general/apps_and_modules
+   general/asynchronous_tasks
 
 
 Module Documentation
@@ -34,7 +35,9 @@ Documentation by modules
    modules/common
    modules/cryoweb
    modules/image_app
+   modules/language
    modules/submissions
+   modules/validation
 
 
 Indices and tables

@@ -49,7 +49,7 @@ def clean_cryoweb_database(f):
 def import_from_cryoweb(self, submission_id, blocking=True):
     """
     An exclusive task wich upload a *data-only* cryoweb dump in cryoweb
-    database and then fill up :ref:<UID `The Unified Internal Database`>
+    database and then fill up :ref:`UID <The Unified Internal Database>`
     tables. After data import (wich could be successful or not) cryoweb
     helper database is cleanded and restored in the original status::
 

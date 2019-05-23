@@ -5,7 +5,7 @@ Biosample App
 .. _biosample-app:
 
 biosample.helpers
-------------------
+-----------------
 
 biosample.helpers module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,6 +14,18 @@ biosample.helpers module contents
    :members:
    :show-inheritance:
    :undoc-members:
+
+biosample.models
+----------------
+
+biosample.models module contents
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: biosample.models
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 
 biosample.tasks
 ---------------

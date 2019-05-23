@@ -43,12 +43,12 @@ celery operations:
 
 - **celery-worker**: The first of the three containers running Celery. It relies on
   *uwsgi* container, since it share the same django code of *uwsgi*. It performs
-  InjectTool time consuming task asynchronously. It consumes task stored in *redis*
+  :ref:`InjectTool time consuming tasks <Asynchronous Tasks>` asynchronously. It consumes task stored in *redis*
   database and has access to *postgres* database in order to store data persistently.
 
 - **celery-beat**: The second of the three containers running celery. It send
-  routine tasks or tasks on regolar timning to celery-worker. This operates without
-  user intervention
+  :ref:`routine tasks <Routine Tasks>` or tasks on regolar timning to
+  celery-worker. This operates without user intervention
 
 - **celery-flower**: is a monitoring instance of celery workers. It displays information
   regarding tasks. Its contents are rendered in HTML and reached through ``5555`` port

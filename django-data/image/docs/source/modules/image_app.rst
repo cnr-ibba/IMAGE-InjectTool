@@ -37,7 +37,7 @@ with all animals defined in selected submission.
 Private data
 ^^^^^^^^^^^^
 
-Submission data are considered private to the user when they are stored in
+Submission data (Animals, Samples) are considered private to the user when they are stored in
 :ref:`The Unified Internal Database`. Each table (:py:class:`django.models.Model`)
 has an ``owner`` column in which a relation to :py:class:`django.contrib.auth.models.User`
 is defined. In such way, is possible to get all objects belonging to such user::
