@@ -40,7 +40,8 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'celery.contrib.sphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -83,6 +84,7 @@ intersphinx_mapping = {
     'django': (
         'http://docs.djangoproject.com/en/dev/',
         'https://docs.djangoproject.com/en/dev/_objects/'),
+    'celery': ('http://celery.readthedocs.org/en/latest/', None),
     }
 
 

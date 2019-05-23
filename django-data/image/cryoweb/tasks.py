@@ -47,6 +47,25 @@ def clean_cryoweb_database(f):
 @task(bind=True)
 @clean_cryoweb_database
 def import_from_cryoweb(self, submission_id, blocking=True):
+    """
+    An exclusive task wich upload a *data-only* cryoweb dump in cryoweb
+    database and then fill up :ref:<UID `The Unified Internal Database`>
+    tables. After data import (wich could be successful or not) cryoweb
+    helper database is cleanded and restored in the original status::
+
+        from cryoweb.tasks import import_from_cryoweb
+
+        # call task asynchronously
+        res = import_from_cryoweb.delay(submission_id)
+
+    Args:
+        submission_id (int): the submission primary key
+        blocking (bool): set task as exclusive or not (def: True)
+
+    Returns:
+        str: a message string (ex. success)
+
+    """
     # The cache key consists of the task name and the MD5 digest
     # of the feed URL.
     lock_id = 'ImportFromCryoWeb'

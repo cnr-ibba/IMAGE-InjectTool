@@ -10,12 +10,12 @@ Django apps
   module.
 - **animals**: Implement all stuff to visualize and manage Animals (organims)
   object
-- **biosample**: implement stuff regarding AAP registration (2nd step InjectTool registration)
+- :ref:`biosample <biosample-app>`: implement stuff regarding AAP registration (2nd step InjectTool registration)
   and biosample submission and retrieval
 - :ref:`common <common-app>`: modules and functions that could be imported from
   other django applications
 - **crbanim**: implement stuff regarding CRBanim data import into :ref:`The Unified Internal Database`
-- **cryoweb**: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
+- :ref:`cryoweb <cryoweb-app>`: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
 - **image**: django configuration files
 - :ref:`image_app <image_app-app>`: implement stuff related to :ref:`The Unified Internal Database` and
   views like index, dashboard, about, ...
