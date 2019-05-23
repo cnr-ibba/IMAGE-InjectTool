@@ -67,6 +67,35 @@ services:
     links:
       - db
       - redis
+      - asgi
+
+  asgi:
+    # a custom image for django
+    build: ./uwsgi
+
+    # exec a different command from image
+    command: daphne -b 0.0.0.0 -p 8001 --proxy-headers image.asgi:application
+
+    # set working dir for uwsgi
+    working_dir: /var/uwsgi/image/
+
+    # define volumes
+    volumes:
+      - type: bind
+        source: ./django-data/
+        target: /var/uwsgi/
+
+      - type: bind
+        source: ./.git/
+        target: /var/uwsgi/.git/
+        read_only: true
+
+    # Expose the default port
+
+    # link container to database
+    links:
+      - db
+      - redis
 
 
   celery-worker:
@@ -161,6 +190,7 @@ services:
     # link container uwsgi
     links:
       - uwsgi
+      - asgi
 
 volumes:
   redis-data:

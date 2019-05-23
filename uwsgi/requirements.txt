@@ -1,3 +1,7 @@
+asyncio
+websockets
+channels
+channels_redis
 uwsgi
 mysqlclient
 psycopg2-binary
