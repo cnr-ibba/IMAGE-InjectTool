@@ -123,7 +123,8 @@
 
 {% block custom-js %}
 <script>
-  function getColor(current_status) {
+  $(document).ready(function() {
+    function getColor(current_status) {
     var color_class;
     if (current_status === 'Loaded' || current_status === 'Waiting' || current_status == 'Submitted') {
       color_class = "text-info font-weight-bold"
@@ -131,7 +132,7 @@
       color_class = "text-danger font-weight-bold"
     } else if (current_status === 'Ready' || current_status === 'Completed') {
       color_class = "text-success font-weight-bold"
-    } else if (current_status === 'Need revision') {
+    } else if (current_status === 'Need Revision') {
       color_class = "text-warning font-weight-bold"
     }
     return color_class
@@ -155,7 +156,7 @@
       submit_button.classList.remove('disabled');
     }
 
-    if (current_status === 'Loaded' || current_status === 'Need revision') {
+    if (current_status === 'Loaded' || current_status === 'Need Revision') {
       remove_disabled(edit_data);
       remove_disabled(danger_zone);
       remove_disabled(validate_button);
@@ -174,6 +175,7 @@
   chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     var message = data['message'];
+    console.log(message);
     document.querySelector('#status-log').textContent = message;
     document.querySelector('#status-log').className = getColor(message);
     disableButtons(message);
@@ -185,5 +187,6 @@
 
   current_status = document.querySelector('#status-log').textContent;
   document.querySelector('#status-log').className = getColor(current_status);
+  });
 </script>
 {% endblock custom-js %}

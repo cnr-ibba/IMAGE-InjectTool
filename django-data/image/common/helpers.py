@@ -8,6 +8,7 @@ Created on Wed Mar 27 12:50:16 2019
 
 import logging
 import websockets
+import time
 
 from dateutil.relativedelta import relativedelta
 
@@ -81,5 +82,7 @@ async def send_message_to_websocket(message, pk):
     :param message: message to send to websocket
     :param pk: primary key of submission
     """
+    # Need to have it here as in case with small test data message sent to websocket will overcome response from server
+    time.sleep(3)
     async with websockets.connect('ws://asgi:8001/image/ws/submissions/{}/'.format(pk)) as websocket:
         await websocket.send(message)

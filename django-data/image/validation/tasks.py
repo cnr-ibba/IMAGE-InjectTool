@@ -11,12 +11,14 @@ Useful staff to deal with validation process
 
 import json
 import traceback
+import asyncio
 
 from collections import Counter
 from celery.utils.log import get_task_logger
 
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES)
+from common.helpers import send_message_to_websocket
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal
 
@@ -62,6 +64,8 @@ class ValidateTask(MyTask):
         submission_obj.message = ("Error in IMAGE Validation: %s" % (str(exc)))
         submission_obj.save()
 
+        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], args[0]))
+
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
             "Error in IMAGE Validation: %s" % (args[0]),
@@ -82,7 +86,7 @@ class ValidateTask(MyTask):
         # read rules when task starts
         self.ruleset = MetaDataValidation()
 
-        # get submissio object
+        # get submission object
         submission_obj = Submission.objects.get(pk=submission_id)
 
         # track global statuses
@@ -95,11 +99,11 @@ class ValidateTask(MyTask):
         try:
             for animal in Animal.objects.filter(
                     name__submission=submission_obj):
-                self.validate_model(animal, submission_statuses)
+                self.validate_model(animal, submission_statuses, submission_id)
 
             for sample in Sample.objects.filter(
                     name__submission=submission_obj):
-                self.validate_model(sample, submission_statuses)
+                self.validate_model(sample, submission_statuses, submission_id)
 
         # TODO: errors in validation shuold raise custom exception
         except json.decoder.JSONDecodeError as exc:
@@ -112,6 +116,9 @@ class ValidateTask(MyTask):
             submission_obj.status = LOADED
             submission_obj.message = (message)
             submission_obj.save()
+
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.loaded.value[1],
+                                                                                  submission_id))
 
             # get exception info
             einfo = traceback.format_exc()
@@ -142,7 +149,8 @@ class ValidateTask(MyTask):
 
             # mark submission with ERROR (this is not related to user data)
             # calling the appropriate method passing ERROR as status
-            self.submission_fail(submission_obj, message, status=ERROR)
+            self.submission_fail(submission_obj, message, submission_id=submission_id, status=ERROR,
+                                 status_ws=STATUSES.error.value[1])
 
             # raise an exception since is an InjectTool issue
             raise ValidationError(message)
@@ -150,7 +158,7 @@ class ValidateTask(MyTask):
         # If I have any error in JSON is a problem of injectool
         if self.has_errors_in_json(submission_statuses):
             # mark submission with NEED_REVISION
-            self.submission_fail(submission_obj, "Wrong JSON structure")
+            self.submission_fail(submission_obj, "Wrong JSON structure", submission_id=submission_id)
 
             # debug
             logger.warning(
@@ -167,7 +175,7 @@ class ValidateTask(MyTask):
                 "Error in metadata. Need revisions before submit")
 
             # mark submission with NEED_REVISION
-            self.submission_fail(submission_obj, message)
+            self.submission_fail(submission_obj, message, submission_id=submission_id)
 
             logger.warning(
                 "Error in metadata for submission %s" % (submission_obj))
@@ -181,6 +189,9 @@ class ValidateTask(MyTask):
             submission_obj.message = "Submission validated with some warnings"
             submission_obj.save()
 
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.ready.value[1],
+                                                                                  submission_id))
+
             logger.info(
                 "Submission %s validated with some warning" % (submission_obj))
 
@@ -192,6 +203,9 @@ class ValidateTask(MyTask):
             submission_obj.message = "Submission validated with success"
             submission_obj.save()
 
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.ready.value[1],
+                                                                                  submission_id))
+
             logger.info(
                 "Submission %s validated with success" % (submission_obj))
 
@@ -202,7 +216,7 @@ class ValidateTask(MyTask):
 
         return "success"
 
-    def validate_model(self, model, submission_statuses):
+    def validate_model(self, model, submission_statuses, submission_id):
         logger.debug("Validating %s" % (model))
 
         # get data in biosample format
@@ -218,7 +232,7 @@ class ValidateTask(MyTask):
             submission_statuses.update({'JSON': len(usi_result)})
 
             # update model results
-            self.mark_model(model, usi_result, NEED_REVISION)
+            self.mark_model(model, usi_result, NEED_REVISION, STATUSES.need_revision.value[1], submission_id)
 
             # It make no sense continue validation since JSON is wrong
             return
@@ -230,19 +244,19 @@ class ValidateTask(MyTask):
         ruleset_result = self.ruleset.validate(data)
 
         # update status and track data in a overall variable
-        self.update_statuses(submission_statuses, model, ruleset_result)
+        self.update_statuses(submission_statuses, model, ruleset_result, submission_id)
 
     # inspired from validation.deal_with_validation_results
-    def update_statuses(self, submission_statuses, model, result):
+    def update_statuses(self, submission_statuses, model, result, submission_id):
         # get overall status (ie Pass, Error)
         overall = result.get_overall_status()
 
         # set model as valid even if has some warnings
         if overall in ["Pass", "Warning"]:
-            self.mark_model(model, result, READY)
+            self.mark_model(model, result, READY, STATUSES.ready.value[1], submission_id)
 
         else:
-            self.mark_model(model, result, NEED_REVISION)
+            self.mark_model(model, result, NEED_REVISION, STATUSES.need_revision.value[1], submission_id)
 
         # update a collections.Counter objects by key
         submission_statuses.update({overall})
@@ -268,7 +282,7 @@ class ValidateTask(MyTask):
 
         return submission_statuses["JSON"] > 0
 
-    def mark_model(self, model, result, status):
+    def mark_model(self, model, result, status, status_ws, submission_id):
         """Set status to a model and instantiate a ValidationResult obj"""
 
         if isinstance(result, list):
@@ -307,13 +321,16 @@ class ValidateTask(MyTask):
             # update model status and save
             model.name.status = status
             model.name.save()
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(status_ws, submission_id))
 
-    def submission_fail(self, submission_obj, message, status=NEED_REVISION):
+    def submission_fail(self, submission_obj, message, submission_id, status=NEED_REVISION,
+                        status_ws=STATUSES.need_revision.value[1]):
         """Mark a submission with NEED_REVISION status"""
 
         submission_obj.status = status
         submission_obj.message = ("Validation got errors: %s" % (message))
         submission_obj.save()
+        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(status_ws, submission_id))
 
 
 # register explicitly tasks
