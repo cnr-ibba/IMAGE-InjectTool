@@ -10,6 +10,7 @@ import os
 import json
 import redis
 import traceback
+import asyncio
 
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
@@ -23,7 +24,8 @@ from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Animal, Sample
 from common.tasks import redis_lock
 from common.constants import (
-    ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
+    ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
+from common.helpers import send_message_to_websocket
 
 from .helpers import (
     get_auth, get_manager_auth, parse_image_alias, get_model_object)
@@ -108,6 +110,9 @@ class SubmitTask(MyTask):
             "Error in biosample submission: %s" % str(exc))
         submission_data.submission_obj.save()
 
+        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1],
+                                                                              submission_data.submission_id))
+
         # send a mail to the user with the stacktrace (einfo)
         submission_data.owner.email_user(
             "Error in biosample submission %s" % (
@@ -164,6 +169,9 @@ class SubmitTask(MyTask):
             submission_data.submission_obj.message = message
             submission_data.submission_obj.save()
 
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.ready.value[1],
+                                                                                  submission_data.submission_id))
+
             # get exception info
             einfo = traceback.format_exc()
 
@@ -192,6 +200,9 @@ class SubmitTask(MyTask):
             submission_data.submission_obj.status = READY
             submission_data.submission_obj.message = message
             submission_data.submission_obj.save()
+
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.ready.value[1],
+                                                                                  submission_data.submission_id))
 
             # send a mail to the user with the stacktrace (einfo)
             submission_data.owner.email_user(
@@ -272,6 +283,8 @@ class SubmitTask(MyTask):
         submission_data.submission_obj.message = (
             "Waiting for biosample validation")
         submission_data.submission_obj.save()
+        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.submitted.value[1],
+                                                                              submission_data.submission_id))
 
     # helper function to create or update a biosample record
     def __create_or_update(self, sample_obj, submission_data):
@@ -494,6 +507,9 @@ class FetchStatusTask(MyTask):
             submission_obj.message = message
             submission_obj.save()
 
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1],
+                                                                                  submission_obj.id))
+
             logger.error("Errors for submission: %s" % (submission))
             logger.error(message)
 
@@ -579,6 +595,9 @@ class FetchStatusTask(MyTask):
             submission_obj.message = "Error in biosample submission"
             submission_obj.save()
 
+            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.need_revision.value[1],
+                                                                                  submission_obj.id))
+
         else:
             logger.info("Finalizing submission %s" % (
                 submission.name))
@@ -608,6 +627,9 @@ class FetchStatusTask(MyTask):
         submission_obj.status = COMPLETED
         submission_obj.message = "Successful submission into biosample"
         submission_obj.save()
+
+        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.completed.value[1],
+                                                                              submission_obj.id))
 
         logger.info(
             "Submission %s is now completed and recorded into UID" % (
