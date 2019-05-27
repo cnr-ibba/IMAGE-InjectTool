@@ -17,6 +17,8 @@ class EnumMixin():
 
     @classmethod
     def get_value(cls, member):
+        """Get numerical representation of an Enum object"""
+
         return cls[member].value[0]
 
 

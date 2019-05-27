@@ -8,6 +8,7 @@ Created on Tue Feb  6 15:04:07 2018
 
 import os
 import logging
+import mimetypes
 
 from django.utils.encoding import smart_str
 from django.contrib.auth.decorators import login_required
@@ -105,13 +106,27 @@ def protected_view(request, path):
 
     file_name = os.path.basename(path)
 
+    # try to determine file type
+    file_type, encoding = mimetypes.guess_type(path)
+
+    logger.debug("Detected content type: %s" % (file_type))
+
     # get file size using protected storage
     storage = ProtectedFileSystemStorage()
     file_size = storage.size(path)
 
+    # try to set file type to response
+    # https://djangosnippets.org/snippets/1710/
+    if file_type is None:
+        file_type = 'application/octet-stream'
+
     # force django to attach file in response
+    response = HttpResponse(content_type=file_type)
+
+    if encoding is not None:
+        response['Content-Encoding'] = encoding
+
     # https://stackoverflow.com/a/1158750/4385116
-    response = HttpResponse(content_type='application/force-download')
     response["X-Accel-Redirect"] = smart_str(full_path)
     response['Content-Disposition'] = 'attachment; filename="{}"'.format(
         file_name)

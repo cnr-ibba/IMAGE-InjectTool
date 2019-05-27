@@ -24,3 +24,4 @@ django-simple-cookie-consent==0.1.1
 # git+https://github.com/cnr-ibba/pyUSIrest.git@b07c54830d57603ba052821b43ad36e11bdab62c
 pyUSIrest==0.2.2
 git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@3373b4b766427bfbc51ed387729f057ff002ee5e
+sphinx

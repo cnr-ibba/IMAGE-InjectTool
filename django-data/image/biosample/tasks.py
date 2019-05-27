@@ -20,12 +20,13 @@ from django.conf import settings
 from django.utils import timezone
 
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Animal, Sample
+from image_app.models import Submission, Animal
 from common.tasks import redis_lock
 from common.constants import (
     ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
-from .helpers import get_auth, get_manager_auth, parse_image_alias
+from .helpers import (
+    get_auth, get_manager_auth, parse_image_alias, get_model_object)
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -515,16 +516,9 @@ class FetchStatusTask(MyTask):
         sould be Animal or Sample to update the approriate object. Sample
         is a USI sample object"""
 
-        if table == 'Sample':
-            Table = Sample
+        # get sample/animal object relying on table name and pk
+        sample_obj = get_model_object(table, pk)
 
-        elif table == 'Animal':
-            Table = Animal
-
-        else:
-            raise Exception("Unknown table %s" % (table))
-
-        sample_obj = Table.objects.get(pk=pk)
         sample_obj.name.status = NEED_REVISION
         sample_obj.name.save()
 
@@ -602,20 +596,13 @@ class FetchStatusTask(MyTask):
                 logger.error("Ignoring submission %s" % (submission))
                 return
 
-            if table == 'Sample':
-                sample_obj = Sample.objects.get(pk=pk)
-                sample_obj.name.status = COMPLETED
-                sample_obj.name.biosample_id = sample.accession
-                sample_obj.name.save()
+            # get sample/animal object relying on table name and pk
+            sample_obj = get_model_object(table, pk)
 
-            elif table == 'Animal':
-                animal_obj = Animal.objects.get(pk=pk)
-                animal_obj.name.status = COMPLETED
-                animal_obj.name.biosample_id = sample.accession
-                animal_obj.name.save()
-
-            else:
-                raise Exception("Unknown table %s" % (table))
+            # update statuses
+            sample_obj.name.status = COMPLETED
+            sample_obj.name.biosample_id = sample.accession
+            sample_obj.name.save()
 
         # update submission
         submission_obj.status = COMPLETED

@@ -23,6 +23,23 @@ logger = logging.getLogger(__name__)
 # a mixin to isolate user data
 class OwnerMixin(LoginRequiredMixin):
     def get_queryset(self):
+        """
+        Filter base queryset relying on django authenticated sessions::
+
+            from common.views import OwnerMixin
+            from django.views.generic import DetailView
+
+            class MyDetailView(OwnerMixin, DetailView):
+                def get_queryset(self):
+                    # call OwnerMixin and DetailView super methods
+                    qs = super(MyDetailView, self).get_queryset()
+
+                    # add custom filter to queryset
+
+                    # remeber to return the updated queryset to the caller
+                    return qs
+        """
+
         qs = super(OwnerMixin, self).get_queryset()
         logger.debug("Checking '%s' ownership for user '%s'" % (
             self.request.path, self.request.user))

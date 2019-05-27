@@ -271,6 +271,12 @@ $ docker-compose scale celery-worker=2
 
 # restart celery workers and reload tasks:
 $ docker-compose restart celery-worker
+
+# check sphinx documentation
+$ docker-compose run --rm uwsgi bash -c "cd docs; make linkcheck"
+
+# create sphinx html documentation
+$ docker-compose run --rm uwsgi bash -c "cd docs; make html"
 ```
 
 Exporting data from cryoweb
