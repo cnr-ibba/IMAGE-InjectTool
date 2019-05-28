@@ -330,8 +330,9 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
-    def test_validate_submission_errors(
+    def test_validate_submission_warnings(
             self, my_validate, my_check, my_read):
+        """A submission with warnings is a READY submission"""
 
         # setting check_usi_structure result
         my_check.return_value = []
@@ -339,12 +340,20 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
         result1.add_validation_result_column(
-            ValidationResultColumn("warning", "warn message", "animal_1")
+            ValidationResultColumn(
+                "warning",
+                "warn message",
+                "animal_1",
+                "warn column")
         )
 
         result2 = ValidationResultRecord("sample_1")
         result2.add_validation_result_column(
-            ValidationResultColumn("pass", "a message", "sample_1")
+            ValidationResultColumn(
+                "pass",
+                "a message",
+                "sample_1",
+                "")
         )
 
         # add results to result set
@@ -389,9 +398,9 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
-    def test_validate_submission_warnings(
+    def test_validate_submission_errors(
             self, my_validate, my_check, my_read):
-        """A submission with warnings is a READY submission"""
+        """A submission with errors is a NEED_REVISION submission"""
 
         # setting check_usi_structure result
         my_check.return_value = []
@@ -399,12 +408,20 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
         result1.add_validation_result_column(
-            ValidationResultColumn("warning", "warn message", "animal_1")
+            ValidationResultColumn(
+                "warning",
+                "warn message",
+                "animal_1",
+                "warn column")
         )
 
         result2 = ValidationResultRecord("sample_1")
         result2.add_validation_result_column(
-            ValidationResultColumn("error", "error message", "sample_1")
+            ValidationResultColumn(
+                "error",
+                "error message",
+                "sample_1",
+                "error column")
         )
 
         # add results to result set

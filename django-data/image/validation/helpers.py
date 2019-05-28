@@ -56,7 +56,9 @@ class MetaDataValidation():
         result = self.ruleset.validate(record)
 
         # this validate context (attributes that depends on another one)
-        result = validation.context_validation(record['attributes'], result)
+        # TODO: context validation changed. Now it can evaluate relationships
+        # see validation.context_validation for more help
+        result = validation.context_validation(record, result, [])
 
         return result
 
