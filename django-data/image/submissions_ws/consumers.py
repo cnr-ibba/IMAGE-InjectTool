@@ -2,7 +2,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 
 
-class ChatConsumer(AsyncWebsocketConsumer):
+class SubmissionsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.submission_key = self.scope['url_route']['kwargs']['submission_key']
         self.room_group_name = 'submission_%s' % self.submission_key
