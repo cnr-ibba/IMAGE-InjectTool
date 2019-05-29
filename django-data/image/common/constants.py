@@ -21,6 +21,13 @@ class EnumMixin():
 
         return cls[member].value[0]
 
+    @classmethod
+    def get_value_display(cls, value):
+        for el in cls:
+            if el.value[0] == value:
+                return el.value[1]
+        return Exception("value %s not in %s" % (value, cls))
+
 
 class ACCURACIES(EnumMixin, Enum):
     missing = (0, 'missing geographic information')
