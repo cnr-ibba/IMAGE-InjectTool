@@ -38,7 +38,12 @@ class ImportCRBAnimTask(MyTask):
         submission_obj.message = ("Error in CRBAnim loading: %s" % (str(exc)))
         submission_obj.save()
 
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], args[0]))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                args[0]
+            )
+        )
 
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(

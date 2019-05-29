@@ -64,7 +64,12 @@ class ValidateTask(MyTask):
         submission_obj.message = ("Error in IMAGE Validation: %s" % (str(exc)))
         submission_obj.save()
 
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], args[0]))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                args[0]
+            )
+        )
 
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
@@ -117,8 +122,12 @@ class ValidateTask(MyTask):
             submission_obj.message = (message)
             submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.loaded.value[1],
-                                                                                  submission_id))
+            asyncio.get_event_loop().run_until_complete(
+                send_message_to_websocket(
+                    STATUSES.get_value_display(LOADED),
+                    submission_id
+                )
+            )
 
             # get exception info
             einfo = traceback.format_exc()
@@ -149,7 +158,7 @@ class ValidateTask(MyTask):
 
             # mark submission with ERROR (this is not related to user data)
             # calling the appropriate method passing ERROR as status
-            self.submission_fail(submission_obj, message, status=ERROR, status_ws=STATUSES.error.value[1])
+            self.submission_fail(submission_obj, message, status=ERROR)
 
             # raise an exception since is an InjectTool issue
             raise ValidationError(message)
@@ -188,8 +197,12 @@ class ValidateTask(MyTask):
             submission_obj.message = "Submission validated with some warnings"
             submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.ready.value[1],
-                                                                                  submission_id))
+            asyncio.get_event_loop().run_until_complete(
+                send_message_to_websocket(
+                    STATUSES.get_value_display(READY),
+                    submission_id
+                )
+            )
 
             logger.info(
                 "Submission %s validated with some warning" % (submission_obj))
@@ -202,8 +215,12 @@ class ValidateTask(MyTask):
             submission_obj.message = "Submission validated with success"
             submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.ready.value[1],
-                                                                                  submission_id))
+            asyncio.get_event_loop().run_until_complete(
+                send_message_to_websocket(
+                    STATUSES.get_value_display(READY),
+                    submission_id
+                )
+            )
 
             logger.info(
                 "Submission %s validated with success" % (submission_obj))
@@ -321,14 +338,18 @@ class ValidateTask(MyTask):
             model.name.status = status
             model.name.save()
 
-    def submission_fail(self, submission_obj, message, status=NEED_REVISION,
-                        status_ws=STATUSES.need_revision.value[1]):
+    def submission_fail(self, submission_obj, message, status=NEED_REVISION):
         """Mark a submission with NEED_REVISION status"""
 
         submission_obj.status = status
         submission_obj.message = ("Validation got errors: %s" % (message))
         submission_obj.save()
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(status_ws, submission_obj.id))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(status),
+                submission_obj.id
+            )
+        )
 
 
 # register explicitly tasks

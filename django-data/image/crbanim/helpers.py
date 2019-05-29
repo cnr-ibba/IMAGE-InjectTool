@@ -545,7 +545,12 @@ def upload_crbanim(submission):
         submission.message = message
         submission.save()
 
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], submission.id))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
 
         # debug
         logger.error("error in importing from crbanim: %s" % (exc))
@@ -561,7 +566,12 @@ def upload_crbanim(submission):
         submission.status = LOADED
         submission.save()
 
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.loaded.value[1], submission.id))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(LOADED),
+                submission.id
+            )
+        )
 
     logger.info("Import from CRBAnim is complete")
 

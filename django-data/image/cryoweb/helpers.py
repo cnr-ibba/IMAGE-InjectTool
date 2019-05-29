@@ -121,7 +121,12 @@ def upload_cryoweb(submission_id):
         submission.message = "Error in importing data: Cryoweb has data"
         submission.save()
 
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], submission.id))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
 
         raise CryoWebImportError("Cryoweb has data!")
 
@@ -153,7 +158,12 @@ def upload_cryoweb(submission_id):
         submission.message = "Error in importing data: %s" % (str(exc))
         submission.save()
 
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], submission.id))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
 
         # debug
         logger.error("error in calling upload_cryoweb: %s" % (exc))
@@ -441,7 +451,12 @@ def cryoweb_import(submission):
         submission.message = "Error in importing data: %s" % (str(exc))
         submission.save()
 
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.error.value[1], submission.id))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
 
         # debug
         logger.error("error in importing from cryoweb: %s" % (exc))
@@ -456,7 +471,12 @@ def cryoweb_import(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
-        asyncio.get_event_loop().run_until_complete(send_message_to_websocket(STATUSES.loaded.value[1], submission.id))
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(LOADED),
+                submission.id
+            )
+        )
 
     logger.info("Import from staging area is complete")
 
