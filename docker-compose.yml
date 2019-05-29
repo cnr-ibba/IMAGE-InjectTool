@@ -85,11 +85,6 @@ services:
         source: ./django-data/
         target: /var/uwsgi/
 
-      - type: bind
-        source: ./.git/
-        target: /var/uwsgi/.git/
-        read_only: true
-
     # Expose the default port
 
     # link container to database
