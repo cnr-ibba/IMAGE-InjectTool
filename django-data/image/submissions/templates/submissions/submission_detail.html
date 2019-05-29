@@ -154,6 +154,9 @@
       submit_button.classList.add('disabled');
     } else {
       submit_button.classList.remove('disabled');
+      remove_disabled(edit_data);
+      remove_disabled(danger_zone);
+      remove_disabled(validate_button);
     }
 
     if (current_status === 'Loaded' || current_status === 'Need Revision') {
