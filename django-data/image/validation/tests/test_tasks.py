@@ -24,6 +24,7 @@ from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, Animal, Sample
 
 from ..tasks import ValidateTask, ValidationError
+from ..helpers import OntologyCacheError
 
 
 # https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
@@ -184,6 +185,44 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertFalse(my_retry.called)
         self.assertTrue(my_check.called)
         self.assertTrue(my_read.called)
+
+    @patch("validation.helpers.validation.read_in_ruleset",
+           side_effect=OntologyCacheError("test exception"))
+    @patch("validation.tasks.ValidateTask.retry")
+    def test_issues_with_ontologychache(self, my_retry, my_validate):
+        """Test errors with validation API when loading OntologyCache
+        objects"""
+
+        # call task. No retries with issues at EBI
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # this is the message I want
+        message = "Errors in EBI API endpoints. Please try again later"
+
+        # check submission.status changed to NEED_REVISION
+        self.assertEqual(self.submission.status, LOADED)
+        self.assertIn(
+            message,
+            self.submission.message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in IMAGE Validation: %s" % message,
+            email.subject)
+
+        self.assertTrue(my_validate.called)
+        self.assertFalse(my_retry.called)
 
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")

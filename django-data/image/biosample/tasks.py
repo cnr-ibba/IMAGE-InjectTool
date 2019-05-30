@@ -511,8 +511,8 @@ class FetchStatusTask(MyTask):
 
         Args:
             submission (pyUSIrest.client.Submission): a USI submission object
-            submission_obj (image_app.models.Submission): a UID submission
-            object
+            submission_obj (image_app.models.Submission): an UID submission
+                object
 
         Returns:
             bool: True if an issue is detected
