@@ -9,7 +9,7 @@ Created on Fri Feb 22 15:49:18 2019
 import os
 import logging
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from collections import namedtuple
 
 from django.test import TestCase
@@ -320,8 +320,12 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
 
 class UploadCRBAnimTestCase(BaseTestCase, TestCase):
 
-    def test_upload_crbanim(self):
+    @patch('crbanim.helpers.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_upload_crbanim(self, asyncio_mock, send_message_to_websocket_mock):
         """Testing uploading and importing data from crbanim to UID"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         self.assertTrue(upload_crbanim(self.submission))
 
@@ -342,10 +346,20 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertTrue(Animal.objects.exists())
         self.assertTrue(Sample.objects.exists())
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
+
+    @patch('crbanim.helpers.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("crbanim.helpers.CRBAnimReader.check_species",
            return_value=[False, 'Rainbow trout'])
-    def test_upload_crbanim_errors(self, my_check):
+    def test_upload_crbanim_errors(self, my_check, asyncio_mock,
+                                   send_message_to_websocket_mock):
         """Testing importing with data into UID with errors"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         self.assertFalse(upload_crbanim(self.submission))
 
@@ -371,10 +385,20 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertFalse(Animal.objects.exists())
         self.assertFalse(Sample.objects.exists())
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
+
+    @patch('crbanim.helpers.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("crbanim.helpers.CRBAnimReader.check_sex",
            return_value=[False, 'unknown'])
-    def test_upload_crbanim_errors_with_sex(self, my_check):
+    def test_upload_crbanim_errors_with_sex(self, my_check, asyncio_mock,
+                                            send_message_to_websocket_mock):
         """Testing importing with data into UID with errors"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         self.assertFalse(upload_crbanim(self.submission))
 
@@ -404,3 +428,8 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertFalse(db_has_data())
         self.assertFalse(Animal.objects.exists())
         self.assertFalse(Sample.objects.exists())
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
