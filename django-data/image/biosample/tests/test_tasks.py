@@ -70,8 +70,12 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         # setting tasks
         self.my_task = SubmitTask()
 
-    def test_submit(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_submit(self, asyncio_mock, send_message_to_websocket_mock):
         """Test submitting into biosample"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
@@ -104,6 +108,11 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(self.new_submission.create_sample.call_count, 2)
         self.assertFalse(self.new_submission.propertymock.called)
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
     @patch("biosample.tasks.SubmitTask.retry")
     @patch("biosample.tasks.SubmitTask.submit_biosample")
@@ -121,10 +130,15 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertTrue(my_submit.called)
         self.assertTrue(my_retry.called)
 
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("biosample.tasks.SubmitTask.retry")
     @patch("biosample.tasks.SubmitTask.submit_biosample")
-    def test_issues_with_api(self, my_submit, my_retry):
+    def test_issues_with_api(self, my_submit, my_retry, asyncio_mock,
+                             send_message_to_websocket_mock):
         """Test errors with submission API"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
@@ -162,8 +176,17 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertTrue(my_submit.called)
         self.assertFalse(my_retry.called)
 
-    def test_submit_recover(self):
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Ready', 1)
+
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_submit_recover(self, asyncio_mock, send_message_to_websocket_mock):
         """Test submission recovering"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # update submission object
         self.submission_obj.biosample_submission_id = "test-submission"
@@ -201,8 +224,18 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(self.my_submission.create_sample.call_count, 1)
         self.assertTrue(self.my_submission.propertymock.called)
 
-    def test_submit_no_recover(self):
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_submit_no_recover(self, asyncio_mock,
+                               send_message_to_websocket_mock):
         """Test submission recovering with a closed submission"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # update submission status
         self.my_submission.propertymock = PropertyMock(
@@ -231,6 +264,11 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
             self.submission_obj.message,
             "Waiting for biosample validation")
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
         self.assertEqual(len(qs), 2)
@@ -245,8 +283,12 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertTrue(self.my_submission.propertymock.called)
         self.assertFalse(self.new_submission.propertymock.called)
 
-    def test_submit_patch(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_submit_patch(self, asyncio_mock, send_message_to_websocket_mock):
         """Test patching submission"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # creating mock samples
         my_samples = [
@@ -278,6 +320,11 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
             self.submission_obj.message,
             "Waiting for biosample validation")
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
         self.assertEqual(len(qs), 2)
@@ -294,8 +341,12 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         for sample in my_samples:
             self.assertTrue(sample.patch.called)
 
-    def test_on_failure(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_on_failure(self, asyncio_mock, send_message_to_websocket_mock):
         """Testing on failure methods"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         exc = Exception("Test")
         task_id = "test_task_id"
@@ -324,9 +375,17 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(
             "Error in biosample submission %s" % self.submission_id,
             email.subject)
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
 
-    def test_token_expired(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_token_expired(self, asyncio_mock, send_message_to_websocket_mock):
         """Testing token expiring during a submission"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # simulating a token expiring during a submission
         self.new_submission.create_sample.side_effect = RuntimeError(
@@ -350,6 +409,10 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(
             self.submission_obj.biosample_submission_id,
             "new-submission")
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Ready', 1)
 
         # check name status unchanged
         qs = Name.objects.filter(status=READY)
@@ -401,8 +464,12 @@ class UpdateSubmissionTestCase(SubmitMixin, RedisMixin, TestCase):
         # setting tasks
         self.my_task = SubmitTask()
 
-    def test_submit(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_submit(self, asyncio_mock, send_message_to_websocket_mock):
         """Test submitting into biosample"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         res = self.my_task.run(submission_id=self.submission_id)
 
@@ -420,6 +487,10 @@ class UpdateSubmissionTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(
             self.submission_obj.biosample_submission_id,
             "new-submission")
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
 
         # check name status changed for animal
         self.animal_name.refresh_from_db()
@@ -540,8 +611,12 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         'image_app/user'
     ]
 
-    def test_fetch_status(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_fetch_status(self, asyncio_mock, send_message_to_websocket_mock):
         # a completed submission with two samples
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
         my_submission = Mock()
         my_submission.name = "test-fetch"
         my_submission.status = 'Completed'
@@ -563,6 +638,11 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         # assert status for submissions
         self.submission_obj.refresh_from_db()
         self.assertEqual(self.submission_obj.status, COMPLETED)
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Completed', 1)
 
         # check name status changed
         qs = Name.objects.filter(status=COMPLETED)
@@ -728,7 +808,11 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         self.assertTrue(self.my_sample2.has_errors.called)
         self.assertFalse(self.my_sample2.get_validation_result.called)
 
-    def test_fetch_status(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_fetch_status(self, asyncio_mock, send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
         # assert task and mock methods called
         self.common_tests()
 
@@ -743,7 +827,16 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         self.sample_name.refresh_from_db()
         self.assertEqual(self.sample_name.status, SUBMITTED)
 
-    def test_email_sent(self):
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
+
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_email_sent(self, asyncio_mock, send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
         # assert task and mock methods called
         self.common_tests()
 
@@ -759,6 +852,12 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
 
         # check for error messages in object
         self.assertIn("a sample message", email.body)
+        self.assertEqual(asyncio_mock.call_count, 1)
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
 
 
 class FetchDraftTestCase(FetchMixin, TestCase):
@@ -841,7 +940,12 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
             self.submission_obj.updated_at = testtime
             self.submission_obj.save()
 
-    def test_error_in_submitted_status(self):
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_error_in_submitted_status(self, asyncio_mock,
+                                       send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
         # a still running submission
         self.my_submission = Mock()
         self.my_submission.name = "test-fetch"
@@ -870,7 +974,17 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
             self.submission_obj.message
             )
 
-    def test_error_in_draft_status(self):
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
+
+    @patch('biosample.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_error_in_draft_status(self, asyncio_mock,
+                                   send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
         # a still running submission
         self.my_submission = Mock()
         self.my_submission.name = "test-fetch"
@@ -898,6 +1012,11 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
                     self.submission_obj),
             self.submission_obj.message
             )
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
 
 
 class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
