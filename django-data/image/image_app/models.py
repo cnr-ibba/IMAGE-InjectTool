@@ -592,6 +592,7 @@ class Name(BaseMixin, models.Model):
     publication = models.ForeignKey(
         'Publication',
         null=True,
+        blank=True,
         related_name='name_set',
         on_delete=models.SET_NULL)
 
