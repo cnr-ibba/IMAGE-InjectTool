@@ -84,8 +84,13 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
 
 class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
 
-    def test_on_failure(self):
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_on_failure(self, asyncio_mock, send_message_to_websocket_mock):
         """Testing on failure methods"""
+
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         exc = Exception("Test")
         task_id = "test_task_id"
@@ -115,12 +120,22 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
             "Error in IMAGE Validation: %s" % self.submission_id,
             email.subject)
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
+
+    @patch('crbanim.helpers.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
     @patch("validation.tasks.ValidateTask.retry")
-    def test_validate_retry(self, my_retry, my_validate, my_check, my_read):
+    def test_validate_retry(self, my_retry, my_validate, my_check, my_read,
+                            asyncio_mock, send_message_to_websocket_mock):
         """Test validation with retry"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # setting check_usi_structure result
         my_check.return_value = []
@@ -137,13 +152,21 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_retry.called)
         self.assertTrue(my_check.called)
         self.assertTrue(my_read.called)
+        self.assertEqual(asyncio_mock.call_count, 0)
+        self.assertEqual(tmp.run_until_complete.call_count, 0)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 0)
 
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
     @patch("validation.tasks.ValidateTask.retry")
-    def test_issues_with_api(self, my_retry, my_validate, my_check, my_read):
+    def test_issues_with_api(self, my_retry, my_validate, my_check, my_read,
+                             asyncio_mock, send_message_to_websocket_mock):
         """Test errors with validation API"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
@@ -185,10 +208,20 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_check.called)
         self.assertTrue(my_read.called)
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
+
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
-    def test_validate_submission(self, my_validate, my_check, my_read):
+    def test_validate_submission(self, my_validate, my_check, my_read,
+                                 asyncio_mock, send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
         # setting check_usi_structure result
         my_check.return_value = []
 
@@ -214,6 +247,11 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
             self.submission.message,
             "Submission validated with success")
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Ready', 1)
+
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
         self.assertEqual(self.animal_name.status, READY)
@@ -235,11 +273,16 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
 
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
     def test_validate_submission_wrong_json(
-            self, my_validate, my_check, my_read):
+            self, my_validate, my_check, my_read, asyncio_mock,
+            send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # assign a fake response for check_usi_structure
         usi_result = [
@@ -270,6 +313,11 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
             "Wrong JSON structure",
             self.submission.message)
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
+
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
         self.assertEqual(self.animal_name.status, NEED_REVISION)
@@ -293,10 +341,15 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertFalse(my_validate.called)
         self.assertTrue(my_read.called)
 
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
-    def test_unsupported_status(self, my_validate, my_check, my_read):
+    def test_unsupported_status(self, my_validate, my_check, my_read,
+                                asyncio_mock, send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
         # setting check_usi_structure result
         my_check.return_value = []
 
@@ -327,11 +380,21 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
 
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
+
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
     def test_validate_submission_errors(
-            self, my_validate, my_check, my_read):
+            self, my_validate, my_check, my_read, asyncio_mock,
+            send_message_to_websocket_mock):
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # setting check_usi_structure result
         my_check.return_value = []
@@ -364,6 +427,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertIn(
             "Submission validated with some warnings",
             self.submission.message)
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Ready', 1)
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
@@ -386,12 +453,17 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
 
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
     def test_validate_submission_warnings(
-            self, my_validate, my_check, my_read):
+            self, my_validate, my_check, my_read, asyncio_mock,
+            send_message_to_websocket_mock):
         """A submission with warnings is a READY submission"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # setting check_usi_structure result
         my_check.return_value = []
@@ -424,6 +496,11 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertIn(
             "Error in metadata",
             self.submission.message)
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
