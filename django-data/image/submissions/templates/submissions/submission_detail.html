@@ -52,7 +52,7 @@
     </tr>
     <tr class="table-secondary">
       <th scope="row">Status:</th>
-      <td>{{ submission.get_status_display }}</td>
+      <td id="status-log">{{ submission.get_status_display }}</td>
     </tr>
     <tr class="table-primary">
       <th scope="row">N. of Animals</th>
@@ -90,16 +90,16 @@
 <div class="container mt-3">
   <div class="row">
     {# disabling a button if waiting variable is set to true #}
-    <div class="col-md-4 mt-2 text-center"><a class="btn btn-primary btn-lg btn-block {% if not edit %}disabled{% endif %}" href="{% url 'submissions:edit' pk=submission.pk %}" role="button">Edit data</a></div>
-    <div class="col-md-4 mt-2 text-center"><a class="btn btn-warning btn-lg btn-block {% if not validate %}disabled{% endif %}" href="javascript:{document.getElementById('validate').submit()}" role="button">Validate</a></div>
-    <div class="col-md-4 mt-2 text-center"><a class="btn btn-success btn-lg btn-block {% if not submit %}disabled{% endif %}" href="javascript:{document.getElementById('submit').submit()}" role="button">Submit</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-primary btn-lg btn-block {% if not edit %}disabled{% endif %}" href="{% url 'submissions:edit' pk=submission.pk %}" role="button" id="edit-data">Edit data</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-warning btn-lg btn-block {% if not validate %}disabled{% endif %}" href="javascript:{document.getElementById('validate').submit()}" role="button" id="validate-button">Validate</a></div>
+    <div class="col-md-4 mt-2 text-center"><a class="btn btn-success btn-lg btn-block {% if not submit %}disabled{% endif %}" href="javascript:{document.getElementById('submit').submit()}" role="button" id="submit-button">Submit</a></div>
   </div>
   <div class="row">
     <div class="col-md-4 mt-2 text-center"><a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Submissions List</a></div>
     <div class="col-md-4 mt-2 text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a></div>
     {# TODO: disable button if necessary #}
     <div class="col-md-4 mt-2 text-center btn-group">
-      <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not edit %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Danger Zone</button>
+      <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not edit %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="danger-zone">Danger Zone</button>
       <div class="dropdown-menu">
         <a class="dropdown-item" href="{% url 'submissions:reload' pk=submission.pk %}">Reload datasource</a>
         <a class="dropdown-item" href="#">Update submission</a>
@@ -120,3 +120,76 @@
 </form>
 
 {% endblock content %}
+
+{% block custom-js %}
+<script>
+  $(document).ready(function() {
+    function getColor(current_status) {
+    var color_class;
+    if (current_status === 'Loaded' || current_status === 'Waiting' || current_status == 'Submitted') {
+      color_class = "text-info font-weight-bold"
+    } else if (current_status === 'Error') {
+      color_class = "text-danger font-weight-bold"
+    } else if (current_status === 'Ready' || current_status === 'Completed') {
+      color_class = "text-success font-weight-bold"
+    } else if (current_status === 'Need Revision') {
+      color_class = "text-warning font-weight-bold"
+    }
+    return color_class
+  }
+
+  function disableButtons(current_status) {
+    var edit_data = document.querySelector('#edit-data');
+    var danger_zone = document.querySelector('#danger-zone');
+    var validate_button = document.querySelector('#validate-button');
+    var submit_button = document.querySelector('#submit-button');
+    if (current_status === 'Waiting' || current_status === 'Submitted') {
+      edit_data.classList.add('disabled');
+      danger_zone.classList.add('disabled');
+    }
+    if (current_status === 'Error' || current_status === 'Waiting' || current_status === 'Submitted' || current_status === 'Completed') {
+      validate_button.classList.add('disabled');
+    }
+    if (current_status !== 'Ready') {
+      submit_button.classList.add('disabled');
+    } else {
+      submit_button.classList.remove('disabled');
+      remove_disabled(edit_data);
+      remove_disabled(danger_zone);
+      remove_disabled(validate_button);
+    }
+
+    if (current_status === 'Loaded' || current_status === 'Need Revision') {
+      remove_disabled(edit_data);
+      remove_disabled(danger_zone);
+      remove_disabled(validate_button);
+    }
+  }
+
+  function remove_disabled(button) {
+    if (button.classList.contains('disabled')) {
+      button.classList.remove('disabled');
+    }
+  }
+
+  var submissionId = {{ submission.pk }};
+  var chatSocket = new WebSocket('ws://' + window.location.host + '/image/ws/submissions/' + submissionId + '/');
+
+  chatSocket.onmessage = function(e) {
+    var data = JSON.parse(e.data);
+    var message = data['message'];
+    console.log(message);
+    document.querySelector('#status-log').textContent = message;
+    document.querySelector('#status-log').className = getColor(message);
+    disableButtons(message);
+  };
+
+  chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+  };
+
+  current_status = document.querySelector('#status-log').textContent;
+  document.querySelector('#status-log').className = getColor(current_status);
+  });
+</script>
+{% endblock custom-js %}

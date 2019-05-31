@@ -6,7 +6,7 @@ Created on Wed Feb 27 16:38:27 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from billiard.einfo import ExceptionInfo
 
 from django.core import mail
@@ -27,8 +27,12 @@ class ImportCRBAnimTaskTest(BaseTestCase, TestCase):
         # setting task
         self.my_task = ImportCRBAnimTask()
 
-    def test_on_failure(self):
+    @patch('crbanim.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_on_failure(self, asyncio_mock, send_message_to_websocket_mock):
         """Testing on failure methods"""
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         exc = Exception("Test")
         task_id = "test_task_id"
@@ -57,6 +61,11 @@ class ImportCRBAnimTaskTest(BaseTestCase, TestCase):
         self.assertEqual(
             "Error in CRBAnim loading: %s" % self.submission_id,
             email.subject)
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
 
     @patch("crbanim.tasks.upload_crbanim", return_value=True)
     def test_import_from_crbanim(self, my_upload):
