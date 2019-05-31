@@ -597,6 +597,7 @@ class Name(BaseMixin, models.Model):
     publication = models.ForeignKey(
         'Publication',
         null=True,
+        blank=True,
         related_name='name_set',
         on_delete=models.SET_NULL)
 
@@ -609,6 +610,36 @@ class Name(BaseMixin, models.Model):
 
 
 class Animal(BioSampleMixin, models.Model):
+    """
+    Class to model Animal (Organism). Inherits from :py:class:`BioSampleMixin`,
+    related to :py:class:`Name` through ``OneToOne`` relationship to model
+    Animal name (Data source id), and with the same relationship to model
+    ``mother`` and ``father`` of such animal. In case that parents are unknown,
+    could be linked with Unkwnon animals for cryoweb data or doens't have
+    relationship.Linked to :py:class:`DictBreed` dictionary
+    table to model info on species and breed. Linked to
+    :py:class:`Sample` to model Samples (Specimen from organims)::
+
+        from image_app.models import Animal
+
+        # get animal using primary key
+        animal = Animal.objects.get(pk=1)
+
+        # get animal name
+        data_source_id = animal.name.name
+
+        # get animal's parents
+        mother = animal.mother
+        father = animal.father
+
+        # get breed and species info
+        print(animal.breed.supplied_breed)
+        print(animal.breed.specie.label)
+
+        # get all samples (specimen) for this animals
+        samples = animal.sample_set.all()
+    """
+
     # an animal name has a entry in name table
     name = models.OneToOneField(
         'Name',

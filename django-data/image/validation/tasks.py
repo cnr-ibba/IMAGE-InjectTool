@@ -23,7 +23,7 @@ from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal
 
 from .models import ValidationResult as ValidationResultModel
-from .helpers import MetaDataValidation
+from .helpers import MetaDataValidation, OntologyCacheError
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -83,16 +83,65 @@ class ValidateTask(MyTask):
     # TODO: define a method to inform user for error in validation (Task run
     # with success but errors in data)
 
+    def temporary_error_report(self, exc, submission_obj):
+        """
+        Deal with known issues in validation task. Notify the user using
+        email and set status as READY in order to recall this task
+
+        Args:
+            exc (Exception): an py:exc`Exception` object
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+
+        Return
+            str: "success" since this task is correctly managed
+        """
+
+        logger.error("Error in validation: %s" % exc)
+
+        message = "Errors in EBI API endpoints. Please try again later"
+        logger.error(message)
+
+        # Set a message and revert status to LOADED
+        submission_obj.status = LOADED
+        submission_obj.message = (message)
+        submission_obj.save()
+
+        # send message with channel
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(LOADED),
+                submission_obj.pk
+            )
+        )
+
+        # get exception info
+        einfo = traceback.format_exc()
+
+        # send a mail to the user with the stacktrace (einfo)
+        submission_obj.owner.email_user(
+            "Error in IMAGE Validation: %s" % (message),
+            ("Something goes wrong with validation. Please report "
+             "this to InjectTool team\n\n %s" % str(einfo)),
+        )
+
+        return "success"
+
     def run(self, submission_id):
         """a function to perform validation steps"""
 
         logger.info("Validate Submission started")
 
-        # read rules when task starts
-        self.ruleset = MetaDataValidation()
-
-        # get submission object
+        # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
+
+        # read rules when task starts. Model issues when starting
+        # OntologyCache at start
+        try:
+            self.ruleset = MetaDataValidation()
+
+        except OntologyCacheError as exc:
+            return self.temporary_error_report(exc, submission_obj)
 
         # track global statuses
         submission_statuses = Counter(
@@ -110,36 +159,9 @@ class ValidateTask(MyTask):
                     name__submission=submission_obj):
                 self.validate_model(sample, submission_statuses)
 
-        # TODO: errors in validation shuold raise custom exception
+        # TODO: errors in validation should raise custom exception
         except json.decoder.JSONDecodeError as exc:
-            logger.error("Error in validation: %s" % exc)
-
-            message = "Errors in EBI API endpoints. Please try again later"
-            logger.error(message)
-
-            # Set a message and revert status to LOADED
-            submission_obj.status = LOADED
-            submission_obj.message = (message)
-            submission_obj.save()
-
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    STATUSES.get_value_display(LOADED),
-                    submission_id
-                )
-            )
-
-            # get exception info
-            einfo = traceback.format_exc()
-
-            # send a mail to the user with the stacktrace (einfo)
-            submission_obj.owner.email_user(
-                "Error in IMAGE Validation: %s" % (message),
-                ("Something goes wrong with validation. Please report "
-                 "this to InjectTool team\n\n %s" % str(einfo)),
-            )
-
-            return "success"
+            return self.temporary_error_report(exc, submission_obj)
 
         except Exception as exc:
             raise self.retry(exc=exc)

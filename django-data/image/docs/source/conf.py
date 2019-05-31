@@ -40,7 +40,8 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'celery.contrib.sphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -83,6 +84,8 @@ intersphinx_mapping = {
     'django': (
         'http://docs.djangoproject.com/en/dev/',
         'https://docs.djangoproject.com/en/dev/_objects/'),
+    'celery': ('http://celery.readthedocs.org/en/latest/', None),
+    'pyUSIrest': ('https://pyusirest.readthedocs.io/en/latest/', None),
     }
 
 
@@ -91,7 +94,7 @@ intersphinx_mapping = {
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'nature'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

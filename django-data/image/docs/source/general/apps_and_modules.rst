@@ -10,20 +10,21 @@ Django apps
   module.
 - **animals**: Implement all stuff to visualize and manage Animals (organims)
   object
-- **biosample**: implement stuff regarding AAP registration (2nd step InjectTool registration)
-  and biosample submission and retrieval
+- :ref:`biosample <biosample-app>`: implement stuff regarding `EBI AAP`_ registration
+  (2nd step InjectTool registration) and biosample submission and retrieval
 - :ref:`common <common-app>`: modules and functions that could be imported from
   other django applications
 - **crbanim**: implement stuff regarding CRBanim data import into :ref:`The Unified Internal Database`
-- **cryoweb**: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
+- :ref:`cryoweb <cryoweb-app>`: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
 - **image**: django configuration files
 - :ref:`image_app <image_app-app>`: implement stuff related to :ref:`The Unified Internal Database` and
   views like index, dashboard, about, ...
-- **language**: implement stuff related to language module implementation and to
+- :ref:`language <language-app>`: implement stuff related to language module implementation and to
   resolve common names (ie Cow) into more scientific names (ie Bos taurus)
 - **samples**: Implement all stuff to visualize and manage Samples (specimen from organim)
-- :ref:`submissions <submissions-app>`
-- **validation**: Perform validation stuff by calling `IMAGE-ValidationTool`_
+- :ref:`submissions <submissions-app>`: Implement all stuff regarding submission (uploading
+  user data, starting task as validation and submission, call Sample and Animal views)
+- :ref:`validation <validation-app>`: Perform validation stuff by calling `IMAGE-ValidationTool`_
 - **zooma**: Annotate dictionary tables in order to provide ontology informations
   using `zooma`_ API.
 
@@ -61,3 +62,4 @@ Generic content of a django app
 
 .. _`IMAGE-ValidationTool`: https://github.com/cnr-ibba/IMAGE-ValidationTool
 .. _`zooma`: https://www.ebi.ac.uk/spot/zooma/
+.. _`EBI AAP`: https://explore.aai.ebi.ac.uk/home

@@ -21,7 +21,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Animal, Sample
+from image_app.models import Submission, Animal
 from common.tasks import redis_lock
 from common.constants import (
     ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
@@ -42,7 +42,9 @@ MAX_DAYS = 5
 
 
 class SubmissionData(object):
-    """An helper class for submission task"""
+    """
+    An helper class for submission task, useful to pass parameters like
+    submission data between tasks"""
 
     # define my class attributes
     def __init__(self, *args, **kwargs):
@@ -387,7 +389,13 @@ class FetchStatusTask(MyTask):
     lock_id = "FetchStatusTask"
 
     def run(self):
-        """This function is called when delay is called"""
+        """
+        This function is called when delay is called. It will acquire a lock
+        in redis, so those tasks are mutually exclusive
+
+        Returns:
+            str: success if everything is ok. Different messages if task is
+            already running or exception is caught"""
 
         # debugging instance
         self.debug_task()
@@ -405,7 +413,14 @@ class FetchStatusTask(MyTask):
         return message
 
     def fetch_status(self):
-        """Fetch status from pending submissions"""
+        """
+        Fetch status from pending submissions. Called from
+        :py:meth:`run`, handles exceptions from USI, select
+        all :py:class:`Submission <image_app.models.Submission>` objects
+        with :py:const:`SUBMITTED <common.constants.SUBMITTED>` status
+        from :ref:`UID <The Unified Internal Database>` and call
+        :py:meth:`fetch_queryset` with this data
+        """
 
         logger.info("fetch_status started")
 
@@ -435,7 +450,12 @@ class FetchStatusTask(MyTask):
 
     # a function to retrieve biosample submission
     def fetch_queryset(self, queryset):
-        """Fetch biosample against a queryset"""
+        """Fetch biosample against a queryset (a list of
+        :py:const:`SUBMITTED <common.constants.SUBMITTED>`
+        :py:class:`Submission <image_app.models.Submission>` objects). Iterate
+        through submission to get USI info. Calls
+        :py:meth:`fetch_submission_obj`
+        """
 
         logger.info("Searching for submissions into biosample")
 
@@ -514,6 +534,20 @@ class FetchStatusTask(MyTask):
                 submission.status, submission.name))
 
     def submission_has_issues(self, submission, submission_obj):
+        """
+        Check that biosample submission has not issues. For example, that
+        it will remain in the same status for a long time
+
+        Args:
+            submission (pyUSIrest.client.Submission): a USI submission object
+            submission_obj (image_app.models.Submission): an UID submission
+                object
+
+        Returns:
+            bool: True if an issue is detected
+
+        """
+
         if (timezone.now() - submission_obj.updated_at).days > MAX_DAYS:
             message = (
                 "Biosample subission %s remained with the same status "
@@ -537,9 +571,7 @@ class FetchStatusTask(MyTask):
             submission_obj.owner.email_user(
                 "Error in biosample submission %s" % (
                     submission_obj.id),
-                ("Something goes wrong with biosample submission. Please "
-                 "report this to InjectTool team\n\n %s" % str(
-                         submission.data)),
+                ("Something goes wrong: %s" % message),
             )
 
             return True
@@ -548,9 +580,17 @@ class FetchStatusTask(MyTask):
             return False
 
     def __sample_has_errors(self, sample, table, pk):
-        """Helper metod to mark a (animal/sample) with its own errors. Table
+        """
+        Helper metod to mark a (animal/sample) with its own errors. Table
         sould be Animal or Sample to update the approriate object. Sample
-        is a USI sample object"""
+        is a USI sample object
+
+        Args:
+            sample (pyUSIrest.client.sample): a USI sample object
+            table (str): ``Animal`` or ``Sample``, mean the table where this
+                object should be searched
+            pk (int): table primary key
+        """
 
         # get sample/animal object relying on table name and pk
         sample_obj = get_model_object(table, pk)

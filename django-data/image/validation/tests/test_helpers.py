@@ -7,14 +7,35 @@ Created on Tue Jan 22 14:28:16 2019
 """
 
 from image_validation.ValidationResult import ValidationResultRecord
+from unittest.mock import patch
 
 from django.test import TestCase
 
 from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
-from ..helpers import MetaDataValidation, ValidationSummary
+from ..helpers import (
+    MetaDataValidation, ValidationSummary, OntologyCacheError)
+
 from ..models import ValidationResult
+
+
+class MetaDataValidationTestCase(TestCase):
+    @patch("validation.helpers.validation.read_in_ruleset",
+           side_effect=OntologyCacheError("test exception"))
+    def test_issues_with_ebi(self, my_issue):
+        """
+        Test temporary issues related with OLS EBI server during
+        image_validation.use_ontology.OntologyCache loading"""
+
+        # assert issues from validation.helpers.validation.read_in_ruleset
+        self.assertRaisesMessage(
+            OntologyCacheError,
+            "test exception",
+            MetaDataValidation)
+
+        # test mocked function called
+        self.assertTrue(my_issue.called)
 
 
 class SubmissionTestCase(PersonMixinTestCase, TestCase):

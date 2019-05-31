@@ -23,7 +23,7 @@ Here are presented the relations between ``Names`` objects:
 
 .. image:: ../_static/image_app_name.1degree.png
 
-Throgh name relationship, you could rerieve all animal belonging to a submission,
+Through name relationship, you could rerieve all animal belonging to a submission,
 for example::
 
   from image_app.models import Submission, Animal
@@ -33,6 +33,51 @@ for example::
 
 in this example ``animals`` is a :py:class:`django.db.models.query.QuerySet` instance
 with all animals defined in selected submission.
+
+Private data
+^^^^^^^^^^^^
+
+Submission data (Animals, Samples) are considered private to the user when they are stored in
+:ref:`The Unified Internal Database`. Each table (:py:class:`django.models.Model`)
+has an ``owner`` column in which a relation to :py:class:`django.contrib.auth.models.User`
+is defined. In such way, is possible to get all objects belonging to such user::
+
+  from image_app.models import User
+
+  user = User.objects.get(username="test")
+  user_animals = Animal.objects.filter(owner=user)
+
+:py:class:`django.contrib.auth.models.User` are also contained in authenticated
+sessions, and could be used in Views::
+
+  user_animals = Animal.objects.filter(owner=request.user)
+
+The :py:class:`common.views.OwnerMixin` extends the default ``get_queryset`` of
+:py:class:`django.views.generic.detail.SingleObjectMixin` in order to filter
+``QuerySet`` using ``self.request.user``. Such Mixin can be inherited by all
+:py:class:`django.views.generic.detail.SingleObjectMixin` and
+:py:class:`django.views.generic.list.MultipleObjectMixin` derived classes in
+order to filter objects relying on django authenticated sessions::
+
+  from django.views.generic import DetailView, ListView
+
+  from image_app.models import Submission
+  from common.views import OwnerMixin
+
+  class DetailSubmissionView(OwnerMixin, DetailView):
+      model = Submission
+      template_name = "submissions/submission_detail.html"
+
+  class ListSubmissionsView(OwnerMixin, ListView):
+      model = Submission
+      template_name = "submissions/submission_list.html"
+      ordering = ['-created_at']
+      paginate_by = 10
+
+since :py:class:`common.views.OwnerMixin` inherits from
+:py:class:`django.contrib.auth.mixins.LoginRequiredMixin`, an authentication
+sessions is required to access to derived views. The login redirect will be managed
+if the session is anonymous
 
 image_app.models module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

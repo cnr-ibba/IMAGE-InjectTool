@@ -24,6 +24,7 @@ from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, Animal, Sample
 
 from ..tasks import ValidateTask, ValidationError
+from ..helpers import OntologyCacheError
 
 
 # https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
@@ -213,6 +214,44 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with('Loaded', 1)
 
+    @patch("validation.helpers.validation.read_in_ruleset",
+           side_effect=OntologyCacheError("test exception"))
+    @patch("validation.tasks.ValidateTask.retry")
+    def test_issues_with_ontologychache(self, my_retry, my_validate):
+        """Test errors with validation API when loading OntologyCache
+        objects"""
+
+        # call task. No retries with issues at EBI
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # this is the message I want
+        message = "Errors in EBI API endpoints. Please try again later"
+
+        # check submission.status changed to NEED_REVISION
+        self.assertEqual(self.submission.status, LOADED)
+        self.assertIn(
+            message,
+            self.submission.message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in IMAGE Validation: %s" % message,
+            email.subject)
+
+        self.assertTrue(my_validate.called)
+        self.assertFalse(my_retry.called)
+
     @patch('validation.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
@@ -390,9 +429,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
-    def test_validate_submission_errors(
+    def test_validate_submission_warnings(
             self, my_validate, my_check, my_read, asyncio_mock,
             send_message_to_websocket_mock):
+        """A submission with warnings is a READY submission"""
         tmp = asyncio_mock.return_value
         tmp.run_until_complete = Mock()
 
@@ -402,12 +442,20 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
         result1.add_validation_result_column(
-            ValidationResultColumn("warning", "warn message", "animal_1")
+            ValidationResultColumn(
+                "warning",
+                "warn message",
+                "animal_1",
+                "warn column")
         )
 
         result2 = ValidationResultRecord("sample_1")
         result2.add_validation_result_column(
-            ValidationResultColumn("pass", "a message", "sample_1")
+            ValidationResultColumn(
+                "pass",
+                "a message",
+                "sample_1",
+                "")
         )
 
         # add results to result set
@@ -458,10 +506,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
-    def test_validate_submission_warnings(
+    def test_validate_submission_errors(
             self, my_validate, my_check, my_read, asyncio_mock,
             send_message_to_websocket_mock):
-        """A submission with warnings is a READY submission"""
+        """A submission with errors is a NEED_REVISION submission"""
         tmp = asyncio_mock.return_value
         tmp.run_until_complete = Mock()
 
@@ -471,12 +519,20 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
         result1.add_validation_result_column(
-            ValidationResultColumn("warning", "warn message", "animal_1")
+            ValidationResultColumn(
+                "warning",
+                "warn message",
+                "animal_1",
+                "warn column")
         )
 
         result2 = ValidationResultRecord("sample_1")
         result2.add_validation_result_column(
-            ValidationResultColumn("error", "error message", "sample_1")
+            ValidationResultColumn(
+                "error",
+                "error message",
+                "sample_1",
+                "error column")
         )
 
         # add results to result set
