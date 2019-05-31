@@ -1,3 +1,7 @@
+asyncio
+websockets
+channels
+channels_redis
 uwsgi
 mysqlclient
 psycopg2-binary
@@ -7,6 +11,7 @@ django-debug-toolbar==1.11
 python-decouple
 coverage
 pytest-django
+pytest-asyncio
 django-widget-tweaks
 requests
 django-betterforms

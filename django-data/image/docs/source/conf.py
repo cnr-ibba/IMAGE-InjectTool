@@ -85,6 +85,7 @@ intersphinx_mapping = {
         'http://docs.djangoproject.com/en/dev/',
         'https://docs.djangoproject.com/en/dev/_objects/'),
     'celery': ('http://celery.readthedocs.org/en/latest/', None),
+    'pyUSIrest': ('https://pyusirest.readthedocs.io/en/latest/', None),
     }
 
 

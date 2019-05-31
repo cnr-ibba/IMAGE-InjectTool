@@ -6,7 +6,7 @@ Created on Thu Sep 13 16:19:19 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.test import TestCase
 
@@ -49,10 +49,21 @@ class ImportCryowebTest(TestCase):
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
+    @patch('cryoweb.helpers.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("cryoweb.helpers.cryoweb_has_data", return_value=True)
     @patch("cryoweb.tasks.truncate_database")
-    def test_import_has_data(self, my_truncate, my_has_data):
+    def test_import_has_data(
+            self,
+            my_truncate,
+            my_has_data,
+            asyncio_mock,
+            send_message_to_websocket_mock):
         """Test cryoweb import with data in cryoweb database"""
+
+        # mocking asyncio
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # importing data in staged area with data raises an exception
         self.assertRaises(
@@ -64,6 +75,12 @@ class ImportCryowebTest(TestCase):
 
         # When I got an exception, task escapes without cleaning database
         self.assertFalse(my_truncate.called)
+
+        # asserting mocked asyncio
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Error', 1)
 
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import")

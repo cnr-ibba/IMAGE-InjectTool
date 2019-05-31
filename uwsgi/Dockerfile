@@ -35,7 +35,7 @@ WORKDIR /var/uwsgi/
 VOLUME /var/uwsgi/
 
 # Expose the default port for django
-EXPOSE 8000
+EXPOSE 8000 8001
 
 # create a directory for celery pids and set permissions
 RUN mkdir -p /var/run/celery && chown -R www-data.www-data /var/run/celery

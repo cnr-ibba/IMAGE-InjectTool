@@ -7,6 +7,7 @@ Created on Tue Feb 19 16:15:35 2019
 """
 
 import re
+import json
 import logging
 
 from django.db.models import Q
@@ -22,6 +23,12 @@ from image_app.models import Name
 logger = logging.getLogger(__name__)
 
 
+# a class to deal with temporary issues from EBI servers
+class OntologyCacheError(Exception):
+    """Identifies temporary issues with EBI servers and
+    image_validation.use_ontology.OntologyCache objects"""
+
+
 class MetaDataValidation():
     """A class to deal with IMAGE-ValidationTool ruleset objects"""
 
@@ -31,7 +38,16 @@ class MetaDataValidation():
         self.read_in_ruleset(ruleset_filename)
 
     def read_in_ruleset(self, ruleset_filename):
-        self.ruleset = validation.read_in_ruleset(ruleset_filename)
+        try:
+            self.ruleset = validation.read_in_ruleset(ruleset_filename)
+
+        except json.JSONDecodeError as message:
+            logger.error(
+                "Error with 'https://www.ebi.ac.uk/ols/api/': %s" % (
+                    str(message)))
+
+            raise OntologyCacheError(
+                "Issue with 'https://www.ebi.ac.uk/ols/api/'")
 
     def check_usi_structure(self, record):
         """Check data against USI rules"""

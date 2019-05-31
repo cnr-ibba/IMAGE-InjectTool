@@ -10,13 +10,14 @@ import io
 import csv
 import logging
 import pycountry
+import asyncio
 
 from collections import defaultdict, namedtuple
 
 from django.utils.dateparse import parse_date
 
-from common.constants import LOADED, ERROR, MISSING
-from common.helpers import image_timedelta
+from common.constants import LOADED, ERROR, MISSING, STATUSES
+from common.helpers import image_timedelta, send_message_to_websocket
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
@@ -544,6 +545,13 @@ def upload_crbanim(submission):
         submission.message = message
         submission.save()
 
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
+
         # debug
         logger.error("error in importing from crbanim: %s" % (exc))
         logger.exception(exc)
@@ -557,6 +565,13 @@ def upload_crbanim(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
+
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(LOADED),
+                submission.id
+            )
+        )
 
     logger.info("Import from CRBAnim is complete")
 

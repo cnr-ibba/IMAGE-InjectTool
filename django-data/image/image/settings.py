@@ -40,6 +40,7 @@ ALLOWED_HOSTS = ['*']
 # - downloaded applications
 # - custom application
 INSTALLED_APPS = [
+    'channels',
     'registration',  # should be immediately above 'django.contrib.admin'
     'django.contrib.admin',
     'django.contrib.auth',
@@ -63,6 +64,7 @@ INSTALLED_APPS = [
     'animals',
     'samples',
     'crbanim',
+    'submissions_ws'
 ]
 
 MIDDLEWARE = [
@@ -387,4 +389,15 @@ CELERY_BEAT_SCHEDULE = {
         'task': "Fetch USI status",
         'schedule': crontab(hour="*", minute='*/15'),
     }
+}
+
+# Channels
+ASGI_APPLICATION = 'image.routing.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+        },
+    },
 }

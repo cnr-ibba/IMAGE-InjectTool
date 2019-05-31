@@ -12,13 +12,14 @@ import logging
 import os
 import shlex
 import subprocess
+import asyncio
 
 from decouple import AutoConfig
 
 from django.conf import settings
 
-from common.constants import LOADED, ERROR, MISSING, UNKNOWN
-from common.helpers import image_timedelta
+from common.constants import LOADED, ERROR, MISSING, UNKNOWN, STATUSES
+from common.helpers import image_timedelta, send_message_to_websocket
 from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
@@ -120,6 +121,13 @@ def upload_cryoweb(submission_id):
         submission.message = "Error in importing data: Cryoweb has data"
         submission.save()
 
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
+
         raise CryoWebImportError("Cryoweb has data!")
 
     # this is the full path in docker container
@@ -149,6 +157,13 @@ def upload_cryoweb(submission_id):
         submission.status = ERROR
         submission.message = "Error in importing data: %s" % (str(exc))
         submission.save()
+
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
 
         # debug
         logger.error("error in calling upload_cryoweb: %s" % (exc))
@@ -436,6 +451,13 @@ def cryoweb_import(submission):
         submission.message = "Error in importing data: %s" % (str(exc))
         submission.save()
 
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(ERROR),
+                submission.id
+            )
+        )
+
         # debug
         logger.error("error in importing from cryoweb: %s" % (exc))
         logger.exception(exc)
@@ -449,6 +471,12 @@ def cryoweb_import(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                STATUSES.get_value_display(LOADED),
+                submission.id
+            )
+        )
 
     logger.info("Import from staging area is complete")
 
