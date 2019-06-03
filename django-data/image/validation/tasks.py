@@ -66,7 +66,10 @@ class ValidateTask(MyTask):
 
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(ERROR),
+                {
+                    'message': STATUSES.get_value_display(ERROR),
+                    'notification_message': submission_obj.message
+                },
                 args[0]
             )
         )
@@ -110,7 +113,10 @@ class ValidateTask(MyTask):
         # send message with channel
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(LOADED),
+                {
+                    'message': STATUSES.get_value_display(LOADED),
+                    'notification_message': message
+                },
                 submission_obj.pk
             )
         )
@@ -221,7 +227,10 @@ class ValidateTask(MyTask):
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
-                    STATUSES.get_value_display(READY),
+                    {
+                        'message': STATUSES.get_value_display(READY),
+                        'notification_message': submission_obj.message
+                    },
                     submission_id
                 )
             )
@@ -239,7 +248,10 @@ class ValidateTask(MyTask):
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
-                    STATUSES.get_value_display(READY),
+                    {
+                        'message': STATUSES.get_value_display(READY),
+                        'notification_message': submission_obj.message
+                    },
                     submission_id
                 )
             )
@@ -368,7 +380,10 @@ class ValidateTask(MyTask):
         submission_obj.save()
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(status),
+                {
+                    'message': STATUSES.get_value_display(status),
+                    'notification_message': submission_obj.message
+                },
                 submission_obj.id
             )
         )
