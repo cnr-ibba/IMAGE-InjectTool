@@ -21,6 +21,7 @@ Overview of InjectTool
    general/databases
    general/apps_and_modules
    general/asynchronous_tasks
+   general/send_messages_in_real_time
 
 
 Module Documentation
