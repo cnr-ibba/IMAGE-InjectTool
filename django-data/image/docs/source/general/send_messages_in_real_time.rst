@@ -1,8 +1,8 @@
 Send messages in real-time
 ==========================
 
-Introduction
-------------
+Introduction to real time messaging
+-----------------------------------
 
 Channels is a project that takes Django and extends its abilities beyond HTTP - to handle WebSockets, chat protocols, IoT protocols, and more. It’s built on a Python specification called ASGI.
 It does this by taking the core of Django and layering a fully asynchronous layer underneath, running Django itself in a synchronous mode but handling connections and sockets asynchronously, and giving you the choice to write in either style.
@@ -21,9 +21,3 @@ We run django channels in separate docker container (created from asgi image). A
 It has "routing" module to decide which consumer to use and "consumer" module that does all the required job.
 
 .. _`submissions_ws`: https://github.com/cnr-ibba/IMAGE-InjectTool/tree/master/django-data/image/submissions_ws
-
-
-
-
-
-

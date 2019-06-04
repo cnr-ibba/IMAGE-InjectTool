@@ -123,7 +123,7 @@ You need to define a new django `SECRET_KEY`. Start a python terminal with docke
 
 
 ```bash
-$ docker-compose run --rm --no-dep uwsgi python
+$ docker-compose run --rm --no-deps uwsgi python
 ```
 then execute this python code, as described [here](https://stackoverflow.com/a/16630719):
 
