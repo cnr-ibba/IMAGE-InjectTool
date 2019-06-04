@@ -2,6 +2,8 @@
 InjectTool installation
 =======================
 
+[![Build Status](https://travis-ci.org/cnr-ibba/IMAGE-InjectTool.svg?branch=master)](https://travis-ci.org/cnr-ibba/IMAGE-InjectTool)
+
 Install Docker CE
 -----------------
 
@@ -59,7 +61,7 @@ variables:
 
 ```
 PGPASSWORD=<postgres password>
-IMAGE_USER=***REMOVED***
+IMAGE_USER=<image_user>
 IMAGE_PASSWORD=<user password>
 CRYOWEB_INSERT_ONLY_PW=<user_password>
 ```
@@ -113,21 +115,15 @@ InjectTool Use
 ### Django configuration
 
 Django configuration relies on a `settings.py` module, which loads sensitive data
-like password and `SECRET_KEY` from an another `.env` file through
-the [python decouple](https://simpleisbetterthancomplex.com/2015/11/26/package-of-the-week-python-decouple.html)
-module. You need to create a new `.env` file in `image` settings directory. start
-from working directory, then:
-
-```bash
-$ cd django-data/image/image
-$ touch .env
-```
+like password and `SECRET_KEY` from the same `.env` file in the project directory
+through the [python decouple](https://simpleisbetterthancomplex.com/2015/11/26/package-of-the-week-python-decouple.html)
+module. You need to define new environment variables for `uwsgi` container:
 
 You need to define a new django `SECRET_KEY`. Start a python terminal with docker:
 
 
 ```bash
-$ docker-compose run --rm uwsgi python
+$ docker-compose run --rm --no-dep uwsgi python
 ```
 then execute this python code, as described [here](https://stackoverflow.com/a/16630719):
 
@@ -137,25 +133,16 @@ then execute this python code, as described [here](https://stackoverflow.com/a/1
 >>> get_random_string(50, chars)
 ```
 
-Copy the resulting key and then paste into a new `.env` file like this:
+Copy the resulting key and the add into the previous  `.env` file like this:
 
 ```
 SECRET_KEY=<your SECRET_KEY>
 DEBUG=False
-IMAGE_USER=***REMOVED***
-IMAGE_PASSWORD=<user password>
-CRYOWEB_INSERT_ONLY_PW=<user_password>
-```
-
-Database passwords have to be the same of the previous `.env` file. You need to
-add also the `imagemanager` credentials to this file:
-
-```
 USI_MANAGER=imagemanager
 USI_MANAGER_PASSWORD=<usi_manager_password>
 ```
 
-You can set email activation backend parameters:
+You can set email activation backend parameters in the same file:
 
 ```
 EMAIL_BACKEND=djcelery_email.backends.CeleryEmailBackend

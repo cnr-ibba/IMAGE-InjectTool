@@ -168,6 +168,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
     def test_issues_with_api(self, my_retry, my_validate, my_check, my_read,
                              asyncio_mock, send_message_to_websocket_mock):
         """Test errors with validation API"""
+
         tmp = asyncio_mock.return_value
         tmp.run_until_complete = Mock()
 
@@ -219,12 +220,20 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
              'notification_message': 'Errors in EBI API endpoints. Please try '
                                      'again later'}, 1)
 
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
     @patch("validation.helpers.validation.read_in_ruleset",
            side_effect=OntologyCacheError("test exception"))
     @patch("validation.tasks.ValidateTask.retry")
-    def test_issues_with_ontologychache(self, my_retry, my_validate):
+    def test_issues_with_ontologychache(
+            self, my_retry, my_validate, asyncio_mock,
+            send_message_to_websocket_mock):
         """Test errors with validation API when loading OntologyCache
         objects"""
+
+        # mocking asyncio return value
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
 
         # call task. No retries with issues at EBI
         res = self.my_task.run(submission_id=self.submission_id)
@@ -256,6 +265,11 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
 
         self.assertTrue(my_validate.called)
         self.assertFalse(my_retry.called)
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
 
     @patch('validation.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
