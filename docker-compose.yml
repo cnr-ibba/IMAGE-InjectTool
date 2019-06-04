@@ -9,11 +9,11 @@ services:
     # Set db environment
     environment:
       # these passwords will be taken from .env file (not tracked in GIT)
-      POSTGRES_PASSWORD: $PGPASSWORD
-      PGPASSWORD: $PGPASSWORD
-      IMAGE_USER: $IMAGE_USER
-      IMAGE_PASSWORD: $IMAGE_PASSWORD
-      CRYOWEB_INSERT_ONLY_PW: $CRYOWEB_INSERT_ONLY_PW
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${PGPASSWORD}
+      IMAGE_USER: ${IMAGE_USER}
+      IMAGE_PASSWORD: ${IMAGE_PASSWORD}
+      CRYOWEB_INSERT_ONLY_PW: ${CRYOWEB_INSERT_ONLY_PW}
 
     # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
     volumes:
@@ -43,6 +43,15 @@ services:
   uwsgi:
     # a custom image for django
     build: ./uwsgi
+
+    # Set db environment
+    environment:
+      # these passwords will be taken from .env file (not tracked in GIT) or from environment
+      PGPASSWORD: ${PGPASSWORD}
+      IMAGE_USER: ${IMAGE_USER}
+      IMAGE_PASSWORD: ${IMAGE_PASSWORD}
+      CRYOWEB_INSERT_ONLY_PW: ${CRYOWEB_INSERT_ONLY_PW}
+      SECRET_KEY: ${SECRET_KEY}
 
     # exec a different command from image
     command: uwsgi --ini /var/uwsgi/image_uwsgi.ini --memory-report
