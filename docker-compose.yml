@@ -56,6 +56,8 @@ services:
       EMAIL_HOST: ${EMAIL_HOST}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER}
       EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      USI_MANAGER: ${USI_MANAGER}
+      USI_MANAGER_PASSWORD: ${USI_MANAGER_PASSWORD}
 
     # exec a different command from image
     command: uwsgi --ini /var/uwsgi/image_uwsgi.ini --memory-report
