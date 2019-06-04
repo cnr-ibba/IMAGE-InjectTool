@@ -109,10 +109,10 @@
         {% if messages %}
           {% for message in messages %}
             {% if message.tags %}
-              <div class="{{ message.tags }}">
+              <div class="{{ message.tags }}" id="notifications">
                 <button type="button" class="close" data-dismiss="alert">&times;</button>
             {% else %}
-              <div>
+              <div id="notifications">
             {% endif %}
                 {{ message }}
               </div>

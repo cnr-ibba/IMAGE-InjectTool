@@ -65,7 +65,9 @@ class ImportCRBAnimTaskTest(BaseTestCase, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Error in CRBAnim loading: Test'}, 1)
 
     @patch("crbanim.tasks.upload_crbanim", return_value=True)
     def test_import_from_crbanim(self, my_upload):

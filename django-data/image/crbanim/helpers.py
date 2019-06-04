@@ -547,7 +547,10 @@ def upload_crbanim(submission):
 
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(ERROR),
+                {
+                    'message': STATUSES.get_value_display(ERROR),
+                    'notification_message': message
+                },
                 submission.id
             )
         )
@@ -568,7 +571,10 @@ def upload_crbanim(submission):
 
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(LOADED),
+                {
+                    'message': STATUSES.get_value_display(LOADED),
+                    'notification_message': message
+                },
                 submission.id
             )
         )

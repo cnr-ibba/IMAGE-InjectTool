@@ -227,7 +227,10 @@ class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Error in importing data: Cryoweb '
+                                     'has data'}, 1)
 
     # mock subprocess.run an raise Exception. Read it and update submission
     # message using helpers.upload_cryoweb
@@ -256,7 +259,10 @@ class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
             self.assertEqual(asyncio_mock.call_count, 1)
             self.assertEqual(tmp.run_until_complete.call_count, 1)
             self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-            send_message_to_websocket_mock.assert_called_with('Error', 1)
+            send_message_to_websocket_mock.assert_called_with(
+                {'message': 'Error',
+                 'notification_message': 'Error in importing data: Test '
+                                         'upload failed'}, 1)
 
 
 class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
@@ -302,7 +308,10 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Loaded',
+             'notification_message': 'Cryoweb import completed for '
+                                     'submission: 1'}, 1)
 
     @patch('cryoweb.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -329,4 +338,7 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Error in importing data: Test message'},
+            1)

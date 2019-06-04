@@ -349,7 +349,10 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Loaded',
+             'notification_message': 'CRBAnim import completed for '
+                                     'submission: 1'}, 1)
 
     @patch('crbanim.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -388,7 +391,11 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Error in importing data: Some species '
+                                     'are not loaded in UID database: Rainbow '
+                                     'trout'}, 1)
 
     @patch('crbanim.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -432,4 +439,8 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Error in importing data: Not all Sex '
+                                     'terms are loaded into database: check '
+                                     'for unknown in your dataset'}, 1)

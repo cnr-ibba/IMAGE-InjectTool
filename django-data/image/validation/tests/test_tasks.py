@@ -124,7 +124,9 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Error in IMAGE Validation: Test'}, 1)
 
     @patch('crbanim.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -213,7 +215,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Loaded',
+             'notification_message': 'Errors in EBI API endpoints. Please try '
+                                     'again later'}, 1)
 
     @patch('validation.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -264,7 +269,12 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Loaded',
+             'notification_message': ('Errors in EBI API endpoints. Please '
+                                      'try again later')},
+            1
+        )
 
     @patch('validation.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -303,7 +313,9 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Ready', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Ready',
+             'notification_message': 'Submission validated with success'}, 1)
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
@@ -369,7 +381,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Need Revision',
+             'notification_message': 'Validation got errors: Wrong JSON '
+                                     'structure'}, 1)
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
@@ -436,7 +451,13 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': "Validation got errors: Error in statuses "
+                                     "for submission Cryoweb "
+                                     "(United Kingdom, test): ["
+                                     "'A fake status', 'Error', 'JSON', "
+                                     "'Pass', 'Warning']"}, 1)
 
     @patch('validation.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -492,7 +513,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Ready', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Ready',
+             'notification_message': 'Submission validated with some warnings'},
+            1)
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
@@ -570,7 +594,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Need Revision',
+             'notification_message': 'Validation got errors: Error in metadata. '
+                                     'Need revisions before submit'}, 1)
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()

@@ -111,7 +111,10 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {
+                'message': 'Submitted',
+                'notification_message': 'Waiting for biosample validation'}, 1)
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
     @patch("biosample.tasks.SubmitTask.retry")
@@ -179,7 +182,11 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Ready', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {
+                'message': 'Ready',
+                'notification_message': 'Errors in EBI API endpoints. '
+                                        'Please try again later'}, 1)
 
     @patch('biosample.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -227,7 +234,9 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Submitted',
+             'notification_message': 'Waiting for biosample validation'}, 1)
 
     @patch('biosample.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -267,7 +276,9 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Submitted',
+             'notification_message': 'Waiting for biosample validation'}, 1)
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
@@ -323,7 +334,9 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Submitted',
+             'notification_message': 'Waiting for biosample validation'}, 1)
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
@@ -378,7 +391,9 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Error in biosample submission: Test'}, 1)
 
     @patch('biosample.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -412,7 +427,10 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Ready', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Ready',
+             'notification_message': 'Your token is expired: please submit '
+                                     'again to resume submission'}, 1)
 
         # check name status unchanged
         qs = Name.objects.filter(status=READY)
@@ -490,7 +508,9 @@ class UpdateSubmissionTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Submitted', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Submitted',
+             'notification_message': 'Waiting for biosample validation'}, 1)
 
         # check name status changed for animal
         self.animal_name.refresh_from_db()
@@ -642,7 +662,9 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Completed', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Completed',
+             'notification_message': 'Successful submission into biosample'}, 1)
 
         # check name status changed
         qs = Name.objects.filter(status=COMPLETED)
@@ -830,7 +852,9 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Need Revision',
+             'notification_message': 'Error in biosample submission'}, 1)
 
     @patch('biosample.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -857,7 +881,9 @@ class FetchWithErrorsTestCase(FetchMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Need Revision', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Need Revision',
+             'notification_message': 'Error in biosample submission'}, 1)
 
 
 class FetchDraftTestCase(FetchMixin, TestCase):
@@ -977,7 +1003,12 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Biosample subission Cryoweb '
+                                     '(United Kingdom, test) remained with the '
+                                     'same status for more than 5 days. Please '
+                                     'report it to InjectTool team'}, 1)
 
     @patch('biosample.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -1016,7 +1047,12 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Error', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': 'Biosample subission Cryoweb '
+                                     '(United Kingdom, test) remained with the '
+                                     'same status for more than 5 days. Please '
+                                     'report it to InjectTool team'}, 1)
 
 
 class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
