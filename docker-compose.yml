@@ -9,11 +9,11 @@ services:
     # Set db environment
     environment:
       # these passwords will be taken from .env file (not tracked in GIT)
-      POSTGRES_PASSWORD: $PGPASSWORD
-      PGPASSWORD: $PGPASSWORD
-      IMAGE_USER: $IMAGE_USER
-      IMAGE_PASSWORD: $IMAGE_PASSWORD
-      CRYOWEB_INSERT_ONLY_PW: $CRYOWEB_INSERT_ONLY_PW
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${PGPASSWORD}
+      IMAGE_USER: ${IMAGE_USER}
+      IMAGE_PASSWORD: ${IMAGE_PASSWORD}
+      CRYOWEB_INSERT_ONLY_PW: ${CRYOWEB_INSERT_ONLY_PW}
 
     # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
     volumes:
@@ -44,6 +44,11 @@ services:
     # a custom image for django
     build: ./uwsgi
 
+    # You can pass multiple environment variables from an external file through
+    # to a service’s containers with the ‘env_file’ option
+    env_file:
+      - .env
+
     # exec a different command from image
     command: uwsgi --ini /var/uwsgi/image_uwsgi.ini --memory-report
 
@@ -73,6 +78,11 @@ services:
     # a custom image for django
     build: ./uwsgi
 
+    # You can pass multiple environment variables from an external file through
+    # to a service’s containers with the ‘env_file’ option
+    env_file:
+      - .env
+
     # exec a different command from image
     command: daphne -b 0.0.0.0 -p 8001 --proxy-headers image.asgi:application
 
@@ -96,6 +106,11 @@ services:
   celery-worker:
     # the same django image of uwsgi
     build: ./uwsgi
+
+    # You can pass multiple environment variables from an external file through
+    # to a service’s containers with the ‘env_file’ option
+    env_file:
+      - .env
 
     # exec a different command uwsgi
     command: celery -A image worker -l info -E --concurrency 1 --uid www-data --pidfile /var/run/celery/celery.pid
@@ -121,6 +136,11 @@ services:
     # the same django image of uwsgi
     build: ./uwsgi
 
+    # You can pass multiple environment variables from an external file through
+    # to a service’s containers with the ‘env_file’ option
+    env_file:
+      - .env
+
     command: celery -A image beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --pidfile /var/run/celery/celerybeat.pid
 
     # set working dir for uwsgi
@@ -143,6 +163,11 @@ services:
   celery-flower:
     # the same django image of uwsgi
     build: ./uwsgi
+
+    # You can pass multiple environment variables from an external file through
+    # to a service’s containers with the ‘env_file’ option
+    env_file:
+      - .env
 
     command: celery -A image flower --port=5555 --loglevel=info # --persistent=True
 
