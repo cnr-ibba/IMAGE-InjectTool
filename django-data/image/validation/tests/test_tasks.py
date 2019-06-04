@@ -269,7 +269,12 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(asyncio_mock.call_count, 1)
         self.assertEqual(tmp.run_until_complete.call_count, 1)
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with('Loaded', 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Loaded',
+             'notification_message': ('Errors in EBI API endpoints. Please '
+                                      'try again later')},
+            1
+        )
 
     @patch('validation.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
