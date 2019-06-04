@@ -6,10 +6,14 @@ services:
     # a custom image for django
     build: ./postgres
 
-    # You can pass multiple environment variables from an external file through
-    # to a service’s containers with the ‘env_file’ option
-    env_file:
-      - .env
+    # Set db environment
+    environment:
+      # these passwords will be taken from .env file (not tracked in GIT)
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${PGPASSWORD}
+      IMAGE_USER: ${IMAGE_USER}
+      IMAGE_PASSWORD: ${IMAGE_PASSWORD}
+      CRYOWEB_INSERT_ONLY_PW: ${CRYOWEB_INSERT_ONLY_PW}
 
     # to export volume, as recommeded in https://registry.hub.docker.com/u/library/mysql/
     volumes:

@@ -16,5 +16,10 @@ until PGPASSWORD=$PGPASSWORD psql -h db -U "postgres" -c '\q' || [ ${NEXT_WAIT_T
   NEXT_WAIT_TIME=$((NEXT_WAIT_TIME+1))
 done
 
+if [ ${NEXT_WAIT_TIME} -eq ${MAX_STEPS} ]; then
+  >&2 echo "Problem in waiting postgres"
+  exit 1;
+fi
+
 >&2 echo "Postgres is up - executing command"
 exec $cmd
