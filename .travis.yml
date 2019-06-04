@@ -8,12 +8,17 @@ branches:
 install:
 - docker-compose pull
 - docker-compose build
+# create environment file
+- env >> .env
+# setting up databases
 - docker-compose up -d db redis
+# preparing and fixing folders
 - docker-compose run --no-deps --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media'
 - docker-compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
 - docker-compose run --no-deps --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
 - docker-compose run --no-deps --rm uwsgi sh -c 'chgrp -R www-data .'
 script:
+# call tests (with coverage!)
 - docker-compose run --no-deps --rm uwsgi /root/wait-for-postgres.sh coverage run --source='.' -m py.test
 env:
   global:
