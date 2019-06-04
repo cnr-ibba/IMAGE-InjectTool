@@ -5,8 +5,8 @@ branches:
   - master
   - devel
 install:
-# create environment file
-- env >> .env
+# create environment file selecting variables
+- env | grep 'EMAIL\|DEBUG\|USER\|PASS\|USI\|KEY\|CRYOWEB' >> .env
 # building containers
 - docker-compose pull
 - docker-compose build
