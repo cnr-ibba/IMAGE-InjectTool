@@ -4,12 +4,12 @@ branches:
   only:
   - master
   - devel
-  - issue-21
 install:
-- docker-compose pull
-- docker-compose build
 # create environment file
 - env >> .env
+# building containers
+- docker-compose pull
+- docker-compose build
 # setting up databases
 - docker-compose up -d db redis
 # preparing and fixing folders
