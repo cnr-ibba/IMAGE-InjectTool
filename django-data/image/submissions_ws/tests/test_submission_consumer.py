@@ -1,3 +1,4 @@
+import json
 import pytest
 from channels.testing import WebsocketCommunicator
 from channels.routing import URLRouter
@@ -15,7 +16,12 @@ async def test_submissions_consumer():
                                          "/image/ws/submissions/test/")
     connected, subprotocol = await communicator.connect()
     assert connected
-    await communicator.send_to(text_data="hello")
+    test_message = {
+        'message': 'hello',
+        'notification_message': 'notification'
+    }
+    await communicator.send_to(text_data=json.dumps(test_message))
     response = await communicator.receive_from()
-    assert response == '{"message": "hello"}'
+    assert response == '{"message": "hello", ' \
+                       '"notification_message": "notification"}'
     await communicator.disconnect()
