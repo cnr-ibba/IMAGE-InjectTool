@@ -18,7 +18,8 @@ from celery.utils.log import get_task_logger
 
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES)
-from common.helpers import send_message_to_websocket
+from common.helpers import send_message_to_websocket, \
+    construct_validation_message
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal
 
@@ -229,7 +230,9 @@ class ValidateTask(MyTask):
                 send_message_to_websocket(
                     {
                         'message': STATUSES.get_value_display(READY),
-                        'notification_message': submission_obj.message
+                        'notification_message': submission_obj.message,
+                        'validation_message': construct_validation_message(
+                            submission_obj)
                     },
                     submission_id
                 )
@@ -250,7 +253,9 @@ class ValidateTask(MyTask):
                 send_message_to_websocket(
                     {
                         'message': STATUSES.get_value_display(READY),
-                        'notification_message': submission_obj.message
+                        'notification_message': submission_obj.message,
+                        'validation_message': construct_validation_message(
+                            submission_obj)
                     },
                     submission_id
                 )
@@ -382,7 +387,9 @@ class ValidateTask(MyTask):
             send_message_to_websocket(
                 {
                     'message': STATUSES.get_value_display(status),
-                    'notification_message': submission_obj.message
+                    'notification_message': submission_obj.message,
+                    'validation_message': construct_validation_message(
+                        submission_obj)
                 },
                 submission_obj.id
             )

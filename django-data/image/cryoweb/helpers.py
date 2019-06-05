@@ -19,7 +19,8 @@ from decouple import AutoConfig
 from django.conf import settings
 
 from common.constants import LOADED, ERROR, MISSING, UNKNOWN, STATUSES
-from common.helpers import image_timedelta, send_message_to_websocket
+from common.helpers import image_timedelta, send_message_to_websocket, \
+    construct_validation_message
 from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
@@ -481,29 +482,13 @@ def cryoweb_import(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
-
-        # Get data for validation message
-        validation_summary = ValidationSummary(submission)
-        validation_message = dict()
-
-        # Number of animal and samples
-        validation_message['animals'] = validation_summary.n_animals
-        validation_message['samples'] = validation_summary.n_samples
-
-        # Number of unknow validations
-        validation_message['animal_unkn'] = validation_summary.n_animal_unknown
-        validation_message['sample_unkn'] = validation_summary.n_sample_unknown
-
-        # Number of problem validations
-        validation_message['animal_issues'] = validation_summary.n_animal_issues
-        validation_message['sample_issues'] = validation_summary.n_sample_issues
-
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
                 {
                     'message': STATUSES.get_value_display(LOADED),
                     'notification_message': message,
-                    'validation_message': validation_message
+                    'validation_message': construct_validation_message(
+                        submission)
                 },
                 submission.id
             )

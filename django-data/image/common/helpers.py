@@ -17,6 +17,7 @@ from django.contrib.admin.utils import NestedObjects
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.text import capfirst
 from django.utils.encoding import force_text
+from validation.helpers import ValidationSummary
 
 from .constants import YEARS, MONTHS, DAYS
 
@@ -75,6 +76,33 @@ def get_deleted_objects(objs, db_alias=DEFAULT_DB_ALIAS):
             len(objs) for model, objs in collector.model_objs.items()}
 
     return to_delete, model_count, protected
+
+
+def construct_validation_message(submission):
+    """
+    Function will return dict with all the data required to construct validation
+    message
+    Args:
+        submission : submission to get data from
+    Returns:
+        dict: dictionary with all required data for validation message
+    """
+    validation_summary = ValidationSummary(submission)
+    validation_message = dict()
+
+    # Number of animal and samples
+    validation_message['animals'] = validation_summary.n_animals
+    validation_message['samples'] = validation_summary.n_samples
+
+    # Number of unknow validations
+    validation_message['animal_unkn'] = validation_summary.n_animal_unknown
+    validation_message['sample_unkn'] = validation_summary.n_sample_unknown
+
+    # Number of problem validations
+    validation_message['animal_issues'] = validation_summary.n_animal_issues
+    validation_message['sample_issues'] = validation_summary.n_sample_issues
+
+    return validation_message
 
 
 async def send_message_to_websocket(message, pk):
