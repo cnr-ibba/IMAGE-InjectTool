@@ -28,5 +28,5 @@ python-dateutil
 django-simple-cookie-consent==0.1.1
 # git+https://github.com/cnr-ibba/pyUSIrest.git@b07c54830d57603ba052821b43ad36e11bdab62c
 pyUSIrest==0.2.2
-git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@f13b977c677c8785331a8d77d1573939ccf450ea
+git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@e465c9088b97f570233767df026e798289a0e30a
 sphinx
