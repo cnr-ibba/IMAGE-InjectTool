@@ -627,15 +627,7 @@ class FetchStatusTask(MyTask):
     # a function to finalize a submission
     def finalize(self, submission, submission_obj):
         # get errors for a submission
-        # errors = submission.has_errors()
-
-        # as described by [submission-help #341348] ticket
-        # there is an error in Ena which raise errors in accessions. For now
-        # I will Ignore Ena errors and force finalizing
-        # TOOD: remove ignorelist after USI update
-        logger.warning(
-            "Ignoring errors from Ena and forcing finalization if possible")
-        errors = submission.has_errors(ignorelist=['Ena'])
+        errors = submission.has_errors()
 
         # collect all error messages in a list
         messages = []
@@ -693,16 +685,8 @@ class FetchStatusTask(MyTask):
         else:
             # TODO: raising an exception while finalizing will result
             # in a failed task. model and test exception in finalization
-            # logger.info("Finalizing submission %s" % (
-            #     submission.name))
-            # submission.finalize()
-
-            # same for has_error method
-            # TOOD: remove ignorelist after USI update
-            logger.warning(
-                "Ignoring errors from Ena and finalizing submission %s" % (
-                    submission.name))
-            submission.finalize(ignorelist=['Ena'])
+            logger.info("Finalizing submission %s" % (submission.name))
+            submission.finalize()
 
     def complete(self, submission, submission_obj):
         # cicle along samples
