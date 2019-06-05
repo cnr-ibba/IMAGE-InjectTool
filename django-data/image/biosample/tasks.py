@@ -683,8 +683,9 @@ class FetchStatusTask(MyTask):
             )
 
         else:
-            logger.info("Finalizing submission %s" % (
-                submission.name))
+            # TODO: raising an exception while finalizing will result
+            # in a failed task. model and test exception in finalization
+            logger.info("Finalizing submission %s" % (submission.name))
             submission.finalize()
 
     def complete(self, submission, submission_obj):

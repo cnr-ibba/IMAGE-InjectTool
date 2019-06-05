@@ -293,22 +293,6 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
         self.animal = Animal.objects.get(pk=1)
         self.submission = self.animal.submission
 
-    def test_get_accession(self):
-        """Get a biosample id or a temporary id"""
-
-        reference = "IMAGEA000000001"
-
-        test = self.animal.get_accession()
-        self.assertEqual(reference, test)
-
-        # assign a different biosample id
-        reference = "SAMEA4450079"
-        self.animal.name.biosample_id = reference
-        self.animal.save()
-
-        test = self.animal.get_accession()
-        self.assertEqual(reference, test)
-
     def test_to_biosample(self):
         """Testing JSON conversion for biosample submission"""
 
@@ -325,6 +309,19 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
 
         self.maxDiff = None
         self.assertEqual(reference, test)
+
+    def test_to_biosample2(self):
+        """testing json conversion with a biosample_id"""
+
+        # assign a different biosample id
+        reference = "SAMEA4450079"
+        self.animal.name.biosample_id = reference
+        self.animal.name.save()
+
+        test = self.animal.to_biosample()
+
+        # asserting biosample_.id in response
+        self.assertEqual(test["accession"], reference)
 
     # TODO: test None rendering
 
@@ -440,22 +437,6 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         # set submission
         self.submission = self.sample.submission
 
-    def test_get_accession(self):
-        """Get a biosample id or a temporary id"""
-
-        reference = "IMAGES000000001"
-
-        test = self.sample.get_accession()
-        self.assertEqual(reference, test)
-
-        # assign a different biosample id
-        reference = "SAMEA4450075"
-        self.sample.name.biosample_id = reference
-        self.sample.save()
-
-        test = self.sample.get_accession()
-        self.assertEqual(reference, test)
-
     def test_to_biosample(self):
         """Testing JSON conversion for biosample submission"""
 
@@ -472,6 +453,30 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
 
         self.maxDiff = None
         self.assertEqual(reference, test)
+
+    def test_to_biosample2(self):
+        """testing json conversion with a biosample_id"""
+
+        # assign a different biosample id
+        animal_reference = "SAMEA4450079"
+        self.animal.name.biosample_id = animal_reference
+        self.animal.name.save()
+
+        sample_reference = "SAMEA4450075"
+        self.sample.name.biosample_id = sample_reference
+        self.sample.name.save()
+
+        test = self.sample.to_biosample()
+
+        # asserting biosample_.id in response
+        self.assertEqual(test["accession"], sample_reference)
+
+        # asserting animal biosample_id in relatioship
+        reference = [{
+            "accession": animal_reference,
+            "relationshipNature": "derived from",
+        }]
+        self.assertEqual(test['sampleRelationships'], reference)
 
     def test_to_biosample_no_foreign(self):
         """Testing JSON conversion for biosample submission without
