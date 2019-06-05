@@ -40,7 +40,10 @@ class ImportCRBAnimTask(MyTask):
 
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(ERROR),
+                {
+                    'message': STATUSES.get_value_display(ERROR),
+                    'notification_message': submission_obj.message
+                },
                 args[0]
             )
         )

@@ -122,6 +122,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         # saving updated object
         user.save()
 
+        # this is django.test.Client
         self.client = Client()
         self.client.login(username='test', password='test')
 
@@ -137,11 +138,13 @@ class SuccessfulCreateUserViewTest(Basetest):
     @patch('pyUSIrest.client.User.add_user_to_team')
     @patch('pyUSIrest.client.User.get_domain_by_name')
     @patch('pyUSIrest.client.User.create_team')
+    @patch('biosample.views.get_manager_auth', new=mocked_auth)
     @patch('biosample.views.get_auth', new=mocked_auth)
     @patch('pyUSIrest.client.User.create_user',
            return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
-    def test_user_create(self, create_user, create_team, get_domain_by_name,
-                         add_user_to_team):
+    def test_user_create(
+            self, create_user, create_team, get_domain_by_name,
+            add_user_to_team):
         """Testing create user"""
 
         # setting mock objects
@@ -154,6 +157,7 @@ class SuccessfulCreateUserViewTest(Basetest):
             'password2': 'image-password',
         }
 
+        # posting user and password to generate a new user
         response = self.client.post(self.url, self.data)
         dashboard_url = reverse('image_app:dashboard')
 
@@ -171,8 +175,9 @@ class SuccessfulCreateUserViewTest(Basetest):
     @patch('biosample.helpers.Auth', new=mocked_auth)
     @patch('pyUSIrest.client.User.create_user',
            side_effect=ConnectionError("test"))
-    def test_error_with_biosample(self, create_user, create_team,
-                                  get_domain_by_name, add_user_to_team):
+    def test_error_with_biosample(
+            self, create_user, create_team, get_domain_by_name,
+            add_user_to_team):
         """Testing create user with biosample errors"""
 
         self.data = {

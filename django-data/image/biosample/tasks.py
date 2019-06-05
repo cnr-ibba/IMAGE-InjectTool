@@ -114,7 +114,11 @@ class SubmitTask(MyTask):
 
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(ERROR),
+                {
+                    'message': STATUSES.get_value_display(ERROR),
+                    'notification_message':
+                        submission_data.submission_obj.message
+                },
                 submission_data.submission_id
             )
         )
@@ -177,7 +181,10 @@ class SubmitTask(MyTask):
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
-                    STATUSES.get_value_display(READY),
+                    {
+                        'message': STATUSES.get_value_display(READY),
+                        'notification_message': message
+                    },
                     submission_data.submission_id
                 )
             )
@@ -213,7 +220,10 @@ class SubmitTask(MyTask):
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
-                    STATUSES.get_value_display(READY),
+                    {
+                        'message': STATUSES.get_value_display(READY),
+                        'notification_message': message
+                    },
                     submission_data.submission_id
                 )
             )
@@ -299,7 +309,11 @@ class SubmitTask(MyTask):
         submission_data.submission_obj.save()
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(SUBMITTED),
+                {
+                    'message': STATUSES.get_value_display(SUBMITTED),
+                    'notification_message':
+                        submission_data.submission_obj.message
+                },
                 submission_data.submission_id
             )
         )
@@ -559,7 +573,10 @@ class FetchStatusTask(MyTask):
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
-                    STATUSES.get_value_display(ERROR),
+                    {
+                        'message': STATUSES.get_value_display(ERROR),
+                        'notification_message': message
+                    },
                     submission_obj.id
                 )
             )
@@ -665,7 +682,10 @@ class FetchStatusTask(MyTask):
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
-                    STATUSES.get_value_display(NEED_REVISION),
+                    {
+                        'message': STATUSES.get_value_display(NEED_REVISION),
+                        'notification_message': submission_obj.message
+                    },
                     submission_obj.id
                 )
             )
@@ -711,7 +731,10 @@ class FetchStatusTask(MyTask):
 
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
-                STATUSES.get_value_display(COMPLETED),
+                {
+                    'message': STATUSES.get_value_display(COMPLETED),
+                    'notification_message': submission_obj.message
+                },
                 submission_obj.id
             )
         )

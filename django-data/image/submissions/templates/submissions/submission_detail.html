@@ -172,16 +172,29 @@
     }
   }
 
+  function choose_div_class(message) {
+      if (message === 'Waiting' || message === 'Submitted') {
+        return 'alert alert-dismissible alert-warning';
+      } else if (message === 'Error' || message === 'Need Revision') {
+        return 'alert alert-dismissible alert-danger';
+      } else {
+        return 'alert alert-dismissible alert-info';
+      }
+  }
+
   var submissionId = {{ submission.pk }};
   var chatSocket = new WebSocket('ws://' + window.location.host + '/image/ws/submissions/' + submissionId + '/');
 
   chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     var message = data['message'];
-    console.log(message);
+    var notificationMessage = data['notification_message'];
     document.querySelector('#status-log').textContent = message;
     document.querySelector('#status-log').className = getColor(message);
     disableButtons(message);
+    var notificationDiv = document.querySelector('#notifications');
+    notificationDiv.childNodes[2].textContent = notificationMessage;
+    notificationDiv.className = choose_div_class(message);
   };
 
   chatSocket.onclose = function(e) {
