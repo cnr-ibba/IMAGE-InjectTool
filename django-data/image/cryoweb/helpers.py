@@ -24,6 +24,7 @@ from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
 from language.helpers import check_species_synonyms
+from validation.helpers import ValidationSummary
 
 from .models import db_has_data as cryoweb_has_data
 from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
@@ -480,11 +481,29 @@ def cryoweb_import(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
+
+        # Get data for validation message
+        validation_summary = ValidationSummary(submission)
+        validation_message = dict()
+
+        # Number of animal and samples
+        validation_message['animals'] = validation_summary.n_animals
+        validation_message['samples'] = validation_summary.n_samples
+
+        # Number of unknow validations
+        validation_message['animal_unkn'] = validation_summary.n_animal_unknown
+        validation_message['sample_unkn'] = validation_summary.n_sample_unknown
+
+        # Number of problem validations
+        validation_message['animal_issues'] = validation_summary.n_animal_issues
+        validation_message['sample_issues'] = validation_summary.n_sample_issues
+
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
                 {
                     'message': STATUSES.get_value_display(LOADED),
-                    'notification_message': message
+                    'notification_message': message,
+                    'validation_message': validation_message
                 },
                 submission.id
             )

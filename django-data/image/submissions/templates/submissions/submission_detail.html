@@ -56,7 +56,7 @@
     </tr>
     <tr class="table-primary">
       <th scope="row">N. of Animals</th>
-      <td>
+      <td id="validation_message_animals">
         {{ validation_summary.n_animals }}
         {% if validation_summary.n_animal_issues %}
           ({{ validation_summary.n_animal_issues }} with issues in validation)
@@ -68,7 +68,7 @@
     </tr>
     <tr class="table-secondary">
       <th scope="row">N. of Samples</th>
-      <td>
+      <td id="validation_message_samples">
         {{ validation_summary.n_samples }}
         {% if validation_summary.n_sample_issues %}
           ({{ validation_summary.n_sample_issues }} with issues in validation)
@@ -182,6 +182,17 @@
       }
   }
 
+  function construct_validation_message(message, unknown, issues) {
+      if (unknown !== 0 && issues !== 0) {
+      message += ` (${issues} with issues in validation; ${unknown} with unknown validation)`;
+    } else if (unknown !== 0 && issues === 0) {
+      message += ` (${unknown} with unknown validation)`;
+    } else if (unknown === 0 && issues !== 0) {
+      message += ` (${issues} with issues in validation)`;
+    }
+      return message;
+  }
+
   var submissionId = {{ submission.pk }};
   var chatSocket = new WebSocket('ws://' + window.location.host + '/image/ws/submissions/' + submissionId + '/');
 
@@ -189,8 +200,18 @@
     var data = JSON.parse(e.data);
     var message = data['message'];
     var notificationMessage = data['notification_message'];
+
+    var animalsMessage = data['validation_message']['animals'];
+    var samplesMessage = data['validation_message']['samples'];
+    var animalsUnknown = data['validation_message']['animal_unkn'];
+    var samplesUnknown = data['validation_message']['sample_unkn'];
+    var animalsIssues = data['validation_message']['animal_issues'];
+    var samplesIssues = data['validation_message']['sample_issues'];
+
     document.querySelector('#status-log').textContent = message;
     document.querySelector('#status-log').className = getColor(message);
+    document.querySelector('#validation_message_animals').innerText = construct_validation_message(animalsMessage, animalsUnknown, animalsIssues);
+    document.querySelector('#validation_message_samples').innerText = construct_validation_message(samplesMessage, samplesUnknown, samplesIssues);
     disableButtons(message);
     var notificationDiv = document.querySelector('#notifications');
     notificationDiv.childNodes[2].textContent = notificationMessage;
