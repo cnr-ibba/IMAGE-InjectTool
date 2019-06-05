@@ -164,6 +164,11 @@
       remove_disabled(danger_zone);
       remove_disabled(validate_button);
     }
+
+    if (current_status === 'Completed') {
+      remove_disabled(edit_data);
+      remove_disabled(danger_zone);
+    }
   }
 
   function remove_disabled(button) {
