@@ -938,9 +938,8 @@ class Sample(BioSampleMixin, models.Model):
         result = super().to_biosample(release_date)
 
         # define relationship (get animal alias)
-        # HINT: if animal is already uploaded, should I use accession as
-        # relationship key? I need to test for biosample_id existance
-        # and then use keys properly
+        # if animal is already uploaded I will use accession as
+        # relationship key. This biosample id could be tested in validation
         if self.animal.biosample_id and self.animal.biosample_id != '':
             result['sampleRelationships'] = [{
                 "accession": self.animal.biosample_id,

@@ -9,15 +9,18 @@ Created on Tue Feb 19 16:15:35 2019
 import re
 import json
 import logging
+import requests
 
 from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.text import Truncator
 
-from image_validation import validation
+from image_validation import validation, ValidationResult
 from image_validation.static_parameters import ruleset_filename as \
     IMAGE_RULESET
 
 from image_app.models import Name
+from biosample.helpers import parse_image_alias, get_model_object
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -64,6 +67,71 @@ class MetaDataValidation():
         """Check duplicates in data"""
 
         return validation.check_duplicates(record)
+
+    def check_biosample_id_target(
+            self, biosample_id, record_id, record_result):
+
+        """Check if a target biosample_id exists or not"""
+
+        url = f"https://www.ebi.ac.uk/biosamples/samples/{biosample_id}"
+        response = requests.get(url)
+        status = response.status_code
+        if status != 200:
+            record_result.add_validation_result_column(
+                ValidationResult.ValidationResultColumn(
+                    "Warning",
+                    f"Fail to retrieve record {biosample_id} from "
+                    f"BioSamples as required in the relationship",
+                    record_id,
+                    'sampleRelationships'))
+
+        return record_result
+
+    def check_relationship(self, record, record_result):
+        """
+        Check relationship for an Animal/Sample record
+
+        Args:
+            record (dict): An Animal/Sample.to_biosample() dictionary object
+            record_result (ValidationResult.ValidationResultRecord) object
+        """
+
+        relationships = record.get('sampleRelationships', [])
+
+        # as described in image_validation.Submission.Submission
+        # same as record["title"]
+        record_id = record['attributes']["Data source ID"][0]['value']
+
+        # related objects (from UID goes here)
+        related = []
+
+        for relationship in relationships:
+            if 'accession' in relationship:
+                target = relationship['accession']
+
+                # check biosample target and update record_result if necessary
+                record_result = self.check_biosample_id_target(
+                    target, record_id, record_result)
+
+            else:
+                # in the current ruleset, derived from only from organism to
+                # specimen, so safe to only check organism
+                target = relationship['alias']
+
+                # test for object existance in db
+                try:
+                    material_obj = get_model_object(
+                        *parse_image_alias(target))
+                    related.append(material_obj.to_biosample())
+
+                except ObjectDoesNotExist:
+                    record_result.add_validation_result_column(
+                        ValidationResult.ValidationResultColumn(
+                            "Error",
+                            f"Could not locate the referenced record {target}",
+                            record_id, 'sampleRelationships'))
+
+        return record_result
 
     def validate(self, record):
         """Check attributes for record"""

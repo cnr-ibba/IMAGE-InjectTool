@@ -683,8 +683,9 @@ class FetchStatusTask(MyTask):
             )
 
         else:
-            # TODO: raising an exception while finalizing will result
-            # in a failed task. model and test exception in finalization
+            # raising an exception while finalizing will result
+            # in a failed task.
+            # TODO: model and test exception in finalization
             logger.info("Finalizing submission %s" % (submission.name))
             submission.finalize()
 
