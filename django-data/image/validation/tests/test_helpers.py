@@ -6,8 +6,10 @@ Created on Tue Jan 22 14:28:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import json
+
 from image_validation.ValidationResult import ValidationResultRecord
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.test import TestCase
 
@@ -22,7 +24,7 @@ from ..models import ValidationResult
 
 class MetaDataValidationTestCase(TestCase):
     @patch("validation.helpers.validation.read_in_ruleset",
-           side_effect=OntologyCacheError("test exception"))
+           side_effect=json.JSONDecodeError("meow", "woof", 42))
     def test_issues_with_ebi(self, my_issue):
         """
         Test temporary issues related with OLS EBI server during
@@ -31,14 +33,70 @@ class MetaDataValidationTestCase(TestCase):
         # assert issues from validation.helpers.validation.read_in_ruleset
         self.assertRaisesMessage(
             OntologyCacheError,
-            "test exception",
+            "Issue with 'https://www.ebi.ac.uk/ols/api/'",
             MetaDataValidation)
 
         # test mocked function called
         self.assertTrue(my_issue.called)
 
+    @patch("requests.get")
+    @patch("validation.helpers.validation.read_in_ruleset")
+    def test_check_biosample_id_target(self, my_read, mock_get):
+        """Test fecthing biosample ids from MetaDataValidation"""
 
-class SubmissionTestCase(PersonMixinTestCase, TestCase):
+        # paching response
+        response = Mock()
+        response.status_code = 200
+        mock_get.return_value = response
+
+        # create a fake ValidationResultRecord
+        record_result = ValidationResultRecord(record_id="test")
+
+        # get a metadata object
+        metadata = MetaDataValidation()
+
+        # check biosample object
+        record_result = metadata.check_biosample_id_target(
+            "FAKEA123456", "test", record_result)
+
+        # test pass status and no messages
+        self.assertEqual(record_result.get_overall_status(), 'Pass')
+        self.assertEqual(record_result.get_messages(), [])
+
+        # assert my methods called
+        self.assertTrue(my_read.called)
+        self.assertTrue(mock_get.called)
+
+    @patch("requests.get")
+    @patch("validation.helpers.validation.read_in_ruleset")
+    def test_check_biosample_id_issue(self, my_read, mock_get):
+        """No valid biosample is found for this object"""
+
+        # paching response
+        response = Mock()
+        response.status_code = 404
+        mock_get.return_value = response
+
+        # create a fake ValidationResultRecord
+        record_result = ValidationResultRecord(record_id="test")
+
+        # get a metadata object
+        metadata = MetaDataValidation()
+
+        # check biosample object
+        record_result = metadata.check_biosample_id_target(
+            "FAKEA123456", "test", record_result)
+
+        # test Warning status and one message
+        self.assertEqual(record_result.get_overall_status(), 'Warning')
+        self.assertEqual(len(record_result.get_messages()), 1)
+
+        # assert my methods called
+        self.assertTrue(my_read.called)
+        self.assertTrue(mock_get.called)
+
+
+class SubmissionMixin(PersonMixinTestCase):
     # an attribute for PersonMixinTestCase
     person = Person
 
@@ -71,10 +129,18 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         publication.delete()
 
     def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
         self.metadata = MetaDataValidation()
         self.submission_id = 1
 
+
+class SubmissionTestCase(SubmissionMixin, TestCase):
+
     def test_animal(self):
+        """Testing an animal submission"""
+
         # at the time of writing this reference data raise one warning
         reference = [
             ("Pass", "")]
@@ -137,49 +203,9 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
             matches = [search(message) for message in result.get_messages()]
             self.assertNotIn(False, matches)
 
-    def test_sample_update(self):
-        """Simulate a validation for an already submitted sample"""
-
-        # at the time of writing this reference pass without problems
-        reference = [
-            ("Pass", "")]
-
-        # get all samples
-        samples = Sample.objects.all()
-
-        # get all biosmaple data
-        data = []
-
-        for i, sample in enumerate(samples):
-            # modify animal and sample
-            animal_reference = "SAMEA" + str(4450079 + i)
-            sample.animal.name.biosample_id = animal_reference
-            sample.animal.name.save()
-
-            sample_reference = "SAMEA" + str(4450075 + i)
-            sample.name.biosample_id = sample_reference
-            sample.name.save()
-
-            data += [sample.to_biosample()]
-
-        # check for usi structure
-        usi_result = self.metadata.check_usi_structure(data)
-        self.assertEqual(usi_result, [])
-
-        for i, record in enumerate(data):
-            result = self.metadata.validate(record)
-
-            # assert result type
-            self.assertIsInstance(result, ValidationResultRecord)
-            self.assertEqual(result.get_overall_status(), reference[i][0])
-
-            def search(y):
-                return "" == y
-
-            matches = [search(message) for message in result.get_messages()]
-            self.assertNotIn(False, matches)
-
     def test_submission(self):
+        """Testing usi_structure and duplicates in a submission"""
+
         # get a submission
         submission = Submission.objects.get(pk=self.submission_id)
 
@@ -231,6 +257,45 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         test = self.metadata.check_usi_structure([data])
 
         self.assertEqual(reference, test)
+
+
+class SubmissionUpdateTestCase(SubmissionMixin, TestCase):
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # get a samlple
+        self.sample = Sample.objects.get(pk=1)
+
+        # modify animal and sample
+        self.animal_reference = "SAMEA4450079"
+        self.sample.animal.name.biosample_id = self.animal_reference
+        self.sample.animal.name.save()
+
+        self.sample_reference = "SAMEA4450075"
+        self.sample.name.biosample_id = self.sample_reference
+        self.sample.name.save()
+
+        self.record = self.sample.to_biosample()
+
+    def test_sample_update(self):
+        """Simulate a validation for an already submitted sample"""
+
+        # at the time of writing this reference pass without problems
+        reference = ("Pass", "")
+
+        # check object
+        result = self.metadata.validate(self.record)
+
+        # assert result type
+        self.assertIsInstance(result, ValidationResultRecord)
+        self.assertEqual(result.get_overall_status(), reference[0])
+
+        def search(y):
+            return reference[1] == y
+
+        matches = [search(message) for message in result.get_messages()]
+        self.assertNotIn(False, matches)
 
 
 class RulesTestCase(TestCase):

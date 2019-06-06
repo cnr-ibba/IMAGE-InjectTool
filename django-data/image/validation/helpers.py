@@ -116,7 +116,6 @@ class MetaDataValidation():
             list: a list of dictionaries of relate objects
             ValidationResult.ValidationResultRecord: an updated
             image_validation object
-
         """
 
         # get relationship from a to_biosample() dictionary object
@@ -169,7 +168,6 @@ class MetaDataValidation():
         Returns:
             ValidationResult.ValidationResultRecord: an image_validation
             object
-
         """
 
         # this validated in general way
