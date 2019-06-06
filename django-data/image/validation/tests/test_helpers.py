@@ -88,7 +88,12 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
         for animal in animals:
             data += [animal.to_biosample()]
 
+        # check for usi structure
+        usi_result = self.metadata.check_usi_structure(data)
+        self.assertEqual(usi_result, [])
+
         for i, record in enumerate(data):
+            # validate record
             result = self.metadata.validate(record)
 
             # assert result type
@@ -114,6 +119,52 @@ class SubmissionTestCase(PersonMixinTestCase, TestCase):
 
         for sample in samples:
             data += [sample.to_biosample()]
+
+        # check for usi structure
+        usi_result = self.metadata.check_usi_structure(data)
+        self.assertEqual(usi_result, [])
+
+        for i, record in enumerate(data):
+            result = self.metadata.validate(record)
+
+            # assert result type
+            self.assertIsInstance(result, ValidationResultRecord)
+            self.assertEqual(result.get_overall_status(), reference[i][0])
+
+            def search(y):
+                return "" == y
+
+            matches = [search(message) for message in result.get_messages()]
+            self.assertNotIn(False, matches)
+
+    def test_sample_update(self):
+        """Simulate a validation for an already submitted sample"""
+
+        # at the time of writing this reference pass without problems
+        reference = [
+            ("Pass", "")]
+
+        # get all samples
+        samples = Sample.objects.all()
+
+        # get all biosmaple data
+        data = []
+
+        for i, sample in enumerate(samples):
+            # modify animal and sample
+            animal_reference = "SAMEA" + str(4450079 + i)
+            sample.animal.name.biosample_id = animal_reference
+            sample.animal.name.save()
+
+            sample_reference = "SAMEA" + str(4450075 + i)
+            sample.name.biosample_id = sample_reference
+            sample.name.save()
+
+            data += [sample.to_biosample()]
+
+        # check for usi structure
+        usi_result = self.metadata.check_usi_structure(data)
+        self.assertEqual(usi_result, [])
 
         for i, record in enumerate(data):
             result = self.metadata.validate(record)
