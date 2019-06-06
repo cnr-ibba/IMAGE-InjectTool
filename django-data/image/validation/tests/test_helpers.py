@@ -133,96 +133,74 @@ class SubmissionMixin(PersonMixinTestCase):
         super().setUp()
 
         self.metadata = MetaDataValidation()
-        self.submission_id = 1
 
 
 class SubmissionTestCase(SubmissionMixin, TestCase):
+    """Deal real tests using image_validation library: this want to ensure
+    that InjectTools can work with image_validation"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # get an animal object
+        self.animal = Animal.objects.get(pk=1)
+        self.animal_record = self.animal.to_biosample()
+
+        # get a sample object
+        self.sample = Sample.objects.get(pk=1)
+        self.sample_record = self.sample.to_biosample()
 
     def test_animal(self):
         """Testing an animal submission"""
 
         # at the time of writing this reference data raise one warning
-        reference = [
-            ("Pass", "")]
-
-        # get all animals
-        animals = Animal.objects.all()
-
-        # get all biosmaple data
-        data = []
-
-        for animal in animals:
-            data += [animal.to_biosample()]
+        reference = ("Pass", "")
 
         # check for usi structure
-        usi_result = self.metadata.check_usi_structure(data)
+        usi_result = self.metadata.check_usi_structure([self.animal_record])
         self.assertEqual(usi_result, [])
 
-        for i, record in enumerate(data):
-            # validate record
-            result = self.metadata.validate(record)
+        # validate record
+        result = self.metadata.validate(self.animal_record)
 
-            # assert result type
-            self.assertIsInstance(result, ValidationResultRecord)
-            self.assertEqual(result.get_overall_status(), reference[i][0])
+        # assert result type
+        self.assertIsInstance(result, ValidationResultRecord)
+        self.assertEqual(result.get_overall_status(), reference[0])
 
-            def search(y):
-                return reference[i][1] in y
+        def search(y):
+            return reference[1] in y
 
-            matches = [search(message) for message in result.get_messages()]
-            self.assertNotIn(False, matches)
+        matches = [search(message) for message in result.get_messages()]
+        self.assertNotIn(False, matches)
 
     def test_sample(self):
+        """Test a sample submission"""
+
         # at the time of writing this reference pass without problems
-        reference = [
-            ("Pass", "")]
-
-        # get all samples
-        samples = Sample.objects.all()
-
-        # get all biosmaple data
-        data = []
-
-        for sample in samples:
-            data += [sample.to_biosample()]
+        reference = ("Pass", "")
 
         # check for usi structure
-        usi_result = self.metadata.check_usi_structure(data)
+        usi_result = self.metadata.check_usi_structure([self.sample_record])
         self.assertEqual(usi_result, [])
 
-        for i, record in enumerate(data):
-            result = self.metadata.validate(record)
+        result = self.metadata.validate(self.sample_record)
 
-            # assert result type
-            self.assertIsInstance(result, ValidationResultRecord)
-            self.assertEqual(result.get_overall_status(), reference[i][0])
+        # assert result type
+        self.assertIsInstance(result, ValidationResultRecord)
+        self.assertEqual(result.get_overall_status(), reference[0])
 
-            def search(y):
-                return "" == y
+        def search(y):
+            return reference[1] == y
 
-            matches = [search(message) for message in result.get_messages()]
-            self.assertNotIn(False, matches)
+        matches = [search(message) for message in result.get_messages()]
+        self.assertNotIn(False, matches)
 
     def test_submission(self):
         """Testing usi_structure and duplicates in a submission"""
 
-        # get a submission
-        submission = Submission.objects.get(pk=self.submission_id)
-
-        # get all biosample data for animals
-        animals_json = []
-        samples_json = []
-
-        # a more limited subset
-        for animal in Animal.objects.filter(name__submission=submission):
-            animals_json += [animal.to_biosample()]
-
-            # get samples data and add to a list
-            for sample in animal.sample_set.all():
-                samples_json += [sample.to_biosample()]
-
-        # collect all data in a dictionary
-        data = animals_json + samples_json
+        # get all biosample data in a list
+        data = [self.animal_record, self.sample_record]
 
         # test for usi structure
         usi_result = self.metadata.check_usi_structure(data)
@@ -246,20 +224,18 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
              'alias as IMAGEA000000001'),
         ]
 
-        # get my animal
-        animal = Animal.objects.get(pk=1)
-        data = animal.to_biosample()
-
         # delete some attributes from animal data
-        del(data['title'])
+        del(self.animal_record['title'])
 
         # test for Json structure
-        test = self.metadata.check_usi_structure([data])
+        test = self.metadata.check_usi_structure([self.animal_record])
 
         self.assertEqual(reference, test)
 
 
-class SubmissionUpdateTestCase(SubmissionMixin, TestCase):
+class SampleUpdateTestCase(SubmissionMixin, TestCase):
+    """Testing validation for a sample update"""
+
     def setUp(self):
         # calling my base class setup
         super().setUp()
