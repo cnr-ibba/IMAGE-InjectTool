@@ -136,6 +136,12 @@ class MetaDataValidation():
                 record_result = self.check_biosample_id_target(
                     target, record_id, record_result)
 
+            # HINT: should I check aliases? they came from PK and are related
+            # in the same submission. I can't have a sample without animal
+            # since animal is a forey key samples (which doesn't tolerate
+            # NULL). Even mother and father are related through keys. If
+            # missing, no information about mother and father could be
+            # determined
             else:
                 # in the current ruleset, derived from only from organism to
                 # specimen, so safe to only check organism

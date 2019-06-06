@@ -196,6 +196,33 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
         matches = [search(message) for message in result.get_messages()]
         self.assertNotIn(False, matches)
 
+    def test_sample_relationship_issue(self):
+        """Testing an error with related alias. Not sure if it can happen or
+        not"""
+
+        # get record from sample
+        record = self.sample_record
+
+        # change alias in relationship in order to have no a related obj
+        record["sampleRelationships"] = [{
+            "alias": "IMAGEA999999999",
+            "relationshipNature": "derived from"
+        }]
+
+        # create a fake ValidationResultRecord
+        record_result = ValidationResultRecord(record_id=record['title'])
+
+        # check relationship method
+        related, result = self.metadata.check_relationship(
+            record, record_result)
+
+        # this is an error in results
+        self.assertEqual(related, [])
+        self.assertEqual(result.get_overall_status(), 'Error')
+        self.assertIn(
+            "Could not locate the referenced record",
+            result.get_messages()[0])
+
     def test_submission(self):
         """Testing usi_structure and duplicates in a submission"""
 
