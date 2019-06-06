@@ -71,7 +71,22 @@ class MetaDataValidation():
     def check_biosample_id_target(
             self, biosample_id, record_id, record_result):
 
-        """Check if a target biosample_id exists or not"""
+        """
+        Check if a target biosample_id exists or not. If it is present, ok.
+        Otherwise a ValidationResultColumn with a warning
+
+        Args:
+            biosample_id (str): the desidered biosample id
+            record_id (str): is the name of the object in the original data
+                source
+            record_result (ValidationResult.ValidationResultRecord):
+                an image_validation result object
+
+        Returns:
+            ValidationResult.ValidationResultRecord: an updated
+            image_validation object
+
+        """
 
         url = f"https://www.ebi.ac.uk/biosamples/samples/{biosample_id}"
         response = requests.get(url)
@@ -93,13 +108,20 @@ class MetaDataValidation():
 
         Args:
             record (dict): An Animal/Sample.to_biosample() dictionary object
-            record_result (ValidationResult.ValidationResultRecord) object
+            record_result (ValidationResult.ValidationResultRecord):
+                an image_validation result object
+
+        Returns:
+            ValidationResult.ValidationResultRecord: an updated
+            image_validation object
+
         """
 
+        # get relationship from a to_biosample() dictionary object
         relationships = record.get('sampleRelationships', [])
 
         # as described in image_validation.Submission.Submission
-        # same as record["title"]
+        # same as record["title"], is the original name of the object id DS
         record_id = record['attributes']["Data source ID"][0]['value']
 
         # related objects (from UID goes here)
@@ -118,7 +140,9 @@ class MetaDataValidation():
                 # specimen, so safe to only check organism
                 target = relationship['alias']
 
-                # test for object existance in db
+                # test for object existance in db. Use biosample.helpers
+                # metodo to derive a model object from database, then get
+                # its related data
                 try:
                     material_obj = get_model_object(
                         *parse_image_alias(target))
@@ -134,7 +158,17 @@ class MetaDataValidation():
         return record_result
 
     def validate(self, record):
-        """Check attributes for record"""
+        """
+        Check attributes for record by calling image_validation methods
+
+        Args:
+            record (dict): An Animal/Sample.to_biosample() dictionary object
+
+        Returns:
+            ValidationResult.ValidationResultRecord: an image_validation
+            object
+
+        """
 
         # this validated in general way
         result = self.ruleset.validate(record)
