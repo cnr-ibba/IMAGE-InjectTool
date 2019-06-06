@@ -19,6 +19,7 @@ from image_validation import validation, ValidationResult
 from image_validation.static_parameters import ruleset_filename as \
     IMAGE_RULESET
 
+from common.constants import BIOSAMPLE_URL
 from image_app.models import Name
 from biosample.helpers import parse_image_alias, get_model_object
 
@@ -85,10 +86,9 @@ class MetaDataValidation():
         Returns:
             ValidationResult.ValidationResultRecord: an updated
             image_validation object
-
         """
 
-        url = f"https://www.ebi.ac.uk/biosamples/samples/{biosample_id}"
+        url = f"{BIOSAMPLE_URL}/{biosample_id}"
         response = requests.get(url)
         status = response.status_code
         if status != 200:
