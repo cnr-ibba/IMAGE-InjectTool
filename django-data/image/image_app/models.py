@@ -1196,6 +1196,10 @@ class Submission(BaseMixin, models.Model):
             return False
 
 
+class ValidationSummary(models.Model):
+    submission = models.ForeignKey('Submission', on_delete=models.CASCADE)
+
+
 # --- Custom functions
 
 

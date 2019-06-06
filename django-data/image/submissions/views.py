@@ -22,7 +22,7 @@ from common.constants import (
 from common.helpers import get_deleted_objects
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission, Name
+from image_app.models import Submission, Name, ValidationSummary
 from crbanim.tasks import ImportCRBAnimTask
 from validation.helpers import ValidationSummary
 
@@ -147,6 +147,14 @@ class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
         context["validation_summary"] = validation_summary
 
         return context
+
+
+class SubmissionValidationSummaryView(DetailView):
+    # model = ValidationSummary
+    template_name = "submissions/submission_validation_summary.html"
+
+    def get_queryset(self):
+        pass
 
 
 # a detail view since I need to operate on a submission object
