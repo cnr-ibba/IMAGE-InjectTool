@@ -104,7 +104,8 @@ class MetaDataValidation():
 
     def check_relationship(self, record, record_result):
         """
-        Check relationship for an Animal/Sample record
+        Check relationship for an Animal/Sample record and return a list
+        of dictionaries (to_biosample() objects) of related object
 
         Args:
             record (dict): An Animal/Sample.to_biosample() dictionary object
@@ -112,6 +113,7 @@ class MetaDataValidation():
                 an image_validation result object
 
         Returns:
+            list: a list of dictionaries of relate objects
             ValidationResult.ValidationResultRecord: an updated
             image_validation object
 
@@ -155,7 +157,7 @@ class MetaDataValidation():
                             f"Could not locate the referenced record {target}",
                             record_id, 'sampleRelationships'))
 
-        return record_result
+        return related, record_result
 
     def validate(self, record):
         """
@@ -173,10 +175,11 @@ class MetaDataValidation():
         # this validated in general way
         result = self.ruleset.validate(record)
 
+        # context validation evaluate relationships. Get them
+        related, result = self.check_relationship(record, result)
+
         # this validate context (attributes that depends on another one)
-        # TODO: context validation changed. Now it can evaluate relationships
-        # see validation.context_validation for more help
-        result = validation.context_validation(record, result, [])
+        result = validation.context_validation(record, result, related)
 
         return result
 
