@@ -758,6 +758,53 @@ class Animal(BioSampleMixin, models.Model):
 
         return attributes
 
+    def get_relationship(self):
+        """Get a relationship to this animal (call this method from a related
+        object)"""
+
+        # if animal is already uploaded I will use accession as
+        # relationship key. This biosample id could be tested in validation
+        if self.biosample_id and self.biosample_id != '':
+            return {
+                "accession": self.biosample_id,
+                "relationshipNature": "derived from",
+            }
+        else:
+            return {
+                "alias": self.biosample_alias,
+                "relationshipNature": "derived from",
+            }
+
+    def get_father_relationship(self):
+        """Get a relationship with father if possible"""
+
+        # get father of such animal
+        if self.father is None:
+            return None
+
+        # cryoweb could have unkwown animals. They are Names without
+        # relationship with Animal table
+        if not hasattr(self.father, "animal"):
+            return None
+
+        else:
+            return self.father.animal.get_relationship()
+
+    def get_mother_relationship(self):
+        """Get a relationship with mother if possible"""
+
+        # get mother of such animal
+        if self.mother is None:
+            return None
+
+        # cryoweb could have unkwown animals. They are Names without
+        # relationship with Animal table
+        if not hasattr(self.mother, "animal"):
+            return None
+
+        else:
+            return self.mother.animal.get_relationship()
+
     def to_biosample(self, release_date=None):
         """get a json from animal for biosample submission"""
 
@@ -765,8 +812,18 @@ class Animal(BioSampleMixin, models.Model):
         # with USI mandatory keys and attributes
         result = super().to_biosample(release_date)
 
-        # TODO: define relationship
+        # define relationship with mother and father
         result['sampleRelationships'] = []
+
+        father_relationship = self.get_father_relationship()
+
+        if father_relationship is not None:
+            result['sampleRelationships'].append(father_relationship)
+
+        mother_relationship = self.get_mother_relationship()
+
+        if mother_relationship is not None:
+            result['sampleRelationships'].append(mother_relationship)
 
         return result
 
@@ -938,18 +995,7 @@ class Sample(BioSampleMixin, models.Model):
         result = super().to_biosample(release_date)
 
         # define relationship (get animal alias)
-        # if animal is already uploaded I will use accession as
-        # relationship key. This biosample id could be tested in validation
-        if self.animal.biosample_id and self.animal.biosample_id != '':
-            result['sampleRelationships'] = [{
-                "accession": self.animal.biosample_id,
-                "relationshipNature": "derived from",
-            }]
-        else:
-            result['sampleRelationships'] = [{
-                "alias": self.animal.biosample_alias,
-                "relationshipNature": "derived from",
-            }]
+        result['sampleRelationships'] = [self.animal.get_relationship()]
 
         return result
 
