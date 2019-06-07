@@ -137,18 +137,18 @@ class MetaDataValidation():
                     target, record_id, record_result)
 
             # HINT: should I check aliases? they came from PK and are related
-            # in the same submission. I can't have a sample without animal
-            # since animal is a forey key samples (which doesn't tolerate
+            # in the same submission. I can't have a sample without an animal
+            # since animal is a foreign key of sample (which doesn't tolerate
             # NULL). Even mother and father are related through keys. If
             # missing, no information about mother and father could be
             # determined
             else:
-                # in the current ruleset, derived from only from organism to
-                # specimen, so safe to only check organism
+                # could be a parent relationship for an animal, or the animal
+                # where this sample comes from
                 target = relationship['alias']
 
-                # test for object existance in db. Use biosample.helpers
-                # metodo to derive a model object from database, then get
+                # test for object existence in db. Use biosample.helpers
+                # method to derive a model object from database, then get
                 # its related data
                 try:
                     material_obj = get_model_object(

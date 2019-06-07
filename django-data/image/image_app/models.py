@@ -760,7 +760,7 @@ class Animal(BioSampleMixin, models.Model):
 
     def get_relationship(self):
         """Get a relationship to this animal (call this method from a related
-        object)"""
+        object to get a connection to this element)"""
 
         # if animal is already uploaded I will use accession as
         # relationship key. This biosample id could be tested in validation
@@ -778,7 +778,7 @@ class Animal(BioSampleMixin, models.Model):
     def get_father_relationship(self):
         """Get a relationship with father if possible"""
 
-        # get father of such animal
+        # get father of this animal
         if self.father is None:
             return None
 
@@ -793,7 +793,7 @@ class Animal(BioSampleMixin, models.Model):
     def get_mother_relationship(self):
         """Get a relationship with mother if possible"""
 
-        # get mother of such animal
+        # get mother of this animal
         if self.mother is None:
             return None
 
@@ -812,7 +812,7 @@ class Animal(BioSampleMixin, models.Model):
         # with USI mandatory keys and attributes
         result = super().to_biosample(release_date)
 
-        # define relationship with mother and father
+        # define relationship with mother and father (if possible)
         result['sampleRelationships'] = []
 
         father_relationship = self.get_father_relationship()
@@ -994,7 +994,7 @@ class Sample(BioSampleMixin, models.Model):
         # with USI mandatory keys and attributes
         result = super().to_biosample(release_date)
 
-        # define relationship (get animal alias)
+        # define relationship to the animal where this sample come from
         result['sampleRelationships'] = [self.animal.get_relationship()]
 
         return result
