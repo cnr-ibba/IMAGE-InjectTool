@@ -7,6 +7,7 @@ Created on Fri Jun  7 15:34:05 2019
 """
 
 from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -21,20 +22,25 @@ def child_of(animal):
     relationship = animal.get_father_relationship()
 
     if relationship:
-        if 'alias' in relationship:
-            parents.append(relationship['alias'])
+        father = animal.father.animal
 
-        if 'accession' in relationship:
-            parents.append(relationship['accession'])
+        link = '<a href="{url}">{name}</a>'.format(
+            url=father.get_absolute_url(),
+            name=father)
+
+        parents.append(link)
 
     # get mother relationship
     relationship = animal.get_mother_relationship()
 
     if relationship:
-        if 'alias' in relationship:
-            parents.append(relationship['alias'])
+        mother = animal.mother.animal
 
-        if 'accession' in relationship:
-            parents.append(relationship['accession'])
+        link = '<a href="{url}">{name}</a>'.format(
+            url=mother.get_absolute_url(),
+            name=mother)
 
-    return ", ".join(parents)
+        parents.append(link)
+
+    # Explicitly mark a string as safe for (HTML) output purposes
+    return mark_safe(", ".join(parents))

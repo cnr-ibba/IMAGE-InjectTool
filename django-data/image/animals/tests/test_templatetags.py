@@ -30,22 +30,14 @@ class ChildOfTest(AnimalFeaturesMixin, TestCase):
 
     def test_no_biosample_ids(self):
         rendered = self.render()
-        self.assertEqual(rendered, "IMAGEA000000001, IMAGEA000000002")
-
-    def test_with_biosample_ids(self):
-        self.animal.father.biosample_id = "FAKEA123456"
-        self.animal.father.save()
-        self.animal.mother.biosample_id = "FAKEA123457"
-        self.animal.mother.save()
-
-        rendered = self.render()
-        self.assertEqual(rendered, "FAKEA123456, FAKEA123457")
+        self.assertIn("ANIMAL:::ID:::132713", rendered)
+        self.assertIn("ANIMAL:::ID:::mother", rendered)
 
     def test_no_father(self):
         self.animal.father = None
 
         rendered = self.render()
-        self.assertEqual(rendered, "IMAGEA000000002")
+        self.assertIn("ANIMAL:::ID:::mother", rendered)
 
     def test_no_parents(self):
         self.animal.father = None
