@@ -1,6 +1,8 @@
 
 {% extends "base.html" %}
 
+{% load animals_tags %}
+
 {% block title %}
   Animal {{ animal.pk }}
 {% endblock title %}
@@ -109,7 +111,7 @@
     </tr>
     <tr class="table-primary">
       <th scope="row">Child of:</th>
-      <td></td>
+      <td>{{ animal|child_of }}</td>
     </tr>
     <tr class="table-secondary">
       <th scope="row">Supplied breed:</th>
