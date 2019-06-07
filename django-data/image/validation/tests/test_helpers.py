@@ -354,7 +354,7 @@ class ValidationSummaryTestCase(TestCase):
         self.assertEqual(self.validationsummary.n_animal_issues, 0)
         self.assertEqual(self.validationsummary.n_sample_issues, 0)
 
-        self.assertEqual(self.validationsummary.n_animal_unknown, 0)
+        self.assertEqual(self.validationsummary.n_animal_unknown, 2)
         self.assertEqual(self.validationsummary.n_sample_unknown, 1)
 
     def test_process_errors(self):

@@ -158,11 +158,11 @@ class ValidateTask(MyTask):
 
         try:
             for animal in Animal.objects.filter(
-                    name__submission=submission_obj):
+                    name__submission=submission_obj).order_by('id'):
                 self.validate_model(animal, submission_statuses)
 
             for sample in Sample.objects.filter(
-                    name__submission=submission_obj):
+                    name__submission=submission_obj).order_by('id'):
                 self.validate_model(sample, submission_statuses)
 
         # TODO: errors in validation should raise custom exception

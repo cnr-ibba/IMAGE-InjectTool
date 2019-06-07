@@ -512,7 +512,7 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         """testing uid report after a Sample and Animal insert"""
 
         reference = {
-                'n_of_animals': 1,
+                'n_of_animals': 3,
                 'n_of_samples': 1,
                 'breeds_without_ontology': 0,
                 'countries_without_ontology': 0,

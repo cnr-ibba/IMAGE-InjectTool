@@ -98,14 +98,15 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), 2)
+        self.assertEqual(len(qs), self.n_to_submit)
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
         self.assertTrue(self.my_root.get_team_by_name.called)
         self.assertTrue(self.my_team.create_submission.called)
         self.assertFalse(self.my_root.get_submission_by_name.called)
-        self.assertEqual(self.new_submission.create_sample.call_count, 2)
+        self.assertEqual(
+            self.new_submission.create_sample.call_count, self.n_to_submit)
         self.assertFalse(self.new_submission.propertymock.called)
 
         self.assertEqual(asyncio_mock.call_count, 1)
@@ -190,7 +191,8 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
 
     @patch('biosample.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
-    def test_submit_recover(self, asyncio_mock, send_message_to_websocket_mock):
+    def test_submit_recover(
+            self, asyncio_mock, send_message_to_websocket_mock):
         """Test submission recovering"""
         tmp = asyncio_mock.return_value
         tmp.run_until_complete = Mock()
@@ -221,14 +223,16 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), 2)
+        self.assertEqual(len(qs), self.n_to_submit)
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
         self.assertFalse(self.my_root.get_team_by_name.called)
         self.assertFalse(self.my_team.create_submission.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
-        self.assertEqual(self.my_submission.create_sample.call_count, 1)
+        # I'm testing submission recover with 1 sample already sent, so:
+        self.assertEqual(
+            self.my_submission.create_sample.call_count, self.n_to_submit-1)
         self.assertTrue(self.my_submission.propertymock.called)
 
         self.assertEqual(asyncio_mock.call_count, 1)
@@ -282,7 +286,7 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), 2)
+        self.assertEqual(len(qs), self.n_to_submit)
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
@@ -290,7 +294,8 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertTrue(self.my_root.get_submission_by_name.called)
         self.assertTrue(self.my_team.create_submission.called)
         self.assertFalse(self.my_submission.create_sample.called)
-        self.assertEqual(self.new_submission.create_sample.call_count, 2)
+        self.assertEqual(
+            self.new_submission.create_sample.call_count, self.n_to_submit)
         self.assertTrue(self.my_submission.propertymock.called)
         self.assertFalse(self.new_submission.propertymock.called)
 
@@ -340,14 +345,16 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), 2)
+        self.assertEqual(len(qs), self.n_to_submit)
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
         self.assertFalse(self.my_root.get_team_by_name.called)
         self.assertFalse(self.my_team.create_submission.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
-        self.assertEqual(self.my_submission.create_sample.call_count, 0)
+        # I've patches 2 samples in this sample, so:
+        self.assertEqual(
+            self.my_submission.create_sample.call_count, 2)
         self.assertTrue(self.my_submission.propertymock.called)
 
         # testing patch
@@ -432,9 +439,9 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
              'notification_message': 'Your token is expired: please submit '
                                      'again to resume submission'}, 1)
 
-        # check name status unchanged
+        # check name status unchanged (count are equal to setUp name queryset)
         qs = Name.objects.filter(status=READY)
-        self.assertEqual(len(qs), 2)
+        self.assertEqual(len(qs), self.name_qs.count())
 
         # test email sent
         self.assertEqual(len(mail.outbox), 1)
@@ -466,7 +473,11 @@ class UpdateSubmissionTestCase(SubmitMixin, RedisMixin, TestCase):
         # call Mixin method
         super().setUp()
 
-        # Track Name objects
+        # get all name objects and set status to completed
+        self.name_qs.update(status=COMPLETED)
+
+        # Now get first animal and set status to ready. Take also its sample
+        # and assign a fake biosample id
         self.animal_name = Name.objects.get(pk=3)
         self.sample_name = Name.objects.get(pk=4)
 
@@ -519,6 +530,10 @@ class UpdateSubmissionTestCase(SubmitMixin, RedisMixin, TestCase):
         # check that sample status is unchanged
         self.sample_name.refresh_from_db()
         self.assertEqual(self.sample_name.status, COMPLETED)
+
+        # assert that all statuses (except one) remain unchanged
+        qs = Name.objects.filter(status=COMPLETED)
+        self.assertEqual(qs.count(), self.name_qs.count()-1)
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
@@ -579,7 +594,12 @@ class FetchMixin():
 
         # set status for names, like submittask does. Only sample not unknown
         # are submitted
-        Name.objects.exclude(name__contains="unknown").update(status=SUBMITTED)
+        self.name_qs = Name.objects.exclude(name__contains="unknown")
+        self.name_qs.update(status=SUBMITTED)
+
+        # count number of names in UID for such submission (exclude
+        # unknown animals)
+        self.n_to_submit = self.name_qs.count()
 
         # track submission ID
         self.submission_obj_id = self.submission_obj.id
@@ -664,7 +684,8 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Completed',
-             'notification_message': 'Successful submission into biosample'}, 1)
+             'notification_message': 'Successful submission into biosample'},
+            1)
 
         # check name status changed
         qs = Name.objects.filter(status=COMPLETED)
@@ -703,7 +724,7 @@ class FetchCompletedTestCase(FetchMixin, TestCase):
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), 2)
+        self.assertEqual(len(qs), self.n_to_submit)
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
     @patch("biosample.tasks.FetchStatusTask.retry")
@@ -1005,10 +1026,12 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Error',
-             'notification_message': 'Biosample subission Cryoweb '
-                                     '(United Kingdom, test) remained with the '
-                                     'same status for more than 5 days. Please '
-                                     'report it to InjectTool team'}, 1)
+             'notification_message': (
+                     'Biosample subission Cryoweb '
+                     '(United Kingdom, test) remained with the '
+                     'same status for more than 5 days. Please '
+                     'report it to InjectTool team')
+             }, 1)
 
     @patch('biosample.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -1049,10 +1072,12 @@ class FetchLongTaskTestCase(FetchMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Error',
-             'notification_message': 'Biosample subission Cryoweb '
-                                     '(United Kingdom, test) remained with the '
-                                     'same status for more than 5 days. Please '
-                                     'report it to InjectTool team'}, 1)
+             'notification_message': (
+                     'Biosample subission Cryoweb '
+                     '(United Kingdom, test) remained with the '
+                     'same status for more than 5 days. Please '
+                     'report it to InjectTool team')
+             }, 1)
 
 
 class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):

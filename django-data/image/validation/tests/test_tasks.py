@@ -453,11 +453,13 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Error',
-             'notification_message': "Validation got errors: Error in statuses "
-                                     "for submission Cryoweb "
-                                     "(United Kingdom, test): ["
-                                     "'A fake status', 'Error', 'JSON', "
-                                     "'Pass', 'Warning']"}, 1)
+             'notification_message': (
+                     "Validation got errors: Error in statuses "
+                     "for submission Cryoweb "
+                     "(United Kingdom, test): ["
+                     "'A fake status', 'Error', 'JSON', "
+                     "'Pass', 'Warning']")
+             }, 1)
 
     @patch('validation.tasks.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -484,8 +486,26 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
                 "warn column")
         )
 
-        result2 = ValidationResultRecord("sample_1")
+        result2 = ValidationResultRecord("animal_2")
         result2.add_validation_result_column(
+            ValidationResultColumn(
+                "pass",
+                "a message",
+                "animal_2",
+                "")
+        )
+
+        result3 = ValidationResultRecord("animal_3")
+        result3.add_validation_result_column(
+            ValidationResultColumn(
+                "pass",
+                "a message",
+                "animal_3",
+                "")
+        )
+
+        result4 = ValidationResultRecord("sample_1")
+        result4.add_validation_result_column(
             ValidationResultColumn(
                 "pass",
                 "a message",
@@ -494,7 +514,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         )
 
         # add results to result set
-        my_validate.side_effect = [result1, result2]
+        my_validate.side_effect = [result1, result2, result3, result4]
 
         # call task
         res = self.my_task.run(submission_id=self.submission_id)
@@ -515,7 +535,8 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Ready',
-             'notification_message': 'Submission validated with some warnings'},
+             'notification_message': (
+                    'Submission validated with some warnings')},
             1)
 
         # test for model status. Is the name object
@@ -564,8 +585,26 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
                 "warn column")
         )
 
-        result2 = ValidationResultRecord("sample_1")
+        result2 = ValidationResultRecord("animal_2")
         result2.add_validation_result_column(
+            ValidationResultColumn(
+                "pass",
+                "a message",
+                "animal_2",
+                "")
+        )
+
+        result3 = ValidationResultRecord("animal_3")
+        result3.add_validation_result_column(
+            ValidationResultColumn(
+                "pass",
+                "a message",
+                "animal_3",
+                "")
+        )
+
+        result4 = ValidationResultRecord("sample_1")
+        result4.add_validation_result_column(
             ValidationResultColumn(
                 "error",
                 "error message",
@@ -574,7 +613,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         )
 
         # add results to result set
-        my_validate.side_effect = [result1, result2]
+        my_validate.side_effect = [result1, result2, result3, result4]
 
         # call task
         res = self.my_task.run(submission_id=self.submission_id)
@@ -596,8 +635,10 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Need Revision',
-             'notification_message': 'Validation got errors: Error in metadata. '
-                                     'Need revisions before submit'}, 1)
+             'notification_message': (
+                     'Validation got errors: Error in metadata. '
+                     'Need revisions before submit')
+             }, 1)
 
         # test for model status. Is the name object
         self.animal_name.refresh_from_db()
@@ -612,7 +653,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(test.status, "Warning")
 
         test = self.sample_name.validationresult
-        self.assertEqual(test.messages, result2.get_messages())
+        self.assertEqual(test.messages, result4.get_messages())
         self.assertEqual(test.status, "Error")
 
         # test for my methods called
