@@ -28,7 +28,7 @@ class ChildOfTest(AnimalFeaturesMixin, TestCase):
         return self.TEMPLATE.render(
             Context({'animal': self.animal}))
 
-    def test_no_biosample_ids(self):
+    def test_both_parents(self):
         rendered = self.render()
         self.assertIn("ANIMAL:::ID:::132713", rendered)
         self.assertIn("ANIMAL:::ID:::mother", rendered)

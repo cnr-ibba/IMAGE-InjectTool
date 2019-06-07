@@ -3,6 +3,7 @@ InjectTool installation
 =======================
 
 [![Build Status](https://travis-ci.org/cnr-ibba/IMAGE-InjectTool.svg?branch=master)](https://travis-ci.org/cnr-ibba/IMAGE-InjectTool)
+[![Coverage Status](https://coveralls.io/repos/github/cnr-ibba/IMAGE-InjectTool/badge.svg?branch=master)](https://coveralls.io/github/cnr-ibba/IMAGE-InjectTool?branch=master)
 
 Install Docker CE
 -----------------
