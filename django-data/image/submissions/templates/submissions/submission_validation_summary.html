@@ -6,6 +6,18 @@
 
 {% block content %}
 
-<h1>Validation Summary for submission <em>test</em></h1>
+{% if validation_summary %}
+  {% for validation in validation_summary %}
+    <p>Pass: {{ validation.pass_count }}</p>
+    <p>Warnings: {{ validation.warning_count }}</p>
+    <p>Errors: {{ validation.error_count }}</p>
+    <p>JSON Errors: {{ validation.json_count }}</p>
+    <ul>
+      {% for message in validation.messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+{% endif %}
 
 {% endblock content %}

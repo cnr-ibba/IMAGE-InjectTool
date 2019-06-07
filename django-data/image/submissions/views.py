@@ -149,12 +149,15 @@ class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
         return context
 
 
-class SubmissionValidationSummaryView(DetailView):
-    # model = ValidationSummary
+class SubmissionValidationSummaryView(ListView):
     template_name = "submissions/submission_validation_summary.html"
+    context_object_name = 'validation_summary'
 
     def get_queryset(self):
-        pass
+        # TODO: get pk from url
+        submission = Submission.objects.get(pk=75)
+        # TODO: sort validations by date
+        return submission.validationsummary_set.all()
 
 
 # a detail view since I need to operate on a submission object

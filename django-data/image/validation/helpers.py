@@ -49,7 +49,7 @@ class MetaDataValidation():
             raise OntologyCacheError(
                 "Issue with 'https://www.ebi.ac.uk/ols/api/'")
 
-    def check_usi_structure(self, record):
+    def check_usi_structure(self, record: object) -> object:
         """Check data against USI rules"""
 
         # this function need its input as a list

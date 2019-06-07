@@ -7,7 +7,6 @@ Created on Tue Jul 24 15:51:13 2018
 """
 
 from django.conf.urls import url
-from django.views.generic import TemplateView
 
 from . import views
 
@@ -34,9 +33,7 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/delete/$',
         views.DeleteSubmissionView.as_view(),
         name='delete'),
-    # url(r'^(?P<pk>[-\w]+)/validation_summary/$',
-    #     views.SubmissionValidationSummaryView.as_view(),
-    #     name='validation_summary')
     url(r'^(?P<pk>[-\w]+)/validation_summary/$',
-        TemplateView.as_view(template_name="submissions/submission_validation_summary.html"))
+        views.SubmissionValidationSummaryView.as_view(),
+        name='validation_summary')
 ]

@@ -10,6 +10,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.postgres.fields import ArrayField
 
 from common.fields import ProtectedFileField
 from common.constants import (
@@ -1197,7 +1198,17 @@ class Submission(BaseMixin, models.Model):
 
 
 class ValidationSummary(models.Model):
-    submission = models.ForeignKey('Submission', on_delete=models.CASCADE)
+    submission = models.ForeignKey('Submission', on_delete=models.PROTECT)
+
+    pass_count = models.PositiveIntegerField(default=0)
+    warning_count = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
+    json_count = models.PositiveIntegerField(default=0)
+
+    messages = ArrayField(
+        models.TextField(max_length=255, blank=True),
+        default=list
+    )
 
 
 # --- Custom functions
