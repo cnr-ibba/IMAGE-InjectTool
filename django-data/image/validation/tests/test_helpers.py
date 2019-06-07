@@ -14,6 +14,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from image_app.models import Animal, Sample, Submission, Person, Name
+
 from common.tests import PersonMixinTestCase
 
 from ..helpers import (
@@ -174,6 +175,33 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
         matches = [search(message) for message in result.get_messages()]
         self.assertNotIn(False, matches)
 
+    def test_animal_relationship(self):
+        """Testing an animal with a relationship"""
+
+        # at the time of writing this reference data raise one warning
+        reference = ("Pass", "")
+
+        # get a to_biosample record
+        animal = Animal.objects.get(pk=3)
+        animal_record = animal.to_biosample()
+
+        # check for usi structure
+        usi_result = self.metadata.check_usi_structure([animal_record])
+        self.assertEqual(usi_result, [])
+
+        # validate record
+        result = self.metadata.validate(animal_record)
+
+        # assert result type
+        self.assertIsInstance(result, ValidationResultRecord)
+        self.assertEqual(result.get_overall_status(), reference[0])
+
+        def search(y):
+            return reference[1] in y
+
+        matches = [search(message) for message in result.get_messages()]
+        self.assertNotIn(False, matches)
+
     def test_sample(self):
         """Test a sample submission"""
 
@@ -222,6 +250,21 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
         self.assertIn(
             "Could not locate the referenced record",
             result.get_messages()[0])
+
+    def test_sample_issue_organism_part(self):
+        """Testing a problem in metadata: organism_part lacks of term"""
+
+        sample_record = self.sample.to_biosample()
+
+        # set an attribute without ontology
+        sample_record['attributes']['Organism part'] = [{'value': 'hair'}]
+
+        # check for usi structure
+        usi_result = self.metadata.check_usi_structure([sample_record])
+        self.assertEqual(usi_result, [])
+
+        # validate record. It's valid or not?
+        self.metadata.validate(sample_record)
 
     def test_submission(self):
         """Testing usi_structure and duplicates in a submission"""

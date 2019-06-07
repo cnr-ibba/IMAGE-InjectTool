@@ -323,6 +323,49 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
         # asserting biosample_.id in response
         self.assertEqual(test["accession"], reference)
 
+    def test_relationship(self):
+        """Testing an animal who has mother and father"""
+
+        animal = Animal.objects.get(pk=3)
+
+        test = animal.to_biosample()
+
+        reference = [
+            {'alias': 'IMAGEA000000001',
+             'relationshipNature': 'derived from'},
+            {'alias': 'IMAGEA000000002',
+             'relationshipNature': 'derived from'}
+        ]
+
+        # asserting relationship
+        self.assertEqual(test['sampleRelationships'], reference)
+
+        # cleaning up relationship (by erasing fk - as crbanim data could be)
+        # erase father relationship
+        animal.father = None
+        animal.save()
+
+        test = animal.to_biosample()
+
+        reference = [
+            {'alias': 'IMAGEA000000002',
+             'relationshipNature': 'derived from'},
+        ]
+
+        # asserting relationship
+        self.assertEqual(test['sampleRelationships'], reference)
+
+        # cleaning up last relationship
+        animal.mother = None
+        animal.save()
+
+        test = animal.to_biosample()
+
+        reference = []
+
+        # asserting relationship
+        self.assertEqual(test['sampleRelationships'], reference)
+
     # TODO: test None rendering
 
     def test_waiting(self):
