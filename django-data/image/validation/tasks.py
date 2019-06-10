@@ -21,7 +21,7 @@ from common.constants import (
 from common.helpers import send_message_to_websocket, \
     construct_validation_message
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Sample, Animal
+from image_app.models import Submission, Sample, Animal, ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel
 from .helpers import MetaDataValidation, OntologyCacheError
@@ -139,6 +139,9 @@ class ValidateTask(MyTask):
 
         logger.info("Validate Submission started")
 
+        # collect all unique messages
+        self.messages = set()
+
         # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
 
@@ -196,6 +199,7 @@ class ValidateTask(MyTask):
         if self.has_errors_in_json(submission_statuses):
             # mark submission with NEED_REVISION
             self.submission_fail(submission_obj, "Wrong JSON structure")
+            self.create_validation_summary(submission_obj, submission_statuses)
 
             # debug
             logger.warning(
@@ -343,6 +347,7 @@ class ValidateTask(MyTask):
         if isinstance(result, list):
             messages = result
             overall_status = "Wrong JSON structure"
+            self.messages.update(messages)
 
         else:
             messages = result.get_messages()
@@ -394,6 +399,23 @@ class ValidateTask(MyTask):
                 submission_obj.id
             )
         )
+
+    def create_validation_summary(self, submission_obj, submission_statuses):
+        """
+        This function will create ValidationSummary object that will be used
+        on validation_summary view
+        Args:
+            submission_obj: submission ref which has gone through validation
+            submission_statuses: Counter with statuses and counts on them
+        """
+        validation_summary = ValidationSummary()
+        validation_summary.submission = submission_obj
+        validation_summary.pass_count = submission_statuses['Pass']
+        validation_summary.warning_count = submission_statuses['Warning']
+        validation_summary.error_count = submission_statuses['Error']
+        validation_summary.json_count = submission_statuses['JSON']
+        validation_summary.messages = list(self.messages)
+        validation_summary.save()
 
 
 # register explicitly tasks

@@ -1198,7 +1198,7 @@ class Submission(BaseMixin, models.Model):
 
 
 class ValidationSummary(models.Model):
-    submission = models.ForeignKey('Submission', on_delete=models.PROTECT)
+    submission = models.ForeignKey('Submission', on_delete=models.CASCADE)
 
     pass_count = models.PositiveIntegerField(default=0)
     warning_count = models.PositiveIntegerField(default=0)

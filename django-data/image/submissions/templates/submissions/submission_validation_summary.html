@@ -10,19 +10,19 @@
   {% for validation in validation_summary %}
     <button type="button" class="btn btn-primary">
       Pass
-      <span class="badge badge-success badge-pill align-right">{{ validation.pass_count }}</span>
+      <span class="badge badge-light badge-pill align-right">{{ validation.pass_count }}</span>
     </button>
     <button type="button" class="btn btn-warning">
       Warnings
-      <span class="badge badge-success badge-pill align-right">{{ validation.warning_count }}</span>
+      <span class="badge badge-light badge-pill align-right">{{ validation.warning_count }}</span>
     </button>
     <button type="button" class="btn btn-danger">
       Errors
-      <span class="badge badge-success badge-pill align-right">{{ validation.error_count }}</span>
+      <span class="badge badge-light badge-pill align-right">{{ validation.error_count }}</span>
     </button>
     <button type="button" class="btn btn-danger">
       JSON Errors
-      <span class="badge badge-success badge-pill align-right">{{ validation.json_count }}</span>
+      <span class="badge badge-light badge-pill align-right">{{ validation.json_count }}</span>
     </button>
     <p></p>
     <ul class="list-group">
@@ -36,7 +36,7 @@
     </ul>
   {% endfor %}
 {% else %}
-  <div class="alert-danger">There is no validation results yet!!!</div>
+  <div class="alert-danger">There are no validation results yet!!!</div>
 {% endif %}
 
 {% endblock content %}
@@ -48,7 +48,7 @@
     for (var i = 0; i < items.length; i++) {
       if (items[i].textContent.indexOf('Warning') !== -1) {
         items[i].classList.add('list-group-item-warning');
-      } else if (items[i].textContent.indexOf('Error') !== -1) {
+      } else {
         items[i].classList.add('list-group-item-danger');
       }
     }
