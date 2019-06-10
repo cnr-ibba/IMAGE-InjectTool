@@ -8,16 +8,50 @@
 
 {% if validation_summary %}
   {% for validation in validation_summary %}
-    <p>Pass: {{ validation.pass_count }}</p>
-    <p>Warnings: {{ validation.warning_count }}</p>
-    <p>Errors: {{ validation.error_count }}</p>
-    <p>JSON Errors: {{ validation.json_count }}</p>
-    <ul>
+    <button type="button" class="btn btn-primary">
+      Pass
+      <span class="badge badge-success badge-pill align-right">{{ validation.pass_count }}</span>
+    </button>
+    <button type="button" class="btn btn-warning">
+      Warnings
+      <span class="badge badge-success badge-pill align-right">{{ validation.warning_count }}</span>
+    </button>
+    <button type="button" class="btn btn-danger">
+      Errors
+      <span class="badge badge-success badge-pill align-right">{{ validation.error_count }}</span>
+    </button>
+    <button type="button" class="btn btn-danger">
+      JSON Errors
+      <span class="badge badge-success badge-pill align-right">{{ validation.json_count }}</span>
+    </button>
+    <p></p>
+    <ul class="list-group">
       {% for message in validation.messages %}
-      <li>{{ message }}</li>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span class="badge badge-primary badge-pill align-right">14</span>
+        {{ message }}
+        <span class="badge badge-success badge-pill align-right">Fix this</span>
+      </li>
       {% endfor %}
     </ul>
   {% endfor %}
+{% else %}
+  <div class="alert-danger">There is no validation results yet!!!</div>
 {% endif %}
 
 {% endblock content %}
+
+{% block custom-js %}
+<script>
+  $(document).ready(function() {
+    var items = document.querySelectorAll('.list-group-item');
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].textContent.indexOf('Warning') !== -1) {
+        items[i].classList.add('list-group-item-warning');
+      } else if (items[i].textContent.indexOf('Error') !== -1) {
+        items[i].classList.add('list-group-item-danger');
+      }
+    }
+  });
+</script>
+{% endblock custom-js %}

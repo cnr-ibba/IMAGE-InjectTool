@@ -153,9 +153,9 @@ class SubmissionValidationSummaryView(ListView):
     template_name = "submissions/submission_validation_summary.html"
     context_object_name = 'validation_summary'
 
-    def get_queryset(self):
+    def get_queryset(self, **kwargs):
         # TODO: get pk from url
-        submission = Submission.objects.get(pk=75)
+        submission = Submission.objects.get(pk=self.kwargs['pk'])
         # TODO: sort validations by date
         return submission.validationsummary_set.all()
 
