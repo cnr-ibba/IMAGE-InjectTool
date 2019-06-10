@@ -16,14 +16,18 @@ import asyncio
 from collections import Counter
 from celery.utils.log import get_task_logger
 
+from django.conf import settings
+from django.core.mail import send_mass_mail
+
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES)
 from common.helpers import send_message_to_websocket
 from image.celery import app as celery_app, MyTask
+from image_app.helpers import get_admin_emails
 from image_app.models import Submission, Sample, Animal
 
 from .models import ValidationResult as ValidationResultModel
-from .helpers import MetaDataValidation, OntologyCacheError
+from .helpers import MetaDataValidation, OntologyCacheError, RulesetError
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -75,13 +79,24 @@ class ValidateTask(MyTask):
         )
 
         # send a mail to the user with the stacktrace (einfo)
+        email_subject = "Error in IMAGE Validation: %s" % (args[0])
+        email_message = (
+                "Something goes wrong with validation. Please report "
+                "this to InjectTool team\n\n %s" % str(einfo))
+
         submission_obj.owner.email_user(
-            "Error in IMAGE Validation: %s" % (args[0]),
-            ("Something goes wrong with validation. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
+            email_subject,
+            email_message,
         )
 
-        # TODO: submit mail to admin
+        # submit mail to admins
+        datatuple = (
+            email_subject,
+            email_message,
+            settings.DEFAULT_FROM_EMAIL,
+            get_admin_emails())
+
+        send_mass_mail((datatuple, ))
 
     # TODO: define a method to inform user for error in validation (Task run
     # with success but errors in data)
@@ -133,6 +148,68 @@ class ValidateTask(MyTask):
 
         return "success"
 
+    def ruleset_error_report(self, exc, submission_obj):
+        """
+        Deal with ruleset issue in validation task. Notify the user using
+        email and set status as ERROR, since he can't do anything without
+        admin intervention
+
+        Args:
+            exc (Exception): an py:exc`Exception` object
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+
+        Return
+            str: "success" since this task is correctly managed
+        """
+
+        logger.error("Error ruleset: %s" % exc)
+
+        message = (
+            "Error in IMAGE-metadata ruleset. Please inform InjectTool team")
+        logger.error(message)
+
+        # Set a message and revert status to LOADED
+        submission_obj.status = ERROR
+        submission_obj.message = message
+        submission_obj.save()
+
+        # send message with channel
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                {
+                    'message': STATUSES.get_value_display(ERROR),
+                    'notification_message': message
+                },
+                submission_obj.pk
+            )
+        )
+
+        # get exception info
+        einfo = traceback.format_exc()
+
+        # send a mail to the user with the stacktrace (einfo)
+        email_subject = "Error in IMAGE Validation: %s" % (message)
+        email_message = (
+            "Something goes wrong with validation. Please report "
+            "this to InjectTool team\n\n %s" % str(einfo))
+
+        submission_obj.owner.email_user(
+            email_subject,
+            email_message,
+        )
+
+        # submit mail to admins
+        datatuple = (
+            email_subject,
+            email_message,
+            settings.DEFAULT_FROM_EMAIL,
+            get_admin_emails())
+
+        send_mass_mail((datatuple, ))
+
+        return "success"
+
     def run(self, submission_id):
         """a function to perform validation steps"""
 
@@ -149,7 +226,8 @@ class ValidateTask(MyTask):
         except OntologyCacheError as exc:
             return self.temporary_error_report(exc, submission_obj)
 
-        # TODO: except errors in ruleset
+        except RulesetError as exc:
+            return self.ruleset_error_report(exc, submission_obj)
 
         # track global statuses
         submission_statuses = Counter(

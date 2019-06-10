@@ -24,7 +24,7 @@ from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, Animal
 
 from ..tasks import ValidateTask, ValidationError
-from ..helpers import OntologyCacheError
+from ..helpers import OntologyCacheError, RulesetError
 
 
 # https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
@@ -107,7 +107,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
             "Error in IMAGE Validation: Test")
 
         # test email sent
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertGreater(len(mail.outbox), 1)
 
         # read email
         email = mail.outbox[0]
@@ -250,7 +250,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         # this is the message I want
         message = "Errors in EBI API endpoints. Please try again later"
 
-        # check submission.status changed to NEED_REVISION
+        # check submission.status changed to LOADED
         self.assertEqual(self.submission.status, LOADED)
         self.assertIn(
             message,
@@ -277,6 +277,63 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
              'notification_message': ('Errors in EBI API endpoints. Please '
                                       'try again later')},
             1
+        )
+
+    @patch('validation.tasks.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    @patch("validation.helpers.validation.read_in_ruleset",
+           side_effect=RulesetError(["test exception"]))
+    @patch("validation.tasks.ValidateTask.retry")
+    def test_issues_with_ruleset(
+            self, my_retry, my_validate, asyncio_mock,
+            send_message_to_websocket_mock):
+        """Test errors with ruleset"""
+
+        # mocking asyncio return value
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
+
+        # call task. No retries with issues at EBI
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        # assert a success with validation taks
+        self.assertEqual(res, "success")
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # this is the message I want
+        message = (
+            "Error in IMAGE-metadata ruleset. Please inform InjectTool team")
+
+        # check submission.status changed to ERROR
+        self.assertEqual(self.submission.status, ERROR)
+        self.assertIn(
+            message,
+            self.submission.message)
+
+        # test email sent
+        self.assertGreater(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in IMAGE Validation: %s" % message,
+            email.subject)
+
+        self.assertTrue(my_validate.called)
+        self.assertFalse(my_retry.called)
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Error',
+             'notification_message': (
+                 'Error in IMAGE-metadata ruleset. Please inform '
+                 'InjectTool team')
+             }, 1
         )
 
     @patch('validation.tasks.send_message_to_websocket')
