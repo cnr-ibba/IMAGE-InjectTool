@@ -254,6 +254,13 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
     def test_sample_issue_organism_part(self):
         """Testing a problem in metadata: organism_part lacks of term"""
 
+        # at the time of writing, this will have Errors
+        reference = (
+            "Error", (
+                "Error: No url found for the field Organism part which has "
+                "the type of ontology_id")
+        )
+
         sample_record = self.sample.to_biosample()
 
         # set an attribute without ontology
@@ -263,8 +270,18 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
         usi_result = self.metadata.check_usi_structure([sample_record])
         self.assertEqual(usi_result, [])
 
-        # validate record. It's valid or not?
-        self.metadata.validate(sample_record)
+        # validate record. This will result in an error object
+        result = self.metadata.validate(sample_record)
+
+        # assert result type
+        self.assertIsInstance(result, ValidationResultRecord)
+        self.assertEqual(result.get_overall_status(), reference[0])
+
+        def search(y):
+            return reference[1] in y
+
+        matches = [search(message) for message in result.get_messages()]
+        self.assertNotIn(False, matches)
 
     def test_submission(self):
         """Testing usi_structure and duplicates in a submission"""

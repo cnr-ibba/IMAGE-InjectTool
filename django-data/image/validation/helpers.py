@@ -179,11 +179,19 @@ class MetaDataValidation():
         # this validated in general way
         result = self.ruleset.validate(record)
 
-        # context validation evaluate relationships. Get them
-        related, result = self.check_relationship(record, result)
+        # as defined in image_valdiation.Submission, I will skip further
+        # validation check
+        if result.get_overall_status() == "Error":
+            logger.warning(
+                "record: %s has errors. Skipping context validation" % (
+                        record["title"]))
 
-        # this validate context (attributes that depends on another one)
-        result = validation.context_validation(record, result, related)
+        else:
+            # context validation evaluate relationships. Get them
+            related, result = self.check_relationship(record, result)
+
+            # this validate context (attributes that depends on another one)
+            result = validation.context_validation(record, result, related)
 
         return result
 
