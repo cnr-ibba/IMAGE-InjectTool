@@ -18,7 +18,7 @@ from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
 from ..helpers import (
-    MetaDataValidation, ValidationSummary, OntologyCacheError)
+    MetaDataValidation, ValidationSummary, OntologyCacheError, RulesetError)
 
 from ..models import ValidationResult
 
@@ -40,9 +40,27 @@ class MetaDataValidationTestCase(TestCase):
         # test mocked function called
         self.assertTrue(my_issue.called)
 
+    @patch("validation.helpers.validation.check_ruleset",
+           return_value=["Test for ruleset errors"])
+    def test_issues_with_ruleset(self, my_issue):
+        """
+        Test errors regarding ruleset
+        """
+
+        # assert issues from validation.helpers.validation.read_in_ruleset
+        self.assertRaisesMessage(
+            RulesetError,
+            "Test for ruleset errors",
+            MetaDataValidation)
+
+        # test mocked function called
+        self.assertTrue(my_issue.called)
+
     @patch("requests.get")
     @patch("validation.helpers.validation.read_in_ruleset")
-    def test_check_biosample_id_target(self, my_read, mock_get):
+    @patch("validation.helpers.validation.check_ruleset",
+           return_value=[])
+    def test_check_biosample_id_target(self, my_check, my_read, mock_get):
         """Test fecthing biosample ids from MetaDataValidation"""
 
         # paching response
@@ -65,12 +83,15 @@ class MetaDataValidationTestCase(TestCase):
         self.assertEqual(record_result.get_messages(), [])
 
         # assert my methods called
+        self.assertTrue(my_check.called)
         self.assertTrue(my_read.called)
         self.assertTrue(mock_get.called)
 
     @patch("requests.get")
     @patch("validation.helpers.validation.read_in_ruleset")
-    def test_check_biosample_id_issue(self, my_read, mock_get):
+    @patch("validation.helpers.validation.check_ruleset",
+           return_value=[])
+    def test_check_biosample_id_issue(self, my_check, my_read, mock_get):
         """No valid biosample is found for this object"""
 
         # paching response
@@ -93,6 +114,7 @@ class MetaDataValidationTestCase(TestCase):
         self.assertEqual(len(record_result.get_messages()), 1)
 
         # assert my methods called
+        self.assertTrue(my_check.called)
         self.assertTrue(my_read.called)
         self.assertTrue(mock_get.called)
 

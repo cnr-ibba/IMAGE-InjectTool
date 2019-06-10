@@ -33,6 +33,12 @@ class OntologyCacheError(Exception):
     image_validation.use_ontology.OntologyCache objects"""
 
 
+# a class to deal with errors in ruleset (that are not user errors but
+# errors within InjectTool and image_validation library)
+class RulesetError(Exception):
+    """Indentifies errors in ruleset"""
+
+
 class MetaDataValidation():
     """A class to deal with IMAGE-ValidationTool ruleset objects"""
 
@@ -40,6 +46,13 @@ class MetaDataValidation():
 
     def __init__(self, ruleset_filename=IMAGE_RULESET):
         self.read_in_ruleset(ruleset_filename)
+
+        # check validation rules
+        ruleset_errors = self.check_ruleset()
+
+        if ruleset_errors != []:
+            raise RulesetError(
+                "Error with ruleset: %s" % "; ".join(ruleset_errors))
 
     def read_in_ruleset(self, ruleset_filename):
         try:
