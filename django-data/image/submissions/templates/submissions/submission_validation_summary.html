@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load submissions_filters %}
+
 {% block title %}
   Validation Summary for submission test
 {% endblock title %}
@@ -26,10 +28,10 @@
     </button>
     <p></p>
     <ul class="list-group">
-      {% for message in validation.messages %}
+      {% for message in validation.messages|get_dict_from_str %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span class="badge badge-primary badge-pill align-right">14</span>
-        {{ message }}
+        <span class="badge badge-primary badge-pill align-right">{{ message.count }}</span>
+        {{ message.message }}
         <span class="badge badge-success badge-pill align-right">Fix this</span>
       </li>
       {% endfor %}

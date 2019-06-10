@@ -140,7 +140,7 @@ class ValidateTask(MyTask):
         logger.info("Validate Submission started")
 
         # collect all unique messages
-        self.messages = set()
+        self.messages = dict()
 
         # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
@@ -347,11 +347,15 @@ class ValidateTask(MyTask):
         if isinstance(result, list):
             messages = result
             overall_status = "Wrong JSON structure"
-            self.messages.update(messages)
 
         else:
             messages = result.get_messages()
             overall_status = result.get_overall_status()
+
+        # Save all messages for validation summary
+        for message in messages:
+            self.messages.setdefault(message, 0)
+            self.messages[message] += 1
 
         # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
@@ -414,7 +418,13 @@ class ValidateTask(MyTask):
         validation_summary.warning_count = submission_statuses['Warning']
         validation_summary.error_count = submission_statuses['Error']
         validation_summary.json_count = submission_statuses['JSON']
-        validation_summary.messages = list(self.messages)
+        validation_messages = list()
+        for message, count in self.messages.items():
+            validation_messages.append({
+                'message': message,
+                'count': count
+            })
+        validation_summary.messages = validation_messages
         validation_summary.save()
 
 
