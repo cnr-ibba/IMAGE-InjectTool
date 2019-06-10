@@ -149,6 +149,8 @@ class ValidateTask(MyTask):
         except OntologyCacheError as exc:
             return self.temporary_error_report(exc, submission_obj)
 
+        # TODO: except errors in ruleset
+
         # track global statuses
         submission_statuses = Counter(
             {'Pass': 0,

@@ -21,7 +21,7 @@ from django.test import TestCase
 
 from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import PersonMixinTestCase
-from image_app.models import Submission, Person, Name, Animal, Sample
+from image_app.models import Submission, Person, Name, Animal
 
 from ..tasks import ValidateTask, ValidationError
 from ..helpers import OntologyCacheError
