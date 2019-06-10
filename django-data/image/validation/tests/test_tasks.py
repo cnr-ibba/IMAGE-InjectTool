@@ -104,7 +104,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(submission.status, ERROR)
         self.assertEqual(
             submission.message,
-            "Error in IMAGE Validation: Test")
+            "Unknown error in validation - Test")
 
         # test email sent
         self.assertGreater(len(mail.outbox), 1)
@@ -113,7 +113,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         email = mail.outbox[0]
 
         self.assertEqual(
-            "Error in IMAGE Validation: %s" % self.submission_id,
+            "Error in IMAGE Validation: Unknown error in validation - Test",
             email.subject)
 
         self.assertEqual(asyncio_mock.call_count, 1)
@@ -121,7 +121,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(send_message_to_websocket_mock.call_count, 1)
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Error',
-             'notification_message': 'Error in IMAGE Validation: Test'}, 1)
+             'notification_message': 'Unknown error in validation - Test'}, 1)
 
     @patch('crbanim.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')

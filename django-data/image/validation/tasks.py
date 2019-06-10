@@ -54,49 +54,89 @@ class ValidateTask(MyTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
-    # Ovverride default on failure method
-    # This is not a failed validation for a wrong value, this is an
-    # error in task that mean an error in coding
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
+    def send_message(self, status, submission_obj):
+        """
+        Update submission.status and submission message using django
+        channels
 
-        # get submissio object
-        submission_obj = Submission.objects.get(pk=args[0])
-
-        # mark submission with ERROR
-        submission_obj.status = ERROR
-        submission_obj.message = ("Error in IMAGE Validation: %s" % (str(exc)))
-        submission_obj.save()
+        Args:
+            status (int): a :py:class:`common.constants.STATUSES` object
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+        """
 
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
                 {
-                    'message': STATUSES.get_value_display(ERROR),
+                    'message': STATUSES.get_value_display(status),
                     'notification_message': submission_obj.message
                 },
-                args[0]
+                submission_obj.pk
             )
         )
 
+    def __generic_error_report(
+            self, submission_obj, status, message, notify_admins=False):
+        """
+        Generic report for updating submission objects and send email after
+        an exception is called
+
+        Args:
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+            status (int): a :py:class:`common.constants.STATUSES` object
+            message (str): a text object
+            notify_admins (bool): send mail to the admins or not
+        """
+
+        # mark submission with its status
+        submission_obj.status = status
+        submission_obj.message = message
+        submission_obj.save()
+
+        self.send_message(status, submission_obj)
+
+        # get exception info
+        einfo = traceback.format_exc()
+
         # send a mail to the user with the stacktrace (einfo)
-        email_subject = "Error in IMAGE Validation: %s" % (args[0])
+        email_subject = "Error in IMAGE Validation: %s" % (message)
         email_message = (
-                "Something goes wrong with validation. Please report "
-                "this to InjectTool team\n\n %s" % str(einfo))
+            "Something goes wrong with validation. Please report "
+            "this to InjectTool team\n\n %s" % str(einfo))
 
         submission_obj.owner.email_user(
             email_subject,
             email_message,
         )
 
-        # submit mail to admins
-        datatuple = (
-            email_subject,
-            email_message,
-            settings.DEFAULT_FROM_EMAIL,
-            get_admin_emails())
+        if notify_admins:
+            # submit mail to admins
+            datatuple = (
+                email_subject,
+                email_message,
+                settings.DEFAULT_FROM_EMAIL,
+                get_admin_emails())
 
-        send_mass_mail((datatuple, ))
+            send_mass_mail((datatuple, ))
+
+    # Ovverride default on failure method
+    # This is not a failed validation for a wrong value, this is an
+    # error in task that mean an error in coding
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
+
+        # define message
+        message = "Unknown error in validation - %s" % str(exc)
+
+        # get submissio object
+        submission_obj = Submission.objects.get(pk=args[0])
+
+        # call generic report which update submission and send email
+        self.__generic_error_report(
+            submission_obj, ERROR, message, notify_admins=True)
+
+        # returns None: this task will have the ERROR status
 
     # TODO: define a method to inform user for error in validation (Task run
     # with success but errors in data)
@@ -120,31 +160,8 @@ class ValidateTask(MyTask):
         message = "Errors in EBI API endpoints. Please try again later"
         logger.error(message)
 
-        # Set a message and revert status to LOADED
-        submission_obj.status = LOADED
-        submission_obj.message = (message)
-        submission_obj.save()
-
-        # send message with channel
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(LOADED),
-                    'notification_message': message
-                },
-                submission_obj.pk
-            )
-        )
-
-        # get exception info
-        einfo = traceback.format_exc()
-
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in IMAGE Validation: %s" % (message),
-            ("Something goes wrong with validation. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
+        # call generic report which update submission and send email
+        self.__generic_error_report(submission_obj, LOADED, message)
 
         return "success"
 
@@ -169,44 +186,9 @@ class ValidateTask(MyTask):
             "Error in IMAGE-metadata ruleset. Please inform InjectTool team")
         logger.error(message)
 
-        # Set a message and revert status to LOADED
-        submission_obj.status = ERROR
-        submission_obj.message = message
-        submission_obj.save()
-
-        # send message with channel
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(ERROR),
-                    'notification_message': message
-                },
-                submission_obj.pk
-            )
-        )
-
-        # get exception info
-        einfo = traceback.format_exc()
-
-        # send a mail to the user with the stacktrace (einfo)
-        email_subject = "Error in IMAGE Validation: %s" % (message)
-        email_message = (
-            "Something goes wrong with validation. Please report "
-            "this to InjectTool team\n\n %s" % str(einfo))
-
-        submission_obj.owner.email_user(
-            email_subject,
-            email_message,
-        )
-
-        # submit mail to admins
-        datatuple = (
-            email_subject,
-            email_message,
-            settings.DEFAULT_FROM_EMAIL,
-            get_admin_emails())
-
-        send_mass_mail((datatuple, ))
+        # call generic report which update submission and send email
+        self.__generic_error_report(
+            submission_obj, ERROR, message, notify_admins=True)
 
         return "success"
 
@@ -305,15 +287,8 @@ class ValidateTask(MyTask):
             submission_obj.message = "Submission validated with some warnings"
             submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(READY),
-                        'notification_message': submission_obj.message
-                    },
-                    submission_id
-                )
-            )
+            # send message with channel
+            self.send_message(READY, submission_obj)
 
             logger.info(
                 "Submission %s validated with some warning" % (submission_obj))
@@ -326,15 +301,8 @@ class ValidateTask(MyTask):
             submission_obj.message = "Submission validated with success"
             submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(READY),
-                        'notification_message': submission_obj.message
-                    },
-                    submission_id
-                )
-            )
+            # send message with channel
+            self.send_message(READY, submission_obj)
 
             logger.info(
                 "Submission %s validated with success" % (submission_obj))
@@ -458,15 +426,9 @@ class ValidateTask(MyTask):
         submission_obj.status = status
         submission_obj.message = ("Validation got errors: %s" % (message))
         submission_obj.save()
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(status),
-                    'notification_message': submission_obj.message
-                },
-                submission_obj.id
-            )
-        )
+
+        # send message with channel
+        self.send_message(status, submission_obj)
 
 
 # register explicitly tasks
