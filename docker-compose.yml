@@ -95,7 +95,9 @@ services:
         source: ./django-data/
         target: /var/uwsgi/
 
-    # Expose the default port
+    # expose a port outside for websocket connections
+    ports:
+      - "26081:8001"
 
     # link container to database
     links:
