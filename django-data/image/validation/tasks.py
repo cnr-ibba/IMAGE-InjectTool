@@ -156,13 +156,7 @@ class ValidateTask(MyTask):
         except OntologyCacheError as exc:
             return self.temporary_error_report(exc, submission_obj)
 
-        # track global statuses
-        submission_statuses = Counter(
-            {'Pass': 0,
-             'Warning': 0,
-             'Error': 0,
-             'JSON': 0})
-
+        # track global statuses for animals and samples
         submission_statuses_animals = Counter(
             {'Pass': 0,
              'Warning': 0,
@@ -192,13 +186,16 @@ class ValidateTask(MyTask):
             raise self.retry(exc=exc)
 
         # test for keys in submission_statuses
-        statuses = sorted(submission_statuses.keys())
+        statuses_animals = sorted(submission_statuses_animals.keys())
+        statuses_samples = sorted(submission_statuses_samples.keys())
 
         # if error messages changes in IMAGE-ValidationTool, all this
         # stuff isn't valid and I throw an exception
-        if statuses != ['Error', 'JSON', 'Pass', 'Warning']:
-            message = "Error in statuses for submission %s: %s" % (
-                submission_obj, statuses)
+        if statuses_animals != ['Error', 'JSON', 'Pass', 'Warning'] or \
+                statuses_samples != ['Error', 'JSON', 'Pass', 'Warning']:
+            message = "Error in statuses for submission %s: animals - %s, " \
+                      "samples - %s" % (submission_obj, statuses_animals,
+                                        statuses_samples)
 
             # debug: print error in log
             logger.error(message)
