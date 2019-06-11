@@ -91,6 +91,10 @@ class SuccessfulDeleteSampleViewTest(
         sample = Sample.objects.get(pk=1)
         self.submission = sample.submission
 
+        # count number of animals and names
+        self.n_of_animals = Animal.objects.count()
+        self.n_of_names = Name.objects.count()
+
         # update submission status (to get this url)
         self.submission.status = READY
         self.submission.save()
@@ -115,23 +119,25 @@ class SuccessfulDeleteSampleViewTest(
     def test_sample_delete(self):
         """Deleting a sample will delete its name and validationresult"""
 
-        # One animal present
+        # Animals objects are the same
         n_animals = Animal.objects.count()
-        self.assertEqual(n_animals, 1)
+        self.assertEqual(n_animals, self.n_of_animals)
 
         # no samples
         n_samples = Sample.objects.count()
         self.assertEqual(n_samples, 0)
 
-        # names will be deleted
+        # 1 names was deleted
         n_names = Name.objects.count()
-        self.assertEqual(n_names, 3)
+        self.assertEqual(n_names, self.n_of_names-1)
 
         # check for ramaining names
         names = [name.name for name in Name.objects.all()]
         self.assertIn("ANIMAL:::ID:::unknown_sire", names)
         self.assertIn("ANIMAL:::ID:::unknown_dam", names)
         self.assertIn("ANIMAL:::ID:::132713", names)
+        self.assertIn("ANIMAL:::ID:::mother", names)
+        self.assertIn("ANIMAL:::ID:::son", names)
 
         # check for validationresults
         n_validation = ValidationResult.objects.count()

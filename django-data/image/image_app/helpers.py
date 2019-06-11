@@ -99,3 +99,12 @@ def format_attribute(value, terms=None, library_uri=OBO_URL, units=None):
 
     # return a list of dictionaries
     return [result]
+
+
+def get_admin_emails():
+    """Return admin email from image.settings"""
+
+    ADMINS = settings.ADMINS
+
+    # return all admin mail addresses
+    return [admin[1] for admin in ADMINS]

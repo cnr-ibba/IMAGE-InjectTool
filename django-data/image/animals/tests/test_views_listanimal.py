@@ -9,6 +9,8 @@ Created on Fri Feb 15 15:40:00 2019
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
+from image_app.models import Animal
+
 from .common import AnimalViewTestMixin
 from ..views import ListAnimalView
 
@@ -18,6 +20,9 @@ class ListAnimaViewTest(AnimalViewTestMixin, TestCase):
         # login a test user (defined in fixture)
         self.client = Client()
         self.client.login(username='test', password='test')
+
+        # count number of objects
+        self.n_of_animals = Animal.objects.count()
 
         self.url = reverse('animals:list')
         self.response = self.client.get(self.url)
@@ -47,11 +52,13 @@ class ListAnimaViewTest(AnimalViewTestMixin, TestCase):
         # get animal queryset
         qs = self.response.context['animal_list']
 
-        # assert one animal for this user
-        self.assertEqual(qs.count(), 1)
+        # assert three animal for this user (see image_app fixtures)
+        self.assertEqual(qs.count(), self.n_of_animals)
 
         names = [animal.name.name for animal in qs.all()]
         self.assertIn("ANIMAL:::ID:::132713", names)
+        self.assertIn("ANIMAL:::ID:::mother", names)
+        self.assertIn("ANIMAL:::ID:::son", names)
 
     def test_contains_navigation_links(self):
         submission_url = reverse('submissions:list')

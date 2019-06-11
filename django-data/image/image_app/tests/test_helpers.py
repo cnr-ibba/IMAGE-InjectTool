@@ -10,9 +10,11 @@ import datetime
 import json
 
 from django.test import TestCase
+from django.core.validators import validate_email
 
 from common.constants import OBO_URL
-from image_app.helpers import DateDecoder, DateEncoder, format_attribute
+from image_app.helpers import (
+    DateDecoder, DateEncoder, format_attribute, get_admin_emails)
 
 
 class JsonTestCase(TestCase):
@@ -106,3 +108,13 @@ class TestAttributes(TestCase):
         test = format_attribute(value=None)
 
         self.assertIsNone(test)
+
+
+class TestAdminEmails(TestCase):
+
+    def test_admin_emails(self):
+        # calling objects
+        emails = get_admin_emails()
+
+        for email in emails:
+            self.assertIsNone(validate_email(email))

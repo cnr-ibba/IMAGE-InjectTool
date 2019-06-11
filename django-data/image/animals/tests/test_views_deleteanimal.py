@@ -107,6 +107,11 @@ class SuccessfulDeleteAnimalViewTest(
         # create a new child for this animal
         self.child = self.create_child()
 
+        # count number of objects
+        self.n_of_animals = Animal.objects.count()
+        self.n_of_names = Name.objects.count()
+        self.n_of_samples = Sample.objects.count()
+
         self.url = reverse("animals:delete", kwargs={'pk': 1})
         self.response = self.client.post(
             self.url,
@@ -147,23 +152,25 @@ class SuccessfulDeleteAnimalViewTest(
         """Deleting an animal will delete its samples, names and
         validationresults. Its child will be present"""
 
-        # One animal present
+        # three animals present (see image_app fixtures)
         n_animals = Animal.objects.count()
-        self.assertEqual(n_animals, 1)
-        test = Animal.objects.get(pk=2)
+        self.assertEqual(n_animals, self.n_of_animals-1)
+
+        # refresh child item from db
+        self.child.refresh_from_db()
 
         # assert child father and mother
-        self.assertIsNone(test.father)
+        self.assertIsNone(self.child.father)
         mother = Name.objects.get(name='ANIMAL:::ID:::unknown_dam')
-        self.assertEqual(test.mother, mother)
+        self.assertEqual(self.child.mother, mother)
 
-        # nor its samples
+        # now its samples (the sample related to deleted animal was deleted)
         n_samples = Sample.objects.count()
-        self.assertEqual(n_samples, 0)
+        self.assertEqual(n_samples, self.n_of_samples-1)
 
-        # names will be deleted
+        # names will be deleted. One name for sample, one for animals
         n_names = Name.objects.count()
-        self.assertEqual(n_names, 3)
+        self.assertEqual(n_names, self.n_of_names-2)
 
         # check for ramaining names
         names = [name.name for name in Name.objects.all()]

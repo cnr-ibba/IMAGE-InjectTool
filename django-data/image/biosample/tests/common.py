@@ -10,6 +10,7 @@ import python_jwt
 
 from unittest.mock import patch, PropertyMock
 
+from django.db.models import Q
 from django.utils import timezone
 
 from common.constants import READY
@@ -71,9 +72,18 @@ class SubmitMixin(PersonMixinTestCase):
         self.submission_obj.status = READY
         self.submission_obj.save()
 
+        # get the names I want to submit
+        self.name_qs = Name.objects.filter(
+            Q(animal__isnull=False) | Q(sample__isnull=False),
+            submission=self.submission_obj)
+
         # set status for names, like validation does. Update only animal
-        # and sample names using their PKs
-        Name.objects.filter(pk__in=[3, 4]).update(status=READY)
+        # and sample names (excluding unkwnon animals)
+        self.name_qs.update(status=READY)
+
+        # count number of names in UID for such submission (exclude
+        # unknown animals)
+        self.n_to_submit = self.name_qs.count()
 
         # track submission ID
         self.submission_id = self.submission_obj.id
