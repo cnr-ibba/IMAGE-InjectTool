@@ -60,12 +60,12 @@ class MetaDataValidationTestCase(TestCase):
     @patch("validation.helpers.validation.read_in_ruleset")
     @patch("validation.helpers.validation.check_ruleset",
            return_value=[])
-    def test_check_biosample_id_target(self, my_check, my_read, mock_get):
-        """Test fecthing biosample ids from MetaDataValidation"""
+    def check_biosample_id(self, my_check, my_read, mock_get, status_code):
+        """Base method for checking biosample id"""
 
         # paching response
         response = Mock()
-        response.status_code = 200
+        response.status_code = status_code
         mock_get.return_value = response
 
         # create a fake ValidationResultRecord
@@ -77,46 +77,33 @@ class MetaDataValidationTestCase(TestCase):
         # check biosample object
         record_result = metadata.check_biosample_id_target(
             "FAKEA123456", "test", record_result)
+
+        # assert my methods called
+        self.assertTrue(my_check.called)
+        self.assertTrue(my_read.called)
+        self.assertTrue(mock_get.called)
+
+        return record_result
+
+    def test_check_biosample_id_target(self):
+        """Test fecthing biosample ids from MetaDataValidation"""
+
+        # pacthing response
+        record_result = self.check_biosample_id(status_code=200)
 
         # test pass status and no messages
         self.assertEqual(record_result.get_overall_status(), 'Pass')
         self.assertEqual(record_result.get_messages(), [])
 
-        # assert my methods called
-        self.assertTrue(my_check.called)
-        self.assertTrue(my_read.called)
-        self.assertTrue(mock_get.called)
-
-    @patch("requests.get")
-    @patch("validation.helpers.validation.read_in_ruleset")
-    @patch("validation.helpers.validation.check_ruleset",
-           return_value=[])
-    def test_check_biosample_id_issue(self, my_check, my_read, mock_get):
+    def test_check_biosample_id_issue(self):
         """No valid biosample is found for this object"""
 
-        # paching response
-        response = Mock()
-        response.status_code = 404
-        mock_get.return_value = response
-
-        # create a fake ValidationResultRecord
-        record_result = ValidationResultRecord(record_id="test")
-
-        # get a metadata object
-        metadata = MetaDataValidation()
-
-        # check biosample object
-        record_result = metadata.check_biosample_id_target(
-            "FAKEA123456", "test", record_result)
+        # pacthing response
+        record_result = self.check_biosample_id(status_code=404)
 
         # test Warning status and one message
         self.assertEqual(record_result.get_overall_status(), 'Warning')
         self.assertEqual(len(record_result.get_messages()), 1)
-
-        # assert my methods called
-        self.assertTrue(my_check.called)
-        self.assertTrue(my_read.called)
-        self.assertTrue(mock_get.called)
 
 
 class SubmissionMixin(PersonMixinTestCase):
