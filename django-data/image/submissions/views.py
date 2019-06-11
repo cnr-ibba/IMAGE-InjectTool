@@ -150,19 +150,21 @@ class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
         return context
 
 
-class SubmissionValidationSummaryView(DetailView):
+class SubmissionValidationSummaryView(OwnerMixin, DetailView):
     model = Submission
     template_name = "submissions/submission_validation_summary.html"
 
     def get_context_data(self, **kwargs):
-        context = super(SubmissionValidationSummaryView, self).get_context_data(**kwargs)
+        context = super(SubmissionValidationSummaryView, self).get_context_data(
+            **kwargs)
         summary_type = ''
         if self.kwargs['type'] == 'animals':
             summary_type = 'animal'
         elif self.kwargs['type'] == 'samples':
             summary_type = 'samples'
         try:
-            context['validation_summary'] = self.object.validationsummary_set.get(type=summary_type)
+            context['validation_summary'] = self.object.validationsummary_set\
+                .get(type=summary_type)
         except ObjectDoesNotExist:
             context['validation_summary'] = None
         return context
