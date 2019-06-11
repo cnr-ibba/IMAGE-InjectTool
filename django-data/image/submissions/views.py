@@ -144,7 +144,6 @@ class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
         validation_summary = VS(self.submission)
 
         # HINT: is this computational intensive?
-        validation_summary.process_errors()
         context["validation_summary"] = validation_summary
 
         return context
