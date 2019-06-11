@@ -223,30 +223,40 @@ class ValidateTask(MyTask):
             logger.warning(
                 "Wrong JSON structure for submission %s" % (submission_obj))
 
-            logger.debug("Results for submission %s: %s" % (
-                submission_id, submission_statuses))
+            logger.debug("Results for submission %s: animals - %s, samples - %s"
+                         % (submission_id, submission_statuses_animals,
+                            submission_statuses_samples))
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
         # return a message and I will set NEED_REVISION
-        elif self.has_errors_in_rules(submission_statuses):
+        elif self.has_errors_in_rules(submission_statuses_animals) or \
+                self.has_errors_in_rules(submission_statuses_samples):
             message = (
                 "Error in metadata. Need revisions before submit")
 
             # mark submission with NEED_REVISION
             self.submission_fail(submission_obj, message)
+            self.create_validation_summary(submission_obj,
+                                           submission_statuses_animals,
+                                           submission_statuses_samples)
 
             logger.warning(
                 "Error in metadata for submission %s" % (submission_obj))
 
-            logger.debug("Results for submission %s: %s" % (
-                submission_id, submission_statuses))
+            logger.debug("Results for submission %s: animals - %s, samples - %s"
+                         % (submission_id, submission_statuses_animals,
+                            submission_statuses_samples))
 
         # WOW: I can submit those data
-        elif self.has_warnings_in_rules(submission_statuses):
+        elif self.has_warnings_in_rules(submission_statuses_animals) or \
+                self.has_warnings_in_rules(submission_statuses_samples):
             submission_obj.status = READY
             submission_obj.message = "Submission validated with some warnings"
             submission_obj.save()
+            self.create_validation_summary(submission_obj,
+                                           submission_statuses_animals,
+                                           submission_statuses_samples)
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
@@ -260,16 +270,21 @@ class ValidateTask(MyTask):
                 )
             )
 
+
             logger.info(
                 "Submission %s validated with some warning" % (submission_obj))
 
-            logger.debug("Results for submission %s: %s" % (
-                submission_id, submission_statuses))
+            logger.debug("Results for submission %s: animals - %s, samples - %s"
+                         % (submission_id, submission_statuses_animals,
+                            submission_statuses_samples))
 
         else:
             submission_obj.status = READY
             submission_obj.message = "Submission validated with success"
             submission_obj.save()
+            self.create_validation_summary(submission_obj,
+                                           submission_statuses_animals,
+                                           submission_statuses_samples)
 
             asyncio.get_event_loop().run_until_complete(
                 send_message_to_websocket(
@@ -283,11 +298,13 @@ class ValidateTask(MyTask):
                 )
             )
 
+
             logger.info(
                 "Submission %s validated with success" % (submission_obj))
 
-            logger.debug("Results for submission %s: %s" % (
-                submission_id, submission_statuses))
+            logger.debug("Results for submission %s: animals - %s, samples - %s"
+                         % (submission_id, submission_statuses_animals,
+                            submission_statuses_samples))
 
         logger.info("Validate Submission completed")
 
@@ -364,19 +381,24 @@ class ValidateTask(MyTask):
 
         if isinstance(result, list):
             messages = result
+            comparable_messages = result
             overall_status = "Wrong JSON structure"
 
         else:
             messages = result.get_messages()
+            # get comparable messages for batch update
+            comparable_messages = list()
+            for result_set in result.result_set:
+                comparable_messages.append(result_set.get_comparable_str())
             overall_status = result.get_overall_status()
 
         # Save all messages for validation summary
         if isinstance(model, Sample):
-            for message in messages:
+            for message in comparable_messages:
                 self.messages_samples.setdefault(message, 0)
                 self.messages_samples[message] += 1
         elif isinstance(model, Animal):
-            for message in messages:
+            for message in comparable_messages:
                 self.messages_animals.setdefault(message, 0)
                 self.messages_animals[message] += 1
 
