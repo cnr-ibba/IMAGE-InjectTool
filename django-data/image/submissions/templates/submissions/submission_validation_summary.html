@@ -9,22 +9,20 @@
 {% block content %}
 
 {% if validation_summary %}
-  {% for validation in validation_summary %}
-    <span class="badge badge-pill badge-primary">Pass: {{ validation.pass_count }}</span>
-    <span class="badge badge-pill badge-warning">Warnings: {{ validation.warning_count }}</span>
-    <span class="badge badge-pill badge-danger">Errors: {{ validation.error_count }}</span>
-    <span class="badge badge-pill badge-danger">JSON Errors: {{ validation.json_count }}</span>
-    <p></p>
-    <ul class="list-group">
-      {% for message in validation.messages|get_dict_from_str %}
+  <span class="badge badge-pill badge-primary">Pass: {{ validation_summary.pass_count }}</span>
+  <span class="badge badge-pill badge-warning">Warnings: {{ validation_summary.warning_count }}</span>
+  <span class="badge badge-pill badge-danger">Errors: {{ validation_summary.error_count }}</span>
+  <span class="badge badge-pill badge-danger">JSON Errors: {{ validation_summary.json_count }}</span>
+  <p></p>
+  <ul class="list-group">
+    {% for message in validation_summary.messages|get_dict_from_str %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
-        <span class="badge badge-warning badge-pill align-right">{{ message.count }}</span>
+      <span class="badge badge-warning badge-pill align-right">{{ message.count }}</span>
         {{ message.message }}
         <a href="#"><span class="badge badge-success badge-pill align-right">Fix this</span></a>
       </li>
-      {% endfor %}
-    </ul>
-  {% endfor %}
+    {% endfor %}
+  </ul>
 {% else %}
   <div class="alert-danger">There are no validation results yet!!!</div>
 {% endif %}

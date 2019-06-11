@@ -59,7 +59,7 @@
       <td id="validation_message_animals">
         {{ validation_summary.n_animals }}
         {% if validation_summary.n_animal_issues %}
-        ({{ validation_summary.n_animal_issues }} with issues in <a href="validation_summary" target="_blank">validation</a>)
+        ({{ validation_summary.n_animal_issues }} with issues in <a href="validation_summary/animals/" target="_blank">validation</a>)
         {% endif %}
         {% if validation_summary.n_animal_unknown %}
         ({{ validation_summary.n_animal_unknown }} with unknown validation)
@@ -71,7 +71,7 @@
       <td id="validation_message_samples">
         {{ validation_summary.n_samples }}
         {% if validation_summary.n_sample_issues %}
-        ({{ validation_summary.n_sample_issues }} with issues in <a href="validation_summary" target="_blank">validation</a>)
+        ({{ validation_summary.n_sample_issues }} with issues in <a href="validation_summary/samples/" target="_blank">validation</a>)
         {% endif %}
         {% if validation_summary.n_sample_unknown %}
         ({{ validation_summary.n_sample_unknown }} with unknown validation)

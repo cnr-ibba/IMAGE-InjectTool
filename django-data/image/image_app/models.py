@@ -1204,7 +1204,7 @@ class ValidationSummary(models.Model):
     warning_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)
     json_count = models.PositiveIntegerField(default=0)
-
+    type = models.CharField(max_length=6, blank=True, null=True)
     messages = ArrayField(
         models.TextField(max_length=255, blank=True),
         default=list
