@@ -783,7 +783,7 @@ class Animal(BioSampleMixin, models.Model):
             return None
 
         # cryoweb could have unkwown animals. They are Names without
-        # relationship with Animal table
+        # relationships with Animal table
         if not hasattr(self.father, "animal"):
             return None
 
@@ -798,7 +798,7 @@ class Animal(BioSampleMixin, models.Model):
             return None
 
         # cryoweb could have unkwown animals. They are Names without
-        # relationship with Animal table
+        # relationships with Animal table
         if not hasattr(self.mother, "animal"):
             return None
 

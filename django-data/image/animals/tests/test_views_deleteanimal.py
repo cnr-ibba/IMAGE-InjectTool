@@ -164,7 +164,7 @@ class SuccessfulDeleteAnimalViewTest(
         mother = Name.objects.get(name='ANIMAL:::ID:::unknown_dam')
         self.assertEqual(self.child.mother, mother)
 
-        # now its samples (the sample related to delete animal was deleted)
+        # now its samples (the sample related to deleted animal was deleted)
         n_samples = Sample.objects.count()
         self.assertEqual(n_samples, self.n_of_samples-1)
 

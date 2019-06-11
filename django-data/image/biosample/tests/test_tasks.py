@@ -352,7 +352,7 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
         self.assertFalse(self.my_root.get_team_by_name.called)
         self.assertFalse(self.my_team.create_submission.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
-        # I've patches 2 samples in this sample, so:
+        # I've patched 2 samples in this test, so:
         self.assertEqual(
             self.my_submission.create_sample.call_count, 2)
         self.assertTrue(self.my_submission.propertymock.called)
@@ -439,7 +439,7 @@ class SubmitTestCase(SubmitMixin, RedisMixin, TestCase):
              'notification_message': 'Your token is expired: please submit '
                                      'again to resume submission'}, 1)
 
-        # check name status unchanged (count are equal to setUp name queryset)
+        # check name status unchanged (counts are equal to setUp name queryset)
         qs = Name.objects.filter(status=READY)
         self.assertEqual(len(qs), self.name_qs.count())
 
