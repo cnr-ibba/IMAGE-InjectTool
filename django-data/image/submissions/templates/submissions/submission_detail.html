@@ -187,13 +187,14 @@
       }
   }
 
-  function construct_validation_message(message, unknown, issues) {
+  function construct_validation_message(modelType, message, unknown, issues) {
+      modelLink = `validation_summary/${modelType}/`;
       if (unknown !== 0 && issues !== 0) {
-      message += ` (${issues} with issues in <a href='validation_summary' target='_blank'>validation</a>; ${unknown} with unknown validation)`;
+      message += ` (${issues} with issues in <a href=${modelLink} target='_blank'>validation</a>; ${unknown} with unknown validation)`;
     } else if (unknown !== 0 && issues === 0) {
       message += ` (${unknown} with unknown validation)`;
     } else if (unknown === 0 && issues !== 0) {
-      message += ` (${issues} with issues in <a href='validation_summary' target='_blank'>validation</a>)`;
+      message += ` (${issues} with issues in <a href=${modelLink} target='_blank'>validation</a>)`;
     }
       return message;
   }
@@ -215,8 +216,8 @@
 
     document.querySelector('#status-log').textContent = message;
     document.querySelector('#status-log').className = getColor(message);
-    document.querySelector('#validation_message_animals').innerHTML = construct_validation_message(animalsMessage, animalsUnknown, animalsIssues);
-    document.querySelector('#validation_message_samples').innerHTML = construct_validation_message(samplesMessage, samplesUnknown, samplesIssues);
+    document.querySelector('#validation_message_animals').innerHTML = construct_validation_message('animals', animalsMessage, animalsUnknown, animalsIssues);
+    document.querySelector('#validation_message_samples').innerHTML = construct_validation_message('samples', samplesMessage, samplesUnknown, samplesIssues);
     disableButtons(message);
     var notificationDiv = document.querySelector('#notifications');
     notificationDiv.childNodes[2].textContent = notificationMessage;

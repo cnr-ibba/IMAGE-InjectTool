@@ -9,6 +9,7 @@
 {% block content %}
 
 {% if validation_summary %}
+  <h1>Validation summary for {{ validation_summary.type }}s</h1>
   <span class="badge badge-pill badge-primary">Pass: {{ validation_summary.pass_count }}</span>
   <span class="badge badge-pill badge-warning">Warnings: {{ validation_summary.warning_count }}</span>
   <span class="badge badge-pill badge-danger">Errors: {{ validation_summary.error_count }}</span>

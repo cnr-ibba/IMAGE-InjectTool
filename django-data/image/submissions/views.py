@@ -160,7 +160,7 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
         if self.kwargs['type'] == 'animals':
             summary_type = 'animal'
         elif self.kwargs['type'] == 'samples':
-            summary_type = 'samples'
+            summary_type = 'sample'
         try:
             context['validation_summary'] = self.object.validationsummary_set\
                 .get(type=summary_type)

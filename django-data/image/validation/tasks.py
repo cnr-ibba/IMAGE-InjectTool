@@ -16,6 +16,8 @@ import asyncio
 from collections import Counter
 from celery.utils.log import get_task_logger
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES)
 from common.helpers import send_message_to_websocket, \
@@ -139,8 +141,9 @@ class ValidateTask(MyTask):
 
         logger.info("Validate Submission started")
 
-        # collect all unique messages
-        self.messages = dict()
+        # collect all unique messages for samples and animals
+        self.messages_samples = dict()
+        self.messages_animals =dict()
 
         # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
@@ -160,14 +163,26 @@ class ValidateTask(MyTask):
              'Error': 0,
              'JSON': 0})
 
+        submission_statuses_animals = Counter(
+            {'Pass': 0,
+             'Warning': 0,
+             'Error': 0,
+             'JSON': 0})
+
+        submission_statuses_samples = Counter(
+            {'Pass': 0,
+             'Warning': 0,
+             'Error': 0,
+             'JSON': 0})
+
         try:
             for animal in Animal.objects.filter(
                     name__submission=submission_obj):
-                self.validate_model(animal, submission_statuses)
+                self.validate_model(animal, submission_statuses_animals)
 
             for sample in Sample.objects.filter(
                     name__submission=submission_obj):
-                self.validate_model(sample, submission_statuses)
+                self.validate_model(sample, submission_statuses_samples)
 
         # TODO: errors in validation should raise custom exception
         except json.decoder.JSONDecodeError as exc:
@@ -196,10 +211,13 @@ class ValidateTask(MyTask):
             raise ValidationError(message)
 
         # If I have any error in JSON is a problem of injectool
-        if self.has_errors_in_json(submission_statuses):
+        if self.has_errors_in_json(submission_statuses_animals) or \
+                self.has_errors_in_json(submission_statuses_samples):
             # mark submission with NEED_REVISION
             self.submission_fail(submission_obj, "Wrong JSON structure")
-            self.create_validation_summary(submission_obj, submission_statuses)
+            self.create_validation_summary(submission_obj,
+                                           submission_statuses_animals,
+                                           submission_statuses_samples)
 
             # debug
             logger.warning(
@@ -353,9 +371,14 @@ class ValidateTask(MyTask):
             overall_status = result.get_overall_status()
 
         # Save all messages for validation summary
-        for message in messages:
-            self.messages.setdefault(message, 0)
-            self.messages[message] += 1
+        if isinstance(model, Sample):
+            for message in messages:
+                self.messages_samples.setdefault(message, 0)
+                self.messages_samples[message] += 1
+        elif isinstance(model, Animal):
+            for message in messages:
+                self.messages_animals.setdefault(message, 0)
+                self.messages_animals[message] += 1
 
         # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
@@ -404,28 +427,48 @@ class ValidateTask(MyTask):
             )
         )
 
-    def create_validation_summary(self, submission_obj, submission_statuses):
+    def create_validation_summary(self, submission_obj,
+                                  submission_statuses_animals,
+                                  submission_statuses_samples):
         """
         This function will create ValidationSummary object that will be used
         on validation_summary view
         Args:
             submission_obj: submission ref which has gone through validation
-            submission_statuses: Counter with statuses and counts on them
+            submission_statuses_animals: Counter with statuses and counts
+            submission_statuses_samples: Counter with statuses and counts
         """
-        validation_summary = ValidationSummary()
-        validation_summary.submission = submission_obj
-        validation_summary.pass_count = submission_statuses['Pass']
-        validation_summary.warning_count = submission_statuses['Warning']
-        validation_summary.error_count = submission_statuses['Error']
-        validation_summary.json_count = submission_statuses['JSON']
-        validation_messages = list()
-        for message, count in self.messages.items():
-            validation_messages.append({
-                'message': message,
-                'count': count
-            })
-        validation_summary.messages = validation_messages
-        validation_summary.save()
+        for model_type in ['animal', 'sample']:
+            try:
+                validation_summary = submission_obj.validationsummary_set.get(
+                    type=model_type
+                )
+            except ObjectDoesNotExist:
+                validation_summary = ValidationSummary()
+            if model_type == 'animal':
+                messages = self.messages_animals
+                submission_statuses = submission_statuses_animals
+            elif model_type == 'sample':
+                messages = self.messages_samples
+                submission_statuses = submission_statuses_samples
+            else:
+                messages = dict()
+                submission_statuses = dict()
+            validation_summary.submission = submission_obj
+            validation_summary.pass_count = submission_statuses.get('Pass', 0)
+            validation_summary.warning_count = submission_statuses.get(
+                'Warning', 0)
+            validation_summary.error_count = submission_statuses.get('Error', 0)
+            validation_summary.json_count = submission_statuses.get('JSON', 0)
+            validation_messages = list()
+            for message, count in messages.items():
+                validation_messages.append({
+                    'message': message,
+                    'count': count
+                })
+            validation_summary.messages = validation_messages
+            validation_summary.type = model_type
+            validation_summary.save()
 
 
 # register explicitly tasks
