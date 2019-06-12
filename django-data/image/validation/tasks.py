@@ -203,7 +203,7 @@ class ValidateTask(MyTask):
 
         # collect all unique messages for samples and animals
         self.messages_samples = dict()
-        self.messages_animals =dict()
+        self.messages_animals = dict()
 
         # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
@@ -235,11 +235,11 @@ class ValidateTask(MyTask):
         try:
             for animal in Animal.objects.filter(
                     name__submission=submission_obj).order_by('id'):
-                self.validate_model(animal, submission_statuses)
+                self.validate_model(animal, submission_statuses_animals)
 
             for sample in Sample.objects.filter(
                     name__submission=submission_obj).order_by('id'):
-                self.validate_model(sample, submission_statuses)
+                self.validate_model(sample, submission_statuses_samples)
 
         # TODO: errors in validation should raise custom exception
         except json.decoder.JSONDecodeError as exc:
@@ -283,9 +283,11 @@ class ValidateTask(MyTask):
             logger.warning(
                 "Wrong JSON structure for submission %s" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
@@ -304,9 +306,11 @@ class ValidateTask(MyTask):
             logger.warning(
                 "Error in metadata for submission %s" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         # WOW: I can submit those data
         elif self.has_warnings_in_rules(submission_statuses_animals) or \
@@ -321,13 +325,14 @@ class ValidateTask(MyTask):
             # send message with channel
             self.send_message(READY, submission_obj)
 
-
             logger.info(
                 "Submission %s validated with some warning" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         else:
             submission_obj.status = READY
@@ -340,13 +345,14 @@ class ValidateTask(MyTask):
             # send message with channel
             self.send_message(READY, submission_obj)
 
-
             logger.info(
                 "Submission %s validated with success" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         logger.info("Validate Submission completed")
 
@@ -486,7 +492,7 @@ class ValidateTask(MyTask):
         submission_obj.message = ("Validation got errors: %s" % (message))
         submission_obj.save()
         self.send_message(status, submission_obj)
-        
+
     def create_validation_summary(self, submission_obj,
                                   submission_statuses_animals,
                                   submission_statuses_samples):
@@ -518,7 +524,8 @@ class ValidateTask(MyTask):
             validation_summary.pass_count = submission_statuses.get('Pass', 0)
             validation_summary.warning_count = submission_statuses.get(
                 'Warning', 0)
-            validation_summary.error_count = submission_statuses.get('Error', 0)
+            validation_summary.error_count = submission_statuses.get(
+                'Error', 0)
             validation_summary.json_count = submission_statuses.get('JSON', 0)
             validation_messages = list()
             for message, count in messages.items():

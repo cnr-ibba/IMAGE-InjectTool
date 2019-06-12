@@ -6,14 +6,12 @@ Created on Tue Feb 19 16:15:35 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import re
 import json
 import logging
 import requests
 
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.text import Truncator
 
 from image_validation import validation, ValidationResult
 from image_validation.static_parameters import ruleset_filename as \

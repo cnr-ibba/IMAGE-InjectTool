@@ -80,10 +80,12 @@ def get_deleted_objects(objs, db_alias=DEFAULT_DB_ALIAS):
 
 def construct_validation_message(submission):
     """
-    Function will return dict with all the data required to construct validation
-    message
+    Function will return dict with all the data required to construct
+    validation message
+
     Args:
         submission : submission to get data from
+
     Returns:
         dict: dictionary with all required data for validation message
     """
