@@ -84,7 +84,7 @@ services:
       - .env
 
     # exec a different command from image
-    command: daphne -b 0.0.0.0 -p 8001 --proxy-headers image.asgi:application
+    command: daphne -b 0.0.0.0 -p 8001 --proxy-headers --verbosity 2 image.asgi:application
 
     # set working dir for uwsgi
     working_dir: /var/uwsgi/image/
@@ -95,7 +95,9 @@ services:
         source: ./django-data/
         target: /var/uwsgi/
 
-    # Expose the default port
+    # expose a port outside for websocket connections
+    ports:
+      - "28001:8001"
 
     # link container to database
     links:
