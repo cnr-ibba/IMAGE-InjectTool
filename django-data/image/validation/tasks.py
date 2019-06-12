@@ -391,10 +391,16 @@ class ValidateTask(MyTask):
 
         # Save all messages for validation summary
         if isinstance(model, Sample):
+            # messages_samples might not exist when doing tests
+            if not hasattr(self, 'messages_samples'):
+                self.messages_samples = dict()
             for message in comparable_messages:
                 self.messages_samples.setdefault(message, 0)
                 self.messages_samples[message] += 1
         elif isinstance(model, Animal):
+            # messages_animals might not exist when doing tests
+            if not hasattr(self, 'messages_animals'):
+                self.messages_animals = dict()
             for message in comparable_messages:
                 self.messages_animals.setdefault(message, 0)
                 self.messages_animals[message] += 1

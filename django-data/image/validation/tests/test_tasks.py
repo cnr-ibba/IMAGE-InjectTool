@@ -758,6 +758,10 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         result.get_overall_status.return_value = status
         result.get_messages.return_value = messages
 
+        result_set = Mock()
+        result_set.get_comparable_str.return_value = "A message"
+        result.result_set = [result_set]
+
         submission_statuses = Counter(
             {'Pass': 0,
              'Warning': 0,
