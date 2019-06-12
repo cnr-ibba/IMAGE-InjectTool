@@ -1,27 +1,24 @@
 services:
-- docker
+  - docker
 branches:
   only:
   - master
   - devel
 install:
-# create environment file selecting variables
-- env | grep 'EMAIL\|DEBUG\|USER\|PASS\|USI\|KEY\|CRYOWEB' >> .env
-# building containers
-- docker-compose pull
-- docker-compose build
-# setting up databases
-- docker-compose up -d db redis
-# preparing and fixing folders
-- docker-compose run --no-deps --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media'
-- docker-compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
-- docker-compose run --no-deps --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
-- docker-compose run --no-deps --rm uwsgi sh -c 'chgrp -R www-data .'
-# test docker
-- docker-compose ps
+  - env | grep 'EMAIL\|DEBUG\|USER\|PASS\|USI\|KEY\|CRYOWEB\|TOKEN\|TRAVIS' >> .env
+  - docker-compose pull
+  - docker-compose build
+  - docker-compose up -d db redis
+  - docker-compose run --no-deps --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media'
+  - docker-compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
+  - docker-compose run --no-deps --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R
+    g+rwx protected'
+  - docker-compose run --no-deps --rm uwsgi sh -c 'chgrp -R www-data .'
+  - docker-compose ps
 script:
-# call tests (with coverage!)
-- docker-compose run --no-deps --rm uwsgi /root/wait-for-postgres.sh coverage run --source='.' -m py.test
+  - docker-compose run --no-deps --rm uwsgi /root/wait-for-postgres.sh coverage run --source='.' -m py.test
+after_script:
+  - docker-compose run --rm uwsgi coveralls
 env:
   global:
   - DEBUG=False
@@ -39,3 +36,4 @@ env:
   - secure: T/Mr0/5M1umv92UpkVyYzTLL3SKQG+YMyw1nu7pR4ZJ6GOvGWc8lx6pY5MxWywtm9mBGTczbC9E4QIcXDY093YowAntVFUBnWTFJD5N+kBGIDagA9+zMe1s/KUxQ+yxIPLSfTg0V03w+nMqmIOA52lTYgKfbd7s33osGsHHfBZQzPbVYhZaPUPJcHdRpeR/Juq96XeBJBuuk2SpVIWIVP5PQ9v0/dHM6P/TITI+AutI6daEsRaY5AISIUhqhjbXisJg2OrNfgBJfKyLSbzS1G5uHbDeQDpHL6U8b70fglE0W4iyoQ+s2IYjncg/sgpAFS9XAkWvDlWBb9RfQrbNWLQRHiIG2jyOKtyDpqqXTX5bQyKKSMrAPt4lpgEw4JPWcYGxRYIEw77niUlmrVvCpdcMOjmqGsOqFjWs49vds+O8b3i85yBtTGhdRPfRmULDigkIwIjG6chUMutduxGd7vzOc66PRMjrrU6hz5bTbOSgDMIGK8BjEijwDDSgswZDy30Enj7Ad3dezmt/gZQqpQ+OAygLf8uj6FhOuRzzARE0ucZRSyP8jcLDx4ufze/PK9/6uSfIwUvpNcPG/6r9taPQFUBJ/alKT6psytlxfAF22U4y/T3iLbtIJbo+J7f027KlqER7E+SS2rb8fcWMKefR6kb/Lt94g3nREl30Ss9c=
   - secure: saZYy9P398/+NiwdjFi6QJrDuwiGTcUCIK+a0933VZGGvmra73eh0SWhI5m2WllC6W/TtRiEDk8WZNDnjIO6a6B/rNffxrKofwxMATuU1R+y2jtWpyfpGkBo/hd4hfovSuHoR4x0C2x+fRE+j5pYVlOuc5lY8bDHASeG511Yq2EuTVi6N6asqli6cXQgDngudv6Q8vlOoOcSSV9XOzM3AbhEqvKgbDf31xjWHy5/osFyu95UD6K0pGOpXI7Ztce4NzlYekkW8201gDF7s6yyPAGBul0P7/yHRG1/0pcwdiH9Dw0QI8WiKkVd8ThcZJWgCkwkPk7oxuObF/ZVidbHm7slL4zuFyyldkF8u1tKLcqjOdbtZIeQ/ViCfCR++3WVRs+XrwPQ4uHoaB6PzF2wZz+LEHwMUpNO3axA42J7ahp/YBOs87/cC8zx9QOwscBnT9M8tULClPYcVFmaiH+ovlcykZlBhBbSrODKCy29Pr4WCJj2FggLKxJlAM1pq2t1Ch3oyi2cHyBLcNRMH6P3KtYsmCUDgOoyF+MJhHLZ4ALR/ndnufJc9tRZHrPQy262OVoSoNlurSxs+GTFLIXtYlbPpjpdGMutjAmPrGNFkC0Rpdwwx3lcmsdaep3dh+dM/n+wCAsEJFBke6G+UghoLY1zwzrVcrx8RHywEXQZ/8Y=
   - secure: vufPWMbzHRtDoSSPBbMZrv18tVd/aVxlqTjMbnxcAmKTJ3O1hX1Q1HMDeqZ4uQ2SqdzG2GkSLoXvDTe1vcnQlx4Dcrk+wMR16Ia2G0dFeGMhUOLOfMBwtqcTrEfq/2DqWh7Fkb+lMikgYbcvP3eBEWaaa2UF5iZ0nXBkW/4cgvU7wwAzKEfeyhY6S9C4aeqO9MReO1Bi6nc2YhrGzNrPoOO+31Izo5esqtvMkWCoL5PVOuTax3lqHpK8kSPJyq7dFIaWfUrKELlE0R/coZ8CKHX/PyjPAZEqauqvySZq7Q9frgozjcM/EOsIrQNuJAd8Ls0oq+kV0IxpTgffH0vmaoEZDAhBAUsp84ZAfLZ0ZDcpk47phAcOCh3JwHOGtI+hODG/u84vq4O2baPbct9I59igaVuzCeHmoHUEHA7EwbAf1aWlp6Fq/3RP//cejP+dFONbBgEkvPsvFlkAbg12VGAdfMSbLsOsEXsLJE99jDk3n1LbJMMwkjU2mspwVEmgq7NyvnU3afam+l1ad+3/SCh5abE030xoUYNb8UbGZyO2jEu04KV7PubfNkf29/18DZZ9wnOl4+cR0wimRrF/C6raiyVak8AGxaNNNPudRQViYVyBALPpLxtfvqhaPh/rOER1V3cA3gcGNU0Ox2vqIlM69INEIER+ib+XIfFLDzg=
+  - secure: WuI3zbOHtmEDwRtYKX4HJz+TatovQAVwbwqTgDWMinhYKTIGlrBSj65p9mzaeizWJpiipbi1Qm6nlL6hdyXHsbr0W7y8JPTj24oN1Qt7RmvnGekzunEZI2b3bIIecsIGkAHUAGT/Bq5guSAdhYttaaYn6YmXNzW0JwbYPR82wUGdfD+RXWgLSY5PoXTcktt1kmw2Fdp1L5KFa0MyqcI4SZGZv3P866kGoDJZA7j/D5Q6r1wNg7p+O0mXPlqIBaU5ZCxyToB+tHLJICCQpnbLGib6YiceNryLFfC+6XoStlzTTBocEtiooiab2njFj0laN8gQrb6zWdUxb4WIiHXEa2hd1gG8eKGSH+BgYOX0f8BIlC247olv3m8rs5wu72EHX0/Qv84fJ8DFamLQRbEgJDMaGVnhsyTHOWu4FQyVSs2AW9NodHc8QpgFpTnQw/89nKhls2HAcB/7fsMZMLpkLndvPt/17uK1aLDje9Ih7YmULtCo5gE8dlDhdTOu24DHqTdBo98Ezv4IqwwSr1Kbv51oIZ2NyAe8+N9RrMYFvgNcfaX9BGv/ATg49v21SJNJQzBPEf/Bw6lIan3wusZIYQgX7KOxGK3xASrzj9yGFUU+mMxCuVPcTO9mirXNF4x9Yjx2+Sep/kTUCrV3wz1ckz3OaX9XKGOlEShXJJZDsdg=

@@ -65,12 +65,13 @@ class CommandsTestCase(SubmitMixin, TestCase):
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), 2)
+        self.assertEqual(len(qs), self.n_to_submit)
 
         # assert called mock objects
         self.assertTrue(self.mock_root.called)
         self.assertTrue(self.my_root.get_team_by_name.called)
         self.assertTrue(self.my_team.create_submission.called)
         self.assertFalse(self.my_root.get_submission_by_name.called)
-        self.assertEqual(self.new_submission.create_sample.call_count, 2)
+        self.assertEqual(
+            self.new_submission.create_sample.call_count, self.n_to_submit)
         self.assertFalse(self.new_submission.propertymock.called)
