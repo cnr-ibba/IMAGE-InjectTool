@@ -460,8 +460,8 @@ class ValidateTask(MyTask):
         on validation_summary view
         Args:
             submission_obj: submission ref which has gone through validation
-            submission_statuses_animals: Counter with statuses and counts
-            submission_statuses_samples: Counter with statuses and counts
+            submission_statuses_animals: Counter with statuses for animals
+            submission_statuses_samples: Counter with statuses for samples
         """
         for model_type in ['animal', 'sample']:
             try:
