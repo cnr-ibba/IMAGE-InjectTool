@@ -16,6 +16,8 @@ import asyncio
 from collections import Counter
 from celery.utils.log import get_task_logger
 
+from django.conf import settings
+from django.core.mail import send_mass_mail
 from django.core.exceptions import ObjectDoesNotExist
 
 from common.constants import (
@@ -23,10 +25,11 @@ from common.constants import (
 from common.helpers import send_message_to_websocket, \
     construct_validation_message
 from image.celery import app as celery_app, MyTask
+from image_app.helpers import get_admin_emails
 from image_app.models import Submission, Sample, Animal, ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel
-from .helpers import MetaDataValidation, OntologyCacheError
+from .helpers import MetaDataValidation, OntologyCacheError, RulesetError
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -53,38 +56,91 @@ class ValidateTask(MyTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
+    def send_message(self, status, submission_obj):
+        """
+        Update submission.status and submission message using django
+        channels
+
+        Args:
+            status (int): a :py:class:`common.constants.STATUSES` object
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+        """
+
+        asyncio.get_event_loop().run_until_complete(
+            send_message_to_websocket(
+                {
+                    'message': STATUSES.get_value_display(status),
+                    'notification_message': submission_obj.message,
+                    'validation_message': construct_validation_message(
+                            submission_obj)
+                },
+                submission_obj.pk
+            )
+        )
+
+    def __generic_error_report(
+            self, submission_obj, status, message, notify_admins=False):
+        """
+        Generic report for updating submission objects and send email after
+        an exception is called
+
+        Args:
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+            status (int): a :py:class:`common.constants.STATUSES` object
+            message (str): a text object
+            notify_admins (bool): send mail to the admins or not
+        """
+
+        # mark submission with its status
+        submission_obj.status = status
+        submission_obj.message = message
+        submission_obj.save()
+
+        self.send_message(status, submission_obj)
+
+        # get exception info
+        einfo = traceback.format_exc()
+
+        # send a mail to the user with the stacktrace (einfo)
+        email_subject = "Error in IMAGE Validation: %s" % (message)
+        email_message = (
+            "Something goes wrong with validation. Please report "
+            "this to InjectTool team\n\n %s" % str(einfo))
+
+        submission_obj.owner.email_user(
+            email_subject,
+            email_message,
+        )
+
+        if notify_admins:
+            # submit mail to admins
+            datatuple = (
+                email_subject,
+                email_message,
+                settings.DEFAULT_FROM_EMAIL,
+                get_admin_emails())
+
+            send_mass_mail((datatuple, ))
+
     # Ovverride default on failure method
     # This is not a failed validation for a wrong value, this is an
     # error in task that mean an error in coding
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
+        # define message
+        message = "Unknown error in validation - %s" % str(exc)
+
         # get submissio object
         submission_obj = Submission.objects.get(pk=args[0])
 
-        # mark submission with ERROR
-        submission_obj.status = ERROR
-        submission_obj.message = ("Error in IMAGE Validation: %s" % (str(exc)))
-        submission_obj.save()
+        # call generic report which update submission and send email
+        self.__generic_error_report(
+            submission_obj, ERROR, message, notify_admins=True)
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(ERROR),
-                    'notification_message': submission_obj.message
-                },
-                args[0]
-            )
-        )
-
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in IMAGE Validation: %s" % (args[0]),
-            ("Something goes wrong with validation. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
-
-        # TODO: submit mail to admin
+        # returns None: this task will have the ERROR status
 
     # TODO: define a method to inform user for error in validation (Task run
     # with success but errors in data)
@@ -108,31 +164,35 @@ class ValidateTask(MyTask):
         message = "Errors in EBI API endpoints. Please try again later"
         logger.error(message)
 
-        # Set a message and revert status to LOADED
-        submission_obj.status = LOADED
-        submission_obj.message = (message)
-        submission_obj.save()
+        # call generic report which update submission and send email
+        self.__generic_error_report(submission_obj, LOADED, message)
 
-        # send message with channel
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(LOADED),
-                    'notification_message': message
-                },
-                submission_obj.pk
-            )
-        )
+        return "success"
 
-        # get exception info
-        einfo = traceback.format_exc()
+    def ruleset_error_report(self, exc, submission_obj):
+        """
+        Deal with ruleset issue in validation task. Notify the user using
+        email and set status as ERROR, since he can't do anything without
+        admin intervention
 
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in IMAGE Validation: %s" % (message),
-            ("Something goes wrong with validation. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
+        Args:
+            exc (Exception): an py:exc`Exception` object
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+
+        Return
+            str: "success" since this task is correctly managed
+        """
+
+        logger.error("Error ruleset: %s" % exc)
+
+        message = (
+            "Error in IMAGE-metadata ruleset. Please inform InjectTool team")
+        logger.error(message)
+
+        # call generic report which update submission and send email
+        self.__generic_error_report(
+            submission_obj, ERROR, message, notify_admins=True)
 
         return "success"
 
@@ -143,7 +203,7 @@ class ValidateTask(MyTask):
 
         # collect all unique messages for samples and animals
         self.messages_samples = dict()
-        self.messages_animals =dict()
+        self.messages_animals = dict()
 
         # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
@@ -155,6 +215,9 @@ class ValidateTask(MyTask):
 
         except OntologyCacheError as exc:
             return self.temporary_error_report(exc, submission_obj)
+
+        except RulesetError as exc:
+            return self.ruleset_error_report(exc, submission_obj)
 
         # track global statuses for animals and samples
         submission_statuses_animals = Counter(
@@ -171,11 +234,11 @@ class ValidateTask(MyTask):
 
         try:
             for animal in Animal.objects.filter(
-                    name__submission=submission_obj):
+                    name__submission=submission_obj).order_by('id'):
                 self.validate_model(animal, submission_statuses_animals)
 
             for sample in Sample.objects.filter(
-                    name__submission=submission_obj):
+                    name__submission=submission_obj).order_by('id'):
                 self.validate_model(sample, submission_statuses_samples)
 
         # TODO: errors in validation should raise custom exception
@@ -220,9 +283,11 @@ class ValidateTask(MyTask):
             logger.warning(
                 "Wrong JSON structure for submission %s" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
@@ -241,9 +306,11 @@ class ValidateTask(MyTask):
             logger.warning(
                 "Error in metadata for submission %s" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         # WOW: I can submit those data
         elif self.has_warnings_in_rules(submission_statuses_animals) or \
@@ -255,25 +322,17 @@ class ValidateTask(MyTask):
                                            submission_statuses_animals,
                                            submission_statuses_samples)
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(READY),
-                        'notification_message': submission_obj.message,
-                        'validation_message': construct_validation_message(
-                            submission_obj)
-                    },
-                    submission_id
-                )
-            )
-
+            # send message with channel
+            self.send_message(READY, submission_obj)
 
             logger.info(
                 "Submission %s validated with some warning" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         else:
             submission_obj.status = READY
@@ -283,25 +342,17 @@ class ValidateTask(MyTask):
                                            submission_statuses_animals,
                                            submission_statuses_samples)
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(READY),
-                        'notification_message': submission_obj.message,
-                        'validation_message': construct_validation_message(
-                            submission_obj)
-                    },
-                    submission_id
-                )
-            )
-
+            # send message with channel
+            self.send_message(READY, submission_obj)
 
             logger.info(
                 "Submission %s validated with success" % (submission_obj))
 
-            logger.debug("Results for submission %s: animals - %s, samples - %s"
-                         % (submission_id, submission_statuses_animals,
-                            submission_statuses_samples))
+            logger.debug(
+                "Results for submission %s: animals - %s, samples - %s" % (
+                    submission_id, submission_statuses_animals,
+                    submission_statuses_samples)
+            )
 
         logger.info("Validate Submission completed")
 
@@ -440,17 +491,7 @@ class ValidateTask(MyTask):
         submission_obj.status = status
         submission_obj.message = ("Validation got errors: %s" % (message))
         submission_obj.save()
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(status),
-                    'notification_message': submission_obj.message,
-                    'validation_message': construct_validation_message(
-                        submission_obj)
-                },
-                submission_obj.id
-            )
-        )
+        self.send_message(status, submission_obj)
 
     def create_validation_summary(self, submission_obj,
                                   submission_statuses_animals,
@@ -483,7 +524,8 @@ class ValidateTask(MyTask):
             validation_summary.pass_count = submission_statuses.get('Pass', 0)
             validation_summary.warning_count = submission_statuses.get(
                 'Warning', 0)
-            validation_summary.error_count = submission_statuses.get('Error', 0)
+            validation_summary.error_count = submission_statuses.get(
+                'Error', 0)
             validation_summary.json_count = submission_statuses.get('JSON', 0)
             validation_messages = list()
             for message, count in messages.items():

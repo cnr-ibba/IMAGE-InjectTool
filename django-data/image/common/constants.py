@@ -11,6 +11,9 @@ from enum import Enum
 # a constant for this module
 OBO_URL = "http://purl.obolibrary.org/obo"
 
+# the biosample base url (set to definitive url)
+BIOSAMPLE_URL = "https://wwwdev.ebi.ac.uk/biosamples/samples"
+
 
 class EnumMixin():
     """Common methods for my Enum classes"""

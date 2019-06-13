@@ -5,11 +5,12 @@ channels_redis
 uwsgi
 mysqlclient
 psycopg2-binary
-Django==1.11.20
+Django==1.11.21
 ipython
 django-debug-toolbar==1.11
 python-decouple
 coverage
+coveralls
 pytest-django
 pytest-asyncio
 django-widget-tweaks

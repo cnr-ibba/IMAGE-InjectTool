@@ -9,6 +9,8 @@ Created on Thu Mar 28 17:16:13 2019
 from django import template
 from django.utils.safestring import mark_safe
 
+from common.constants import BIOSAMPLE_URL
+
 register = template.Library()
 
 
@@ -20,8 +22,8 @@ def get_biosample_link(biosample_id):
         return None
 
     link = (
-        """<a href="https://wwwdev.ebi.ac.uk/biosamples/samples/"""
-        """{0}" target="_blank">{0}""".format(biosample_id))
+        """<a href="{0}/{1}" target="_blank">{1}""".format(
+                BIOSAMPLE_URL, biosample_id))
 
     # Explicitly mark a string as safe for (HTML) output purposes
     return mark_safe(link)

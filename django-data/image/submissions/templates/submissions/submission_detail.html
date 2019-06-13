@@ -200,7 +200,25 @@
   }
 
   var submissionId = {{ submission.pk }};
-  var chatSocket = new WebSocket('ws://' + window.location.host + '/image/ws/submissions/' + submissionId + '/');
+
+  // try to choose the correct protocol, in order to solve the Mixed Content
+  // error when accessing WebSocket server hosted in a different port
+  // https://stackoverflow.com/a/10418013/4385116
+  var loc = window.location, new_uri;
+
+  // check where request come from (which protocol)
+  if (loc.protocol === 'https:') {
+     new_uri = 'wss:';
+  } else {
+     new_uri = 'ws:';
+  }
+
+  // append other elements to the constructed uri
+  new_uri += '//' + loc.host + '/image/ws/submissions/' + submissionId + '/';
+  console.log(new_uri);
+
+  // open the connection through WebSocket
+  var chatSocket = new WebSocket(new_uri);
 
   chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);

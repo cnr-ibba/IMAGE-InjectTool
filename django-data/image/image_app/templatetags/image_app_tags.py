@@ -9,7 +9,8 @@ Created on Fri May 11 14:52:46 2018
 import subprocess
 
 from django import template
-from django.conf import settings
+
+from ..helpers import get_admin_emails
 
 register = template.Library()
 
@@ -45,11 +46,7 @@ def absolute_url(context, name):
 def get_admin_email():
     """Return admin email from image.settings"""
 
-    ADMINS = settings.ADMINS
-
-    # return  the first email address
-    if len(ADMINS) > 0:
-        return ADMINS[0][1]
+    return get_admin_emails()[0]
 
 
 # form fields
