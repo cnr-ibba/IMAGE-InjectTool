@@ -23,9 +23,9 @@ from common.constants import (
 from common.helpers import get_deleted_objects
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission, Name, ValidationSummary
+from image_app.models import Submission, Name
 from crbanim.tasks import ImportCRBAnimTask
-from validation.helpers import ValidationSummary as VS
+from validation.helpers import construct_validation_message
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -141,7 +141,7 @@ class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
         context = super(DetailSubmissionView, self).get_context_data(**kwargs)
 
         # add submission report to context
-        validation_summary = VS(self.submission)
+        validation_summary = construct_validation_message(self.submission)
 
         # HINT: is this computational intensive?
         context["validation_summary"] = validation_summary

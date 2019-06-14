@@ -17,13 +17,13 @@ from collections import defaultdict, namedtuple
 from django.utils.dateparse import parse_date
 
 from common.constants import LOADED, ERROR, MISSING, STATUSES
-from common.helpers import image_timedelta, send_message_to_websocket, \
-    construct_validation_message
+from common.helpers import image_timedelta, send_message_to_websocket
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
 from language.helpers import check_species_synonyms
-from validation.helpers import ValidationSummary
+from validation.helpers import construct_validation_message, \
+    create_validation_summary_object
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -382,6 +382,7 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
 
         if created:
             logger.debug("Created animal %s" % animal)
+            create_validation_summary_object(submission, 'animal', 1)
 
         else:
             logger.debug("Updating animal %s" % animal)
@@ -467,6 +468,7 @@ def fill_uid_sample(record, sample_name, animal, submission):
 
     if created:
         logger.debug("Created sample %s" % sample)
+        create_validation_summary_object(submission, 'sample', 1)
 
     else:
         logger.debug("Updating sample %s" % sample)

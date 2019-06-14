@@ -57,24 +57,24 @@
     <tr class="table-primary">
       <th scope="row">N. of Animals</th>
       <td id="validation_message_animals">
-        {{ validation_summary.n_animals }}
-        {% if validation_summary.n_animal_issues %}
-        ({{ validation_summary.n_animal_issues }} with issues in <a href="validation_summary/animals/" target="_blank">validation</a>)
+        {{ validation_summary.animals }}
+        {% if validation_summary.animal_issues %}
+        ({{ validation_summary.animal_issues }} with issues in <a href="validation_summary/animals/" target="_blank">validation</a>)
         {% endif %}
-        {% if validation_summary.n_animal_unknown %}
-        ({{ validation_summary.n_animal_unknown }} with unknown validation)
+        {% if validation_summary.animal_unkn %}
+        ({{ validation_summary.animal_unkn }} with unknown validation)
         {% endif %}
       </td>
     </tr>
     <tr class="table-secondary">
       <th scope="row">N. of Samples</th>
       <td id="validation_message_samples">
-        {{ validation_summary.n_samples }}
-        {% if validation_summary.n_sample_issues %}
-        ({{ validation_summary.n_sample_issues }} with issues in <a href="validation_summary/samples/" target="_blank">validation</a>)
+        {{ validation_summary.samples }}
+        {% if validation_summary.sample_issues %}
+        ({{ validation_summary.sample_issues }} with issues in <a href="validation_summary/samples/" target="_blank">validation</a>)
         {% endif %}
-        {% if validation_summary.n_sample_unknown %}
-        ({{ validation_summary.n_sample_unknown }} with unknown validation)
+        {% if validation_summary.sample_unkn %}
+        ({{ validation_summary.sample_unkn }} with unknown validation)
         {% endif %}
       </td>
     </tr>

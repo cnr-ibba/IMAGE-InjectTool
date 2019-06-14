@@ -20,6 +20,7 @@ from image_validation.static_parameters import ruleset_filename as \
 from common.constants import BIOSAMPLE_URL
 from image_app.models import Name
 from biosample.helpers import parse_image_alias, get_model_object
+from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -207,47 +208,55 @@ class MetaDataValidation():
         return result
 
 
-class ValidationSummary:
-    """A class to deal with error messages and submission"""
+def construct_validation_message(submission):
+    """
+    Function will return dict with all the data required to construct
+    validation message
 
-    def __init__(self, submission_obj):
-        """Istantiate a report object from Submission"""
+    Args:
+        submission (image_app.models.Submission) : submission to get data from
 
-        # get all names belonging to this submission
-        self.names = Name.objects.select_related(
-                "validationresult",
-                "animal",
-                "sample").filter(
-                    submission=submission_obj)
+    Returns:
+        dict: dictionary with all required data for validation message
+    """
+    try:
+        validation_summary_animal = ValidationSummary.objects.get(
+            submission=submission, type='animal')
+        validation_summary_sample = ValidationSummary.objects.get(
+            submission=submission, type='sample')
+        validation_message = dict()
 
-        # here I will have 5 queries, each one executed when calling count
-        # or when iterating queryset
+        # Number of animal and samples
+        validation_message[
+            'animals'] = validation_summary_animal.get_all_count()
+        validation_message[
+            'samples'] = validation_summary_sample.get_all_count()
 
-        # count animal and samples
-        self.n_animals = self.names.filter(animal__isnull=False).count()
-        self.n_samples = self.names.filter(sample__isnull=False).count()
+        # Number of unknow validations
+        validation_message['animal_unkn'] = validation_summary_animal \
+            .get_unknown_count()
+        validation_message['sample_unkn'] = validation_summary_sample \
+            .get_unknown_count()
 
-        logger.debug("Got %s animal and %s samples in total" % (
-            self.n_animals, self.n_samples))
+        # Number of problem validations
+        validation_message['animal_issues'] = validation_summary_animal. \
+            get_issues_count()
+        validation_message['sample_issues'] = validation_summary_sample. \
+            get_issues_count()
+        return validation_message
+    except ObjectDoesNotExist:
+        return None
 
-        # count animal and samples with unknown validation
-        self.n_animal_unknown = self.names.filter(
-            animal__isnull=False, validationresult__isnull=True).count()
-        self.n_sample_unknown = self.names.filter(
-            sample__isnull=False, validationresult__isnull=True).count()
 
-        logger.debug("Got %s animal and %s samples with unknown validation" % (
-            self.n_animal_unknown, self.n_sample_unknown))
-
-        # filter names which have errors
-        self.errors = self.names.exclude(
-            Q(validationresult__status="Pass") |
-            Q(validationresult__isnull=True)
-        )
-
-        # count animal and samples with issues
-        self.n_animal_issues = self.errors.filter(animal__isnull=False).count()
-        self.n_sample_issues = self.errors.filter(sample__isnull=False).count()
-
-        logger.debug("Got %s animal and %s samples with issues" % (
-            self.n_animal_issues, self.n_sample_issues))
+def create_validation_summary_object(submission, object_type, count):
+    """
+    This function will add 1 to all_count property of validation summary
+    Args:
+        submission (image_app.models.Submission): submission object
+        object_type (str): animal or sample
+        count (int): now much animals or samples were in submission
+    """
+    validation_summary, created = ValidationSummary.objects.get_or_create(
+        submission=submission, type=object_type)
+    validation_summary.all_count += count
+    validation_summary.save()

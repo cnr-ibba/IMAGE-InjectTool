@@ -22,11 +22,12 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES)
-from common.helpers import send_message_to_websocket, \
-    construct_validation_message
+from common.helpers import send_message_to_websocket
+from validation.helpers import construct_validation_message
 from image.celery import app as celery_app, MyTask
 from image_app.helpers import get_admin_emails
-from image_app.models import Submission, Sample, Animal, ValidationSummary
+from image_app.models import Submission, Sample, Animal
+from validation.models import ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel
 from .helpers import MetaDataValidation, OntologyCacheError, RulesetError
