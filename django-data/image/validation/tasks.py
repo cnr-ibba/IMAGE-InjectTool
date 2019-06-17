@@ -275,10 +275,10 @@ class ValidateTask(MyTask):
         if self.has_errors_in_json(submission_statuses_animals) or \
                 self.has_errors_in_json(submission_statuses_samples):
             # mark submission with NEED_REVISION
-            self.submission_fail(submission_obj, "Wrong JSON structure")
             self.create_validation_summary(submission_obj,
                                            submission_statuses_animals,
                                            submission_statuses_samples)
+            self.submission_fail(submission_obj, "Wrong JSON structure")
 
             # debug
             logger.warning(
@@ -299,10 +299,10 @@ class ValidateTask(MyTask):
                 "Error in metadata. Need revisions before submit")
 
             # mark submission with NEED_REVISION
-            self.submission_fail(submission_obj, message)
             self.create_validation_summary(submission_obj,
                                            submission_statuses_animals,
                                            submission_statuses_samples)
+            self.submission_fail(submission_obj, message)
 
             logger.warning(
                 "Error in metadata for submission %s" % (submission_obj))
