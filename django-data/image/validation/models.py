@@ -36,6 +36,8 @@ class ValidationSummary(models.Model):
                                    on_delete=models.CASCADE)
 
     all_count = models.PositiveIntegerField(default=0)
+    validation_known_count = models.PositiveIntegerField(default=0)
+    issues_count = models.PositiveIntegerField(default=0)
     pass_count = models.PositiveIntegerField(default=0)
     warning_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)
@@ -52,9 +54,8 @@ class ValidationSummary(models.Model):
 
     # Returns number of samples or animals with unknown validation
     def get_unknown_count(self):
-        return self.all_count - (self.pass_count + self.warning_count +
-                                 self.error_count + self.json_count)
+        return self.all_count - self.validation_known_count
 
     # Returns number of samples or animals with issues in validation
     def get_issues_count(self):
-        return self.error_count + self.json_count
+        return self.issues_count

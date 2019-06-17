@@ -18,9 +18,9 @@ from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
 from ..helpers import (
-    MetaDataValidation, ValidationSummary, OntologyCacheError, RulesetError)
+    MetaDataValidation, OntologyCacheError, RulesetError)
 
-from ..models import ValidationResult
+from ..models import ValidationResult, ValidationSummary
 
 
 class MetaDataValidationTestCase(TestCase):
@@ -403,12 +403,16 @@ class ValidationSummaryTestCase(TestCase):
         'image_app/submission',
         'image_app/user',
         'image_app/sample',
-        'validation/validationresult'
+        'validation/validationresult',
+        'validation/validationsummary'
     ]
 
     def setUp(self):
         self.submission = Submission.objects.get(pk=1)
-        self.validationsummary = ValidationSummary(self.submission)
+        self.validationsummary_animal = ValidationSummary.objects.get(
+            submission=self.submission, type="animal")
+        self.validationsummary_sample = ValidationSummary.objects.get(
+            submission=self.submission, type="sample")
 
         # set names
         self.animal_name = Name.objects.get(pk=3)
@@ -420,8 +424,8 @@ class ValidationSummaryTestCase(TestCase):
     def test_initialization(self):
         """Test that ValidationSummary is correctly initialized"""
 
-        self.assertEqual(self.validationsummary.n_animal_issues, 0)
-        self.assertEqual(self.validationsummary.n_sample_issues, 0)
+        self.assertEqual(self.validationsummary_animal.all_count, 3)
+        self.assertEqual(self.validationsummary_animal.issues_count, 0)
 
-        self.assertEqual(self.validationsummary.n_animal_unknown, 2)
-        self.assertEqual(self.validationsummary.n_sample_unknown, 1)
+        self.assertEqual(self.validationsummary_sample.all_count, 1)
+        self.assertEqual(self.validationsummary_sample.issues_count, 0)

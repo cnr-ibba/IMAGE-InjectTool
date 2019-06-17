@@ -57,7 +57,8 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         'image_app/sample',
         'image_app/submission',
         'image_app/user',
-        "validation/validationresult"
+        "validation/validationresult",
+        'validation/validationsummary'
     ]
 
     def setUp(self):
@@ -104,11 +105,6 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
             'validation.tasks.send_message_to_websocket')
         self.send_msg_ws = self.send_msg_ws_patcher.start()
 
-        # mocking validation summary
-        self.create_vsummary_patcher = patch(
-            'validation.tasks.ValidateTask.create_validation_summary')
-        self.create_vsummary = self.create_vsummary_patcher.start()
-
     def check_async_called(
             self, message, notification_message, validation_message=None,
             pk=1):
@@ -152,7 +148,6 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         # stopping mock objects
         self.asyncio_mock_patcher.stop()
         self.send_msg_ws_patcher.stop()
-        self.create_vsummary_patcher.stop()
 
         # calling base methods
         super().tearDown()
@@ -191,9 +186,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
             "Error in IMAGE Validation: Unknown error in validation - Test",
             email.subject)
 
-        # asserting create validationsummary not called
-        self.assertEqual(self.create_vsummary.call_count, 0)
-
         self.check_async_called(
             'Error',
             'Unknown error in validation - Test')
@@ -224,9 +216,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_check.called)
         self.assertTrue(my_ruleset.called)
         self.assertTrue(my_read.called)
-
-        # asserting create validationsummary not called
-        self.assertEqual(self.create_vsummary.call_count, 0)
 
         # asserting django channels not called
         self.check_async_not_called()
@@ -282,9 +271,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_ruleset.called)
         self.assertTrue(my_read.called)
 
-        # asserting create validationsummary not called
-        self.assertEqual(self.create_vsummary.call_count, 0)
-
         self.check_async_called(
             'Loaded',
             'Errors in EBI API endpoints. Please try again later'
@@ -329,9 +315,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_validate.called)
         self.assertFalse(my_retry.called)
 
-        # asserting create validationsummary not called
-        self.assertEqual(self.create_vsummary.call_count, 0)
-
         self.check_async_called(
             'Loaded',
             'Errors in EBI API endpoints. Please try again later')
@@ -374,9 +357,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
 
         self.assertTrue(my_validate.called)
         self.assertFalse(my_retry.called)
-
-        # asserting create validationsummary not called
-        self.assertEqual(self.create_vsummary.call_count, 0)
 
         self.check_async_called(
             'Error',
@@ -432,15 +412,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_ruleset.called)
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
-
-        # asserting create validationsummary called
-        self.assertEqual(self.create_vsummary.call_count, 1)
-        self.create_vsummary.assert_called_with(
-            self.submission,
-            Counter({'Pass': self.n_animals,
-                     'Warning': 0, 'Error': 0, 'JSON': 0}),
-            Counter({'Pass': self.n_samples,
-                     'Warning': 0, 'Error': 0, 'JSON': 0}))
 
         # no unknown and sample with issues
         validation_message = {
@@ -508,17 +479,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertFalse(my_validate.called)
         self.assertTrue(my_read.called)
 
-        # asserting create validationsummary called
-        self.assertEqual(self.create_vsummary.call_count, 1)
-
-        # all sample and animals are supposed to have two issues in JSON
-        self.create_vsummary.assert_called_with(
-            self.submission,
-            Counter({'JSON': self.n_animals*2,
-                     'Pass': 0, 'Warning': 0, 'Error': 0}),
-            Counter({'JSON': self.n_samples*2,
-                     'Pass': 0, 'Warning': 0, 'Error': 0}))
-
         # all sample and animals have issues
         self.check_async_called(
             'Need Revision',
@@ -575,18 +535,15 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
 
-        # asserting create validationsummary not called
-        self.assertEqual(self.create_vsummary.call_count, 0)
-
         self.check_async_called(
             message='Error',
             notification_message=(
                 "Validation got errors: Error in statuses "
                 "for submission Cryoweb (United Kingdom, "
                 "test): animals - ['A fake status', "
-                "'Error', 'JSON', 'Pass', 'Warning'], "
+                "'Error', 'Issues', 'JSON', 'Known', 'Pass', 'Warning'], "
                 "samples - ['A fake status', 'Error', "
-                "'JSON', 'Pass', 'Warning']"),
+                "'Issues', 'JSON', 'Known', 'Pass', 'Warning']"),
             validation_message={
                 'animals': self.n_animals, 'samples': self.n_samples,
                 'animal_unkn': 0, 'sample_unkn': 0,
@@ -683,15 +640,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_ruleset.called)
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
-
-        # asserting create validationsummary called
-        self.assertEqual(self.create_vsummary.call_count, 1)
-        self.create_vsummary.assert_called_with(
-            self.submission,
-            Counter({'Warning': 1, 'Pass': self.n_animals-1,
-                     'Error': 0, 'JSON': 0}),
-            Counter({'Pass': self.n_samples, 'Warning': 0,
-                     'Error': 0, 'JSON': 0}))
 
         self.check_async_called(
             message='Ready',
@@ -795,15 +743,6 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_ruleset.called)
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
-
-        # asserting create validationsummary called
-        self.assertEqual(self.create_vsummary.call_count, 1)
-        self.create_vsummary.assert_called_with(
-            self.submission,
-            Counter({'Warning': 1, 'Pass': self.n_animals-1,
-                     'Error': 0, 'JSON': 0}),
-            Counter({'Error': 1, 'Pass': self.n_samples-1,
-                     'Warning': 0, 'JSON': 0}))
 
         self.check_async_called(
             message='Need Revision',

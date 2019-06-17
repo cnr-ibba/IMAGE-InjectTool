@@ -21,7 +21,7 @@ from django.core.mail import send_mass_mail
 from django.core.exceptions import ObjectDoesNotExist
 
 from common.constants import (
-    READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES)
+    READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
 from common.helpers import send_message_to_websocket
 from validation.helpers import construct_validation_message
 from image.celery import app as celery_app, MyTask
@@ -225,13 +225,17 @@ class ValidateTask(MyTask):
             {'Pass': 0,
              'Warning': 0,
              'Error': 0,
-             'JSON': 0})
+             'JSON': 0,
+             'Issues': 0,
+             'Known': 0})
 
         submission_statuses_samples = Counter(
             {'Pass': 0,
              'Warning': 0,
              'Error': 0,
-             'JSON': 0})
+             'JSON': 0,
+             'Issues': 0,
+             'Known': 0})
 
         try:
             for animal in Animal.objects.filter(
@@ -255,8 +259,9 @@ class ValidateTask(MyTask):
 
         # if error messages changes in IMAGE-ValidationTool, all this
         # stuff isn't valid and I throw an exception
-        if statuses_animals != ['Error', 'JSON', 'Pass', 'Warning'] or \
-                statuses_samples != ['Error', 'JSON', 'Pass', 'Warning']:
+
+        if statuses_animals != KNOWN_STATUSES or statuses_samples != \
+                KNOWN_STATUSES:
             message = "Error in statuses for submission %s: animals - %s, " \
                       "samples - %s" % (submission_obj, statuses_animals,
                                         statuses_samples)
@@ -266,6 +271,9 @@ class ValidateTask(MyTask):
 
             # mark submission with ERROR (this is not related to user data)
             # calling the appropriate method passing ERROR as status
+            self.create_validation_summary(submission_obj,
+                                           submission_statuses_animals,
+                                           submission_statuses_samples)
             self.submission_fail(submission_obj, message, status=ERROR)
 
             # raise an exception since is an InjectTool issue
@@ -373,6 +381,8 @@ class ValidateTask(MyTask):
         if len(usi_result) > 0:
             # update counter for JSON
             submission_statuses.update({'JSON': len(usi_result)})
+            submission_statuses['Issues'] += 1
+            submission_statuses['Known'] += 1
 
             # update model results
             self.mark_model(model, usi_result, NEED_REVISION)
@@ -397,12 +407,15 @@ class ValidateTask(MyTask):
         # set model as valid even if has some warnings
         if overall in ["Pass", "Warning"]:
             self.mark_model(model, result, READY)
-
+            if overall == 'Warning':
+                submission_statuses['Issues'] += 1
         else:
+            submission_statuses['Issues'] += 1
             self.mark_model(model, result, NEED_REVISION)
 
         # update a collections.Counter objects by key
         submission_statuses.update({overall})
+        submission_statuses['Known'] += 1
 
     def has_errors_in_rules(self, submission_statuses):
         "Return True if there is any errors"""
@@ -507,9 +520,8 @@ class ValidateTask(MyTask):
         """
         for model_type in ['animal', 'sample']:
             try:
-                validation_summary = submission_obj.validationsummary_set.get(
-                    type=model_type
-                )
+                validation_summary = ValidationSummary.objects.get(
+                    submission=submission_obj, type=model_type)
             except ObjectDoesNotExist:
                 validation_summary = ValidationSummary()
             if model_type == 'animal':
@@ -528,6 +540,10 @@ class ValidateTask(MyTask):
             validation_summary.error_count = submission_statuses.get(
                 'Error', 0)
             validation_summary.json_count = submission_statuses.get('JSON', 0)
+            validation_summary.issues_count = submission_statuses.get(
+                'Issues', 0)
+            validation_summary.validation_known_count = submission_statuses.get(
+                'Known', 0)
             validation_messages = list()
             for message, count in messages.items():
                 validation_messages.append({
