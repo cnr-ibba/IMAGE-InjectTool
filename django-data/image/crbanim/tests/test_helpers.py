@@ -447,3 +447,57 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
              'notification_message': 'Error in importing data: Not all Sex '
                                      'terms are loaded into database: check '
                                      'for unknown in your dataset'}, 1)
+
+
+class ReloadCRBAnimTestCase(BaseTestCase, TestCase):
+    """Simulate a crbanim reload case. Load data as in
+    UploadCRBAnimTestCase, then call test which reload the same data"""
+
+    # override useal fixtures
+    fixtures = [
+        'crbanim/auth',
+        'crbanim/dictspecie',
+        'crbanim/image_app',
+        'crbanim/submission',
+        'language/speciesynonym'
+    ]
+
+    @patch('crbanim.helpers.send_message_to_websocket')
+    @patch('asyncio.get_event_loop')
+    def test_upload_crbanim(
+            self, asyncio_mock, send_message_to_websocket_mock):
+        """Testing uploading and importing data from crbanim to UID"""
+
+        tmp = asyncio_mock.return_value
+        tmp.run_until_complete = Mock()
+
+        # assert upload
+        self.assertTrue(upload_crbanim(self.submission))
+
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # assert submission messages
+        self.assertEqual(
+            self.submission.status,
+            LOADED)
+
+        self.assertIn(
+            "CRBAnim import completed for submission",
+            self.submission.message)
+
+        # assert data into database
+        self.assertTrue(db_has_data())
+        self.assertTrue(Animal.objects.exists())
+        self.assertTrue(Sample.objects.exists())
+
+        self.assertEqual(asyncio_mock.call_count, 1)
+        self.assertEqual(tmp.run_until_complete.call_count, 1)
+        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
+        send_message_to_websocket_mock.assert_called_with(
+            {'message': 'Loaded',
+             'notification_message': 'CRBAnim import completed for '
+                                     'submission: 1',
+             'validation_message': {'animals': 1, 'samples': 2,
+                                    'animal_unkn': 1, 'sample_unkn': 2,
+                                    'animal_issues': 0, 'sample_issues': 0}}, 1)
