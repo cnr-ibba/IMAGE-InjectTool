@@ -429,3 +429,19 @@ class ValidationSummaryTestCase(TestCase):
 
         self.assertEqual(self.validationsummary_sample.all_count, 1)
         self.assertEqual(self.validationsummary_sample.issues_count, 0)
+
+    def test_after_data_deletion(self):
+        """Ensure that all count changes after data deletion"""
+
+        # drop one animal and one sample
+        Animal.objects.get(pk=3).delete()
+        Sample.objects.get(pk=1).delete()
+
+        # TODO: call a method which updates animals and samples total count?
+
+        # test for counts
+        self.assertEqual(self.validationsummary_animal.all_count, 2)
+        self.assertEqual(self.validationsummary_animal.issues_count, 0)
+
+        self.assertEqual(self.validationsummary_sample.all_count, 0)
+        self.assertEqual(self.validationsummary_sample.issues_count, 0)
