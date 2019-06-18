@@ -22,6 +22,8 @@ from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
 from language.helpers import check_species_synonyms
+from validation.helpers import construct_validation_message, \
+    create_validation_summary_object
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -380,6 +382,7 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
 
         if created:
             logger.debug("Created animal %s" % animal)
+            create_validation_summary_object(submission, 'animal', 1)
 
         else:
             logger.debug("Updating animal %s" % animal)
@@ -465,6 +468,7 @@ def fill_uid_sample(record, sample_name, animal, submission):
 
     if created:
         logger.debug("Created sample %s" % sample)
+        create_validation_summary_object(submission, 'sample', 1)
 
     else:
         logger.debug("Updating sample %s" % sample)
@@ -568,12 +572,13 @@ def upload_crbanim(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
-
         asyncio.get_event_loop().run_until_complete(
             send_message_to_websocket(
                 {
                     'message': STATUSES.get_value_display(LOADED),
-                    'notification_message': message
+                    'notification_message': message,
+                    'validation_message': construct_validation_message(
+                        submission)
                 },
                 submission.id
             )

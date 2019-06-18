@@ -33,4 +33,7 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/delete/$',
         views.DeleteSubmissionView.as_view(),
         name='delete'),
+    url(r'^(?P<pk>[-\w]+)/validation_summary/(?P<type>[\w]+)/$',
+        views.SubmissionValidationSummaryView.as_view(),
+        name='validation_summary')
 ]

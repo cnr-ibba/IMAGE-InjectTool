@@ -21,7 +21,7 @@ from django.test import TestCase
 
 from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import PersonMixinTestCase
-from image_app.models import Submission, Person, Name, Animal
+from image_app.models import Submission, Person, Name, Animal, Sample
 
 from ..tasks import ValidateTask, ValidationError
 from ..helpers import OntologyCacheError, RulesetError
@@ -57,7 +57,8 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         'image_app/sample',
         'image_app/submission',
         'image_app/user',
-        "validation/validationresult"
+        "validation/validationresult",
+        'validation/validationsummary'
     ]
 
     def setUp(self):
@@ -77,6 +78,16 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         # track names
         self.name_qs = Name.objects.exclude(name__contains="unknown")
 
+        # track animal and samples
+        self.animal_qs = Animal.objects.filter(
+            name__submission=self.submission)
+        self.sample_qs = Sample.objects.filter(
+            name__submission=self.submission)
+
+        # track animal and samples count
+        self.n_animals = self.animal_qs.count()
+        self.n_samples = self.sample_qs.count()
+
         # setting tasks
         self.my_task = ValidateTask()
 
@@ -91,18 +102,40 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
 
         # another patch
         self.send_msg_ws_patcher = patch(
-                'validation.tasks.send_message_to_websocket')
+            'validation.tasks.send_message_to_websocket')
         self.send_msg_ws = self.send_msg_ws_patcher.start()
 
-    def check_async_called(self, message, notification_message, pk=1):
+    def check_async_called(
+            self, message, notification_message, validation_message=None,
+            pk=1):
+
         """Check django channels async messages called"""
+
+        # defining default validation message.
+        if not validation_message:
+            animal_qs = Animal.objects.filter(
+                name__submission=self.submission)
+            sample_qs = Sample.objects.filter(
+                name__submission=self.submission)
+
+            validation_message = {
+                'animals': self.n_animals,
+                'samples': self.n_samples,
+                'animal_unkn': animal_qs.filter(
+                    name__validationresult__isnull=True).count(),
+                'sample_unkn': sample_qs.filter(
+                    name__validationresult__isnull=True).count(),
+                'animal_issues': 0,
+                'sample_issues': 0
+            }
 
         self.assertEqual(self.asyncio_mock.call_count, 1)
         self.assertEqual(self.run_until.run_until_complete.call_count, 1)
         self.assertEqual(self.send_msg_ws.call_count, 1)
         self.send_msg_ws.assert_called_with(
             {'message': message,
-             'notification_message': notification_message}, pk)
+             'notification_message': notification_message,
+             'validation_message': validation_message}, pk)
 
     def check_async_not_called(self):
         """Check django channels async messages not called"""
@@ -112,6 +145,7 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         self.assertEqual(self.send_msg_ws.call_count, 0)
 
     def tearDown(self):
+        # stopping mock objects
         self.asyncio_mock_patcher.stop()
         self.send_msg_ws_patcher.stop()
 
@@ -239,7 +273,8 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
 
         self.check_async_called(
             'Loaded',
-            'Errors in EBI API endpoints. Please try again later')
+            'Errors in EBI API endpoints. Please try again later'
+        )
 
     @patch("validation.helpers.validation.read_in_ruleset",
            side_effect=OntologyCacheError("test exception"))
@@ -342,6 +377,9 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         validation_result = Mock()
         validation_result.get_overall_status.return_value = "Pass"
         validation_result.get_messages.return_value = ["A message"]
+        result_set = Mock()
+        result_set.get_comparable_str.return_value = "A message"
+        validation_result.result_set = [result_set]
         my_validate.return_value = validation_result
 
         # NOTE that I'm calling the function directly, without delay
@@ -375,9 +413,18 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_validate.called)
         self.assertTrue(my_read.called)
 
+        # no unknown and sample with issues
+        validation_message = {
+            'animals': self.n_animals,
+            'samples': self.n_samples,
+            'animal_unkn': 0, 'sample_unkn': 0,
+            'animal_issues': 0, 'sample_issues': 0}
+
         self.check_async_called(
             'Ready',
-            'Submission validated with success')
+            'Submission validated with success',
+            validation_message=validation_message
+        )
 
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.helpers.validation.check_ruleset",
@@ -432,9 +479,15 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertFalse(my_validate.called)
         self.assertTrue(my_read.called)
 
+        # all sample and animals have issues
         self.check_async_called(
             'Need Revision',
-            'Validation got errors: Wrong JSON structure')
+            'Validation got errors: Wrong JSON structure',
+            {'animals': self.n_animals, 'samples': self.n_samples,
+             'animal_unkn': 0, 'sample_unkn': 0,
+             'animal_issues': self.n_animals,
+             'sample_issues': self.n_samples},
+            1)
 
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.helpers.validation.check_ruleset",
@@ -443,6 +496,8 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
     @patch("validation.tasks.MetaDataValidation.validate")
     def test_unsupported_status(
             self, my_validate, my_check, my_ruleset, my_read):
+        """This test will ensure that image_validation ValidationResultRecord
+        still support the same statuses"""
 
         # setting check_usi_structure result
         my_check.return_value = []
@@ -451,6 +506,11 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         rule_result = PickableMock()
         rule_result.get_overall_status.return_value = "A fake status"
         rule_result.get_messages.return_value = ["A fake message", ]
+
+        result_set = Mock()
+        result_set.get_comparable_str.return_value = "A fake message"
+        rule_result.result_set = [result_set]
+
         my_validate.return_value = rule_result
 
         # call task
@@ -476,12 +536,20 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_read.called)
 
         self.check_async_called(
-            'Error',
-            ("Validation got errors: Error in statuses "
-             "for submission Cryoweb "
-             "(United Kingdom, test): ["
-             "'A fake status', 'Error', 'JSON', "
-             "'Pass', 'Warning']"))
+            message='Error',
+            notification_message=(
+                "Validation got errors: Error in statuses "
+                "for submission Cryoweb (United Kingdom, "
+                "test): animals - ['A fake status', "
+                "'Error', 'Issues', 'JSON', 'Known', 'Pass', 'Warning'], "
+                "samples - ['A fake status', 'Error', "
+                "'Issues', 'JSON', 'Known', 'Pass', 'Warning']"),
+            validation_message={
+                'animals': self.n_animals, 'samples': self.n_samples,
+                'animal_unkn': 0, 'sample_unkn': 0,
+                'animal_issues': self.n_animals,
+                'sample_issues': self.n_samples},
+            pk=1)
 
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.helpers.validation.check_ruleset",
@@ -574,8 +642,13 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_read.called)
 
         self.check_async_called(
-            'Ready',
-            'Submission validated with some warnings')
+            message='Ready',
+            notification_message='Submission validated with some warnings',
+            validation_message={
+                'animals': self.n_animals, 'samples': self.n_samples,
+                'animal_unkn': 0, 'sample_unkn': 0,
+                'animal_issues': 1, 'sample_issues': 0},
+            pk=1)
 
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
     @patch("validation.helpers.validation.check_ruleset",
@@ -672,9 +745,15 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(my_read.called)
 
         self.check_async_called(
-            'Need Revision',
-            ('Validation got errors: Error in metadata. '
-             'Need revisions before submit'))
+            message='Need Revision',
+            notification_message=(
+                'Validation got errors: Error in '
+                'metadata. Need revisions before submit'),
+            validation_message={
+                'animals': self.n_animals, 'samples': self.n_samples,
+                'animal_unkn': 0, 'sample_unkn': 0,
+                'animal_issues': 1, 'sample_issues': 1},
+            pk=1)
 
 
 class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
@@ -694,6 +773,9 @@ class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         result = PickableMock()
         result.get_overall_status.return_value = status
         result.get_messages.return_value = messages
+        result_set = Mock()
+        result_set.get_comparable_str.return_value = "A message"
+        result.result_set = [result_set]
 
         submission_statuses = Counter(
             {'Pass': 0,
@@ -770,6 +852,10 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         result = PickableMock()
         result.get_overall_status.return_value = status
         result.get_messages.return_value = messages
+
+        result_set = Mock()
+        result_set.get_comparable_str.return_value = "A message"
+        result.result_set = [result_set]
 
         submission_statuses = Counter(
             {'Pass': 0,

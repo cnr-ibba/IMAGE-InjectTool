@@ -311,7 +311,10 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
         send_message_to_websocket_mock.assert_called_with(
             {'message': 'Loaded',
              'notification_message': 'Cryoweb import completed for '
-                                     'submission: 1'}, 1)
+                                     'submission: 1',
+             'validation_message': {'animals': 3, 'samples': 1,
+                                    'animal_unkn': 3, 'sample_unkn': 1,
+                                    'animal_issues': 0, 'sample_issues': 0}}, 1)
 
     @patch('cryoweb.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')

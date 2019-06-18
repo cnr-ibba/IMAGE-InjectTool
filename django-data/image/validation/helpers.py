@@ -6,14 +6,12 @@ Created on Tue Feb 19 16:15:35 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import re
 import json
 import logging
 import requests
 
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.text import Truncator
 
 from image_validation import validation, ValidationResult
 from image_validation.static_parameters import ruleset_filename as \
@@ -22,6 +20,7 @@ from image_validation.static_parameters import ruleset_filename as \
 from common.constants import BIOSAMPLE_URL
 from image_app.models import Name
 from biosample.helpers import parse_image_alias, get_model_object
+from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -66,7 +65,7 @@ class MetaDataValidation():
             raise OntologyCacheError(
                 "Issue with 'https://www.ebi.ac.uk/ols/api/'")
 
-    def check_usi_structure(self, record):
+    def check_usi_structure(self, record: object) -> object:
         """Check data against USI rules"""
 
         # this function need its input as a list
@@ -209,144 +208,55 @@ class MetaDataValidation():
         return result
 
 
-class ValidationSummary():
-    """A class to deal with error messages and submission"""
+def construct_validation_message(submission):
+    """
+    Function will return dict with all the data required to construct
+    validation message
 
-    def __init__(self, submission_obj):
-        """Istantiate a report object from Submission"""
+    Args:
+        submission (image_app.models.Submission) : submission to get data from
 
-        # get all names belonging to this submission
-        self.names = Name.objects.select_related(
-                "validationresult",
-                "animal",
-                "sample").filter(
-                    submission=submission_obj)
+    Returns:
+        dict: dictionary with all required data for validation message
+    """
+    try:
+        validation_summary_animal = ValidationSummary.objects.get(
+            submission=submission, type='animal')
+        validation_summary_sample = ValidationSummary.objects.get(
+            submission=submission, type='sample')
+        validation_message = dict()
 
-        # here I will have 5 queries, each one executed when calling count
-        # or when iterating queryset
+        # Number of animal and samples
+        validation_message[
+            'animals'] = validation_summary_animal.get_all_count()
+        validation_message[
+            'samples'] = validation_summary_sample.get_all_count()
 
-        # count animal and samples
-        self.n_animals = self.names.filter(animal__isnull=False).count()
-        self.n_samples = self.names.filter(sample__isnull=False).count()
+        # Number of unknow validations
+        validation_message['animal_unkn'] = validation_summary_animal \
+            .get_unknown_count()
+        validation_message['sample_unkn'] = validation_summary_sample \
+            .get_unknown_count()
 
-        logger.debug("Got %s animal and %s samples in total" % (
-            self.n_animals, self.n_samples))
+        # Number of problem validations
+        validation_message['animal_issues'] = validation_summary_animal. \
+            get_issues_count()
+        validation_message['sample_issues'] = validation_summary_sample. \
+            get_issues_count()
+        return validation_message
+    except ObjectDoesNotExist:
+        return None
 
-        # count animal and samples with unknown validation
-        self.n_animal_unknown = self.names.filter(
-            animal__isnull=False, validationresult__isnull=True).count()
-        self.n_sample_unknown = self.names.filter(
-            sample__isnull=False, validationresult__isnull=True).count()
 
-        logger.debug("Got %s animal and %s samples with unknown validation" % (
-            self.n_animal_unknown, self.n_sample_unknown))
-
-        # filter names which have errors
-        self.errors = self.names.exclude(
-            Q(validationresult__status="Pass") |
-            Q(validationresult__isnull=True)
-        )
-
-        # count animal and samples with issues
-        self.n_animal_issues = self.errors.filter(animal__isnull=False).count()
-        self.n_sample_issues = self.errors.filter(sample__isnull=False).count()
-
-        logger.debug("Got %s animal and %s samples with issues" % (
-            self.n_animal_issues, self.n_sample_issues))
-
-        # setting patterns
-        self.pattern1 = re.compile(
-            r"<([^>]*)> of field (.*) \bis \b(.*) for Record")
-
-        self.pattern2 = re.compile(
-            r"(.*) for the field (.*) \which \b(.*) for Record")
-
-        self.pattern3 = re.compile(
-            r"Provided value (.*) (does not match to the provided ontology)")
-
-        # setting report dictionary
-        self.report = {}
-
-    def process_errors(self):
-        """Process errors and gives hints"""
-
-        # resetting report dictionary
-        self.report = {}
-
-        # TODO: track passed objects in report
-        for error in self.errors:
-            if not hasattr(error, 'validationresult'):
-                logger.debug("Ignoring %s" % (error))
-                continue
-
-            for message in error.validationresult.messages:
-                if (self.parse1(message, error.id) or
-                        self.parse2(message, error.id) or
-                        self.parse3(message, error.id)):
-                    logger.debug("Processed message: %s" % (message))
-                else:
-                    logger.error("Cannot parse: '%s'" % message)
-
-                    # assign those values to report
-                    key = ("unmanaged", Truncator(message).words(10))
-                    self.__update_report(key, error.id)
-
-            # block error message
-
-        return self.report
-
-    def parse1(self, message, error_id):
-        match = re.search(self.pattern1, message)
-
-        if match:
-            value, field, reason = match.groups()
-            logger.debug("parse1: Got '{}','{}' and '{}'".format(
-                    value, field, reason))
-
-            key = (field, reason)
-            self.__update_report(key, error_id)
-
-            return True
-
-        else:
-            return False
-
-    def parse2(self, message, error_id):
-        match = re.search(self.pattern2, message)
-
-        if match:
-            reason, field, field_type = match.groups()
-            logger.debug("parse2: Got '{}','{}' and '{}'".format(
-                    reason, field, field_type))
-
-            key = (field, reason)
-            self.__update_report(key, error_id)
-
-            return True
-
-        else:
-            return False
-
-    def parse3(self, message, error_id):
-        match = re.search(self.pattern3, message)
-
-        if match:
-            value, reason = match.groups()
-            logger.debug("parse3: Got '{}' and '{}'".format(
-                    value, reason))
-
-            key = (value, reason)
-            self.__update_report(key, error_id)
-
-            return True
-
-        else:
-            return False
-
-    def __update_report(self, key, error_id):
-        if key in self.report:
-            self.report[key]['count'] += 1
-            self.report[key]['ids'] += [error_id]
-
-        else:
-            self.report[key] = {'count': 1, 'ids': [error_id]}
+def create_validation_summary_object(submission, object_type, count):
+    """
+    This function will add 1 to all_count property of validation summary
+    Args:
+        submission (image_app.models.Submission): submission object
+        object_type (str): animal or sample
+        count (int): now much animals or samples were in submission
+    """
+    validation_summary, created = ValidationSummary.objects.get_or_create(
+        submission=submission, type=object_type)
+    validation_summary.all_count += count
+    validation_summary.save()

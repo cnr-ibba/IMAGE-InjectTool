@@ -23,5 +23,6 @@ async def test_submissions_consumer():
     await communicator.send_to(text_data=json.dumps(test_message))
     response = await communicator.receive_from()
     assert response == '{"message": "hello", ' \
-                       '"notification_message": "notification"}'
+                       '"notification_message": "notification", ' \
+                       '"validation_message": ""}'
     await communicator.disconnect()

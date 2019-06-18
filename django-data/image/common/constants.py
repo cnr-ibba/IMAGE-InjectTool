@@ -136,3 +136,5 @@ SAMPLE_STORAGE_TYPES = [
     "paraffin block at ambient temperatures (+15 to +30 degrees Celsius)",
     "freeze dried"
 ]
+
+KNOWN_STATUSES = ['Error', 'Issues', 'JSON', 'Known', 'Pass', 'Warning']

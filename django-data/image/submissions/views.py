@@ -7,6 +7,7 @@ Created on Tue Jul 24 15:49:23 2018
 """
 
 import logging
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -24,7 +25,7 @@ from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name
 from crbanim.tasks import ImportCRBAnimTask
-from validation.helpers import ValidationSummary
+from validation.helpers import construct_validation_message
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -140,12 +141,31 @@ class DetailSubmissionView(MessagesSubmissionMixin, OwnerMixin, DetailView):
         context = super(DetailSubmissionView, self).get_context_data(**kwargs)
 
         # add submission report to context
-        validation_summary = ValidationSummary(self.submission)
+        validation_summary = construct_validation_message(self.submission)
 
         # HINT: is this computational intensive?
-        validation_summary.process_errors()
         context["validation_summary"] = validation_summary
 
+        return context
+
+
+class SubmissionValidationSummaryView(OwnerMixin, DetailView):
+    model = Submission
+    template_name = "submissions/submission_validation_summary.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(SubmissionValidationSummaryView, self).get_context_data(
+            **kwargs)
+        summary_type = ''
+        if self.kwargs['type'] == 'animals':
+            summary_type = 'animal'
+        elif self.kwargs['type'] == 'samples':
+            summary_type = 'sample'
+        try:
+            context['validation_summary'] = self.object.validationsummary_set\
+                .get(type=summary_type)
+        except ObjectDoesNotExist:
+            context['validation_summary'] = None
         return context
 
 

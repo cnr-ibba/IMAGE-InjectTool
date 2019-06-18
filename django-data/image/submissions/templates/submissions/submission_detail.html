@@ -56,25 +56,25 @@
     </tr>
     <tr class="table-primary">
       <th scope="row">N. of Animals</th>
-      <td>
-        {{ validation_summary.n_animals }}
-        {% if validation_summary.n_animal_issues %}
-          ({{ validation_summary.n_animal_issues }} with issues in validation)
+      <td id="validation_message_animals">
+        {{ validation_summary.animals }}
+        {% if validation_summary.animal_issues %}
+        ({{ validation_summary.animal_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='animals' %}" target="_blank">validation</a>)
         {% endif %}
-        {% if validation_summary.n_animal_unknown %}
-          ({{ validation_summary.n_animal_unknown }} with unknown validation )
+        {% if validation_summary.animal_unkn %}
+        ({{ validation_summary.animal_unkn }} with unknown validation)
         {% endif %}
       </td>
     </tr>
     <tr class="table-secondary">
       <th scope="row">N. of Samples</th>
-      <td>
-        {{ validation_summary.n_samples }}
-        {% if validation_summary.n_sample_issues %}
-          ({{ validation_summary.n_sample_issues }} with issues in validation)
+      <td id="validation_message_samples">
+        {{ validation_summary.samples }}
+        {% if validation_summary.sample_issues %}
+        ({{ validation_summary.sample_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='samples' %}" target="_blank">validation</a>)
         {% endif %}
-        {% if validation_summary.n_sample_unknown %}
-          ({{ validation_summary.n_sample_unknown }} with unknown validation)
+        {% if validation_summary.sample_unkn %}
+        ({{ validation_summary.sample_unkn }} with unknown validation)
         {% endif %}
       </td>
     </tr>
@@ -187,6 +187,18 @@
       }
   }
 
+  function construct_validation_message(modelType, message, unknown, issues) {
+      modelLink = `validation_summary/${modelType}/`;
+      if (unknown !== 0 && issues !== 0) {
+      message += ` (${issues} with issues in <a href=${modelLink} target='_blank'>validation</a>; ${unknown} with unknown validation)`;
+    } else if (unknown !== 0 && issues === 0) {
+      message += ` (${unknown} with unknown validation)`;
+    } else if (unknown === 0 && issues !== 0) {
+      message += ` (${issues} with issues in <a href=${modelLink} target='_blank'>validation</a>)`;
+    }
+      return message;
+  }
+
   var submissionId = {{ submission.pk }};
 
   // try to choose the correct protocol, in order to solve the Mixed Content
@@ -212,8 +224,18 @@
     var data = JSON.parse(e.data);
     var message = data['message'];
     var notificationMessage = data['notification_message'];
+
+    var animalsMessage = data['validation_message']['animals'];
+    var samplesMessage = data['validation_message']['samples'];
+    var animalsUnknown = data['validation_message']['animal_unkn'];
+    var samplesUnknown = data['validation_message']['sample_unkn'];
+    var animalsIssues = data['validation_message']['animal_issues'];
+    var samplesIssues = data['validation_message']['sample_issues'];
+
     document.querySelector('#status-log').textContent = message;
     document.querySelector('#status-log').className = getColor(message);
+    document.querySelector('#validation_message_animals').innerHTML = construct_validation_message('animals', animalsMessage, animalsUnknown, animalsIssues);
+    document.querySelector('#validation_message_samples').innerHTML = construct_validation_message('samples', samplesMessage, samplesUnknown, samplesIssues);
     disableButtons(message);
     var notificationDiv = document.querySelector('#notifications');
     notificationDiv.childNodes[2].textContent = notificationMessage;

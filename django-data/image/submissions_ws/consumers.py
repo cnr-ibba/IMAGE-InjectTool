@@ -31,7 +31,8 @@ class SubmissionsConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'status_message',
                 'message': text_data['message'],
-                'notification_message': text_data['notification_message']
+                'notification_message': text_data['notification_message'],
+                'validation_message': text_data.get('validation_message', '')
             }
         )
 
@@ -39,9 +40,11 @@ class SubmissionsConsumer(AsyncWebsocketConsumer):
     async def status_message(self, event):
         message = event['message']
         notification_message = event['notification_message']
+        validation_message = event.get('validation_message')
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
-            'notification_message': notification_message
+            'notification_message': notification_message,
+            'validation_message': validation_message
         }))
