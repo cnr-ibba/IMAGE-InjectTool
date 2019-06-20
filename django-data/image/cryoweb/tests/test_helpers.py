@@ -81,6 +81,87 @@ class CryoWebMixin(object):
         # calling my base class teardown class
         super().tearDownClass()
 
+    def check_data_imported(self):
+        """A method to test if data were imported from cryoweb or not"""
+
+        # check breed upload
+        queryset = DictBreed.objects.all()
+
+        breeds = [(dictbreed.supplied_breed, dictbreed.country.label)
+                  for dictbreed in queryset]
+
+        self.assertEqual(len(queryset), 4)
+        self.assertListEqual(
+            breeds, [
+                ('Bunte Bentheimer', 'United Kingdom'),
+                ('Ostfriesisches Milchschaf', 'Italy'),
+                ('Aberdeen Angus', 'Germany'),
+                ('Ostfriesisches Milchschaf', 'Germany')],
+            msg="Check breeds loaded")
+
+        # check name upload (5 animal, 1 sample)
+        queryset = Name.objects.filter(submission=self.submission)
+        self.assertEqual(len(queryset), 6, msg='check name load')
+
+        # check animal name
+        queryset = Animal.objects.all()
+        self.assertEqual(len(queryset), 3, msg="check animal load")
+
+        queryset = Sample.objects.all()
+        self.assertEqual(len(queryset), 1, msg="check sample load")
+
+
+class WebSocketMixin(object):
+    """Override setUp to mock websocket objects"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # setting channels methods
+        self.asyncio_mock_patcher = patch(
+            'asyncio.get_event_loop')
+        self.asyncio_mock = self.asyncio_mock_patcher.start()
+
+        # mocking asyncio return value
+        self.run_until = self.asyncio_mock.return_value
+        self.run_until.run_until_complete = Mock()
+
+        # another patch
+        self.send_msg_ws_patcher = patch(
+            'cryoweb.helpers.send_message_to_websocket')
+        self.send_msg_ws = self.send_msg_ws_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.asyncio_mock_patcher.stop()
+        self.send_msg_ws_patcher.stop()
+
+        # calling base methods
+        super().tearDown()
+
+    def check_message(
+            self, message, notification_message, validation_message=None,
+            pk=1):
+        """assert message to websocket called with parameters"""
+
+        # construct message according parameters
+        message = {
+            'message': message,
+            'notification_message': notification_message
+        }
+
+        # in case of successful data upload, a validation message is sent
+        if validation_message:
+            message['validation_message'] = validation_message
+
+        self.assertEqual(self.asyncio_mock.call_count, 1)
+        self.assertEqual(self.run_until.run_until_complete.call_count, 1)
+        self.assertEqual(self.send_msg_ws.call_count, 1)
+        self.send_msg_ws.assert_called_with(
+            message,
+            pk)
+
 
 class CheckSpecie(CryoWebMixin, BaseTestCase, TestCase):
     def test_check_species(self):
@@ -177,7 +258,10 @@ class CheckUIDTest(CryoWebMixin, BaseTestCase, TestCase):
         self.assertTrue(check_UID(self.submission))
 
 
-class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
+class UploadCryoweb(
+        WebSocketMixin, DataSourceMixinTestCase, BaseTestCase, TestCase):
+    """Test upload cryoweb dump into cryoweb database"""
+
     # define attribute in DataSourceMixinTestCase
     model = Submission
 
@@ -197,12 +281,8 @@ class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
         self.assertEqual(
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
 
-    @patch('cryoweb.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
-    def test_upload_cryoweb(self, asyncio_mock, send_message_to_websocket_mock):
+    def test_upload_cryoweb(self):
         """Testing uploading and importing data from cryoweb to UID"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         self.assertTrue(upload_cryoweb(self.submission.id))
         self.assertTrue(db_has_data())
@@ -224,23 +304,17 @@ class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
         self.assertIn(
             "Cryoweb has data",
             self.submission.message)
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Error',
-             'notification_message': 'Error in importing data: Cryoweb '
-                                     'has data'}, 1)
 
-    # mock subprocess.run an raise Exception. Read it and update submission
+        # check async message called
+        message = 'Error'
+        notification_message = 'Error in importing data: Cryoweb has data'
+
+        self.check_message(message, notification_message)
+
+    # mock subprocess.run and raise Exception. Read it and update submission
     # message using helpers.upload_cryoweb
-    @patch('cryoweb.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
-    def test_upload_cryoweb_errors(self, asyncio_mock,
-                                   send_message_to_websocket_mock):
+    def test_upload_cryoweb_errors(self):
         """Testing errors in uploading cryoweb data"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         with patch('subprocess.run') as runMock:
             runMock.side_effect = Exception("Test upload failed")
@@ -256,74 +330,42 @@ class UploadCryoweb(DataSourceMixinTestCase, BaseTestCase, TestCase):
             self.assertIn(
                 "Test upload failed",
                 self.submission.message)
-            self.assertEqual(asyncio_mock.call_count, 1)
-            self.assertEqual(tmp.run_until_complete.call_count, 1)
-            self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-            send_message_to_websocket_mock.assert_called_with(
-                {'message': 'Error',
-                 'notification_message': 'Error in importing data: Test '
-                                         'upload failed'}, 1)
+
+            # check async message called
+            message = 'Error'
+            notification_message = ('Error in importing data: Test '
+                                    'upload failed')
+
+            self.check_message(message, notification_message)
 
 
-class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
+class CryowebImport(WebSocketMixin, CryoWebMixin, BaseTestCase, TestCase):
     def test_database_name(self):
         self.assertEqual(
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
 
-    @patch('cryoweb.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
-    def test_cryoweb_import(self, asyncio_mock, send_message_to_websocket_mock):
+    def test_cryoweb_import(self):
         """Import from cryoweb staging database into UID"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         self.assertTrue(cryoweb_import(self.submission))
 
-        # check breed upload
-        queryset = DictBreed.objects.all()
+        # test if data were loaded
+        self.check_data_imported()
 
-        breeds = [(dictbreed.supplied_breed, dictbreed.country.label)
-                  for dictbreed in queryset]
+        # check async message called
+        message = 'Loaded'
+        notification_message = (
+            'Cryoweb import completed for submission: 1')
+        validation_message = {
+            'animals': 3, 'samples': 1,
+            'animal_unkn': 3, 'sample_unkn': 1,
+            'animal_issues': 0, 'sample_issues': 0}
 
-        self.assertEqual(len(queryset), 4)
-        self.assertListEqual(
-            breeds, [
-                ('Bunte Bentheimer', 'United Kingdom'),
-                ('Ostfriesisches Milchschaf', 'Italy'),
-                ('Aberdeen Angus', 'Germany'),
-                ('Ostfriesisches Milchschaf', 'Germany')],
-            msg="Check breeds loaded")
+        self.check_message(message, notification_message, validation_message)
 
-        # check name upload (5 animal, 1 sample)
-        queryset = Name.objects.filter(submission=self.submission)
-        self.assertEqual(len(queryset), 6, msg='check name load')
-
-        # check animal name
-        queryset = Animal.objects.all()
-        self.assertEqual(len(queryset), 3, msg="check animal load")
-
-        queryset = Sample.objects.all()
-        self.assertEqual(len(queryset), 1, msg="check sample load")
-
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Loaded',
-             'notification_message': 'Cryoweb import completed for '
-                                     'submission: 1',
-             'validation_message': {'animals': 3, 'samples': 1,
-                                    'animal_unkn': 3, 'sample_unkn': 1,
-                                    'animal_issues': 0, 'sample_issues': 0}}, 1)
-
-    @patch('cryoweb.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
     @patch("cryoweb.helpers.check_UID", side_effect=Exception("Test message"))
-    def test_cryoweb_import_errors(self, my_check, asyncio_mock,
-                                   send_message_to_websocket_mock):
+    def test_cryoweb_import_errors(self, my_check):
         """Testing importing with data into UID with errors"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         self.assertFalse(cryoweb_import(self.submission))
         self.assertTrue(my_check.called)
@@ -338,16 +380,16 @@ class CryowebImport(CryoWebMixin, BaseTestCase, TestCase):
         self.assertIn(
             "Test message",
             self.submission.message)
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Error',
-             'notification_message': 'Error in importing data: Test message'},
-            1)
+
+        # check async message called
+        message = 'Error'
+        notification_message = (
+            'Error in importing data: Test message')
+
+        self.check_message(message, notification_message)
 
 
-class CryowebReload(CryoWebMixin, BaseTestCase, TestCase):
+class CryowebReload(WebSocketMixin, CryoWebMixin, BaseTestCase, TestCase):
     """Simulate a cryoweb reload case. Load data as in CryowebImport, then
     call test which reload the same data"""
 
@@ -360,52 +402,22 @@ class CryowebReload(CryoWebMixin, BaseTestCase, TestCase):
         'language/speciesynonym'
     ]
 
-    @patch('cryoweb.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
-    def test_cryoweb_import(
-            self, asyncio_mock, send_message_to_websocket_mock):
+    def test_cryoweb_import(self):
         """Import from cryoweb staging database into UID, anche check that
         validationsummary is correct"""
 
-        # stuff to simulating real time messages
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
-
         self.assertTrue(cryoweb_import(self.submission))
 
-        # check breed upload
-        queryset = DictBreed.objects.all()
+        # test if data were loaded
+        self.check_data_imported()
 
-        breeds = [(dictbreed.supplied_breed, dictbreed.country.label)
-                  for dictbreed in queryset]
+        # check async message called
+        message = 'Loaded'
+        notification_message = (
+            'Cryoweb import completed for submission: 1')
+        validation_message = {
+            'animals': 3, 'samples': 1,
+            'animal_unkn': 3, 'sample_unkn': 1,
+            'animal_issues': 0, 'sample_issues': 0}
 
-        self.assertEqual(len(queryset), 4)
-        self.assertListEqual(
-            breeds, [
-                ('Bunte Bentheimer', 'United Kingdom'),
-                ('Ostfriesisches Milchschaf', 'Italy'),
-                ('Aberdeen Angus', 'Germany'),
-                ('Ostfriesisches Milchschaf', 'Germany')],
-            msg="Check breeds loaded")
-
-        # check name upload (5 animal, 1 sample)
-        queryset = Name.objects.filter(submission=self.submission)
-        self.assertEqual(len(queryset), 6, msg='check name load')
-
-        # check animal name
-        queryset = Animal.objects.all()
-        self.assertEqual(len(queryset), 3, msg="check animal load")
-
-        queryset = Sample.objects.all()
-        self.assertEqual(len(queryset), 1, msg="check sample load")
-
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Loaded',
-             'notification_message': 'Cryoweb import completed for '
-                                     'submission: 1',
-             'validation_message': {'animals': 3, 'samples': 1,
-                                    'animal_unkn': 3, 'sample_unkn': 1,
-                                    'animal_issues': 0, 'sample_issues': 0}}, 1)
+        self.check_message(message, notification_message, validation_message)
