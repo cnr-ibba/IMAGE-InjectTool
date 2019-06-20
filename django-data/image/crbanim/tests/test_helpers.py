@@ -25,6 +25,58 @@ from ..helpers import (
 from .common import BaseTestCase
 
 
+class WebSocketMixin(object):
+    """Override setUp to mock websocket objects"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # setting channels methods
+        self.asyncio_mock_patcher = patch(
+            'asyncio.get_event_loop')
+        self.asyncio_mock = self.asyncio_mock_patcher.start()
+
+        # mocking asyncio return value
+        self.run_until = self.asyncio_mock.return_value
+        self.run_until.run_until_complete = Mock()
+
+        # another patch
+        self.send_msg_ws_patcher = patch(
+            'crbanim.helpers.send_message_to_websocket')
+        self.send_msg_ws = self.send_msg_ws_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.asyncio_mock_patcher.stop()
+        self.send_msg_ws_patcher.stop()
+
+        # calling base methods
+        super().tearDown()
+
+    def check_message(
+            self, message, notification_message, validation_message=None,
+            pk=1):
+        """assert message to websocket called with parameters"""
+
+        # construct message according parameters
+        message = {
+            'message': message,
+            'notification_message': notification_message
+        }
+
+        # in case of successful data upload, a validation message is sent
+        if validation_message:
+            message['validation_message'] = validation_message
+
+        self.assertEqual(self.asyncio_mock.call_count, 1)
+        self.assertEqual(self.run_until.run_until_complete.call_count, 1)
+        self.assertEqual(self.send_msg_ws.call_count, 1)
+        self.send_msg_ws.assert_called_with(
+            message,
+            pk)
+
+
 class CRBAnimReaderTestCase(BaseTestCase, TestCase):
     def setUp(self):
         # calling my base class setup
@@ -318,14 +370,10 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         self.assertIsNone(result)
 
 
-class UploadCRBAnimTestCase(BaseTestCase, TestCase):
+class UploadCRBAnimTestCase(WebSocketMixin, BaseTestCase, TestCase):
 
-    @patch('crbanim.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
-    def test_upload_crbanim(self, asyncio_mock, send_message_to_websocket_mock):
+    def test_upload_crbanim(self):
         """Testing uploading and importing data from crbanim to UID"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         self.assertTrue(upload_crbanim(self.submission))
 
@@ -346,26 +394,21 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertTrue(Animal.objects.exists())
         self.assertTrue(Sample.objects.exists())
 
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Loaded',
-             'notification_message': 'CRBAnim import completed for '
-                                     'submission: 1',
-             'validation_message': {'animals': 1, 'samples': 2,
-                                    'animal_unkn': 1, 'sample_unkn': 2,
-                                    'animal_issues': 0, 'sample_issues': 0}}, 1)
+        # check async message called
+        message = 'Loaded'
+        notification_message = (
+            'CRBAnim import completed for submission: 1')
+        validation_message = {
+            'animals': 1, 'samples': 2,
+            'animal_unkn': 1, 'sample_unkn': 2,
+            'animal_issues': 0, 'sample_issues': 0}
 
-    @patch('crbanim.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
+        self.check_message(message, notification_message, validation_message)
+
     @patch("crbanim.helpers.CRBAnimReader.check_species",
            return_value=[False, 'Rainbow trout'])
-    def test_upload_crbanim_errors(self, my_check, asyncio_mock,
-                                   send_message_to_websocket_mock):
+    def test_upload_crbanim_errors(self, my_check):
         """Testing importing with data into UID with errors"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         self.assertFalse(upload_crbanim(self.submission))
 
@@ -391,24 +434,19 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertFalse(Animal.objects.exists())
         self.assertFalse(Sample.objects.exists())
 
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Error',
-             'notification_message': 'Error in importing data: Some species '
-                                     'are not loaded in UID database: Rainbow '
-                                     'trout'}, 1)
+        # check async message called
+        message = 'Error'
+        notification_message = (
+            'Error in importing data: Some species '
+            'are not loaded in UID database: Rainbow '
+            'trout')
 
-    @patch('crbanim.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
+        self.check_message(message, notification_message)
+
     @patch("crbanim.helpers.CRBAnimReader.check_sex",
            return_value=[False, 'unknown'])
-    def test_upload_crbanim_errors_with_sex(self, my_check, asyncio_mock,
-                                            send_message_to_websocket_mock):
+    def test_upload_crbanim_errors_with_sex(self, my_check):
         """Testing importing with data into UID with errors"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         self.assertFalse(upload_crbanim(self.submission))
 
@@ -439,17 +477,17 @@ class UploadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertFalse(Animal.objects.exists())
         self.assertFalse(Sample.objects.exists())
 
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Error',
-             'notification_message': 'Error in importing data: Not all Sex '
-                                     'terms are loaded into database: check '
-                                     'for unknown in your dataset'}, 1)
+        # check async message called
+        message = 'Error'
+        notification_message = (
+            'Error in importing data: Not all Sex '
+            'terms are loaded into database: check '
+            'for unknown in your dataset')
+
+        self.check_message(message, notification_message)
 
 
-class ReloadCRBAnimTestCase(BaseTestCase, TestCase):
+class ReloadCRBAnimTestCase(WebSocketMixin, BaseTestCase, TestCase):
     """Simulate a crbanim reload case. Load data as in
     UploadCRBAnimTestCase, then call test which reload the same data"""
 
@@ -462,14 +500,8 @@ class ReloadCRBAnimTestCase(BaseTestCase, TestCase):
         'language/speciesynonym'
     ]
 
-    @patch('crbanim.helpers.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
-    def test_upload_crbanim(
-            self, asyncio_mock, send_message_to_websocket_mock):
+    def test_upload_crbanim(self):
         """Testing uploading and importing data from crbanim to UID"""
-
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         # assert upload
         self.assertTrue(upload_crbanim(self.submission))
@@ -491,13 +523,13 @@ class ReloadCRBAnimTestCase(BaseTestCase, TestCase):
         self.assertTrue(Animal.objects.exists())
         self.assertTrue(Sample.objects.exists())
 
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Loaded',
-             'notification_message': 'CRBAnim import completed for '
-                                     'submission: 1',
-             'validation_message': {'animals': 1, 'samples': 2,
-                                    'animal_unkn': 1, 'sample_unkn': 2,
-                                    'animal_issues': 0, 'sample_issues': 0}}, 1)
+        # check async message called
+        message = 'Loaded'
+        notification_message = (
+            'CRBAnim import completed for submission: 1')
+        validation_message = {
+            'animals': 1, 'samples': 2,
+            'animal_unkn': 1, 'sample_unkn': 2,
+            'animal_issues': 0, 'sample_issues': 0}
+
+        self.check_message(message, notification_message, validation_message)

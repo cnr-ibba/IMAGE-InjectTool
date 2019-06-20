@@ -34,6 +34,37 @@ class CRBAnimImportError(Exception):
     pass
 
 
+def send_message(submission_obj, send_validation=False):
+    """
+    Update submission.status and submission message using django
+    channels
+
+    Args:
+        submission_obj (image_app.models.Submission): an UID submission
+        object
+        send_validation (bool): send validation message or not
+    """
+
+    # define a message to send
+    message = {
+        'message': STATUSES.get_value_display(submission_obj.status),
+        'notification_message': submission_obj.message,
+    }
+
+    # if validation message is needed, add to the final message
+    if send_validation:
+        message['validation_message'] = construct_validation_message(
+            submission_obj)
+
+    # now send the message to its submission
+    asyncio.get_event_loop().run_until_complete(
+        send_message_to_websocket(
+            message,
+            submission_obj.pk
+        )
+    )
+
+
 class CRBAnimReader():
     mandatory_columns = [
             'sex',
@@ -549,15 +580,8 @@ def upload_crbanim(submission):
         submission.message = message
         submission.save()
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(ERROR),
-                    'notification_message': message
-                },
-                submission.id
-            )
-        )
+        # send async message
+        send_message(submission)
 
         # debug
         logger.error("error in importing from crbanim: %s" % (exc))
@@ -572,17 +596,9 @@ def upload_crbanim(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(LOADED),
-                    'notification_message': message,
-                    'validation_message': construct_validation_message(
-                        submission)
-                },
-                submission.id
-            )
-        )
+
+        # send async message
+        send_message(submission, send_validation=True)
 
     logger.info("Import from CRBAnim is complete")
 
