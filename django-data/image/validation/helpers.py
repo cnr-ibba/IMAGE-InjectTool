@@ -10,7 +10,6 @@ import json
 import logging
 import requests
 
-from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 
 from image_validation import validation, ValidationResult
@@ -18,7 +17,6 @@ from image_validation.static_parameters import ruleset_filename as \
     IMAGE_RULESET
 
 from common.constants import BIOSAMPLE_URL
-from image_app.models import Name
 from biosample.helpers import parse_image_alias, get_model_object
 from validation.models import ValidationSummary
 
@@ -228,9 +226,9 @@ def construct_validation_message(submission):
 
         # Number of animal and samples
         validation_message[
-            'animals'] = validation_summary_animal.get_all_count()
+            'animals'] = validation_summary_animal.all_count
         validation_message[
-            'samples'] = validation_summary_sample.get_all_count()
+            'samples'] = validation_summary_sample.all_count
 
         # Number of unknow validations
         validation_message['animal_unkn'] = validation_summary_animal \
@@ -240,10 +238,12 @@ def construct_validation_message(submission):
 
         # Number of problem validations
         validation_message['animal_issues'] = validation_summary_animal. \
-            get_issues_count()
+            issues_count
         validation_message['sample_issues'] = validation_summary_sample. \
-            get_issues_count()
+            issues_count
+
         return validation_message
+
     except ObjectDoesNotExist:
         return None
 

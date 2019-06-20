@@ -32,30 +32,34 @@ class ValidationResult(models.Model):
 
 
 class ValidationSummary(models.Model):
-    submission = models.ForeignKey('image_app.Submission',
-                                   on_delete=models.CASCADE)
+    submission = models.ForeignKey(
+        Submission,
+        on_delete=models.CASCADE)
 
-    all_count = models.PositiveIntegerField(default=0)
+    all_count = models.PositiveIntegerField(
+        default=0,
+        help_text="number of all samples or animals in a submission")
+
     validation_known_count = models.PositiveIntegerField(default=0)
-    issues_count = models.PositiveIntegerField(default=0)
+
+    issues_count = models.PositiveIntegerField(
+        default=0,
+        help_text="number of samples or animals with issues in validation")
+
     pass_count = models.PositiveIntegerField(default=0)
     warning_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)
     json_count = models.PositiveIntegerField(default=0)
+
+    # TODO: should this be a ENUM object?
     type = models.CharField(max_length=6, blank=True, null=True)
+
     messages = ArrayField(
         models.TextField(max_length=255, blank=True),
         default=list
     )
 
-    # Returns number of all samples or animals in submission
-    def get_all_count(self):
-        return self.all_count
-
-    # Returns number of samples or animals with unknown validation
     def get_unknown_count(self):
-        return self.all_count - self.validation_known_count
+        """Returns number of samples or animals with unknown validation"""
 
-    # Returns number of samples or animals with issues in validation
-    def get_issues_count(self):
-        return self.issues_count
+        return self.all_count - self.validation_known_count
