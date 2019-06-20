@@ -9,7 +9,7 @@ Created on Mon Jan 28 11:09:02 2019
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
-from image_app.models import Name
+from image_app.models import Name, Animal, Sample, Submission
 
 
 class ValidationResult(models.Model):
@@ -63,3 +63,19 @@ class ValidationSummary(models.Model):
         """Returns number of samples or animals with unknown validation"""
 
         return self.all_count - self.validation_known_count
+
+    def reset_all_count(self):
+        """Set all_count column according to Animal/Sample objects"""
+
+        if self.type == "animal":
+            self.all_count = Animal.objects.filter(
+                name__submission=self.submission).count()
+
+        elif self.type == "sample":
+            self.all_count = Sample.objects.filter(
+                name__submission=self.submission).count()
+
+        else:
+            raise Exception("Unknown type %s" % (self.type))
+
+        self.save()

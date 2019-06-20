@@ -24,8 +24,8 @@ from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
 from language.helpers import check_species_synonyms
-from validation.helpers import construct_validation_message, \
-    create_validation_summary_object
+from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
 
 from .models import db_has_data as cryoweb_has_data
 from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
@@ -293,8 +293,6 @@ def fill_uid_animals(submission):
     male = DictSex.objects.get(label="male")
     female = DictSex.objects.get(label="female")
 
-    new_animals_count = 0
-
     # cycle over animals
     for v_animal in VAnimal.objects.all():
         # get specie translated by dictionary
@@ -369,12 +367,20 @@ def fill_uid_animals(submission):
 
         if created:
             logger.debug("Created %s" % animal)
-            new_animals_count += 1
 
         else:
             logger.debug("Updating %s" % animal)
 
-    create_validation_summary_object(submission, 'animal', new_animals_count)
+    # create a validation summary object and set all_count
+    validation_summary, created = ValidationSummary.objects.get_or_create(
+        submission=submission, type="animal")
+
+    if created:
+        logger.debug(
+            "ValidationSummary animal created for submission %s" % submission)
+
+    # reset counts
+    validation_summary.reset_all_count()
 
     # debug
     logger.info("fill_uid_animals() completed")
@@ -385,8 +391,6 @@ def fill_uid_samples(submission):
 
     # debug
     logger.info("called fill_uid_samples()")
-
-    new_samples_count = 0
 
     for v_vessel in VVessels.objects.all():
         # get name for this sample. Need to insert it
@@ -444,12 +448,20 @@ def fill_uid_samples(submission):
 
         if created:
             logger.debug("Created %s" % sample)
-            new_samples_count += 1
 
         else:
             logger.debug("Updating %s" % sample)
 
-    create_validation_summary_object(submission, 'sample', new_samples_count)
+    # create a validation summary object and set all_count
+    validation_summary, created = ValidationSummary.objects.get_or_create(
+        submission=submission, type="sample")
+
+    if created:
+        logger.debug(
+            "ValidationSummary animal created for submission %s" % submission)
+
+    # reset counts
+    validation_summary.reset_all_count()
 
     # debug
     logger.info("fill_uid_samples() completed")

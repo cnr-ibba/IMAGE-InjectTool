@@ -246,17 +246,3 @@ def construct_validation_message(submission):
 
     except ObjectDoesNotExist:
         return None
-
-
-def create_validation_summary_object(submission, object_type, count):
-    """
-    This function will add 1 to all_count property of validation summary
-    Args:
-        submission (image_app.models.Submission): submission object
-        object_type (str): animal or sample
-        count (int): now much animals or samples were in submission
-    """
-    validation_summary, created = ValidationSummary.objects.get_or_create(
-        submission=submission, type=object_type)
-    validation_summary.all_count += count
-    validation_summary.save()

@@ -22,8 +22,8 @@ from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
 from language.helpers import check_species_synonyms
-from validation.helpers import construct_validation_message, \
-    create_validation_summary_object
+from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -413,7 +413,6 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
 
         if created:
             logger.debug("Created animal %s" % animal)
-            create_validation_summary_object(submission, 'animal', 1)
 
         else:
             logger.debug("Updating animal %s" % animal)
@@ -499,7 +498,6 @@ def fill_uid_sample(record, sample_name, animal, submission):
 
     if created:
         logger.debug("Created sample %s" % sample)
-        create_validation_summary_object(submission, 'sample', 1)
 
     else:
         logger.debug("Updating sample %s" % sample)
@@ -570,6 +568,30 @@ def upload_crbanim(submission):
 
         for record in reader.data:
             process_record(record, submission, animals, language)
+
+        # after processing records, initilize validationsummary objects
+        # create a validation summary object and set all_count
+        vs_animal, created = ValidationSummary.objects.get_or_create(
+            submission=submission, type="animal")
+
+        if created:
+            logger.debug(
+                "ValidationSummary animal created for "
+                "submission %s" % submission)
+
+        # reset counts
+        vs_animal.reset_all_count()
+
+        vs_sample, created = ValidationSummary.objects.get_or_create(
+            submission=submission, type="sample")
+
+        if created:
+            logger.debug(
+                "ValidationSummary sample created for "
+                "submission %s" % submission)
+
+        # reset counts
+        vs_sample.reset_all_count()
 
     except Exception as exc:
         # set message:

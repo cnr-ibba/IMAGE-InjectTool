@@ -437,7 +437,11 @@ class ValidationSummaryTestCase(TestCase):
         Animal.objects.get(pk=3).delete()
         Sample.objects.get(pk=1).delete()
 
-        # TODO: call a method which updates animals and samples total count?
+        # call a method which updates animals and samples total count
+        # HINT: should this number be updated when deleting animal and
+        # samples in views?
+        self.validationsummary_animal.reset_all_count()
+        self.validationsummary_sample.reset_all_count()
 
         # test for counts
         self.assertEqual(self.validationsummary_animal.all_count, 2)
