@@ -77,6 +77,79 @@ class WebSocketMixin(object):
             pk)
 
 
+class CRBAnimMixin(WebSocketMixin):
+    """Common test for CRBanim classes"""
+
+    def test_upload_crbanim(self):
+        """Testing uploading and importing data from crbanim to UID"""
+
+        # assert upload
+        self.assertTrue(upload_crbanim(self.submission))
+
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # assert submission messages
+        self.assertEqual(
+            self.submission.status,
+            LOADED)
+
+        self.assertIn(
+            "CRBAnim import completed for submission",
+            self.submission.message)
+
+        # assert data into database
+        self.assertTrue(db_has_data())
+        self.assertTrue(Animal.objects.exists())
+        self.assertTrue(Sample.objects.exists())
+
+        # check async message called
+        message = 'Loaded'
+        notification_message = (
+            'CRBAnim import completed for submission: 1')
+        validation_message = {
+            'animals': 1, 'samples': 2,
+            'animal_unkn': 1, 'sample_unkn': 2,
+            'animal_issues': 0, 'sample_issues': 0}
+
+        self.check_message(message, notification_message, validation_message)
+
+    def check_errors(self, my_check, message, notification_message):
+        """Common stuff for error in crbanim loading"""
+
+        self.assertFalse(upload_crbanim(self.submission))
+
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # test my mock method called
+        self.assertTrue(my_check.called)
+
+        # reload submission
+        self.submission = Submission.objects.get(pk=1)
+
+        self.assertEqual(
+            self.submission.status,
+            ERROR)
+
+        # check for two distinct messages
+        self.assertIn(
+            message,
+            self.submission.message)
+
+        self.assertNotIn(
+            "CRBAnim import completed for submission",
+            self.submission.message)
+
+        # assert data into database
+        self.assertFalse(db_has_data())
+        self.assertFalse(Animal.objects.exists())
+        self.assertFalse(Sample.objects.exists())
+
+        # check async message called
+        self.check_message('Error', notification_message)
+
+
 class CRBAnimReaderTestCase(BaseTestCase, TestCase):
     def setUp(self):
         # calling my base class setup
@@ -370,124 +443,39 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         self.assertIsNone(result)
 
 
-class UploadCRBAnimTestCase(WebSocketMixin, BaseTestCase, TestCase):
-
-    def test_upload_crbanim(self):
-        """Testing uploading and importing data from crbanim to UID"""
-
-        self.assertTrue(upload_crbanim(self.submission))
-
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # assert submission messages
-        self.assertEqual(
-            self.submission.status,
-            LOADED)
-
-        self.assertIn(
-            "CRBAnim import completed for submission",
-            self.submission.message)
-
-        # assert data into database
-        self.assertTrue(db_has_data())
-        self.assertTrue(Animal.objects.exists())
-        self.assertTrue(Sample.objects.exists())
-
-        # check async message called
-        message = 'Loaded'
-        notification_message = (
-            'CRBAnim import completed for submission: 1')
-        validation_message = {
-            'animals': 1, 'samples': 2,
-            'animal_unkn': 1, 'sample_unkn': 2,
-            'animal_issues': 0, 'sample_issues': 0}
-
-        self.check_message(message, notification_message, validation_message)
+class UploadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
 
     @patch("crbanim.helpers.CRBAnimReader.check_species",
            return_value=[False, 'Rainbow trout'])
-    def test_upload_crbanim_errors(self, my_check):
+    def test_upload_crbanim_errors_with_species(self, my_check):
         """Testing importing with data into UID with errors"""
 
-        self.assertFalse(upload_crbanim(self.submission))
-
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # test my mock method called
-        self.assertTrue(my_check.called)
-
-        # reload submission
-        self.submission = Submission.objects.get(pk=1)
-
-        self.assertEqual(
-            self.submission.status,
-            ERROR)
-
-        self.assertIn(
-            "Some species are not loaded in UID database",
-            self.submission.message)
-
-        # assert data into database
-        self.assertFalse(db_has_data())
-        self.assertFalse(Animal.objects.exists())
-        self.assertFalse(Sample.objects.exists())
-
-        # check async message called
-        message = 'Error'
+        message = "Some species are not loaded in UID database"
         notification_message = (
             'Error in importing data: Some species '
             'are not loaded in UID database: Rainbow '
             'trout')
 
-        self.check_message(message, notification_message)
+        # check crbanim import fails
+        self.check_errors(my_check, message, notification_message)
 
     @patch("crbanim.helpers.CRBAnimReader.check_sex",
            return_value=[False, 'unknown'])
     def test_upload_crbanim_errors_with_sex(self, my_check):
         """Testing importing with data into UID with errors"""
 
-        self.assertFalse(upload_crbanim(self.submission))
-
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # test my mock method called
-        self.assertTrue(my_check.called)
-
-        # reload submission
-        self.submission = Submission.objects.get(pk=1)
-
-        self.assertEqual(
-            self.submission.status,
-            ERROR)
-
-        # check for two distinct messages
-        self.assertIn(
-            "Not all Sex terms are loaded into database",
-            self.submission.message)
-
-        self.assertNotIn(
-            "CRBAnim import completed for submission",
-            self.submission.message)
-
-        # assert data into database
-        self.assertFalse(db_has_data())
-        self.assertFalse(Animal.objects.exists())
-        self.assertFalse(Sample.objects.exists())
-
-        # check async message called
-        message = 'Error'
+        message = "Not all Sex terms are loaded into database"
         notification_message = (
             'Error in importing data: Not all Sex '
             'terms are loaded into database: check '
             'for unknown in your dataset')
 
-        self.check_message(message, notification_message)
+        # check crbanim import fails
+        self.check_errors(my_check, message, notification_message)
 
 
-class ReloadCRBAnimTestCase(WebSocketMixin, BaseTestCase, TestCase):
+class ReloadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
+
     """Simulate a crbanim reload case. Load data as in
     UploadCRBAnimTestCase, then call test which reload the same data"""
 
@@ -499,37 +487,3 @@ class ReloadCRBAnimTestCase(WebSocketMixin, BaseTestCase, TestCase):
         'crbanim/submission',
         'language/speciesynonym'
     ]
-
-    def test_upload_crbanim(self):
-        """Testing uploading and importing data from crbanim to UID"""
-
-        # assert upload
-        self.assertTrue(upload_crbanim(self.submission))
-
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # assert submission messages
-        self.assertEqual(
-            self.submission.status,
-            LOADED)
-
-        self.assertIn(
-            "CRBAnim import completed for submission",
-            self.submission.message)
-
-        # assert data into database
-        self.assertTrue(db_has_data())
-        self.assertTrue(Animal.objects.exists())
-        self.assertTrue(Sample.objects.exists())
-
-        # check async message called
-        message = 'Loaded'
-        notification_message = (
-            'CRBAnim import completed for submission: 1')
-        validation_message = {
-            'animals': 1, 'samples': 2,
-            'animal_unkn': 1, 'sample_unkn': 2,
-            'animal_issues': 0, 'sample_issues': 0}
-
-        self.check_message(message, notification_message, validation_message)
