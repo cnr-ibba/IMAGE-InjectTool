@@ -598,7 +598,7 @@ class ValidateSubmissionTest(
         # call task
         self.assertRaisesRegex(
             ValidationError,
-            "Error in statuses for submission",
+            "Unsupported validation status for submission",
             self.my_task.run,
             submission_id=self.submission_id)
 
@@ -608,7 +608,7 @@ class ValidateSubmissionTest(
         # check submission.state changed
         self.assertEqual(self.submission.status, ERROR)
         self.assertIn(
-            "Error in statuses for submission",
+            "Unsupported validation status for submission",
             self.submission.message)
 
         # if JSON is not valid, I don't check for ruleset
@@ -620,12 +620,8 @@ class ValidateSubmissionTest(
         self.check_async_called(
             message='Error',
             notification_message=(
-                "Validation got errors: Error in statuses "
-                "for submission Cryoweb (United Kingdom, "
-                "test): animals - ['A fake status', "
-                "'Error', 'Issues', 'JSON', 'Known', 'Pass', 'Warning'], "
-                "samples - ['A fake status', 'Error', "
-                "'Issues', 'JSON', 'Known', 'Pass', 'Warning']"),
+                "Validation got errors: Unsupported validation status "
+                "for submission Cryoweb (United Kingdom, test)"),
             validation_message={
                 'animals': self.n_animals, 'samples': self.n_samples,
                 'animal_unkn': 0, 'sample_unkn': 0,
@@ -729,7 +725,7 @@ class ValidateSubmissionTest(
             validation_message={
                 'animals': self.n_animals, 'samples': self.n_samples,
                 'animal_unkn': 0, 'sample_unkn': 0,
-                'animal_issues': 1, 'sample_issues': 0},
+                'animal_issues': 0, 'sample_issues': 0},
             pk=1)
 
     @patch("validation.tasks.MetaDataValidation.read_in_ruleset")
@@ -834,7 +830,7 @@ class ValidateSubmissionTest(
             validation_message={
                 'animals': self.n_animals, 'samples': self.n_samples,
                 'animal_unkn': 0, 'sample_unkn': 0,
-                'animal_issues': 1, 'sample_issues': 1},
+                'animal_issues': 0, 'sample_issues': 1},
             pk=1)
 
 
