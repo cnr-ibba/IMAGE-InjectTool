@@ -23,7 +23,7 @@ from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, Animal, Sample
 
-from ..tasks import ValidateTask, ValidationError, SubmissionData
+from ..tasks import ValidateTask, ValidationError, ValidateSubmission
 from ..helpers import OntologyCacheError, RulesetError
 from ..models import ValidationSummary
 
@@ -162,14 +162,15 @@ class WebSocketMixin(object):
         self.assertEqual(self.send_msg_ws.call_count, 0)
 
 
-class SubmissionDataTest(ValidateSubmissionMixin, TestCase):
+class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
 
     def setUp(self):
         # calling base methods
         super().setUp()
 
-        # get a submission data object
-        self.submission_data = SubmissionData(self.submission)
+        # get a submission data object (with no ruleset)
+        self.submission_data = ValidateSubmission(
+            self.submission, ruleset=None)
 
     def test_check_valid_statuses(self):
         """test validation supporting statuses"""
@@ -234,7 +235,7 @@ class SubmissionDataTest(ValidateSubmissionMixin, TestCase):
         self.assertEqual(sample_summary.all_count, self.n_samples)
 
 
-class ValidateSubmissionTest(
+class ValidateTaskTest(
         WebSocketMixin, ValidateSubmissionMixin, TestCase):
 
     def test_on_failure(self):
@@ -841,6 +842,10 @@ class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         # calling base setup
         super().setUp()
 
+        # get a submission data object (with no ruleset)
+        self.submission_data = ValidateSubmission(
+            self.submission, ruleset=None)
+
         # track an animal for testing
         self.animal = Animal.objects.get(pk=1)
         self.animal_name = self.animal.name
@@ -862,7 +867,8 @@ class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
              'JSON': 0})
 
         # calling update statuses
-        self.my_task.update_statuses(submission_statuses, self.animal, result)
+        self.submission_data.update_statuses(
+            submission_statuses, self.animal, result)
 
         # Test for animal status
         self.animal_name.refresh_from_db()
@@ -907,6 +913,10 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         # call base method
         super().setUp()
 
+        # get a submission data object (with no ruleset)
+        self.submission_data = ValidateSubmission(
+            self.submission, ruleset=None)
+
         # take all names and set them to completed, as after a successful
         # submission:
         self.name_qs.update(status=COMPLETED)
@@ -944,12 +954,12 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         # calling update statuses on name objects
         for name in self.name_qs:
             if hasattr(name, "animal"):
-                self.my_task.update_statuses(
+                self.submission_data.update_statuses(
                     submission_statuses,
                     name.animal,
                     result)
             else:
-                self.my_task.update_statuses(
+                self.submission_data.update_statuses(
                     submission_statuses,
                     name.sample,
                     result)
