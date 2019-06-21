@@ -9,8 +9,8 @@ services:
     # Set db environment
     environment:
       # these passwords will be taken from .env file (not tracked in GIT)
-      POSTGRES_PASSWORD: ${PGPASSWORD}
-      PGPASSWORD: ${PGPASSWORD}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       IMAGE_USER: ${IMAGE_USER}
       IMAGE_PASSWORD: ${IMAGE_PASSWORD}
       CRYOWEB_INSERT_ONLY_PW: ${CRYOWEB_INSERT_ONLY_PW}

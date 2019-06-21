@@ -62,7 +62,7 @@ Edit a new `.env` file in working directory and set passwords for such environme
 variables:
 
 ```
-PGPASSWORD=<postgres password>
+POSTGRES_PASSWORD=<postgres password>
 IMAGE_USER=<image_user>
 IMAGE_PASSWORD=<user password>
 CRYOWEB_INSERT_ONLY_PW=<user_password>
