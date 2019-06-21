@@ -44,6 +44,119 @@ class ValidationError(Exception):
     pass
 
 
+class SubmissionData(object):
+    """
+    An helper class for submission task, useful to pass parameters like
+    submission data between tasks"""
+
+    # define my class attributes
+    def __init__(self, submission_obj):
+        # track submission object
+        self.submission_obj = submission_obj
+
+        # collect all unique messages for samples and animals
+        self.messages_animals = Counter()
+        self.messages_samples = Counter()
+
+        # track global statuses for animals and samples
+        # Don't set keys: if you take a key which doesn't exists, you will
+        # get 0 instead of key errors. This is how Counter differ from a
+        # default dictionary object
+        self.statuses_animals = Counter()
+        self.statuses_samples = Counter()
+
+    def check_valid_statuses(self):
+        """Check if validation return with an unsupported status message"""
+
+        # test for keys in submission_statuses
+        for key in self.statuses_animals.keys():
+            if key not in KNOWN_STATUSES:
+                logger.error("Unsupported status '%s' from validation" % key)
+                return False
+
+        for key in self.statuses_samples.keys():
+            if key not in KNOWN_STATUSES:
+                logger.error("Unsupported status '%s' from validation" % key)
+                return False
+
+        # if I arrive here, all validation statuses are handled
+        return True
+
+    def __has_key_in_rules(self, key):
+        """Generic function to test errors in validation rules"""
+
+        if (self.statuses_animals[key] > 0 or
+                self.statuses_samples[key] > 0):
+            return True
+
+        else:
+            return False
+
+    def has_errors_in_rules(self):
+        "Return True if there is any errors in validation rules"""
+
+        return self.__has_key_in_rules('Error')
+
+    def has_warnings_in_rules(self):
+        "Return True if there is any warnings in validation rules"""
+
+        return self.__has_key_in_rules('Warning')
+
+    def has_errors_in_json(self):
+        "Return True if there is any error in JSON"""
+
+        return self.__has_key_in_rules('JSON')
+
+    def create_validation_summary(self):
+        """
+        This function will create ValidationSummary object that will be used
+        on validation_summary view
+        """
+
+        for model_type in ['animal', 'sample']:
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=self.submission_obj, type=model_type)
+
+            if created:
+                logger.debug(
+                    "Created %s validationSummary for %s" % (
+                        model_type, self.submission_obj))
+
+            # reset all_count
+            summary_obj.reset_all_count()
+
+            if model_type == 'animal':
+                messages = self.messages_animals
+                submission_statuses = self.statuses_animals
+
+            # Im cycling with animal and sample type
+            else:
+                messages = self.messages_samples
+                submission_statuses = self.statuses_samples
+
+            summary_obj.submission = self.submission_obj
+
+            # they are counter object, so no Keyerror and returns 0
+            summary_obj.pass_count = submission_statuses['Pass']
+            summary_obj.warning_count = submission_statuses['Warning']
+            summary_obj.error_count = submission_statuses['Error']
+            summary_obj.json_count = submission_statuses['JSON']
+            summary_obj.issues_count = submission_statuses['Issues']
+            summary_obj.validation_known_count = submission_statuses['Known']
+
+            validation_messages = list()
+
+            for message, count in messages.items():
+                validation_messages.append({
+                    'message': message,
+                    'count': count
+                })
+
+            summary_obj.messages = validation_messages
+            summary_obj.type = model_type
+            summary_obj.save()
+
+
 class ValidateTask(MyTask):
     name = "Validate Submission"
     description = """Validate submission data against IMAGE rules"""
@@ -57,6 +170,7 @@ class ValidateTask(MyTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
+    # TODO: extract a generic send_message for all modules which need it
     def send_message(self, status, submission_obj):
         """
         Update submission.status and submission message using django
@@ -115,6 +229,7 @@ class ValidateTask(MyTask):
             email_message,
         )
 
+        # TODO: should this be a common.helpers method?
         if notify_admins:
             # submit mail to admins
             datatuple = (
@@ -221,6 +336,7 @@ class ValidateTask(MyTask):
             return self.ruleset_error_report(exc, submission_obj)
 
         # track global statuses for animals and samples
+        # TODO: we don't need to initilize keys, is a counter object
         submission_statuses_animals = Counter(
             {'Pass': 0,
              'Warning': 0,
@@ -459,13 +575,16 @@ class ValidateTask(MyTask):
             # messages_samples might not exist when doing tests
             if not hasattr(self, 'messages_samples'):
                 self.messages_samples = dict()
+
             for message in comparable_messages:
                 self.messages_samples.setdefault(message, 0)
                 self.messages_samples[message] += 1
+
         elif isinstance(model, Animal):
             # messages_animals might not exist when doing tests
             if not hasattr(self, 'messages_animals'):
                 self.messages_animals = dict()
+
             for message in comparable_messages:
                 self.messages_animals.setdefault(message, 0)
                 self.messages_animals[message] += 1
@@ -518,22 +637,34 @@ class ValidateTask(MyTask):
             submission_statuses_animals: Counter with statuses for animals
             submission_statuses_samples: Counter with statuses for samples
         """
+
         for model_type in ['animal', 'sample']:
             try:
                 validation_summary = ValidationSummary.objects.get(
                     submission=submission_obj, type=model_type)
+
             except ObjectDoesNotExist:
                 validation_summary = ValidationSummary()
+
+            # reset all_count
+            # validation_summary.reset_all_count()
+
             if model_type == 'animal':
                 messages = self.messages_animals
                 submission_statuses = submission_statuses_animals
+
             elif model_type == 'sample':
                 messages = self.messages_samples
                 submission_statuses = submission_statuses_samples
+
+            # TODO: remove this, not supported?
             else:
                 messages = dict()
                 submission_statuses = dict()
+
             validation_summary.submission = submission_obj
+
+            # TODO: they are counter object, so no Keyerror and returns 0
             validation_summary.pass_count = submission_statuses.get('Pass', 0)
             validation_summary.warning_count = submission_statuses.get(
                 'Warning', 0)
@@ -544,12 +675,15 @@ class ValidateTask(MyTask):
                 'Issues', 0)
             validation_summary.validation_known_count = submission_statuses.get(
                 'Known', 0)
+
             validation_messages = list()
+
             for message, count in messages.items():
                 validation_messages.append({
                     'message': message,
                     'count': count
                 })
+
             validation_summary.messages = validation_messages
             validation_summary.type = model_type
             validation_summary.save()

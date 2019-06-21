@@ -23,8 +23,9 @@ from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, Animal, Sample
 
-from ..tasks import ValidateTask, ValidationError
+from ..tasks import ValidateTask, ValidationError, SubmissionData
 from ..helpers import OntologyCacheError, RulesetError
+from ..models import ValidationSummary
 
 
 # https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
@@ -91,6 +92,14 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         # setting tasks
         self.my_task = ValidateTask()
 
+
+class WebSocketMixin(object):
+    """Override setUp to mock websocket objects"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
         # setting channels methods
         self.asyncio_mock_patcher = patch(
             'asyncio.get_event_loop')
@@ -104,6 +113,14 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         self.send_msg_ws_patcher = patch(
             'validation.tasks.send_message_to_websocket')
         self.send_msg_ws = self.send_msg_ws_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.asyncio_mock_patcher.stop()
+        self.send_msg_ws_patcher.stop()
+
+        # calling base methods
+        super().tearDown()
 
     def check_async_called(
             self, message, notification_message, validation_message=None,
@@ -144,16 +161,81 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         self.assertEqual(self.run_until.run_until_complete.call_count, 0)
         self.assertEqual(self.send_msg_ws.call_count, 0)
 
-    def tearDown(self):
-        # stopping mock objects
-        self.asyncio_mock_patcher.stop()
-        self.send_msg_ws_patcher.stop()
 
+class SubmissionDataTest(ValidateSubmissionMixin, TestCase):
+
+    def setUp(self):
         # calling base methods
-        super().tearDown()
+        super().setUp()
+
+        # get a submission data object
+        self.submission_data = SubmissionData(self.submission)
+
+    def test_check_valid_statuses(self):
+        """test validation supporting statuses"""
+
+        self.assertTrue(self.submission_data.check_valid_statuses())
+
+        # set a fake status
+        self.submission_data.statuses_animals['foo'] = 1
+        self.assertFalse(self.submission_data.check_valid_statuses())
+
+        # reset and set sample status status
+        self.submission_data.statuses_animals = Counter()
+        self.submission_data.statuses_samples['foo'] = 1
+        self.assertFalse(self.submission_data.check_valid_statuses())
+
+    def test_has_keys(self):
+        """Test has error, warning, JSON in validation tests"""
+
+        self.assertFalse(self.submission_data.has_errors_in_rules())
+        self.assertFalse(self.submission_data.has_warnings_in_rules())
+        self.assertFalse(self.submission_data.has_errors_in_json())
+
+        # set a fake status
+        self.submission_data.statuses_animals['JSON'] = 1
+        self.submission_data.statuses_animals['Error'] = 1
+        self.submission_data.statuses_samples['Warning'] = 1
+
+        self.assertTrue(self.submission_data.has_errors_in_rules())
+        self.assertTrue(self.submission_data.has_warnings_in_rules())
+        self.assertTrue(self.submission_data.has_errors_in_json())
+
+    def test_create_validation_summary(self):
+        """Create and set validation summary object"""
+
+        # get valdiationsummary objects
+        summary_qs = ValidationSummary.objects.filter(
+            submission=self.submission)
+
+        # wipe out validationsummary objects
+        summary_qs.delete()
+
+        # set up messages
+        self.submission_data.statuses_animals['JSON'] = 1
+        self.submission_data.statuses_animals['Error'] = 1
+        self.submission_data.statuses_samples['Warning'] = 1
+
+        self.submission_data.messages_animals['test json'] = 1
+        self.submission_data.messages_animals['test error'] = 1
+        self.submission_data.messages_samples['test warning'] = 1
+
+        # call function
+        self.submission_data.create_validation_summary()
+
+        # assert I have two objects
+        self.assertTrue(summary_qs.count(), 2)
+
+        # get animal vs
+        animal_summary = summary_qs.get(type="animal")
+        self.assertEqual(animal_summary.all_count, self.n_animals)
+
+        sample_summary = summary_qs.get(type="sample")
+        self.assertEqual(sample_summary.all_count, self.n_samples)
 
 
-class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
+class ValidateSubmissionTest(
+        WebSocketMixin, ValidateSubmissionMixin, TestCase):
 
     def test_on_failure(self):
         """Testing on failure methods"""
