@@ -10,20 +10,20 @@ import io
 import csv
 import logging
 import pycountry
-import asyncio
 
 from collections import defaultdict, namedtuple
 
 from django.utils.dateparse import parse_date
 
-from common.constants import LOADED, ERROR, MISSING, STATUSES
-from common.helpers import image_timedelta, send_message_to_websocket
+from common.constants import LOADED, ERROR, MISSING
+from common.helpers import image_timedelta
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
 from language.helpers import check_species_synonyms
-from validation.helpers import construct_validation_message, \
-    create_validation_summary_object
+from submissions.helpers import send_message
+from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -382,7 +382,6 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
 
         if created:
             logger.debug("Created animal %s" % animal)
-            create_validation_summary_object(submission, 'animal', 1)
 
         else:
             logger.debug("Updating animal %s" % animal)
@@ -468,7 +467,6 @@ def fill_uid_sample(record, sample_name, animal, submission):
 
     if created:
         logger.debug("Created sample %s" % sample)
-        create_validation_summary_object(submission, 'sample', 1)
 
     else:
         logger.debug("Updating sample %s" % sample)
@@ -540,6 +538,30 @@ def upload_crbanim(submission):
         for record in reader.data:
             process_record(record, submission, animals, language)
 
+        # after processing records, initilize validationsummary objects
+        # create a validation summary object and set all_count
+        vs_animal, created = ValidationSummary.objects.get_or_create(
+            submission=submission, type="animal")
+
+        if created:
+            logger.debug(
+                "ValidationSummary animal created for "
+                "submission %s" % submission)
+
+        # reset counts
+        vs_animal.reset_all_count()
+
+        vs_sample, created = ValidationSummary.objects.get_or_create(
+            submission=submission, type="sample")
+
+        if created:
+            logger.debug(
+                "ValidationSummary sample created for "
+                "submission %s" % submission)
+
+        # reset counts
+        vs_sample.reset_all_count()
+
     except Exception as exc:
         # set message:
         message = "Error in importing data: %s" % (str(exc))
@@ -549,15 +571,8 @@ def upload_crbanim(submission):
         submission.message = message
         submission.save()
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(ERROR),
-                    'notification_message': message
-                },
-                submission.id
-            )
-        )
+        # send async message
+        send_message(submission)
 
         # debug
         logger.error("error in importing from crbanim: %s" % (exc))
@@ -572,17 +587,11 @@ def upload_crbanim(submission):
         submission.message = message
         submission.status = LOADED
         submission.save()
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(LOADED),
-                    'notification_message': message,
-                    'validation_message': construct_validation_message(
-                        submission)
-                },
-                submission.id
-            )
-        )
+
+        # send async message
+        send_message(
+            submission,
+            validation_message=construct_validation_message(submission))
 
     logger.info("Import from CRBAnim is complete")
 

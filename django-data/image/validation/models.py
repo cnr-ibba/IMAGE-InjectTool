@@ -9,7 +9,7 @@ Created on Mon Jan 28 11:09:02 2019
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
-from image_app.models import Name
+from image_app.models import Name, Animal, Sample, Submission
 
 
 class ValidationResult(models.Model):
@@ -32,30 +32,50 @@ class ValidationResult(models.Model):
 
 
 class ValidationSummary(models.Model):
-    submission = models.ForeignKey('image_app.Submission',
-                                   on_delete=models.CASCADE)
+    submission = models.ForeignKey(
+        Submission,
+        on_delete=models.CASCADE)
 
-    all_count = models.PositiveIntegerField(default=0)
+    all_count = models.PositiveIntegerField(
+        default=0,
+        help_text="number of all samples or animals in a submission")
+
     validation_known_count = models.PositiveIntegerField(default=0)
-    issues_count = models.PositiveIntegerField(default=0)
+
+    issues_count = models.PositiveIntegerField(
+        default=0,
+        help_text="number of samples or animals with issues in validation")
+
     pass_count = models.PositiveIntegerField(default=0)
     warning_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)
     json_count = models.PositiveIntegerField(default=0)
+
+    # TODO: should this be a ENUM object?
     type = models.CharField(max_length=6, blank=True, null=True)
+
     messages = ArrayField(
         models.TextField(max_length=255, blank=True),
         default=list
     )
 
-    # Returns number of all samples or animals in submission
-    def get_all_count(self):
-        return self.all_count
-
-    # Returns number of samples or animals with unknown validation
     def get_unknown_count(self):
+        """Returns number of samples or animals with unknown validation"""
+
         return self.all_count - self.validation_known_count
 
-    # Returns number of samples or animals with issues in validation
-    def get_issues_count(self):
-        return self.issues_count
+    def reset_all_count(self):
+        """Set all_count column according to Animal/Sample objects"""
+
+        if self.type == "animal":
+            self.all_count = Animal.objects.filter(
+                name__submission=self.submission).count()
+
+        elif self.type == "sample":
+            self.all_count = Sample.objects.filter(
+                name__submission=self.submission).count()
+
+        else:
+            raise Exception("Unknown type %s" % (self.type))
+
+        self.save()

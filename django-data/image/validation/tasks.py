@@ -11,22 +11,20 @@ Useful staff to deal with validation process
 
 import json
 import traceback
-import asyncio
 
 from collections import Counter
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.core.mail import send_mass_mail
-from django.core.exceptions import ObjectDoesNotExist
 
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
-from common.helpers import send_message_to_websocket
 from validation.helpers import construct_validation_message
 from image.celery import app as celery_app, MyTask
 from image_app.helpers import get_admin_emails
 from image_app.models import Submission, Sample, Animal
+from submissions.helpers import send_message
 from validation.models import ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel
@@ -44,6 +42,241 @@ class ValidationError(Exception):
     pass
 
 
+class ValidateSubmission(object):
+    """
+    An helper class for submission task, useful to pass parameters like
+    submission data between tasks"""
+
+    # define my class attributes
+    def __init__(self, submission_obj, ruleset):
+        # track submission object
+        self.submission_obj = submission_obj
+
+        # track ruleset
+        self.ruleset = ruleset
+
+        # collect all unique messages for samples and animals
+        self.messages_animals = Counter()
+        self.messages_samples = Counter()
+
+        # track global statuses for animals and samples
+        # Don't set keys: if you take a key which doesn't exists, you will
+        # get 0 instead of key errors. This is how Counter differ from a
+        # default dictionary object
+        self.statuses_animals = Counter()
+        self.statuses_samples = Counter()
+
+    def check_valid_statuses(self):
+        """Check if validation return with an unsupported status message"""
+
+        # test for keys in model_statuses
+        for key in self.statuses_animals.keys():
+            if key not in KNOWN_STATUSES:
+                logger.error("Unsupported status '%s' from validation" % key)
+                return False
+
+        for key in self.statuses_samples.keys():
+            if key not in KNOWN_STATUSES:
+                logger.error("Unsupported status '%s' from validation" % key)
+                return False
+
+        # if I arrive here, all validation statuses are handled
+        return True
+
+    def __has_key_in_rules(self, key):
+        """Generic function to test errors in validation rules"""
+
+        if (self.statuses_animals[key] > 0 or
+                self.statuses_samples[key] > 0):
+            return True
+
+        else:
+            return False
+
+    def has_errors_in_rules(self):
+        "Return True if there is any errors in validation rules"""
+
+        return self.__has_key_in_rules('Error')
+
+    def has_warnings_in_rules(self):
+        "Return True if there is any warnings in validation rules"""
+
+        return self.__has_key_in_rules('Warning')
+
+    def has_errors_in_json(self):
+        "Return True if there is any error in JSON"""
+
+        return self.__has_key_in_rules('JSON')
+
+    def validate_model(self, model):
+        logger.debug("Validating %s" % (model))
+
+        # thsi could be animal or sample
+        if isinstance(model, Sample):
+            model_statuses = self.statuses_samples
+
+        elif isinstance(model, Animal):
+            model_statuses = self.statuses_animals
+
+        # get data in biosample format
+        data = model.to_biosample()
+
+        # input is a list object
+        usi_result = self.ruleset.check_usi_structure([data])
+
+        # if I have errors here, JSON isn't valid: this is not an error
+        # on user's data but on InjectTool itself
+        if len(usi_result) > 0:
+            # update counter for JSON
+            model_statuses.update({'JSON': len(usi_result)})
+            model_statuses.update(['Issues', 'Known'])
+
+            # update model results
+            self.mark_model(model, usi_result, NEED_REVISION)
+
+            # It make no sense continue validation since JSON is wrong
+            return
+
+        # no check_duplicates: it checks against alias (that is a pk)
+        # HINT: improve check_duplicates or implement database constraints
+
+        # check against image metadata
+        ruleset_result = self.ruleset.validate(data)
+
+        # update status and track data in a overall variable
+        self.update_statuses(model_statuses, model, ruleset_result)
+
+    # inspired from validation.deal_with_validation_results
+    def update_statuses(self, model_statuses, model, result):
+        # get overall status (ie Pass, Error)
+        overall = result.get_overall_status()
+
+        # set model as valid even if has some warnings
+        if overall in ["Pass", "Warning"]:
+            self.mark_model(model, result, READY)
+
+        else:
+            model_statuses['Issues'] += 1
+            self.mark_model(model, result, NEED_REVISION)
+
+        # update a collections.Counter objects by key
+        model_statuses.update({overall})
+        model_statuses['Known'] += 1
+
+    def mark_model(self, model, result, status):
+        """Set status to a model and instantiate a ValidationResult obj"""
+
+        if isinstance(result, list):
+            messages = result
+            comparable_messages = result
+            overall_status = "Wrong JSON structure"
+
+        else:
+            messages = result.get_messages()
+
+            # get comparable messages for batch update
+            comparable_messages = list()
+            for result_set in result.result_set:
+                comparable_messages.append(result_set.get_comparable_str())
+            overall_status = result.get_overall_status()
+
+        # Save all messages for validation summary
+        if isinstance(model, Sample):
+            for message in comparable_messages:
+                # messages_samples iss a counter object
+                self.messages_samples.update({message})
+
+        # is as an animal object
+        elif isinstance(model, Animal):
+            for message in comparable_messages:
+                self.messages_animals.update({message})
+
+        # get a validation result model or create a new one
+        if hasattr(model.name, 'validationresult'):
+            validationresult = model.name.validationresult
+
+        else:
+            validationresult = ValidationResultModel()
+            model.name.validationresult = validationresult
+
+        # setting valdiationtool results and save
+        validationresult.messages = messages
+        validationresult.status = overall_status
+        validationresult.save()
+
+        # ok, don't update Name statuses for submitted objects which
+        # already are in biosamples and pass validation
+        if model.name.status == COMPLETED and status == READY:
+            logger.debug(
+                "Ignoring %s: status was '%s' and validation is OK" % (
+                    model, key2status[model.name.status]))
+
+        else:
+            logger.debug(
+                "Marking %s with '%s' status (%s)" % (
+                    model, key2status[status], messages))
+
+            # update model status and save
+            model.name.status = status
+            model.name.save()
+
+    def create_validation_summary(self):
+        """
+        This function will create ValidationSummary object that will be used
+        on validation_summary view
+        """
+
+        for model_type in ['animal', 'sample']:
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=self.submission_obj, type=model_type)
+
+            if created:
+                logger.debug(
+                    "Created %s validationSummary for %s" % (
+                        model_type, self.submission_obj))
+
+            # reset all_count
+            summary_obj.reset_all_count()
+
+            if model_type == 'animal':
+                messages = self.messages_animals
+                model_statuses = self.statuses_animals
+
+            # Im cycling with animal and sample type
+            else:
+                messages = self.messages_samples
+                model_statuses = self.statuses_samples
+
+            summary_obj.submission = self.submission_obj
+
+            # they are counter object, so no Keyerror and returns 0
+            summary_obj.pass_count = model_statuses['Pass']
+            summary_obj.warning_count = model_statuses['Warning']
+            summary_obj.error_count = model_statuses['Error']
+            summary_obj.json_count = model_statuses['JSON']
+            summary_obj.issues_count = model_statuses['Issues']
+            summary_obj.validation_known_count = model_statuses['Known']
+
+            validation_messages = list()
+
+            for message, count in messages.items():
+                validation_messages.append({
+                    'message': message,
+                    'count': count
+                })
+
+            summary_obj.messages = validation_messages
+            summary_obj.type = model_type
+            summary_obj.save()
+
+        logger.debug(
+            "Results for submission %s: animals - %s, samples - %s" % (
+                self.submission_obj,
+                dict(self.statuses_animals),
+                dict(self.statuses_samples))
+        )
+
+
 class ValidateTask(MyTask):
     name = "Validate Submission"
     description = """Validate submission data against IMAGE rules"""
@@ -57,28 +290,20 @@ class ValidateTask(MyTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
-    def send_message(self, status, submission_obj):
+    # TODO: extract a generic send_message for all modules which need it
+    def send_message(self, submission_obj):
         """
         Update submission.status and submission message using django
         channels
 
         Args:
-            status (int): a :py:class:`common.constants.STATUSES` object
             submission_obj (image_app.models.Submission): an UID submission
             object
         """
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(status),
-                    'notification_message': submission_obj.message,
-                    'validation_message': construct_validation_message(
-                            submission_obj)
-                },
-                submission_obj.pk
-            )
-        )
+        send_message(
+            submission_obj,
+            validation_message=construct_validation_message(submission_obj))
 
     def __generic_error_report(
             self, submission_obj, status, message, notify_admins=False):
@@ -99,7 +324,7 @@ class ValidateTask(MyTask):
         submission_obj.message = message
         submission_obj.save()
 
-        self.send_message(status, submission_obj)
+        self.send_message(submission_obj)
 
         # get exception info
         einfo = traceback.format_exc()
@@ -115,6 +340,7 @@ class ValidateTask(MyTask):
             email_message,
         )
 
+        # TODO: should this be a common.helpers method?
         if notify_admins:
             # submit mail to admins
             datatuple = (
@@ -202,10 +428,6 @@ class ValidateTask(MyTask):
 
         logger.info("Validate Submission started")
 
-        # collect all unique messages for samples and animals
-        self.messages_samples = dict()
-        self.messages_animals = dict()
-
         # get submissio object
         submission_obj = Submission.objects.get(pk=submission_id)
 
@@ -220,31 +442,17 @@ class ValidateTask(MyTask):
         except RulesetError as exc:
             return self.ruleset_error_report(exc, submission_obj)
 
-        # track global statuses for animals and samples
-        submission_statuses_animals = Counter(
-            {'Pass': 0,
-             'Warning': 0,
-             'Error': 0,
-             'JSON': 0,
-             'Issues': 0,
-             'Known': 0})
-
-        submission_statuses_samples = Counter(
-            {'Pass': 0,
-             'Warning': 0,
-             'Error': 0,
-             'JSON': 0,
-             'Issues': 0,
-             'Known': 0})
+        # get a submission data helper instance
+        validate_submission = ValidateSubmission(submission_obj, self.ruleset)
 
         try:
             for animal in Animal.objects.filter(
                     name__submission=submission_obj).order_by('id'):
-                self.validate_model(animal, submission_statuses_animals)
+                validate_submission.validate_model(animal)
 
             for sample in Sample.objects.filter(
                     name__submission=submission_obj).order_by('id'):
-                self.validate_model(sample, submission_statuses_samples)
+                validate_submission.validate_model(sample)
 
         # TODO: errors in validation should raise custom exception
         except json.decoder.JSONDecodeError as exc:
@@ -253,306 +461,104 @@ class ValidateTask(MyTask):
         except Exception as exc:
             raise self.retry(exc=exc)
 
-        # test for keys in submission_statuses
-        statuses_animals = sorted(submission_statuses_animals.keys())
-        statuses_samples = sorted(submission_statuses_samples.keys())
-
         # if error messages changes in IMAGE-ValidationTool, all this
         # stuff isn't valid and I throw an exception
 
-        if statuses_animals != KNOWN_STATUSES or statuses_samples != \
-                KNOWN_STATUSES:
-            message = "Error in statuses for submission %s: animals - %s, " \
-                      "samples - %s" % (submission_obj, statuses_animals,
-                                        statuses_samples)
+        if not validate_submission.check_valid_statuses():
+            message = (
+                "Unsupported validation status for submission %s" % (
+                    submission_obj))
 
             # debug: print error in log
             logger.error(message)
 
+            # create validation summary
+            validate_submission.create_validation_summary()
+
             # mark submission with ERROR (this is not related to user data)
             # calling the appropriate method passing ERROR as status
-            self.create_validation_summary(submission_obj,
-                                           submission_statuses_animals,
-                                           submission_statuses_samples)
             self.submission_fail(submission_obj, message, status=ERROR)
 
             # raise an exception since is an InjectTool issue
             raise ValidationError(message)
 
         # If I have any error in JSON is a problem of injectool
-        if self.has_errors_in_json(submission_statuses_animals) or \
-                self.has_errors_in_json(submission_statuses_samples):
+        if validate_submission.has_errors_in_json():
+            # create validation summary
+            validate_submission.create_validation_summary()
+
             # mark submission with NEED_REVISION
-            self.create_validation_summary(submission_obj,
-                                           submission_statuses_animals,
-                                           submission_statuses_samples)
             self.submission_fail(submission_obj, "Wrong JSON structure")
 
             # debug
             logger.warning(
                 "Wrong JSON structure for submission %s" % (submission_obj))
 
-            logger.debug(
-                "Results for submission %s: animals - %s, samples - %s" % (
-                    submission_id, submission_statuses_animals,
-                    submission_statuses_samples)
-            )
-
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will
         # return a message and I will set NEED_REVISION
-        elif self.has_errors_in_rules(submission_statuses_animals) or \
-                self.has_errors_in_rules(submission_statuses_samples):
+        elif validate_submission.has_errors_in_rules():
+            # create validation summary
+            validate_submission.create_validation_summary()
+
             message = (
                 "Error in metadata. Need revisions before submit")
 
             # mark submission with NEED_REVISION
-            self.create_validation_summary(submission_obj,
-                                           submission_statuses_animals,
-                                           submission_statuses_samples)
             self.submission_fail(submission_obj, message)
 
             logger.warning(
                 "Error in metadata for submission %s" % (submission_obj))
 
-            logger.debug(
-                "Results for submission %s: animals - %s, samples - %s" % (
-                    submission_id, submission_statuses_animals,
-                    submission_statuses_samples)
-            )
-
         # WOW: I can submit those data
-        elif self.has_warnings_in_rules(submission_statuses_animals) or \
-                self.has_warnings_in_rules(submission_statuses_samples):
-            submission_obj.status = READY
-            submission_obj.message = "Submission validated with some warnings"
-            submission_obj.save()
-            self.create_validation_summary(submission_obj,
-                                           submission_statuses_animals,
-                                           submission_statuses_samples)
+        elif validate_submission.has_warnings_in_rules():
+            # create validation summary
+            validate_submission.create_validation_summary()
 
-            # send message with channel
-            self.send_message(READY, submission_obj)
+            message = "Submission validated with some warnings"
+
+            # mark submission with READY status
+            self.submission_ready(submission_obj, message)
 
             logger.info(
                 "Submission %s validated with some warning" % (submission_obj))
 
-            logger.debug(
-                "Results for submission %s: animals - %s, samples - %s" % (
-                    submission_id, submission_statuses_animals,
-                    submission_statuses_samples)
-            )
-
         else:
-            submission_obj.status = READY
-            submission_obj.message = "Submission validated with success"
-            submission_obj.save()
-            self.create_validation_summary(submission_obj,
-                                           submission_statuses_animals,
-                                           submission_statuses_samples)
+            # create validation summary
+            validate_submission.create_validation_summary()
 
-            # send message with channel
-            self.send_message(READY, submission_obj)
+            message = "Submission validated with success"
+
+            # mark submission with READY status
+            self.submission_ready(submission_obj, message)
 
             logger.info(
                 "Submission %s validated with success" % (submission_obj))
-
-            logger.debug(
-                "Results for submission %s: animals - %s, samples - %s" % (
-                    submission_id, submission_statuses_animals,
-                    submission_statuses_samples)
-            )
 
         logger.info("Validate Submission completed")
 
         return "success"
 
-    def validate_model(self, model, submission_statuses):
-        logger.debug("Validating %s" % (model))
+    def __mark_submission(self, submission_obj, message, status):
+        """Mark submission with status and message"""
 
-        # get data in biosample format
-        data = model.to_biosample()
+        submission_obj.status = status
+        submission_obj.message = message
+        submission_obj.save()
 
-        # input is a list object
-        usi_result = self.ruleset.check_usi_structure([data])
-
-        # if I have errors here, JSON isn't valid: this is not an error
-        # on user's data but on InjectTool itself
-        if len(usi_result) > 0:
-            # update counter for JSON
-            submission_statuses.update({'JSON': len(usi_result)})
-            submission_statuses['Issues'] += 1
-            submission_statuses['Known'] += 1
-
-            # update model results
-            self.mark_model(model, usi_result, NEED_REVISION)
-
-            # It make no sense continue validation since JSON is wrong
-            return
-
-        # no check_duplicates: it checks against alias (that is a pk)
-        # HINT: improve check_duplicates or implement database constraints
-
-        # check against image metadata
-        ruleset_result = self.ruleset.validate(data)
-
-        # update status and track data in a overall variable
-        self.update_statuses(submission_statuses, model, ruleset_result)
-
-    # inspired from validation.deal_with_validation_results
-    def update_statuses(self, submission_statuses, model, result):
-        # get overall status (ie Pass, Error)
-        overall = result.get_overall_status()
-
-        # set model as valid even if has some warnings
-        if overall in ["Pass", "Warning"]:
-            self.mark_model(model, result, READY)
-            if overall == 'Warning':
-                submission_statuses['Issues'] += 1
-        else:
-            submission_statuses['Issues'] += 1
-            self.mark_model(model, result, NEED_REVISION)
-
-        # update a collections.Counter objects by key
-        submission_statuses.update({overall})
-        submission_statuses['Known'] += 1
-
-    def has_errors_in_rules(self, submission_statuses):
-        "Return True if there is any errors"""
-
-        if submission_statuses["Error"] != 0:
-            return True
-        else:
-            return False
-
-    def has_warnings_in_rules(self, submission_statuses):
-        "Return True if there is any warnings"""
-
-        if submission_statuses["Warning"] != 0:
-            return True
-        else:
-            return False
-
-    def has_errors_in_json(self, submission_statuses):
-        "Return True if there is any error in JSON"""
-
-        return submission_statuses["JSON"] > 0
-
-    def mark_model(self, model, result, status):
-        """Set status to a model and instantiate a ValidationResult obj"""
-
-        if isinstance(result, list):
-            messages = result
-            comparable_messages = result
-            overall_status = "Wrong JSON structure"
-
-        else:
-            messages = result.get_messages()
-            # get comparable messages for batch update
-            comparable_messages = list()
-            for result_set in result.result_set:
-                comparable_messages.append(result_set.get_comparable_str())
-            overall_status = result.get_overall_status()
-
-        # Save all messages for validation summary
-        if isinstance(model, Sample):
-            # messages_samples might not exist when doing tests
-            if not hasattr(self, 'messages_samples'):
-                self.messages_samples = dict()
-            for message in comparable_messages:
-                self.messages_samples.setdefault(message, 0)
-                self.messages_samples[message] += 1
-        elif isinstance(model, Animal):
-            # messages_animals might not exist when doing tests
-            if not hasattr(self, 'messages_animals'):
-                self.messages_animals = dict()
-            for message in comparable_messages:
-                self.messages_animals.setdefault(message, 0)
-                self.messages_animals[message] += 1
-
-        # get a validation result model or create a new one
-        if hasattr(model.name, 'validationresult'):
-            validationresult = model.name.validationresult
-
-        else:
-            validationresult = ValidationResultModel()
-            model.name.validationresult = validationresult
-
-        # setting valdiationtool results and save
-        validationresult.messages = messages
-        validationresult.status = overall_status
-        validationresult.save()
-
-        # ok, don't update Name statuses for submitted objects which
-        # already are in biosamples and pass validation
-        if model.name.status == COMPLETED and status == READY:
-            logger.debug(
-                "Ignoring %s: status was '%s' and validation is OK" % (
-                    model, key2status[model.name.status]))
-
-        else:
-            logger.debug(
-                "Marking %s with '%s' status (%s)" % (
-                    model, key2status[status], messages))
-
-            # update model status and save
-            model.name.status = status
-            model.name.save()
+        self.send_message(submission_obj)
 
     def submission_fail(self, submission_obj, message, status=NEED_REVISION):
         """Mark a submission with NEED_REVISION status"""
 
-        submission_obj.status = status
-        submission_obj.message = ("Validation got errors: %s" % (message))
-        submission_obj.save()
-        self.send_message(status, submission_obj)
+        # ovverride message
+        message = ("Validation got errors: %s" % (message))
+        self.__mark_submission(submission_obj, message, status)
 
-    def create_validation_summary(self, submission_obj,
-                                  submission_statuses_animals,
-                                  submission_statuses_samples):
-        """
-        This function will create ValidationSummary object that will be used
-        on validation_summary view
-        Args:
-            submission_obj: submission ref which has gone through validation
-            submission_statuses_animals: Counter with statuses for animals
-            submission_statuses_samples: Counter with statuses for samples
-        """
-        for model_type in ['animal', 'sample']:
-            try:
-                validation_summary = ValidationSummary.objects.get(
-                    submission=submission_obj, type=model_type)
-            except ObjectDoesNotExist:
-                validation_summary = ValidationSummary()
-            if model_type == 'animal':
-                messages = self.messages_animals
-                submission_statuses = submission_statuses_animals
-            elif model_type == 'sample':
-                messages = self.messages_samples
-                submission_statuses = submission_statuses_samples
-            else:
-                messages = dict()
-                submission_statuses = dict()
-            validation_summary.submission = submission_obj
-            validation_summary.pass_count = submission_statuses.get('Pass', 0)
-            validation_summary.warning_count = submission_statuses.get(
-                'Warning', 0)
-            validation_summary.error_count = submission_statuses.get(
-                'Error', 0)
-            validation_summary.json_count = submission_statuses.get('JSON', 0)
-            validation_summary.issues_count = submission_statuses.get(
-                'Issues', 0)
-            validation_summary.validation_known_count = submission_statuses.get(
-                'Known', 0)
-            validation_messages = list()
-            for message, count in messages.items():
-                validation_messages.append({
-                    'message': message,
-                    'count': count
-                })
-            validation_summary.messages = validation_messages
-            validation_summary.type = model_type
-            validation_summary.save()
+    def submission_ready(self, submission_obj, message):
+        """Mark a submission with READY status"""
+
+        self.__mark_submission(submission_obj, message, READY)
 
 
 # register explicitly tasks
