@@ -27,17 +27,11 @@ from image_app.models import Submission, Person, Name, Animal, Sample
 from ..tasks import ValidateTask, ValidationError, ValidateSubmission
 from ..helpers import OntologyCacheError, RulesetError
 from ..models import ValidationSummary
+from .common import PickableMock, MetaDataValidationTestMixin
 
 
-# https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
-class PickableMock(Mock):
-    """Provide a __reduce__ method to allow pickling mock objects"""
-
-    def __reduce__(self):
-        return (Mock, ())
-
-
-class ValidateSubmissionMixin(PersonMixinTestCase):
+class ValidateSubmissionMixin(
+        PersonMixinTestCase, MetaDataValidationTestMixin):
     """A mixin to define common stuff for testing data validation"""
 
     # an attribute for PersonMixinTestCase
@@ -90,26 +84,8 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         self.n_animals = self.animal_qs.count()
         self.n_samples = self.sample_qs.count()
 
-        # mocking up image_validation methods
-        self.read_in_ruleset_patcher = patch(
-            "validation.tasks.MetaDataValidation.read_in_ruleset")
-        self.read_in_ruleset = self.read_in_ruleset_patcher.start()
-
-        self.check_ruleset_patcher = patch(
-            "validation.helpers.validation.check_ruleset")
-        self.check_ruleset = self.check_ruleset_patcher.start()
-        self.check_ruleset.return_value = []
-
         # setting tasks
         self.my_task = ValidateTask()
-
-    def tearDown(self):
-        # stopping mock objects
-        self.read_in_ruleset_patcher.stop()
-        self.check_ruleset_patcher.stop()
-
-        # calling base methods
-        super().tearDown()
 
 
 class CustomWebSocketMixin(WebSocketMixin):
