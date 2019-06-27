@@ -425,8 +425,11 @@ class ValidateTaskTest(
         """Test a valid submission. Simulate image_validation result and
         status changes"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         validation_result = Mock()
@@ -490,13 +493,30 @@ class ValidateTaskTest(
             self, my_validate, my_check):
         """Test an error in JSON format"""
 
-        # assign a fake response for check_usi_structure
-        usi_result = [
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        messages = [
             ('Wrong JSON structure: no title field for record with '
              'alias as animal_1'),
             ('Wrong JSON structure: the values for attribute Person '
              'role needs to be in an array for record animal_1')
         ]
+
+        usi_result = ValidationResultRecord("animal_1")
+        usi_result.add_validation_result_column(
+            ValidationResultColumn(
+                "error",
+                messages[0],
+                "animal_1",
+                "")
+        )
+        usi_result.add_validation_result_column(
+            ValidationResultColumn(
+                "error",
+                messages[1],
+                "animal_1",
+                "")
+        )
+
         my_check.return_value = usi_result
 
         # setting a return value for check_with_ruleset
@@ -525,9 +545,9 @@ class ValidateTaskTest(
 
             # test for model message (usi_results)
             self.assertEqual(
-                name.validationresult.messages, usi_result)
+                name.validationresult.messages, usi_result.get_messages())
             self.assertEqual(
-                    name.validationresult.status, "Wrong JSON structure")
+                name.validationresult.status, usi_result.get_overall_status())
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(my_check.called)
@@ -555,8 +575,11 @@ class ValidateTaskTest(
         """This test will ensure that image_validation ValidationResultRecord
         still support the same statuses"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         rule_result = PickableMock()
@@ -612,8 +635,11 @@ class ValidateTaskTest(
             self, my_validate, my_check):
         """A submission with warnings is a READY submission"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
@@ -711,8 +737,11 @@ class ValidateTaskTest(
             self, my_validate, my_check):
         """A submission with errors is a NEED_REVISION submission"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")

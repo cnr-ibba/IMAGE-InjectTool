@@ -126,12 +126,14 @@ class ValidateSubmission(object):
 
         # if I have errors here, JSON isn't valid: this is not an error
         # on user's data but on InjectTool itself
-        if len(usi_result) > 0:
+        if usi_result.get_overall_status() != 'Pass':
             # update counter for JSON
-            model_statuses.update({'JSON': len(usi_result)})
-            model_statuses.update(['Issues', 'Known'])
+            model_statuses.update(['JSON'])
+            model_statuses.update(['Issues'])
+            model_statuses.update(['Known'])
 
             # update model results
+            # TODO: should I force the 'wrong JSON structure' message?
             self.mark_model(model, usi_result, NEED_REVISION)
 
             # It make no sense continue validation since JSON is wrong
@@ -166,6 +168,7 @@ class ValidateSubmission(object):
     def mark_model(self, model, result, status):
         """Set status to a model and instantiate a ValidationResult obj"""
 
+        # TODO: remove - No more called
         if isinstance(result, list):
             messages = result
             comparable_messages = result
@@ -290,7 +293,7 @@ class ValidateTask(MyTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
-    # TODO: extract a generic send_message for all modules which need it
+    # extract a generic send_message for all modules which need it
     def send_message(self, submission_obj):
         """
         Update submission.status and submission message using django

@@ -46,7 +46,6 @@ class MetaDataValidation():
 
         # check validation rules
         result = self.check_ruleset()
-        ruleset_errors = self.check_ruleset()
 
         if result.get_overall_status() != 'Pass':
             ruleset_errors = result.get_messages()
