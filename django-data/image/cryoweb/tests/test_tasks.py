@@ -49,7 +49,7 @@ class ImportCryowebTest(TestCase):
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
-    @patch('cryoweb.helpers.send_message_to_websocket')
+    @patch('submissions.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
     @patch("cryoweb.helpers.cryoweb_has_data", return_value=True)
     @patch("cryoweb.tasks.truncate_database")

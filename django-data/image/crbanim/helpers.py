@@ -10,18 +10,18 @@ import io
 import csv
 import logging
 import pycountry
-import asyncio
 
 from collections import defaultdict, namedtuple
 
 from django.utils.dateparse import parse_date
 
-from common.constants import LOADED, ERROR, MISSING, STATUSES
-from common.helpers import image_timedelta, send_message_to_websocket
+from common.constants import LOADED, ERROR, MISSING
+from common.helpers import image_timedelta
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
 from language.helpers import check_species_synonyms
+from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 
@@ -32,37 +32,6 @@ logger = logging.getLogger(__name__)
 # A class to deal with cryoweb import errors
 class CRBAnimImportError(Exception):
     pass
-
-
-def send_message(submission_obj, send_validation=False):
-    """
-    Update submission.status and submission message using django
-    channels
-
-    Args:
-        submission_obj (image_app.models.Submission): an UID submission
-        object
-        send_validation (bool): send validation message or not
-    """
-
-    # define a message to send
-    message = {
-        'message': STATUSES.get_value_display(submission_obj.status),
-        'notification_message': submission_obj.message,
-    }
-
-    # if validation message is needed, add to the final message
-    if send_validation:
-        message['validation_message'] = construct_validation_message(
-            submission_obj)
-
-    # now send the message to its submission
-    asyncio.get_event_loop().run_until_complete(
-        send_message_to_websocket(
-            message,
-            submission_obj.pk
-        )
-    )
 
 
 class CRBAnimReader():
@@ -620,7 +589,9 @@ def upload_crbanim(submission):
         submission.save()
 
         # send async message
-        send_message(submission, send_validation=True)
+        send_message(
+            submission,
+            validation_message=construct_validation_message(submission))
 
     logger.info("Import from CRBAnim is complete")
 

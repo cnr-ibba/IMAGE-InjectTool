@@ -20,6 +20,7 @@ from django.core import mail
 from django.test import TestCase
 
 from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
+from common.tests import WebSocketMixin
 from common.tests import PersonMixinTestCase
 from image_app.models import Submission, Person, Name, Animal, Sample
 
@@ -111,34 +112,8 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         super().tearDown()
 
 
-class WebSocketMixin(object):
+class CustomWebSocketMixin(WebSocketMixin):
     """Override setUp to mock websocket objects"""
-
-    def setUp(self):
-        # calling my base class setup
-        super().setUp()
-
-        # setting channels methods
-        self.asyncio_mock_patcher = patch(
-            'asyncio.get_event_loop')
-        self.asyncio_mock = self.asyncio_mock_patcher.start()
-
-        # mocking asyncio return value
-        self.run_until = self.asyncio_mock.return_value
-        self.run_until.run_until_complete = Mock()
-
-        # another patch
-        self.send_msg_ws_patcher = patch(
-            'validation.tasks.send_message_to_websocket')
-        self.send_msg_ws = self.send_msg_ws_patcher.start()
-
-    def tearDown(self):
-        # stopping mock objects
-        self.asyncio_mock_patcher.stop()
-        self.send_msg_ws_patcher.stop()
-
-        # calling base methods
-        super().tearDown()
 
     def check_async_called(
             self, message, notification_message, validation_message=None,
@@ -254,7 +229,7 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
 
 
 class ValidateTaskTest(
-        WebSocketMixin, ValidateSubmissionMixin, TestCase):
+        CustomWebSocketMixin, ValidateSubmissionMixin, TestCase):
 
     def setUp(self):
         # calling base methods

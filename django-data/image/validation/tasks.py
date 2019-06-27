@@ -11,7 +11,6 @@ Useful staff to deal with validation process
 
 import json
 import traceback
-import asyncio
 
 from collections import Counter
 from celery.utils.log import get_task_logger
@@ -21,11 +20,11 @@ from django.core.mail import send_mass_mail
 
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
-from common.helpers import send_message_to_websocket
 from validation.helpers import construct_validation_message
 from image.celery import app as celery_app, MyTask
 from image_app.helpers import get_admin_emails
 from image_app.models import Submission, Sample, Animal
+from submissions.helpers import send_message
 from validation.models import ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel
@@ -292,28 +291,19 @@ class ValidateTask(MyTask):
     # example, a base Task class that caches a database connection
 
     # TODO: extract a generic send_message for all modules which need it
-    def send_message(self, status, submission_obj):
+    def send_message(self, submission_obj):
         """
         Update submission.status and submission message using django
         channels
 
         Args:
-            status (int): a :py:class:`common.constants.STATUSES` object
             submission_obj (image_app.models.Submission): an UID submission
             object
         """
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(status),
-                    'notification_message': submission_obj.message,
-                    'validation_message': construct_validation_message(
-                            submission_obj)
-                },
-                submission_obj.pk
-            )
-        )
+        send_message(
+            submission_obj,
+            validation_message=construct_validation_message(submission_obj))
 
     def __generic_error_report(
             self, submission_obj, status, message, notify_admins=False):
@@ -334,7 +324,7 @@ class ValidateTask(MyTask):
         submission_obj.message = message
         submission_obj.save()
 
-        self.send_message(status, submission_obj)
+        self.send_message(submission_obj)
 
         # get exception info
         einfo = traceback.format_exc()
@@ -556,7 +546,7 @@ class ValidateTask(MyTask):
         submission_obj.message = message
         submission_obj.save()
 
-        self.send_message(status, submission_obj)
+        self.send_message(submission_obj)
 
     def submission_fail(self, submission_obj, message, status=NEED_REVISION):
         """Mark a submission with NEED_REVISION status"""

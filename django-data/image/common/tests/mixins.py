@@ -9,6 +9,8 @@ Created on Wed Mar 27 14:34:02 2019
 import os
 import shutil
 
+from unittest.mock import patch, Mock
+
 from django.urls import reverse
 from django.test import Client
 from django.contrib.messages import get_messages
@@ -152,3 +154,55 @@ class PersonMixinTestCase(object):
         person.role_id = 1
         person.initials = "T"
         person.save()
+
+
+class WebSocketMixin(object):
+    """Override setUp to mock websocket objects"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # setting channels methods
+        self.asyncio_mock_patcher = patch(
+            'asyncio.get_event_loop')
+        self.asyncio_mock = self.asyncio_mock_patcher.start()
+
+        # mocking asyncio return value
+        self.run_until = self.asyncio_mock.return_value
+        self.run_until.run_until_complete = Mock()
+
+        # another patch
+        self.send_msg_ws_patcher = patch(
+            'submissions.helpers.send_message_to_websocket')
+        self.send_msg_ws = self.send_msg_ws_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.asyncio_mock_patcher.stop()
+        self.send_msg_ws_patcher.stop()
+
+        # calling base methods
+        super().tearDown()
+
+    def check_message(
+            self, message, notification_message, validation_message=None,
+            pk=1):
+        """assert message to websocket called with parameters"""
+
+        # construct message according parameters
+        message = {
+            'message': message,
+            'notification_message': notification_message
+        }
+
+        # in case of successful data upload, a validation message is sent
+        if validation_message:
+            message['validation_message'] = validation_message
+
+        self.assertEqual(self.asyncio_mock.call_count, 1)
+        self.assertEqual(self.run_until.run_until_complete.call_count, 1)
+        self.assertEqual(self.send_msg_ws.call_count, 1)
+        self.send_msg_ws.assert_called_with(
+            message,
+            pk)

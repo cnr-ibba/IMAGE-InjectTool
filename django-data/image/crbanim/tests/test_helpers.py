@@ -9,12 +9,13 @@ Created on Fri Feb 22 15:49:18 2019
 import os
 import logging
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from collections import namedtuple
 
 from django.test import TestCase
 
 from common.constants import ERROR, LOADED
+from common.tests import WebSocketMixin
 from image_app.models import (
     Submission, db_has_data, DictSpecie, DictSex, DictBreed, Name, Animal,
     Sample, DictUberon, DictCountry)
@@ -23,58 +24,6 @@ from ..helpers import (
     logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
     fill_uid_animal, fill_uid_sample, find_storage_type)
 from .common import BaseTestCase
-
-
-class WebSocketMixin(object):
-    """Override setUp to mock websocket objects"""
-
-    def setUp(self):
-        # calling my base class setup
-        super().setUp()
-
-        # setting channels methods
-        self.asyncio_mock_patcher = patch(
-            'asyncio.get_event_loop')
-        self.asyncio_mock = self.asyncio_mock_patcher.start()
-
-        # mocking asyncio return value
-        self.run_until = self.asyncio_mock.return_value
-        self.run_until.run_until_complete = Mock()
-
-        # another patch
-        self.send_msg_ws_patcher = patch(
-            'crbanim.helpers.send_message_to_websocket')
-        self.send_msg_ws = self.send_msg_ws_patcher.start()
-
-    def tearDown(self):
-        # stopping mock objects
-        self.asyncio_mock_patcher.stop()
-        self.send_msg_ws_patcher.stop()
-
-        # calling base methods
-        super().tearDown()
-
-    def check_message(
-            self, message, notification_message, validation_message=None,
-            pk=1):
-        """assert message to websocket called with parameters"""
-
-        # construct message according parameters
-        message = {
-            'message': message,
-            'notification_message': notification_message
-        }
-
-        # in case of successful data upload, a validation message is sent
-        if validation_message:
-            message['validation_message'] = validation_message
-
-        self.assertEqual(self.asyncio_mock.call_count, 1)
-        self.assertEqual(self.run_until.run_until_complete.call_count, 1)
-        self.assertEqual(self.send_msg_ws.call_count, 1)
-        self.send_msg_ws.assert_called_with(
-            message,
-            pk)
 
 
 class CRBAnimMixin(WebSocketMixin):
