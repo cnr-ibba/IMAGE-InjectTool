@@ -194,7 +194,7 @@ You will also to check file permissions in django data, expecially for `media`
 folder:
 
 ```
-$ docker-compose run --rm uwsgi sh -c 'mkdir /var/uwsgi/image/media'
+$ docker-compose run --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/media'
 $ docker-compose run --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
 $ docker-compose run --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
 $ docker-compose run --rm uwsgi sh -c 'chgrp -R www-data .'
