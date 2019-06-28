@@ -20,11 +20,11 @@ from django.core.mail import send_mass_mail
 
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
-from validation.helpers import construct_validation_message
+from common.helpers import get_admin_emails
 from image.celery import app as celery_app, MyTask
-from image_app.helpers import get_admin_emails
 from image_app.models import Submission, Sample, Animal
 from submissions.helpers import send_message
+from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel

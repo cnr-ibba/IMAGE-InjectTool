@@ -21,14 +21,14 @@ from django.conf import settings
 from django.utils import timezone
 
 from image.celery import app as celery_app, MyTask
+from image_app.helpers import parse_image_alias, get_model_object
 from image_app.models import Submission, Animal
 from common.tasks import redis_lock
 from common.constants import (
     ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
 from common.helpers import send_message_to_websocket
 
-from .helpers import (
-    get_auth, get_manager_auth, parse_image_alias, get_model_object)
+from .helpers import get_auth, get_manager_auth
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)

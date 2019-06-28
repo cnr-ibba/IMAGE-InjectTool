@@ -10,7 +10,7 @@ import subprocess
 
 from django import template
 
-from ..helpers import get_admin_emails
+from common.helpers import get_admin_emails
 
 register = template.Library()
 

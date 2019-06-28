@@ -14,8 +14,8 @@ from common.fields import ProtectedFileField
 from common.constants import (
     OBO_URL, STATUSES, CONFIDENCES, NAME_STATUSES, ACCURACIES, WAITING, LOADED,
     MISSING, DATA_TYPES, TIME_UNITS)
+from common.helpers import format_attribute
 
-from .helpers import format_attribute
 from .mixins import BaseMixin, BioSampleMixin
 
 # Get an instance of a logger

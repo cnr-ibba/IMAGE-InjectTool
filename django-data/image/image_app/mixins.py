@@ -15,8 +15,7 @@ from django.db import connections
 from django.utils import timezone
 
 from common.constants import STATUSES
-
-from .helpers import format_attribute
+from common.helpers import format_attribute
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

@@ -6,115 +6,49 @@ Created on Wed Feb 14 10:34:44 2018
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 """
 
-import datetime
-import json
-
 from django.test import TestCase
-from django.core.validators import validate_email
 
-from common.constants import OBO_URL
-from image_app.helpers import (
-    DateDecoder, DateEncoder, format_attribute, get_admin_emails)
+from image_app.models import Animal, Sample
+
+from ..helpers import get_model_object
 
 
-class JsonTestCase(TestCase):
+class GetModelObjectTestCase(TestCase):
+    fixtures = [
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/organization',
+        'image_app/publication',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user',
+    ]
 
     def setUp(self):
-        """Initialize"""
+        self.animal_id = 1
+        self.sample_id = 1
 
-        # TODO: get a real object
-        self.obj = {
-                'name': 'Siems_0734_404357',
-                'project': 'IMAGE',
-                'collectionDate': datetime.date(1991, 7, 26)
-                }
+    def test_get_model_object(self):
 
-        self.json_str = ('{"name": "Siems_0734_404357", "project": "IMAGE", '
-                         '"collectionDate": {"text": "1991-07-26", "unit": '
-                         '"YYYY-MM-DD"}}')
+        test = get_model_object("Animal", 1)
+        self.assertEqual(test.id, self.animal_id)
+        self.assertIsInstance(test, Animal)
 
-    def test_encode(self):
-        """Encode object as string"""
+        test = get_model_object("Sample", 1)
+        self.assertEqual(test.id, self.sample_id)
+        self.assertIsInstance(test, Sample)
 
-        json_str = json.dumps(self.obj, cls=DateEncoder)
-        self.assertEqual(json_str, self.json_str)
-
-    def test_decode(self):
-        """Decode a (image) json string into a obj"""
-
-        obj = json.loads(self.json_str, cls=DateDecoder)
-        self.assertEqual(obj, self.obj)
-
-    def test_decode_without_unit(self):
-        """Decode a date without unit (returns a string)"""
-
-        obj = {
-                'name': 'Siems_0734_404357',
-                'project': 'IMAGE',
-                'collectionDate': "1991-07-26"
-                }
-
-        fake_str = ('{"name": "Siems_0734_404357", "project": "IMAGE", '
-                    '"collectionDate": "1991-07-26"}')
-
-        fake_obj = json.loads(fake_str, cls=DateDecoder)
-        self.assertEqual(fake_obj, obj)
-
-    def test_encode_a_str_date(self):
-        """Encode a string date"""
-
-        fake_obj = {
-                'name': 'Siems_0734_404357',
-                'project': 'IMAGE',
-                'collectionDate': "1991-07-26"
-                }
-
-        str_ = ('{"name": "Siems_0734_404357", "project": "IMAGE", '
-                '"collectionDate": "1991-07-26"}')
-
-        fake_str = json.dumps(fake_obj, cls=DateEncoder)
-        self.assertEqual(fake_str, str_)
-
-
-class TestAttributes(TestCase):
-
-    def test_format_attribute(self):
-        reference = [{
-            "value": "54.20944444444445",
-            "units": "Decimal degrees"
-        }]
-
-        test = format_attribute(
-            value="54.20944444444445",
-            units="Decimal degrees")
-
-        self.assertEqual(reference, test, msg="testing units")
-
-        # another test
-        reference = [{
-            "value": "organism",
-            "terms": [{
-                "url": "%s/OBI_0100026" % (OBO_URL)
-            }]
-        }]
-
-        test = format_attribute(
-            value="organism",
-            terms="OBI_0100026")
-
-        self.assertEqual(reference, test, msg="testing terms")
-
-    def test_null(self):
-        test = format_attribute(value=None)
-
-        self.assertIsNone(test)
-
-
-class TestAdminEmails(TestCase):
-
-    def test_admin_emails(self):
-        # calling objects
-        emails = get_admin_emails()
-
-        for email in emails:
-            self.assertIsNone(validate_email(email))
+        # assert errors
+        self.assertRaisesMessage(
+            Exception,
+            "Unknown table",
+            get_model_object,
+            "Name",
+            1)

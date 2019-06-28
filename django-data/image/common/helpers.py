@@ -7,18 +7,20 @@ Created on Wed Mar 27 12:50:16 2019
 """
 
 import logging
+import datetime
 import websockets
 import time
 import json
 
 from dateutil.relativedelta import relativedelta
 
+from django.conf import settings
 from django.contrib.admin.utils import NestedObjects
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.text import capfirst
 from django.utils.encoding import force_text
 
-from .constants import YEARS, MONTHS, DAYS
+from .constants import YEARS, MONTHS, DAYS, OBO_URL
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -90,3 +92,85 @@ async def send_message_to_websocket(message, pk):
     async with websockets.connect(
             'ws://asgi:8001/image/ws/submissions/{}/'.format(pk)) as websocket:
         await websocket.send(json.dumps(message))
+
+
+# Json encoder and decoder. Inspired from:
+# https://gist.githubusercontent.com/abhinav-upadhyay/5300137/raw/71cd3b1660d0c1919bcfb4d39692030431623eea/DateTimeDecoder.py
+# HINT: move to IMAGEEncoder?
+# HINT: read GO from database?
+class DateEncoder(json.JSONEncoder):
+    """ Instead of letting the default encoder convert datetime to string,
+        convert datetime objects into a dict, which can be decoded by the
+        DateDecoder
+    """
+
+    def default(self, obj):
+        # logger.debug(repr(obj))
+        if isinstance(obj, datetime.date):
+            return {
+                'text': obj.isoformat(),
+                'unit': "YYYY-MM-DD",
+            }
+        else:
+            return json.JSONEncoder.default(self, obj)
+
+
+class DateDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kargs):
+        json.JSONDecoder.__init__(self, object_hook=self.dict_to_object,
+                                  *args, **kargs)
+
+    def dict_to_object(self, d):
+        """Call a different method when I found something like:
+        {"text": "1991-07-26", "unit": "YYYY-MM-DD"}"""
+
+        # return to caller if the keyword unit is not found
+        if 'unit' not in d:
+            return d
+
+        # try to read datatime
+        try:
+            dateobj = datetime.datetime.strptime(d['text'], '%Y-%m-%d').date()
+            return dateobj
+
+        # if not, raise esception
+        except Exception:
+            return d
+
+
+def format_attribute(value, terms=None, library_uri=OBO_URL, units=None):
+    """Format a generic attribute into biosample dictionary"""
+
+    if value is None:
+        return None
+
+    # pay attention to datetime objects
+    if isinstance(value, datetime.date):
+        value = str(value)
+
+    # HINT: need I deal with multiple values?
+
+    result = {}
+    result["value"] = value
+
+    if terms:
+        result["terms"] = [{
+            "url": "/".join([
+                library_uri,
+                terms])
+        }]
+
+    if units:
+        result["units"] = units
+
+    # return a list of dictionaries
+    return [result]
+
+
+def get_admin_emails():
+    """Return admin email from image.settings"""
+
+    ADMINS = settings.ADMINS
+
+    # return all admin mail addresses
+    return [admin[1] for admin in ADMINS]
