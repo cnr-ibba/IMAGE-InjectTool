@@ -853,6 +853,7 @@ class Sample(BioSampleMixin, models.Model):
         'Animal',
         on_delete=models.CASCADE)
 
+    # HINT: should this be a protocol?
     protocol = models.CharField(max_length=255, blank=True, null=True)
 
     collection_date = models.DateField(
@@ -935,6 +936,9 @@ class Sample(BioSampleMixin, models.Model):
         # the sample was collected (see Animal.to_biosample())
         attributes['Derived from'] = format_attribute(
             value=self.animal.name.name)
+
+        attributes["Specimen collection protocol"] = format_attribute(
+            value=self.protocol)
 
         # a datetime object should be not be converted in string here,
         # otherwise will not be filtered if NULL
