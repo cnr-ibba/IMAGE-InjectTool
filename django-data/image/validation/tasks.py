@@ -56,26 +56,26 @@ class ValidateSubmission(object):
         self.ruleset = ruleset
 
         # collect all unique messages for samples and animals
-        self.messages_animals = Counter()
-        self.messages_samples = Counter()
+        self.animals_messages = Counter()
+        self.samples_messages = Counter()
 
         # track global statuses for animals and samples
         # Don't set keys: if you take a key which doesn't exists, you will
         # get 0 instead of key errors. This is how Counter differ from a
         # default dictionary object
-        self.statuses_animals = Counter()
-        self.statuses_samples = Counter()
+        self.animals_statuses = Counter()
+        self.samples_statuses = Counter()
 
     def check_valid_statuses(self):
         """Check if validation return with an unsupported status message"""
 
         # test for keys in model_statuses
-        for key in self.statuses_animals.keys():
+        for key in self.animals_statuses.keys():
             if key not in KNOWN_STATUSES:
                 logger.error("Unsupported status '%s' from validation" % key)
                 return False
 
-        for key in self.statuses_samples.keys():
+        for key in self.samples_statuses.keys():
             if key not in KNOWN_STATUSES:
                 logger.error("Unsupported status '%s' from validation" % key)
                 return False
@@ -86,8 +86,8 @@ class ValidateSubmission(object):
     def __has_key_in_rules(self, key):
         """Generic function to test errors in validation rules"""
 
-        if (self.statuses_animals[key] > 0 or
-                self.statuses_samples[key] > 0):
+        if (self.animals_statuses[key] > 0 or
+                self.samples_statuses[key] > 0):
             return True
 
         else:
@@ -103,20 +103,15 @@ class ValidateSubmission(object):
 
         return self.__has_key_in_rules('Warning')
 
-    def has_errors_in_json(self):
-        "Return True if there is any error in JSON"""
-
-        return self.__has_key_in_rules('JSON')
-
     def validate_model(self, model):
         logger.debug("Validating %s" % (model))
 
         # thsi could be animal or sample
         if isinstance(model, Sample):
-            model_statuses = self.statuses_samples
+            model_statuses = self.samples_statuses
 
         elif isinstance(model, Animal):
-            model_statuses = self.statuses_animals
+            model_statuses = self.animals_statuses
 
         # get data in biosample format
         data = model.to_biosample()
@@ -126,13 +121,9 @@ class ValidateSubmission(object):
 
         # if I have errors here, JSON isn't valid: this is not an error
         # on user's data but on InjectTool itself
-        if len(usi_result) > 0:
-            # update counter for JSON
-            model_statuses.update({'JSON': len(usi_result)})
-            model_statuses.update(['Issues', 'Known'])
-
-            # update model results
-            self.mark_model(model, usi_result, NEED_REVISION)
+        if usi_result.get_overall_status() != 'Pass':
+            # update statuses (update counters), mark model and return
+            self.update_statuses(model_statuses, model, usi_result)
 
             # It make no sense continue validation since JSON is wrong
             return
@@ -148,6 +139,18 @@ class ValidateSubmission(object):
 
     # inspired from validation.deal_with_validation_results
     def update_statuses(self, model_statuses, model, result):
+        """
+        Update validation summary counter and then mark model with an
+        appropriate status (READY for Pass and Warning, NEED_REVISION for
+        the remaining statuses)
+
+        Args:
+            model_statuses (Counter): a counter object for animal or sample
+            validation statuese
+            model (Sample/Animal): a Sample or Animal object
+            result (ValidationResultRecord): a validation result for a record
+        """
+
         # get overall status (ie Pass, Error)
         overall = result.get_overall_status()
 
@@ -156,40 +159,34 @@ class ValidateSubmission(object):
             self.mark_model(model, result, READY)
 
         else:
-            model_statuses['Issues'] += 1
+            model_statuses.update(['Issues'])
             self.mark_model(model, result, NEED_REVISION)
 
         # update a collections.Counter objects by key
         model_statuses.update({overall})
-        model_statuses['Known'] += 1
+        model_statuses.update(['Known'])
 
     def mark_model(self, model, result, status):
         """Set status to a model and instantiate a ValidationResult obj"""
 
-        if isinstance(result, list):
-            messages = result
-            comparable_messages = result
-            overall_status = "Wrong JSON structure"
+        messages = result.get_messages()
 
-        else:
-            messages = result.get_messages()
-
-            # get comparable messages for batch update
-            comparable_messages = list()
-            for result_set in result.result_set:
-                comparable_messages.append(result_set.get_comparable_str())
-            overall_status = result.get_overall_status()
+        # get comparable messages for batch update
+        comparable_messages = list()
+        for result_set in result.result_set:
+            comparable_messages.append(result_set.get_comparable_str())
+        overall_status = result.get_overall_status()
 
         # Save all messages for validation summary
         if isinstance(model, Sample):
             for message in comparable_messages:
-                # messages_samples iss a counter object
-                self.messages_samples.update({message})
+                # samples_messages is a counter object
+                self.samples_messages.update({message})
 
         # is as an animal object
         elif isinstance(model, Animal):
             for message in comparable_messages:
-                self.messages_animals.update({message})
+                self.animals_messages.update({message})
 
         # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
@@ -239,13 +236,13 @@ class ValidateSubmission(object):
             summary_obj.reset_all_count()
 
             if model_type == 'animal':
-                messages = self.messages_animals
-                model_statuses = self.statuses_animals
+                messages = self.animals_messages
+                model_statuses = self.animals_statuses
 
             # Im cycling with animal and sample type
             else:
-                messages = self.messages_samples
-                model_statuses = self.statuses_samples
+                messages = self.samples_messages
+                model_statuses = self.samples_statuses
 
             summary_obj.submission = self.submission_obj
 
@@ -253,7 +250,6 @@ class ValidateSubmission(object):
             summary_obj.pass_count = model_statuses['Pass']
             summary_obj.warning_count = model_statuses['Warning']
             summary_obj.error_count = model_statuses['Error']
-            summary_obj.json_count = model_statuses['JSON']
             summary_obj.issues_count = model_statuses['Issues']
             summary_obj.validation_known_count = model_statuses['Known']
 
@@ -272,8 +268,8 @@ class ValidateSubmission(object):
         logger.debug(
             "Results for submission %s: animals - %s, samples - %s" % (
                 self.submission_obj,
-                dict(self.statuses_animals),
-                dict(self.statuses_samples))
+                dict(self.animals_statuses),
+                dict(self.samples_statuses))
         )
 
 
@@ -290,7 +286,7 @@ class ValidateTask(MyTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
-    # TODO: extract a generic send_message for all modules which need it
+    # extract a generic send_message for all modules which need it
     def send_message(self, submission_obj):
         """
         Update submission.status and submission message using django
@@ -481,18 +477,6 @@ class ValidateTask(MyTask):
 
             # raise an exception since is an InjectTool issue
             raise ValidationError(message)
-
-        # If I have any error in JSON is a problem of injectool
-        if validate_submission.has_errors_in_json():
-            # create validation summary
-            validate_submission.create_validation_summary()
-
-            # mark submission with NEED_REVISION
-            self.submission_fail(submission_obj, "Wrong JSON structure")
-
-            # debug
-            logger.warning(
-                "Wrong JSON structure for submission %s" % (submission_obj))
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will

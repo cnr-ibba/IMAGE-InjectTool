@@ -13,7 +13,6 @@
   <span class="badge badge-pill badge-primary">Pass: {{ validation_summary.pass_count }}</span>
   <span class="badge badge-pill badge-warning">Warnings: {{ validation_summary.warning_count }}</span>
   <span class="badge badge-pill badge-danger">Errors: {{ validation_summary.error_count }}</span>
-  <span class="badge badge-pill badge-danger">JSON Errors: {{ validation_summary.json_count }}</span>
   <p></p>
   <ul class="list-group">
     {% for message in validation_summary.messages|get_dict_from_str %}

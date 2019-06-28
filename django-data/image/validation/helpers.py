@@ -45,9 +45,10 @@ class MetaDataValidation():
         self.read_in_ruleset(ruleset_filename)
 
         # check validation rules
-        ruleset_errors = self.check_ruleset()
+        result = self.check_ruleset()
 
-        if ruleset_errors != []:
+        if result.get_overall_status() != 'Pass':
+            ruleset_errors = result.get_messages()
             raise RulesetError(
                 "Error with ruleset: %s" % "; ".join(ruleset_errors))
 

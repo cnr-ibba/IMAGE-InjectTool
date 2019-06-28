@@ -8,7 +8,8 @@ Created on Tue Jan 22 14:28:16 2019
 
 import json
 
-from image_validation.ValidationResult import ValidationResultRecord
+from image_validation.ValidationResult import (
+    ValidationResultRecord, ValidationResultColumn)
 from unittest.mock import patch, Mock
 
 from django.test import TestCase
@@ -19,17 +20,20 @@ from common.tests import PersonMixinTestCase
 
 from ..helpers import (
     MetaDataValidation, OntologyCacheError, RulesetError)
-
 from ..models import ValidationResult, ValidationSummary
+from .common import PickableMock, MetaDataValidationTestMixin
 
 
-class MetaDataValidationTestCase(TestCase):
-    @patch("validation.helpers.validation.read_in_ruleset",
-           side_effect=json.JSONDecodeError("meow", "woof", 42))
-    def test_issues_with_ebi(self, my_issue):
+class MetaDataValidationTestCase(MetaDataValidationTestMixin, TestCase):
+
+    def test_issues_with_ebi(self):
         """
         Test temporary issues related with OLS EBI server during
         image_validation.use_ontology.OntologyCache loading"""
+
+        # a custom error object (defined in MetaDataValidationTestMixin)
+        self.read_in_ruleset.side_effect = json.JSONDecodeError(
+            "meow", "woof", 42)
 
         # assert issues from validation.helpers.validation.read_in_ruleset
         self.assertRaisesMessage(
@@ -38,14 +42,18 @@ class MetaDataValidationTestCase(TestCase):
             MetaDataValidation)
 
         # test mocked function called
-        self.assertTrue(my_issue.called)
+        self.assertTrue(self.read_in_ruleset.called)
 
-    @patch("validation.helpers.validation.check_ruleset",
-           return_value=["Test for ruleset errors"])
-    def test_issues_with_ruleset(self, my_issue):
+    def test_issues_with_ruleset(self):
         """
         Test errors regarding ruleset
         """
+
+        # ovverride check ruleset by returning an error
+        result = PickableMock()
+        result.get_overall_status.return_value = "Error"
+        result.get_messages.return_value = ["Error: Test for ruleset errors"]
+        self.check_ruleset.return_value = result
 
         # assert issues from validation.helpers.validation.read_in_ruleset
         self.assertRaisesMessage(
@@ -54,13 +62,10 @@ class MetaDataValidationTestCase(TestCase):
             MetaDataValidation)
 
         # test mocked function called
-        self.assertTrue(my_issue.called)
+        self.assertTrue(self.check_ruleset.called)
 
     @patch("requests.get")
-    @patch("validation.helpers.validation.read_in_ruleset")
-    @patch("validation.helpers.validation.check_ruleset",
-           return_value=[])
-    def check_biosample_id(self, my_check, my_read, mock_get, status_code):
+    def check_biosample_id(self, mock_get, status_code):
         """Base method for checking biosample id"""
 
         # paching response
@@ -79,8 +84,8 @@ class MetaDataValidationTestCase(TestCase):
             "FAKEA123456", "test", record_result)
 
         # assert my methods called
-        self.assertTrue(my_check.called)
-        self.assertTrue(my_read.called)
+        self.assertTrue(self.check_ruleset.called)
+        self.assertTrue(self.read_in_ruleset.called)
         self.assertTrue(mock_get.called)
 
         return record_result
@@ -169,7 +174,7 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
 
         # check for usi structure
         usi_result = self.metadata.check_usi_structure([self.animal_record])
-        self.assertEqual(usi_result, [])
+        self.assertEqual(usi_result.get_overall_status(), 'Pass')
 
         # validate record
         result = self.metadata.validate(self.animal_record)
@@ -196,7 +201,7 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
 
         # check for usi structure
         usi_result = self.metadata.check_usi_structure([animal_record])
-        self.assertEqual(usi_result, [])
+        self.assertEqual(usi_result.get_overall_status(), 'Pass')
 
         # validate record
         result = self.metadata.validate(animal_record)
@@ -219,7 +224,7 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
 
         # check for usi structure
         usi_result = self.metadata.check_usi_structure([self.sample_record])
-        self.assertEqual(usi_result, [])
+        self.assertEqual(usi_result.get_overall_status(), 'Pass')
 
         result = self.metadata.validate(self.sample_record)
 
@@ -277,7 +282,7 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
 
         # check for usi structure
         usi_result = self.metadata.check_usi_structure([sample_record])
-        self.assertEqual(usi_result, [])
+        self.assertEqual(usi_result.get_overall_status(), 'Pass')
 
         # validate record. This will result in an error object
         result = self.metadata.validate(sample_record)
@@ -302,8 +307,8 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
         usi_result = self.metadata.check_usi_structure(data)
 
         # no errors for check usi_structure
-        self.assertIsInstance(usi_result, list)
-        self.assertEqual(len(usi_result), 0)
+        self.assertIsInstance(usi_result, ValidationResultRecord)
+        self.assertEqual(usi_result.get_overall_status(), 'Pass')
 
         # test for duplicated data
         dup_result = self.metadata.check_duplicates(data)
@@ -315,18 +320,18 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
     def test_wrong_json_structure(self):
         """Test that json structure is ok"""
 
-        reference = [
-            ('Wrong JSON structure: no title field for record with '
-             'alias as IMAGEA000000001'),
-        ]
+        messages = [(
+            'Wrong JSON structure: no title field for record with '
+            'alias as IMAGEA000000001')]
 
         # delete some attributes from animal data
         del(self.animal_record['title'])
 
         # test for Json structure
-        test = self.metadata.check_usi_structure([self.animal_record])
+        result = self.metadata.check_usi_structure([self.animal_record])
 
-        self.assertEqual(reference, test)
+        self.assertIsInstance(result, ValidationResultRecord)
+        self.assertEqual(result.get_messages(), messages)
 
 
 class SampleUpdateTestCase(SubmissionMixin, TestCase):
@@ -383,8 +388,8 @@ class RulesTestCase(TestCase):
         ruleset_check = self.metadata.check_ruleset()
 
         # test image metadata rules
-        self.assertIsInstance(ruleset_check, list)
-        self.assertEqual(len(ruleset_check), 0)
+        self.assertIsInstance(ruleset_check, ValidationResultRecord)
+        self.assertEqual(ruleset_check.get_overall_status(), 'Pass')
 
 
 class ValidationSummaryTestCase(TestCase):

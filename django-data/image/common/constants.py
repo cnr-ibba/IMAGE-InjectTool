@@ -137,4 +137,4 @@ SAMPLE_STORAGE_TYPES = [
     "freeze dried"
 ]
 
-KNOWN_STATUSES = ['Error', 'Issues', 'JSON', 'Known', 'Pass', 'Warning']
+KNOWN_STATUSES = ['Error', 'Issues', 'Known', 'Pass', 'Warning']

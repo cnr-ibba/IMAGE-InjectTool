@@ -27,17 +27,11 @@ from image_app.models import Submission, Person, Name, Animal, Sample
 from ..tasks import ValidateTask, ValidationError, ValidateSubmission
 from ..helpers import OntologyCacheError, RulesetError
 from ..models import ValidationSummary
+from .common import PickableMock, MetaDataValidationTestMixin
 
 
-# https://github.com/testing-cabal/mock/issues/139#issuecomment-122128815
-class PickableMock(Mock):
-    """Provide a __reduce__ method to allow pickling mock objects"""
-
-    def __reduce__(self):
-        return (Mock, ())
-
-
-class ValidateSubmissionMixin(PersonMixinTestCase):
+class ValidateSubmissionMixin(
+        PersonMixinTestCase, MetaDataValidationTestMixin):
     """A mixin to define common stuff for testing data validation"""
 
     # an attribute for PersonMixinTestCase
@@ -90,26 +84,8 @@ class ValidateSubmissionMixin(PersonMixinTestCase):
         self.n_animals = self.animal_qs.count()
         self.n_samples = self.sample_qs.count()
 
-        # mocking up image_validation methods
-        self.read_in_ruleset_patcher = patch(
-            "validation.tasks.MetaDataValidation.read_in_ruleset")
-        self.read_in_ruleset = self.read_in_ruleset_patcher.start()
-
-        self.check_ruleset_patcher = patch(
-            "validation.helpers.validation.check_ruleset")
-        self.check_ruleset = self.check_ruleset_patcher.start()
-        self.check_ruleset.return_value = []
-
         # setting tasks
         self.my_task = ValidateTask()
-
-    def tearDown(self):
-        # stopping mock objects
-        self.read_in_ruleset_patcher.stop()
-        self.check_ruleset_patcher.stop()
-
-        # calling base methods
-        super().tearDown()
 
 
 class CustomWebSocketMixin(WebSocketMixin):
@@ -171,29 +147,26 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(self.submission_data.check_valid_statuses())
 
         # set a fake status
-        self.submission_data.statuses_animals['foo'] = 1
+        self.submission_data.animals_statuses['foo'] = 1
         self.assertFalse(self.submission_data.check_valid_statuses())
 
         # reset and set sample status status
-        self.submission_data.statuses_animals = Counter()
-        self.submission_data.statuses_samples['foo'] = 1
+        self.submission_data.animals_statuses = Counter()
+        self.submission_data.samples_statuses['foo'] = 1
         self.assertFalse(self.submission_data.check_valid_statuses())
 
     def test_has_keys(self):
-        """Test has error, warning, JSON in validation tests"""
+        """Test has error or warning in validation tests"""
 
         self.assertFalse(self.submission_data.has_errors_in_rules())
         self.assertFalse(self.submission_data.has_warnings_in_rules())
-        self.assertFalse(self.submission_data.has_errors_in_json())
 
         # set a fake status
-        self.submission_data.statuses_animals['JSON'] = 1
-        self.submission_data.statuses_animals['Error'] = 1
-        self.submission_data.statuses_samples['Warning'] = 1
+        self.submission_data.animals_statuses['Error'] = 1
+        self.submission_data.samples_statuses['Warning'] = 1
 
         self.assertTrue(self.submission_data.has_errors_in_rules())
         self.assertTrue(self.submission_data.has_warnings_in_rules())
-        self.assertTrue(self.submission_data.has_errors_in_json())
 
     def test_create_validation_summary(self):
         """Create and set validation summary object"""
@@ -206,13 +179,11 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         summary_qs.delete()
 
         # set up messages
-        self.submission_data.statuses_animals['JSON'] = 1
-        self.submission_data.statuses_animals['Error'] = 1
-        self.submission_data.statuses_samples['Warning'] = 1
+        self.submission_data.animals_statuses['Error'] = 1
+        self.submission_data.samples_statuses['Warning'] = 1
 
-        self.submission_data.messages_animals['test json'] = 1
-        self.submission_data.messages_animals['test error'] = 1
-        self.submission_data.messages_samples['test warning'] = 1
+        self.submission_data.animals_messages['test error'] = 1
+        self.submission_data.samples_messages['test warning'] = 1
 
         # call function
         self.submission_data.create_validation_summary()
@@ -449,8 +420,11 @@ class ValidateTaskTest(
         """Test a valid submission. Simulate image_validation result and
         status changes"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         validation_result = Mock()
@@ -514,13 +488,30 @@ class ValidateTaskTest(
             self, my_validate, my_check):
         """Test an error in JSON format"""
 
-        # assign a fake response for check_usi_structure
-        usi_result = [
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        messages = [
             ('Wrong JSON structure: no title field for record with '
              'alias as animal_1'),
             ('Wrong JSON structure: the values for attribute Person '
              'role needs to be in an array for record animal_1')
         ]
+
+        usi_result = ValidationResultRecord("animal_1")
+        usi_result.add_validation_result_column(
+            ValidationResultColumn(
+                "error",
+                messages[0],
+                "animal_1",
+                "")
+        )
+        usi_result.add_validation_result_column(
+            ValidationResultColumn(
+                "error",
+                messages[1],
+                "animal_1",
+                "")
+        )
+
         my_check.return_value = usi_result
 
         # setting a return value for check_with_ruleset
@@ -540,7 +531,7 @@ class ValidateTaskTest(
         # check submission.state changed
         self.assertEqual(self.submission.status, NEED_REVISION)
         self.assertIn(
-            "Wrong JSON structure",
+            "Validation got errors",
             self.submission.message)
 
         # check Names (they require revisions)
@@ -549,9 +540,9 @@ class ValidateTaskTest(
 
             # test for model message (usi_results)
             self.assertEqual(
-                name.validationresult.messages, usi_result)
+                name.validationresult.messages, usi_result.get_messages())
             self.assertEqual(
-                    name.validationresult.status, "Wrong JSON structure")
+                name.validationresult.status, usi_result.get_overall_status())
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(my_check.called)
@@ -565,7 +556,8 @@ class ValidateTaskTest(
         # all sample and animals have issues
         self.check_async_called(
             'Need Revision',
-            'Validation got errors: Wrong JSON structure',
+            ('Validation got errors: Error in metadata. '
+             'Need revisions before submit'),
             {'animals': self.n_animals, 'samples': self.n_samples,
              'animal_unkn': 0, 'sample_unkn': 0,
              'animal_issues': self.n_animals,
@@ -579,8 +571,11 @@ class ValidateTaskTest(
         """This test will ensure that image_validation ValidationResultRecord
         still support the same statuses"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         rule_result = PickableMock()
@@ -636,8 +631,11 @@ class ValidateTaskTest(
             self, my_validate, my_check):
         """A submission with warnings is a READY submission"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
@@ -735,8 +733,11 @@ class ValidateTaskTest(
             self, my_validate, my_check):
         """A submission with errors is a NEED_REVISION submission"""
 
-        # setting check_usi_structure result
-        my_check.return_value = []
+        # setting check_usi_structure result. now is a ValidateResultRecord
+        result = PickableMock()
+        result.get_overall_status.return_value = "Pass"
+        result.get_messages.return_value = []
+        my_check.return_value = result
 
         # setting a return value for check_with_ruleset
         result1 = ValidationResultRecord("animal_1")
