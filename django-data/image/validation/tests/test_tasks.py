@@ -147,12 +147,12 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertTrue(self.submission_data.check_valid_statuses())
 
         # set a fake status
-        self.submission_data.statuses_animals['foo'] = 1
+        self.submission_data.animals_statuses['foo'] = 1
         self.assertFalse(self.submission_data.check_valid_statuses())
 
         # reset and set sample status status
-        self.submission_data.statuses_animals = Counter()
-        self.submission_data.statuses_samples['foo'] = 1
+        self.submission_data.animals_statuses = Counter()
+        self.submission_data.samples_statuses['foo'] = 1
         self.assertFalse(self.submission_data.check_valid_statuses())
 
     def test_has_keys(self):
@@ -162,8 +162,8 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertFalse(self.submission_data.has_warnings_in_rules())
 
         # set a fake status
-        self.submission_data.statuses_animals['Error'] = 1
-        self.submission_data.statuses_samples['Warning'] = 1
+        self.submission_data.animals_statuses['Error'] = 1
+        self.submission_data.samples_statuses['Warning'] = 1
 
         self.assertTrue(self.submission_data.has_errors_in_rules())
         self.assertTrue(self.submission_data.has_warnings_in_rules())
@@ -179,11 +179,11 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         summary_qs.delete()
 
         # set up messages
-        self.submission_data.statuses_animals['Error'] = 1
-        self.submission_data.statuses_samples['Warning'] = 1
+        self.submission_data.animals_statuses['Error'] = 1
+        self.submission_data.samples_statuses['Warning'] = 1
 
-        self.submission_data.messages_animals['test error'] = 1
-        self.submission_data.messages_samples['test warning'] = 1
+        self.submission_data.animals_messages['test error'] = 1
+        self.submission_data.samples_messages['test warning'] = 1
 
         # call function
         self.submission_data.create_validation_summary()

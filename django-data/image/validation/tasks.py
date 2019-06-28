@@ -56,26 +56,26 @@ class ValidateSubmission(object):
         self.ruleset = ruleset
 
         # collect all unique messages for samples and animals
-        self.messages_animals = Counter()
-        self.messages_samples = Counter()
+        self.animals_messages = Counter()
+        self.samples_messages = Counter()
 
         # track global statuses for animals and samples
         # Don't set keys: if you take a key which doesn't exists, you will
         # get 0 instead of key errors. This is how Counter differ from a
         # default dictionary object
-        self.statuses_animals = Counter()
-        self.statuses_samples = Counter()
+        self.animals_statuses = Counter()
+        self.samples_statuses = Counter()
 
     def check_valid_statuses(self):
         """Check if validation return with an unsupported status message"""
 
         # test for keys in model_statuses
-        for key in self.statuses_animals.keys():
+        for key in self.animals_statuses.keys():
             if key not in KNOWN_STATUSES:
                 logger.error("Unsupported status '%s' from validation" % key)
                 return False
 
-        for key in self.statuses_samples.keys():
+        for key in self.samples_statuses.keys():
             if key not in KNOWN_STATUSES:
                 logger.error("Unsupported status '%s' from validation" % key)
                 return False
@@ -86,8 +86,8 @@ class ValidateSubmission(object):
     def __has_key_in_rules(self, key):
         """Generic function to test errors in validation rules"""
 
-        if (self.statuses_animals[key] > 0 or
-                self.statuses_samples[key] > 0):
+        if (self.animals_statuses[key] > 0 or
+                self.samples_statuses[key] > 0):
             return True
 
         else:
@@ -108,10 +108,10 @@ class ValidateSubmission(object):
 
         # thsi could be animal or sample
         if isinstance(model, Sample):
-            model_statuses = self.statuses_samples
+            model_statuses = self.samples_statuses
 
         elif isinstance(model, Animal):
-            model_statuses = self.statuses_animals
+            model_statuses = self.animals_statuses
 
         # get data in biosample format
         data = model.to_biosample()
@@ -180,13 +180,13 @@ class ValidateSubmission(object):
         # Save all messages for validation summary
         if isinstance(model, Sample):
             for message in comparable_messages:
-                # messages_samples iss a counter object
-                self.messages_samples.update({message})
+                # samples_messages is a counter object
+                self.samples_messages.update({message})
 
         # is as an animal object
         elif isinstance(model, Animal):
             for message in comparable_messages:
-                self.messages_animals.update({message})
+                self.animals_messages.update({message})
 
         # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
@@ -236,13 +236,13 @@ class ValidateSubmission(object):
             summary_obj.reset_all_count()
 
             if model_type == 'animal':
-                messages = self.messages_animals
-                model_statuses = self.statuses_animals
+                messages = self.animals_messages
+                model_statuses = self.animals_statuses
 
             # Im cycling with animal and sample type
             else:
-                messages = self.messages_samples
-                model_statuses = self.statuses_samples
+                messages = self.samples_messages
+                model_statuses = self.samples_statuses
 
             summary_obj.submission = self.submission_obj
 
@@ -268,8 +268,8 @@ class ValidateSubmission(object):
         logger.debug(
             "Results for submission %s: animals - %s, samples - %s" % (
                 self.submission_obj,
-                dict(self.statuses_animals),
-                dict(self.statuses_samples))
+                dict(self.animals_statuses),
+                dict(self.samples_statuses))
         )
 
 

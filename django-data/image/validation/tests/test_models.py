@@ -51,3 +51,14 @@ class ValidationSummaryTestCase(TestCase):
         # assert true values (calculated accordingly Animals and Samples)
         self.assertEqual(self.vs_animal.all_count, 3)
         self.assertEqual(self.vs_sample.all_count, 1)
+
+    def test_reset_all_count_unsupported(self):
+        """Created a non supported validation summary and check
+        that exceptions are raised"""
+
+        # TODO: type should be an enum value so this test should be removed
+        vs_test = ValidationSummary(type="test", all_count=99)
+        self.assertRaisesMessage(
+            Exception,
+            "Unknown type 'test'",
+            vs_test.reset_all_count)

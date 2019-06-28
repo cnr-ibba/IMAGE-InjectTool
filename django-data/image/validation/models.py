@@ -75,6 +75,6 @@ class ValidationSummary(models.Model):
                 name__submission=self.submission).count()
 
         else:
-            raise Exception("Unknown type %s" % (self.type))
+            raise Exception("Unknown type '%s'" % (self.type))
 
         self.save()
