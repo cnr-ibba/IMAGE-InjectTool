@@ -76,7 +76,6 @@ class SubmissionValidationSummaryViewTest(GeneralMixinTestCase,
         self.assertContains(response, "Pass: 0")
         self.assertContains(response, "Warnings: 1")
         self.assertContains(response, "Errors: 0")
-        self.assertContains(response, "JSON Errors: 0")
         self.assertContains(response, "Wrong JSON structure")
 
     def test_contains_mesages_for_samples(self):
@@ -85,5 +84,4 @@ class SubmissionValidationSummaryViewTest(GeneralMixinTestCase,
         self.assertContains(response, "Pass: 0")
         self.assertContains(response, "Warnings: 0")
         self.assertContains(response, "Errors: 0")
-        self.assertContains(response, "JSON Errors: 0")
         self.assertContains(response, "Wrong JSON structure")

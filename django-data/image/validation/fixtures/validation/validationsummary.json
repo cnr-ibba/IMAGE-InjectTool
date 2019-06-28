@@ -10,7 +10,6 @@
     "pass_count": 0,
     "warning_count": 1,
     "error_count": 0,
-    "json_count": 0,
     "type": "animal",
     "messages": ["{'message': 'Wrong JSON structure', 'count': 1}"]
   }
@@ -26,7 +25,6 @@
     "pass_count": 0,
     "warning_count": 0,
     "error_count": 0,
-    "json_count": 0,
     "type": "sample",
     "messages": ["{'message': 'Wrong JSON structure', 'count': 1}"]
   }

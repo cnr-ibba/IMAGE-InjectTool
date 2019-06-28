@@ -103,11 +103,6 @@ class ValidateSubmission(object):
 
         return self.__has_key_in_rules('Warning')
 
-    def has_errors_in_json(self):
-        "Return True if there is any error in JSON"""
-
-        return self.__has_key_in_rules('JSON')
-
     def validate_model(self, model):
         logger.debug("Validating %s" % (model))
 
@@ -127,14 +122,8 @@ class ValidateSubmission(object):
         # if I have errors here, JSON isn't valid: this is not an error
         # on user's data but on InjectTool itself
         if usi_result.get_overall_status() != 'Pass':
-            # update counter for JSON
-            model_statuses.update(['JSON'])
-            model_statuses.update(['Issues'])
-            model_statuses.update(['Known'])
-
-            # update model results
-            # TODO: should I force the 'wrong JSON structure' message?
-            self.mark_model(model, usi_result, NEED_REVISION)
+            # update statuses (update counters), mark model and return
+            self.update_statuses(model_statuses, model, usi_result)
 
             # It make no sense continue validation since JSON is wrong
             return
@@ -150,6 +139,18 @@ class ValidateSubmission(object):
 
     # inspired from validation.deal_with_validation_results
     def update_statuses(self, model_statuses, model, result):
+        """
+        Update validation summary counter and then mark model with an
+        appropriate status (READY for Pass and Warning, NEED_REVISION for
+        the remaining statuses)
+
+        Args:
+            model_statuses (Counter): a counter object for animal or sample
+            validation statuese
+            model (Sample/Animal): a Sample or Animal object
+            result (ValidationResultRecord): a validation result for a record
+        """
+
         # get overall status (ie Pass, Error)
         overall = result.get_overall_status()
 
@@ -158,30 +159,23 @@ class ValidateSubmission(object):
             self.mark_model(model, result, READY)
 
         else:
-            model_statuses['Issues'] += 1
+            model_statuses.update(['Issues'])
             self.mark_model(model, result, NEED_REVISION)
 
         # update a collections.Counter objects by key
         model_statuses.update({overall})
-        model_statuses['Known'] += 1
+        model_statuses.update(['Known'])
 
     def mark_model(self, model, result, status):
         """Set status to a model and instantiate a ValidationResult obj"""
 
-        # TODO: remove - No more called
-        if isinstance(result, list):
-            messages = result
-            comparable_messages = result
-            overall_status = "Wrong JSON structure"
+        messages = result.get_messages()
 
-        else:
-            messages = result.get_messages()
-
-            # get comparable messages for batch update
-            comparable_messages = list()
-            for result_set in result.result_set:
-                comparable_messages.append(result_set.get_comparable_str())
-            overall_status = result.get_overall_status()
+        # get comparable messages for batch update
+        comparable_messages = list()
+        for result_set in result.result_set:
+            comparable_messages.append(result_set.get_comparable_str())
+        overall_status = result.get_overall_status()
 
         # Save all messages for validation summary
         if isinstance(model, Sample):
@@ -256,7 +250,6 @@ class ValidateSubmission(object):
             summary_obj.pass_count = model_statuses['Pass']
             summary_obj.warning_count = model_statuses['Warning']
             summary_obj.error_count = model_statuses['Error']
-            summary_obj.json_count = model_statuses['JSON']
             summary_obj.issues_count = model_statuses['Issues']
             summary_obj.validation_known_count = model_statuses['Known']
 
@@ -484,18 +477,6 @@ class ValidateTask(MyTask):
 
             # raise an exception since is an InjectTool issue
             raise ValidationError(message)
-
-        # If I have any error in JSON is a problem of injectool
-        if validate_submission.has_errors_in_json():
-            # create validation summary
-            validate_submission.create_validation_summary()
-
-            # mark submission with NEED_REVISION
-            self.submission_fail(submission_obj, "Wrong JSON structure")
-
-            # debug
-            logger.warning(
-                "Wrong JSON structure for submission %s" % (submission_obj))
 
         # set a proper value for status (READY or NEED_REVISION)
         # If I will found any error or warning, I will

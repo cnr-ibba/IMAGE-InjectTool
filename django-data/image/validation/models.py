@@ -49,7 +49,6 @@ class ValidationSummary(models.Model):
     pass_count = models.PositiveIntegerField(default=0)
     warning_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)
-    json_count = models.PositiveIntegerField(default=0)
 
     # TODO: should this be a ENUM object?
     type = models.CharField(max_length=6, blank=True, null=True)

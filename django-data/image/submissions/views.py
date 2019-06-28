@@ -154,8 +154,7 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
     template_name = "submissions/submission_validation_summary.html"
 
     def get_context_data(self, **kwargs):
-        context = super(SubmissionValidationSummaryView, self).get_context_data(
-            **kwargs)
+        context = super().get_context_data(**kwargs)
         summary_type = ''
         if self.kwargs['type'] == 'animals':
             summary_type = 'animal'

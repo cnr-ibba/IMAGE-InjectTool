@@ -156,20 +156,17 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.assertFalse(self.submission_data.check_valid_statuses())
 
     def test_has_keys(self):
-        """Test has error, warning, JSON in validation tests"""
+        """Test has error or warning in validation tests"""
 
         self.assertFalse(self.submission_data.has_errors_in_rules())
         self.assertFalse(self.submission_data.has_warnings_in_rules())
-        self.assertFalse(self.submission_data.has_errors_in_json())
 
         # set a fake status
-        self.submission_data.statuses_animals['JSON'] = 1
         self.submission_data.statuses_animals['Error'] = 1
         self.submission_data.statuses_samples['Warning'] = 1
 
         self.assertTrue(self.submission_data.has_errors_in_rules())
         self.assertTrue(self.submission_data.has_warnings_in_rules())
-        self.assertTrue(self.submission_data.has_errors_in_json())
 
     def test_create_validation_summary(self):
         """Create and set validation summary object"""
@@ -182,11 +179,9 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         summary_qs.delete()
 
         # set up messages
-        self.submission_data.statuses_animals['JSON'] = 1
         self.submission_data.statuses_animals['Error'] = 1
         self.submission_data.statuses_samples['Warning'] = 1
 
-        self.submission_data.messages_animals['test json'] = 1
         self.submission_data.messages_animals['test error'] = 1
         self.submission_data.messages_samples['test warning'] = 1
 
@@ -536,7 +531,7 @@ class ValidateTaskTest(
         # check submission.state changed
         self.assertEqual(self.submission.status, NEED_REVISION)
         self.assertIn(
-            "Wrong JSON structure",
+            "Validation got errors",
             self.submission.message)
 
         # check Names (they require revisions)
@@ -561,7 +556,8 @@ class ValidateTaskTest(
         # all sample and animals have issues
         self.check_async_called(
             'Need Revision',
-            'Validation got errors: Wrong JSON structure',
+            ('Validation got errors: Error in metadata. '
+             'Need revisions before submit'),
             {'animals': self.n_animals, 'samples': self.n_samples,
              'animal_unkn': 0, 'sample_unkn': 0,
              'animal_issues': self.n_animals,
