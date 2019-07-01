@@ -223,23 +223,36 @@
   chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     var message = data['message'];
+
+    // this is the message associated to the submission
     var notificationMessage = data['notification_message'];
 
-    var animalsMessage = data['validation_message']['animals'];
-    var samplesMessage = data['validation_message']['samples'];
-    var animalsUnknown = data['validation_message']['animal_unkn'];
-    var samplesUnknown = data['validation_message']['sample_unkn'];
-    var animalsIssues = data['validation_message']['animal_issues'];
-    var samplesIssues = data['validation_message']['sample_issues'];
-
+    // update submission status and its color
     document.querySelector('#status-log').textContent = message;
     document.querySelector('#status-log').className = getColor(message);
-    document.querySelector('#validation_message_animals').innerHTML = construct_validation_message('animals', animalsMessage, animalsUnknown, animalsIssues);
-    document.querySelector('#validation_message_samples').innerHTML = construct_validation_message('samples', samplesMessage, samplesUnknown, samplesIssues);
+
+    // this disable buttons (for example, when in waiting status)
     disableButtons(message);
+
+    // choose and updates alert message in the page
     var notificationDiv = document.querySelector('#notifications');
+
     notificationDiv.childNodes[2].textContent = notificationMessage;
     notificationDiv.className = choose_div_class(message);
+
+    // update validation messages only if I received something
+    if ("validation_message" in data && data["validation_message"] !== '') {
+      var animalsMessage = data['validation_message']['animals'];
+      var samplesMessage = data['validation_message']['samples'];
+      var animalsUnknown = data['validation_message']['animal_unkn'];
+      var samplesUnknown = data['validation_message']['sample_unkn'];
+      var animalsIssues = data['validation_message']['animal_issues'];
+      var samplesIssues = data['validation_message']['sample_issues'];
+
+      // update validation messages
+      document.querySelector('#validation_message_animals').innerHTML = construct_validation_message('animals', animalsMessage, animalsUnknown, animalsIssues);
+      document.querySelector('#validation_message_samples').innerHTML = construct_validation_message('samples', samplesMessage, samplesUnknown, samplesIssues);
+    }
   };
 
   chatSocket.onclose = function(e) {
