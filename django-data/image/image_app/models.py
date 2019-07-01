@@ -719,10 +719,10 @@ class Sample(BioSampleMixin, models.Model):
             value=self.availability)
 
         attributes['Sample storage'] = format_attribute(
-            value=self.storage)
+            value=self.get_storage_display())
 
         attributes['Sample storage processing'] = format_attribute(
-            value=self.storage_processing)
+            value=self.get_storage_processing_display())
 
         attributes['Sampling to preparation interval'] = format_attribute(
             value=self.preparation_interval)

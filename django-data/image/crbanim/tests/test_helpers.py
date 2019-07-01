@@ -381,8 +381,10 @@ class ProcessRecordTestCase(BaseTestCase, TestCase):
         self.assertEqual(sample.organism_part, organism_part)
 
     def test_find_storage_type(self):
+        """Asserting storage type conversion"""
+
         result = find_storage_type(self.record)
-        self.assertEqual(result, "frozen, -80 degrees Celsius freezer")
+        self.assertEqual(result, 2)
 
         # create a fare record object
         Data = namedtuple("Data", ["sample_storage_temperature"])

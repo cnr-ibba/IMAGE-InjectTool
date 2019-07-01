@@ -20,8 +20,8 @@
     "animal_age_at_collection": 4,
     "animal_age_at_collection_units": 5,
     "availability": "mailto:test@example.com",
-    "storage": null,
-    "storage_processing": null,
+    "storage": 2,
+    "storage_processing": 0,
     "preparation_interval": null,
     "owner": 1
   }

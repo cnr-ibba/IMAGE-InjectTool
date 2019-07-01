@@ -198,7 +198,7 @@
     "animal_age_at_collection": null,
     "animal_age_at_collection_units": 5,
     "availability": "mailto:mail@example.com",
-    "storage": "frozen, -80 degrees Celsius freezer",
+    "storage": 2,
     "storage_processing": null,
     "preparation_interval": null,
     "owner": 1
@@ -225,7 +225,7 @@
     "animal_age_at_collection": 2,
     "animal_age_at_collection_units": 5,
     "availability": "mailto:mail@example.com",
-    "storage": "frozen, -80 degrees Celsius freezer",
+    "storage": 2,
     "storage_processing": null,
     "preparation_interval": null,
     "owner": 1

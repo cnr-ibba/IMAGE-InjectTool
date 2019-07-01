@@ -15,7 +15,7 @@ from collections import defaultdict, namedtuple
 
 from django.utils.dateparse import parse_date
 
-from common.constants import LOADED, ERROR, MISSING
+from common.constants import LOADED, ERROR, MISSING, SAMPLE_STORAGE
 from common.helpers import image_timedelta
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
@@ -403,7 +403,11 @@ def find_storage_type(record):
         '-80°C': 'frozen, -80 degrees Celsius freezer'}
 
     if record.sample_storage_temperature in mapping:
-        return mapping[record.sample_storage_temperature]
+        # get ENUM conversion
+        storage = SAMPLE_STORAGE.get_value_by_desc(
+            mapping[record.sample_storage_temperature])
+
+        return storage
 
     else:
         logging.warning("Couldn't find %s in storage types mapping" % (
