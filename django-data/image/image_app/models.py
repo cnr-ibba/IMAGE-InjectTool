@@ -13,7 +13,7 @@ from django.urls import reverse
 from common.fields import ProtectedFileField
 from common.constants import (
     OBO_URL, STATUSES, CONFIDENCES, NAME_STATUSES, ACCURACIES, WAITING, LOADED,
-    MISSING, DATA_TYPES, TIME_UNITS)
+    MISSING, DATA_TYPES, TIME_UNITS, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
 from common.helpers import format_attribute
 
 from .mixins import BaseMixin, BioSampleMixin
@@ -628,14 +628,34 @@ class Sample(BioSampleMixin, models.Model):
         null=True,
         blank=True)
 
-    availability = models.CharField(max_length=255, blank=True, null=True)
+    availability = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=(
+            "Either a link to a web page giving information on who to contact "
+            "or an e-mail address to contact about availability. If neither "
+            "available, please use the value no longer available")
+    )
 
     storage = models.CharField(max_length=255, blank=True, null=True)
 
+    storage_new = models.SmallIntegerField(
+        choices=[x.value for x in SAMPLE_STORAGE],
+        help_text='How the sample was stored',
+        null=True,
+        blank=True)
+
     storage_processing = models.CharField(
-            max_length=255,
-            blank=True,
-            null=True)
+        max_length=255,
+        blank=True,
+        null=True)
+
+    storage_processing_new = models.SmallIntegerField(
+        choices=[x.value for x in SAMPLE_STORAGE_PROCESSING],
+        help_text='How the sample was prepared for storage',
+        null=True,
+        blank=True)
 
     preparation_interval = models.IntegerField(blank=True, null=True)
 

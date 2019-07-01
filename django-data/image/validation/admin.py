@@ -8,7 +8,7 @@ Created on Tue Jan 29 11:28:48 2019
 
 from django.contrib import admin
 
-from .models import ValidationResult
+from .models import ValidationResult, ValidationSummary
 
 
 class ValidationResultAdmin(admin.ModelAdmin):
@@ -19,3 +19,4 @@ class ValidationResultAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(ValidationResult, ValidationResultAdmin)
+admin.site.register(ValidationSummary, admin.ModelAdmin)

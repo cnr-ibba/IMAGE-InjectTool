@@ -26,10 +26,32 @@ class EnumMixin():
 
     @classmethod
     def get_value_display(cls, value):
+        """Get the display value from a key"""
+
+        if value is None:
+            return None
+
         for el in cls:
             if el.value[0] == value:
                 return el.value[1]
-        return Exception("value %s not in %s" % (value, cls))
+
+        raise Exception("value %s not in %s" % (value, cls))
+
+    @classmethod
+    def get_value_by_desc(cls, value):
+        """
+        Get numerical representation of an Enum object by providing a
+        description
+        """
+
+        if value is None:
+            return None
+
+        for el in cls:
+            if el.value[1] == value:
+                return el.value[0]
+
+        raise Exception("value %s not in %s" % (value, cls))
 
 
 class ACCURACIES(EnumMixin, Enum):
@@ -84,6 +106,34 @@ class TIME_UNITS(EnumMixin, Enum):
     years = (5, "years")
 
 
+# to deal with sample storage field
+class SAMPLE_STORAGE(EnumMixin, Enum):
+    ambient = (0, "ambient temperature")
+    cut = (1, "cut slide")
+    frozen80 = (2, "frozen, -80 degrees Celsius freezer")
+    frozen20 = (3, "frozen, -20 degrees Celsius freezer")
+    frozenliquid = (4, "frozen, liquid nitrogen")
+    forzenvapor = (5, "frozen, vapor phase")
+    paraffin = (6, "paraffin block")
+    RNAlater = (7, "RNAlater, frozen -20 degrees Celsius")
+    TRIzol = (8, "TRIzol, frozen")
+    paraffinambient = (9, "paraffin block at ambient temperatures "
+                          "(+15 to +30 degrees Celsius)")
+    dried = (10, "freeze dried")
+
+
+class SAMPLE_STORAGE_PROCESSING(EnumMixin, Enum):
+    crio1 = (0, "cryopreservation in liquid nitrogen (dead tissue)")
+    crio2 = (1, "cryopreservation in dry ice (dead tissue)")
+    crio3 = (2, "cryopreservation of live cells in liquid nitrogen")
+    crio4 = (3, "cryopreservation, other")
+    formalin1 = (4, "formalin fixed, unbuffered")
+    formalin2 = (5, "formalin fixed, buffered")
+    formalin3 = (6, "formalin fixed and paraffin embedded")
+    freeze1 = (7, "freeze dried (vaiable for reproduction)")
+    freeze2 = (8, "freeze dried")
+
+
 # a list of a valid statuse for names
 NAME_STATUSES = [
     'loaded',
@@ -121,20 +171,5 @@ CURATED = CONFIDENCES.get_value('curated')
 YEARS = TIME_UNITS.get_value('years')
 MONTHS = TIME_UNITS.get_value('months')
 DAYS = TIME_UNITS.get_value('days')
-
-# define sample storage types
-SAMPLE_STORAGE_TYPES = [
-    "ambient temperature",
-    "cut slide",
-    "frozen, -80 degrees Celsius freezer",
-    "frozen, -20 degrees Celsius freezer",
-    "frozen, liquid nitrogen",
-    "frozen, vapor phase",
-    "paraffin block",
-    "RNAlater, frozen -20 degrees Celsius",
-    "TRIzol, frozen",
-    "paraffin block at ambient temperatures (+15 to +30 degrees Celsius)",
-    "freeze dried"
-]
 
 KNOWN_STATUSES = ['Error', 'Issues', 'Known', 'Pass', 'Warning']
