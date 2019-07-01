@@ -69,6 +69,7 @@ InjectTool TODO
     - good: ask to user?
     - Add a special confidence status when supplied breed is different from
       mapped_breed (need revisions)
+    - return a default ontology for breed if non mapping occours
 
 * Regarding Data validation:
   - mock up time consuming modules (`validation.tests.test_helpers`)
@@ -76,9 +77,6 @@ InjectTool TODO
   - Can validation start after data load, and after calling zooma? See celery
     chains
   - reloading submission should invalidate validationresults
-
-* Regarding data fields and attributes:
-  - return a default ontology for breed if non mapping occours
 
 * Biosample manager user should do:
   - ask for user intervention / notify success
@@ -112,8 +110,7 @@ InjectTool TODO
     there's no difference from a web page, however, is only aesthetic
   - Add breadcrumb for pages
   - Navbar for tools (zooma, dictionary tables, etc)?
-  - serving all 3rd party javascript scripts (jquery, bootstrap and popper using
-    static files)
+  - serving all 3rd party modules using CDN when possible
   - replace text placeholder (Lorem ipsum...)
   - Pagination: missing jumping to a particular page function
 
