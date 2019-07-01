@@ -2,11 +2,6 @@
 InjectTool TODO
 ===============
 
-* documentation?
-  - Sphynx module documentation?
-  - link to project sections, refer to IMAGE-metadata?
-  - PEP8?
-
 * Regarding libraries upgrades and downgrades
   - Need to test if we can migrate to newer django release?
   - waiting for the next LTS version (April 2019). No stable branch with a non-LTS version
@@ -27,7 +22,6 @@ InjectTool TODO
   - How I can update an already loaded biosample using a different submission from
     the first one? Need to refator things in user spaces (no same name for same user)
   - Think about renaming EditSubmissionView with a more useful name
-  - Submission to biosample using threads?
   - mail to admin when there are issues in USI?
   - implement the sameAs key for already submitted biosamples:
     ```
@@ -41,12 +35,11 @@ InjectTool TODO
   - Supposing a submission has issues in USI validation. Shuold I track it in
     validation tables? should I have tables for USI errors, since if the
     data is validated using `image_validation` is not a user error?
-    
+
 * regarding issues in cryoweb:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
     Using google refine? For the moment, no duplicate can be inserted into database,
     the second occurrence will not be included in database.
-  - tag problematic fields?
   - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
     and its father
   - check for duplicate breeds - names
@@ -76,31 +69,14 @@ InjectTool TODO
     - good: ask to user?
     - Add a special confidence status when supplied breed is different from
       mapped_breed (need revisions)
+    - return a default ontology for breed if non mapping occours
 
 * Regarding Data validation:
   - mock up time consuming modules (`validation.tests.test_helpers`)
     - hard task: maybe pickling `image_validation.use_ontology.OntologyCache`?
   - Can validation start after data load, and after calling zooma? See celery
     chains
-  - I could validate a data for an already submitted object (rules may change).
-    but if the validation is ok, I don't need to change the status nor submit
-    this object
-  - Validation summary (could combine with submission summary):
-    - How many unknown, pass, warning, and error
-    - If possible, what is the most occurred error, which may lead to batch
-      correction, e.g. add decimal degrees to the coordinate as units
-    - SubmissionReport must be calculated once, or cached (if this,must be
-      invalidated when validation happens)
   - reloading submission should invalidate validationresults
-  - calculate submission statics after validation
-  - templatetags for ValidationSummary
-
-* Regarding data fields and attributes:
-  - Mother and Father are not mandatory, for the moment; They should have unknown
-    values for other data than cryoweb. When they are unknown, they shouldn't be
-    exported.
-  - return a default ontology for breed if non mapping occours
-  - model other field types
 
 * Biosample manager user should do:
   - ask for user intervention / notify success
@@ -112,9 +88,6 @@ InjectTool TODO
   - Install `django.contrib.sites` (it is useful?)
   - Use django-bootstrap4 to render forms
   - django-braces: what does it?
-  - Use [pytest-django](https://pytest-django.readthedocs.io/en/latest/)
-  - check out the django [validators](https://docs.djangoproject.com/en/1.11/ref/validators/)
-    documentation
   - read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - [django-crispy-forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html)
 
@@ -136,11 +109,8 @@ InjectTool TODO
   - Token generation could be requested using modals when submitting to biosample,
     there's no difference from a web page, however, is only aesthetic
   - Add breadcrumb for pages
-  - Add messages when views are called or code executed
-  - Error handling (API?/String messages?)
   - Navbar for tools (zooma, dictionary tables, etc)?
-  - serving all 3rd party javascript scripts (jquery, bootstrap and popper using
-    static files)
+  - serving all 3rd party modules using CDN when possible
   - replace text placeholder (Lorem ipsum...)
   - Pagination: missing jumping to a particular page function
 
@@ -148,8 +118,6 @@ InjectTool TODO
   - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
-  - Having a unknown animal as  mother/father should be equal having this foreign
-    key with a NULL value
   - display the real name of file for the uploaded file
     - not so easy, maybe: add a CharField for user filename; Create a custom
       `django.forms.fields.FileField` or a validation function that track the
@@ -165,11 +133,6 @@ InjectTool TODO
   - [Soft-delete](https://github.com/upgrad/django-deletes) items? can I store
     items with a `deleted` attribute?
   - `Sample.storage_type` and `Sample.storage_processing` as enum values?
-
-* Think about a message module to store info useful to the user (into a view):
-  - The token is expired during submission; resume submission
-  - Submission fails with errors
-  - Validation fails with errors
 
 * Related to celery
   - Write celery tasks as classes

@@ -15,14 +15,17 @@
 
   <div class="card-deck pt-5">
 
+    {# info on aligning cards: https://stackoverflow.com/a/48757628/4385116/ #}
     <div class="card border-primary mb-3" style="">
-      <div class="card-header">Submit</div>
-      <div class="card-body">
+      <div class="card-header">
+        <h4 class="my-0 font-weight-normal">Submit</h4>
+      </div>
+      <div class="card-body d-flex flex-column">
         <h4 class="card-title">Create New Submission</h4>
         <p class="card-text">Upload your data into InjectTool and start a new submission!</p>
-        <p class="lead text-center">
-          <a class="btn btn-primary btn-lg" href="{% url 'submissions:create' %}" role="button">Create</a>
-        </p>
+        <div class="text-center mt-auto">
+          <a class="btn btn-primary btn-lg col-lg-4" href="{% url 'submissions:create' %}" role="button">Create</a>
+        </div>
       </div>
     </div> <!-- card submit -->
 
@@ -30,42 +33,27 @@
     {% have_submission user as submissions %}
 
     <div class="card border-primary mb-3" style="">
-      <div class="card-header">View</div>
-      <div class="card-body">
+      <div class="card-header">
+        <h4 class="my-0 font-weight-normal">View</h4>
+      </div>
+      <div class="card-body d-flex flex-column">
         <h4 class="card-title">View Existing Submissions</h4>
         <p class="card-text">List all existing submissions</p>
-        <p class="lead text-center">
-          <a class="btn btn-secondary btn-lg {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">List</a>
-        </p>
+        <div class="text-center mt-auto">
+          <a class="btn btn-secondary btn-lg col-lg-4{% if not submissions %} disabled {% endif %}" href="{% url 'submissions:list' %}" role="button">List</a>
+        </div>
       </div>
     </div>
     <div class="card border-info mb-3" style="">
       <div class="card-header">
-        Summary
+        <h4 class="my-0 font-weight-normal">Summary</h4>
       </div>
-      <div class="card-body">
+      <div class="card-body d-flex flex-column">
         <h4 class="card-title">Data status Summary</h4>
         <p class="card-text">Get information about your data and submissions</p>
-        <p class="lead text-center">
-          <a class="btn btn-info btn-lg" href="{% url 'image_app:summary' %}" role="button">Info</a>
-        </p>
-         <!-- <ul class="card-text">
-          <li>You have {{datasource_count}} data sources loaded
-            ({{datasource_uploaded}} uploaded into UID)</li>
-          <li>
-            {% if cryoweb_hasdata %}
-              You have data in cryoweb staging area
-            {% else %}
-              Your cryoweb staging area is empty
-            {% endif %}
-          </li>
-          <li>You have {{uid_report.n_of_animals}} animal loaded into UID</li>
-          <li>You have {{uid_report.n_of_samples}} samples loaded into UID</li>
-          <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
-          <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
-          <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
-        </ul>
-        -->
+        <div class="text-center mt-auto">
+          <a class="btn btn-info btn-lg col-lg-4" href="{% url 'image_app:summary' %}" role="button">Info</a>
+        </div>
       </div>
     </div>
   </div> <!-- card-deck -->

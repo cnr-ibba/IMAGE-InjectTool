@@ -7,7 +7,6 @@ Created on Mon Jan 21 12:13:16 2019
 """
 
 import os
-import re
 
 from decouple import AutoConfig
 
@@ -15,15 +14,10 @@ from pyUSIrest.auth import Auth
 
 from django.conf import settings
 
-from image_app.models import Animal, Sample
-
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
-
-# a pattern to correctly parse aliases
-ALIAS_PATTERN = re.compile(r"IMAGE([AS])([0-9]+)")
 
 
 def get_auth(user=None, password=None, token=None):
@@ -42,38 +36,3 @@ def get_manager_auth():
     return get_auth(
         user=config('USI_MANAGER'),
         password=config('USI_MANAGER_PASSWORD'))
-
-
-def parse_image_alias(alias):
-    """Parse alias and return table and pk"""
-
-    match = re.search(ALIAS_PATTERN, alias)
-
-    letter, padded_pk = match.groups()
-    table, pk = None, None
-
-    if letter == "A":
-        table = "Animal"
-
-    elif letter == "S":
-        table = "Sample"
-
-    pk = int(padded_pk)
-
-    return table, pk
-
-
-def get_model_object(table, pk):
-    """Get a model object relying on table name (Sample/Alias) and pk"""
-
-    # get sample object
-    if table == "Animal":
-        sample_obj = Animal.objects.get(pk=pk)
-
-    elif table == "Sample":
-        sample_obj = Sample.objects.get(pk=pk)
-
-    else:
-        raise Exception("Unknown table '%s'" % (table))
-
-    return sample_obj
