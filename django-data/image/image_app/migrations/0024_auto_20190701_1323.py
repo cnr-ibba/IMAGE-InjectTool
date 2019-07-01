@@ -10,6 +10,14 @@ from common.constants import SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING
 def convert_storage(apps, schema_editor):
     """read from storage field and set data to storage_new"""
 
+    # When using multiple databases, you may need to figure out whether or
+    # not to run a migration against a particular database. For example,
+    # you may want to only run a migration on a particular database.
+    # whithout the following condition, I will fail tests during migrations,
+    # while default database works as expected
+    if schema_editor.connection.alias != 'default':
+        return
+
     Sample = apps.get_model('image_app', 'Sample')
 
     for sample in Sample.objects.all():
@@ -24,6 +32,9 @@ def convert_storage_processing(apps, schema_editor):
     """
     read from storage_processing field and set data to storage_processing_new
     """
+
+    if schema_editor.connection.alias != 'default':
+        return
 
     Sample = apps.get_model('image_app', 'Sample')
 

@@ -638,20 +638,13 @@ class Sample(BioSampleMixin, models.Model):
             "available, please use the value no longer available")
     )
 
-    storage = models.CharField(max_length=255, blank=True, null=True)
-
-    storage_new = models.SmallIntegerField(
+    storage = models.SmallIntegerField(
         choices=[x.value for x in SAMPLE_STORAGE],
         help_text='How the sample was stored',
         null=True,
         blank=True)
 
-    storage_processing = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True)
-
-    storage_processing_new = models.SmallIntegerField(
+    storage_processing = models.SmallIntegerField(
         choices=[x.value for x in SAMPLE_STORAGE_PROCESSING],
         help_text='How the sample was prepared for storage',
         null=True,
