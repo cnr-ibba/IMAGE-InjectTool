@@ -10,7 +10,6 @@ import os
 import json
 import redis
 import traceback
-import asyncio
 
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
@@ -25,8 +24,8 @@ from image_app.helpers import parse_image_alias, get_model_object
 from image_app.models import Submission, Animal
 from common.tasks import redis_lock
 from common.constants import (
-    ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
-from common.helpers import send_message_to_websocket
+    ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
+from submissions.helpers import send_message
 
 from .helpers import get_auth, get_manager_auth
 
@@ -112,16 +111,8 @@ class SubmitTask(MyTask):
             "Error in biosample submission: %s" % str(exc))
         submission_data.submission_obj.save()
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(ERROR),
-                    'notification_message':
-                        submission_data.submission_obj.message
-                },
-                submission_data.submission_id
-            )
-        )
+        # send async message
+        send_message(submission_data.submission_obj)
 
         # send a mail to the user with the stacktrace (einfo)
         submission_data.owner.email_user(
@@ -179,15 +170,8 @@ class SubmitTask(MyTask):
             submission_data.submission_obj.message = message
             submission_data.submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(READY),
-                        'notification_message': message
-                    },
-                    submission_data.submission_id
-                )
-            )
+            # send async message
+            send_message(submission_data.submission_obj)
 
             # get exception info
             einfo = traceback.format_exc()
@@ -218,15 +202,8 @@ class SubmitTask(MyTask):
             submission_data.submission_obj.message = message
             submission_data.submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(READY),
-                        'notification_message': message
-                    },
-                    submission_data.submission_id
-                )
-            )
+            # send async message
+            send_message(submission_data.submission_obj)
 
             # send a mail to the user with the stacktrace (einfo)
             submission_data.owner.email_user(
@@ -307,16 +284,9 @@ class SubmitTask(MyTask):
         submission_data.submission_obj.message = (
             "Waiting for biosample validation")
         submission_data.submission_obj.save()
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(SUBMITTED),
-                    'notification_message':
-                        submission_data.submission_obj.message
-                },
-                submission_data.submission_id
-            )
-        )
+
+        # send async message
+        send_message(submission_data.submission_obj)
 
     # helper function to create or update a biosample record
     def __create_or_update(self, sample_obj, submission_data):
@@ -571,15 +541,8 @@ class FetchStatusTask(MyTask):
             submission_obj.message = message
             submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(ERROR),
-                        'notification_message': message
-                    },
-                    submission_obj.id
-                )
-            )
+            # send async message
+            send_message(submission_obj)
 
             logger.error("Errors for submission: %s" % (submission))
             logger.error(message)
@@ -672,15 +635,8 @@ class FetchStatusTask(MyTask):
             submission_obj.message = "Error in biosample submission"
             submission_obj.save()
 
-            asyncio.get_event_loop().run_until_complete(
-                send_message_to_websocket(
-                    {
-                        'message': STATUSES.get_value_display(NEED_REVISION),
-                        'notification_message': submission_obj.message
-                    },
-                    submission_obj.id
-                )
-            )
+            # send async message
+            send_message(submission_obj)
 
         else:
             # raising an exception while finalizing will result
@@ -714,15 +670,8 @@ class FetchStatusTask(MyTask):
         submission_obj.message = "Successful submission into biosample"
         submission_obj.save()
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(COMPLETED),
-                    'notification_message': submission_obj.message
-                },
-                submission_obj.id
-            )
-        )
+        # send async message
+        send_message(submission_obj)
 
         logger.info(
             "Submission %s is now completed and recorded into UID" % (
