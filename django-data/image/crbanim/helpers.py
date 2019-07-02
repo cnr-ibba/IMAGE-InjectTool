@@ -316,7 +316,6 @@ def fill_uid_names(record, submission):
     # get a publication (if present)
     publication = None
 
-    # HINT: mind this mispelling
     if record.sample_bibliographic_references:
         publication, created = Publication.objects.get_or_create(
             doi=record.sample_bibliographic_references)

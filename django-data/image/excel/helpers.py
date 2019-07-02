@@ -12,7 +12,8 @@ import logging
 from collections import defaultdict, namedtuple
 
 from common.constants import ERROR, LOADED
-from image_app.models import DictBreed, DictCountry, DictSpecie, DictSex
+from image_app.models import (
+    DictBreed, DictCountry, DictSpecie, DictSex, Name)
 from language.helpers import check_species_synonyms
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -304,6 +305,60 @@ def fill_uid_breeds(submission_obj, template):
     logger.info("fill_uid_breeds() completed")
 
 
+def fill_uid_names(submission_obj, template):
+    """fill Names table from crbanim record"""
+
+    # debug
+    logger.info("called fill_uid_names()")
+
+    # iterate among excel template
+    for record in template.get_animal_records():
+        # in the same record I have the sample identifier and animal identifier
+        # a name record for animal
+        animal_name, created = Name.objects.get_or_create(
+            name=record.animal_id_in_data_source,
+            submission=submission_obj,
+            owner=submission_obj.owner)
+
+        if created:
+            logger.debug("Created animal name %s" % animal_name)
+
+        else:
+            logger.debug("Found animal name %s" % animal_name)
+
+    # iterate among excel template
+    for record in template.get_sample_records():
+        # name record for sample
+        sample_name, created = Name.objects.get_or_create(
+            name=record.sample_id_in_data_source,
+            submission=submission_obj,
+            owner=submission_obj.owner)
+
+        if created:
+            logger.debug("Created sample name %s" % sample_name)
+
+        else:
+            logger.debug("Found sample name %s" % sample_name)
+
+    logger.info("fill_uid_names() completed")
+
+
+def fill_uid_animals(submission_obj, template):
+    # debug
+    logger.info("called fill_uid_animals()")
+
+    # debug
+    logger.info("fill_uid_animals() completed")
+
+
+def fill_uid_samples(submission_obj, template):
+    # debug
+    logger.info("called fill_uid_samples()")
+
+    # debug
+    logger.info("fill_uid_samples() completed")
+
+
 def upload_template(submission_obj):
     # debug
     logger.info("Importing from Excel template file")
@@ -338,6 +393,15 @@ def upload_template(submission_obj):
 
         # BREEDS
         fill_uid_breeds(submission_obj, reader)
+
+        # NAME
+        fill_uid_names(submission_obj, reader)
+
+        # ANIMALS
+        fill_uid_animals(submission_obj, reader)
+
+        # SAMPLES
+        fill_uid_samples(submission_obj, reader)
 
     except Exception as exc:
         # set message:
