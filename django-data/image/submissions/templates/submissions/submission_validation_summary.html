@@ -20,6 +20,11 @@
       <span class="badge badge-warning badge-pill align-right">{{ message.count }}</span>
         {{ message.message }}
         <a href="#"><span class="badge badge-success badge-pill align-right">Fix this</span></a>
+        <ul>
+          {% for id in message.ids %}
+          <li>{{ id }}</li>
+          {% endfor %}
+        </ul>
       </li>
     {% endfor %}
   </ul>

@@ -56,8 +56,8 @@ class ValidateSubmission(object):
         self.ruleset = ruleset
 
         # collect all unique messages for samples and animals
-        self.animals_messages = Counter()
-        self.samples_messages = Counter()
+        self.animals_messages = dict()
+        self.samples_messages = dict()
 
         # track global statuses for animals and samples
         # Don't set keys: if you take a key which doesn't exists, you will
@@ -181,12 +181,14 @@ class ValidateSubmission(object):
         if isinstance(model, Sample):
             for message in comparable_messages:
                 # samples_messages is a counter object
-                self.samples_messages.update({message})
+                self.samples_messages.setdefault(message, [])
+                self.samples_messages[message].append(model.pk)
 
         # is as an animal object
         elif isinstance(model, Animal):
             for message in comparable_messages:
-                self.animals_messages.update({message})
+                self.animals_messages.setdefault(message, [])
+                self.animals_messages[message].append(model.pk)
 
         # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
@@ -255,10 +257,11 @@ class ValidateSubmission(object):
 
             validation_messages = list()
 
-            for message, count in messages.items():
+            for message, ids in messages.items():
                 validation_messages.append({
                     'message': message,
-                    'count': count
+                    'count': len(ids),
+                    'ids': ids
                 })
 
             summary_obj.messages = validation_messages
