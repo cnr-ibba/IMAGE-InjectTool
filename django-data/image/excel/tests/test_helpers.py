@@ -6,6 +6,7 @@ Created on Tue Jul  2 10:58:42 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import types
 from collections import defaultdict
 
 from django.test import TestCase
@@ -47,6 +48,13 @@ class ExcelTemplateTestCase(BaseExcelMixin, TestCase):
         self.assertIsInstance(not_found, defaultdict)
         self.assertEqual(len(not_found), 0)
 
+    def test_get_breed_records(self):
+        """get_breed_records returns an iterator"""
+
+        breeds = self.reader.get_breed_records()
+        self.assertIsInstance(breeds, types.GeneratorType)
+        self.assertEqual(len(list(breeds)), 2)
+
 
 class ExcelMixin(WebSocketMixin, BaseExcelMixin):
     """Common tests for Excel classes"""
@@ -66,7 +74,7 @@ class ExcelMixin(WebSocketMixin, BaseExcelMixin):
             LOADED)
 
         self.assertIn(
-            "CRBAnim import completed for submission",
+            "Template import completed for submission",
             self.submission.message)
 
         # assert data into database

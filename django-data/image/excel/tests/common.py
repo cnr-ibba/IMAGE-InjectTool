@@ -16,14 +16,15 @@ class BaseExcelMixin(DataSourceMixinTestCase):
 
     # import this file and populate database once
     fixtures = [
+        'excel/dictspecie',
+        'excel/speciesynonym',
         'excel/submission',
         'image_app/dictcountry',
         'image_app/dictrole',
         'image_app/dictsex',
         'image_app/organization',
         'image_app/user',
-        'language/dictspecie',
-        'language/speciesynonym',
+
     ]
 
     def setUp(self):

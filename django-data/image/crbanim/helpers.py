@@ -249,7 +249,7 @@ class CRBAnimReader():
 
 
 def fill_uid_breed(record, language):
-    """Fill DioctBreed from a crbanim record"""
+    """Fill DictBreed from a crbanim record"""
 
     # get a DictSpecie object. Species are in latin names, but I can
     # find also a common name in translation tables
