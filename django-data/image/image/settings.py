@@ -64,7 +64,8 @@ INSTALLED_APPS = [
     'animals',
     'samples',
     'crbanim',
-    'submissions_ws'
+    'submissions_ws',
+    'excel',
 ]
 
 MIDDLEWARE = [
