@@ -27,6 +27,7 @@ pycountry
 python-magic
 python-dateutil
 django-simple-cookie-consent==0.1.1
+xlrd
 # git+https://github.com/cnr-ibba/pyUSIrest.git@b07c54830d57603ba052821b43ad36e11bdab62c
 pyUSIrest==0.2.2
 git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@a335e7fd9317c38bf345255c6ddec71d627c59d7
