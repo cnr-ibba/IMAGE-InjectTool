@@ -7,6 +7,7 @@ Created on Tue Jul 24 15:49:23 2018
 """
 
 import logging
+import ast
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
@@ -26,6 +27,7 @@ from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name, Animal, Sample
 from crbanim.tasks import ImportCRBAnimTask
 from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -169,12 +171,31 @@ class SubmissionValidationSummaryFixErrorsView(ListView):
     template_name = "submissions/submission_validation_summary_fix_errors.html"
 
     def get_queryset(self):
+        ids = list()
         summary_type = self.kwargs['type']
-        ids = [int(item) for item in self.kwargs['ids'].split(',')]
+        submission = Submission.objects.get(pk=self.kwargs['pk'])
+        validation_summary = ValidationSummary.objects.get(
+            submission=submission, type=summary_type)
+        request_message = self.kwargs['msg']
+        for message in validation_summary.messages:
+            message = ast.literal_eval(message)
+            if message['message'] == request_message:
+                ids = message['ids']
         if summary_type == 'animal':
             return Animal.objects.filter(id__in=ids)
         elif summary_type == 'sample':
             return Sample.objects.filter(id__in=ids)
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(
+            SubmissionValidationSummaryFixErrorsView, self
+        ).get_context_data(**kwargs)
+
+        # add submission to context
+        context["message"] = self.kwargs['msg']
+
+        return context
 
 
 # a detail view since I need to operate on a submission object

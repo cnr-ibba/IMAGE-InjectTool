@@ -36,7 +36,7 @@ urlpatterns = [
     url(r'^(?P<pk>[-\w]+)/validation_summary/(?P<type>[\w]+)/$',
         views.SubmissionValidationSummaryView.as_view(),
         name='validation_summary'),
-    url(r'^(?P<pk>[-\w]+)/validation_summary/(?P<type>[\w]+)/(?P<ids>[\w]+)/$',
+    url(r'^(?P<pk>[-\w]+)/validation_summary/(?P<type>[\w]+)/(?P<msg>.*)/$',
         views.SubmissionValidationSummaryFixErrorsView.as_view(),
         name='validation_summary_fix_errors')
 ]

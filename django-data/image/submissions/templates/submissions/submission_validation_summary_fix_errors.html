@@ -5,7 +5,7 @@
 {% endblock title %}
 
 {% block content %}
-    <h1>Fix errors</h1>
+    <h1>{{ message }}</h1>
     <ul>
         {% for object in  object_list %}
             <li>{{ object.id }}</li>
