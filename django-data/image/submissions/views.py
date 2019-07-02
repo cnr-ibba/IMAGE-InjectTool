@@ -23,7 +23,7 @@ from common.constants import (
 from common.helpers import get_deleted_objects
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission, Name
+from image_app.models import Submission, Name, Animal, Sample
 from crbanim.tasks import ImportCRBAnimTask
 from validation.helpers import construct_validation_message
 
@@ -155,17 +155,26 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        summary_type = ''
-        if self.kwargs['type'] == 'animals':
-            summary_type = 'animal'
-        elif self.kwargs['type'] == 'samples':
-            summary_type = 'sample'
+        summary_type = self.kwargs['type']
         try:
             context['validation_summary'] = self.object.validationsummary_set\
                 .get(type=summary_type)
         except ObjectDoesNotExist:
             context['validation_summary'] = None
+        context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
         return context
+
+
+class SubmissionValidationSummaryFixErrorsView(ListView):
+    template_name = "submissions/submission_validation_summary_fix_errors.html"
+
+    def get_queryset(self):
+        summary_type = self.kwargs['type']
+        ids = [int(item) for item in self.kwargs['ids'].split(',')]
+        if summary_type == 'animal':
+            return Animal.objects.filter(id__in=ids)
+        elif summary_type == 'sample':
+            return Sample.objects.filter(id__in=ids)
 
 
 # a detail view since I need to operate on a submission object
