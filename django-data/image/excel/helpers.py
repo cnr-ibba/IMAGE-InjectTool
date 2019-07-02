@@ -12,7 +12,8 @@ import logging
 from collections import defaultdict, namedtuple
 
 from common.constants import ERROR, LOADED
-from image_app.models import DictBreed, DictCountry, DictSpecie
+from image_app.models import DictBreed, DictCountry, DictSpecie, DictSex
+from language.helpers import check_species_synonyms
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 
@@ -136,11 +137,10 @@ class ExcelTemplate():
             logger.debug("This seems to be a valid Template file")
             return True, not_found
 
-    def get_breed_records(self):
-        """Iterate among breeds record"""
+    def __get_sheet_records(self, sheet_name):
+        """Generic functions to iterate on excel records"""
 
         # this is the sheet I need
-        sheet_name = "breed"
         sheet = self.book.sheet_by_name(sheet_name)
 
         # now get columns to create a collection objects
@@ -157,7 +157,7 @@ class ExcelTemplate():
         columns = column_idxs.keys()
 
         # create a namedtuple object
-        Breed = namedtuple("Breed", columns)
+        Record = namedtuple(sheet_name.capitalize(), columns)
 
         # iterate over record, mind the header column
         for i in range(1, sheet.nrows):
@@ -165,12 +165,91 @@ class ExcelTemplate():
             row = sheet.row_values(i)
 
             # get the data I need
-            record = [row[column_idxs[column]] for column in columns]
+            data = [row[column_idxs[column]] for column in columns]
 
             # get a new object
-            breed = Breed._make(record)
+            record = Record._make(data)
 
-            yield breed
+            yield record
+
+    def get_breed_records(self):
+        """Iterate among breeds record"""
+
+        # this is the sheet I need
+        sheet_name = "breed"
+        return self.__get_sheet_records(sheet_name)
+
+    def get_animal_records(self):
+        """Iterate among animal records"""
+
+        # this is the sheet I need
+        sheet_name = "animal"
+        return self.__get_sheet_records(sheet_name)
+
+    def get_sample_records(self):
+        """Iterate among sample records"""
+
+        # this is the sheet I need
+        sheet_name = "sample"
+        return self.__get_sheet_records(sheet_name)
+
+    # TODO: identical to CRBanim move in a common mixin
+    def __check_items(self, item_set, model, column):
+        """General check of Template items into database"""
+
+        # a list of not found terms and a status to see if something is missing
+        # or not
+        not_found = []
+        result = True
+
+        for item in item_set:
+            # check for species in database
+            if not model.objects.filter(label=item).exists():
+                not_found.append(item)
+
+        if len(not_found) != 0:
+            result = False
+            logger.warning(
+                "Those %s are not present in UID database:" % (column))
+            logger.warning(not_found)
+
+        return result, not_found
+
+    # TODO: nearly identical to CRBanim move in a common mixin
+    def check_species(self, country):
+        """Check if all species are defined in UID DictSpecies"""
+
+        column = 'species'
+        item_set = set([breed.species for breed in self.get_breed_records()])
+
+        check, not_found = self.__check_items(
+            item_set, DictSpecie, column)
+
+        if check is False:
+            # try to check in dictionary table
+            logger.info("Searching for %s in dictionary tables" % (not_found))
+
+            # if this function return True, I found all synonyms
+            if check_species_synonyms(not_found, country) is True:
+                logger.info("Found %s in dictionary tables" % not_found)
+
+                # return True and an empty list for check and not found items
+                return True, []
+
+        # if I arrive here, there are species that I couldn't find
+        logger.error("Couldnt' find those species in dictionary tables:")
+        logger.error(not_found)
+
+        return check, not_found
+
+    # TODO: nearly identical to CRBanim move in a common mixin
+    def check_sex(self):
+        """Check that all sex records are present in database"""
+
+        column = 'sex'
+        item_set = set([animal.sex for animal in self.get_animal_records()])
+
+        return self.__check_items(item_set, DictSex, column)
 
 
 def fill_uid_breeds(submission_obj, template):
@@ -238,7 +317,24 @@ def upload_template(submission_obj):
 
     # start data loading
     try:
-        # TODO: check for species and sex in a similar way as cryoweb does
+        # check for species and sex in a similar way as cryoweb does
+        # TODO: identical to CRBanim. Move to a mixin
+        check, not_found = reader.check_sex()
+
+        if not check:
+            message = (
+                "Not all Sex terms are loaded into database: "
+                "check for %s in your dataset" % (not_found))
+
+            raise ExcelImportError(message)
+
+        check, not_found = reader.check_species(
+            submission_obj.gene_bank_country)
+
+        if not check:
+            raise ExcelImportError(
+                "Some species are not loaded in UID database: "
+                "%s" % (not_found))
 
         # BREEDS
         fill_uid_breeds(submission_obj, reader)

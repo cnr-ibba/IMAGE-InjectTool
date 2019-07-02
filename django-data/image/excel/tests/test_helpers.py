@@ -14,7 +14,7 @@ from django.test import TestCase
 from common.constants import ERROR, LOADED
 from common.tests import WebSocketMixin
 from image_app.models import (
-    Submission, Animal, Sample, db_has_data)
+    Submission, Animal, Sample, DictCountry, DictSpecie, DictSex, db_has_data)
 
 from ..helpers import ExcelTemplate, upload_template
 from .common import BaseExcelMixin
@@ -48,12 +48,66 @@ class ExcelTemplateTestCase(BaseExcelMixin, TestCase):
         self.assertIsInstance(not_found, defaultdict)
         self.assertEqual(len(not_found), 0)
 
+    def check_generator(self, records, length):
+        self.assertIsInstance(records, types.GeneratorType)
+        self.assertEqual(len(list(records)), length)
+
     def test_get_breed_records(self):
         """get_breed_records returns an iterator"""
 
         breeds = self.reader.get_breed_records()
-        self.assertIsInstance(breeds, types.GeneratorType)
-        self.assertEqual(len(list(breeds)), 2)
+        self.check_generator(breeds, 2)
+
+    def test_get_animal_records(self):
+        """get_animal_records returns an iterator"""
+
+        animals = self.reader.get_animal_records()
+        self.check_generator(animals, 3)
+
+    def test_get_sample_records(self):
+        """get_sample_records returns an iterator"""
+
+        samples = self.reader.get_sample_records()
+        self.check_generator(samples, 3)
+
+    # TODO: pretty similar to CRBanim - move to a common mixin
+    def test_check_species(self):
+        """Test check species method"""
+
+        # get a country
+        country = DictCountry.objects.get(label="United Kingdom")
+
+        check, not_found = self.reader.check_species(country)
+
+        self.assertTrue(check)
+        self.assertEqual(len(not_found), 0)
+
+        # changing species set
+        DictSpecie.objects.filter(label='Sus scrofa').delete()
+
+        check, not_found = self.reader.check_species(country)
+
+        # the read species are not included in fixtures
+        self.assertFalse(check)
+        self.assertGreater(len(not_found), 0)
+
+    # TODO: identical to CRBanim - move to a common mixin
+    def test_check_sex(self):
+        """Test check sex method"""
+
+        check, not_found = self.reader.check_sex()
+
+        self.assertTrue(check)
+        self.assertEqual(len(not_found), 0)
+
+        # changing sex set
+        DictSex.objects.filter(label='female').delete()
+
+        check, not_found = self.reader.check_sex()
+
+        # the read species are not included in fixtures
+        self.assertFalse(check)
+        self.assertGreater(len(not_found), 0)
 
 
 class ExcelMixin(WebSocketMixin, BaseExcelMixin):
