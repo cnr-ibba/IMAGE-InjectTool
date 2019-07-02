@@ -6,6 +6,8 @@ Created on Tue Jul  2 10:58:42 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+from collections import defaultdict
+
 from django.test import TestCase
 
 from common.constants import ERROR, LOADED
@@ -13,8 +15,37 @@ from common.tests import WebSocketMixin
 from image_app.models import (
     Submission, Animal, Sample, db_has_data)
 
-from ..helpers import upload_template
+from ..helpers import ExcelTemplate, upload_template
 from .common import BaseExcelMixin
+
+
+class ExcelTemplateTestCase(BaseExcelMixin, TestCase):
+    """Test excel class upload"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # crate a Excel Template object
+        self.reader = ExcelTemplate()
+
+        # get filenames for DataSourceMixinTestCase.dst_path
+        self.reader.read_file(self.dst_path)
+
+    def test_check_sheets(self):
+        # test check sheets method
+        status, not_found = self.reader.check_sheets()
+
+        self.assertTrue(status)
+        self.assertEqual(not_found, [])
+
+    def test_check_columns(self):
+        # test check sheets method
+        status, not_found = self.reader.check_columns()
+
+        self.assertTrue(status)
+        self.assertIsInstance(not_found, defaultdict)
+        self.assertEqual(len(not_found), 0)
 
 
 class ExcelMixin(WebSocketMixin, BaseExcelMixin):
