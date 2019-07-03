@@ -199,7 +199,8 @@ class SubmissionValidationSummaryFixErrorsView(ListView):
 
         re_str = '.* No value provided for field .* but value in field .* is not missing geographic information'
         if re.search(re_str, msg):
-            context['attributes_to_show'] = ['birth_location_latitude', 'birth_location_longitude', 'birth_location_accuracy', 'birth_location']
+            context['attributes_to_show'] = ['birth_location_latitude', 'birth_location_longitude', 'birth_location_accuracy']
+            context['attributes_to_edit'] = ['birth_location']
 
         return context
 
