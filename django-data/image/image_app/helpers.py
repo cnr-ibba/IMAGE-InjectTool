@@ -22,6 +22,9 @@ def parse_image_alias(alias):
 
     match = re.search(ALIAS_PATTERN, alias)
 
+    if not match:
+        raise Exception("Cannot deal with '%s'" % (alias))
+
     letter, padded_pk = match.groups()
     table, pk = None, None
 

@@ -562,9 +562,15 @@ def fill_uid_samples(submission_obj, template):
 
         # TODO: get developmental_stage and physiological_stage terms
 
-        # derive animal age at collection. THis function deals with NULL valies
-        animal_age_at_collection, time_units = image_timedelta(
-            record.collection_date, animal.birth_date)
+        # animal age could be present or not
+        if record.animal_age_at_collection:
+            # TODO: do something
+            pass
+
+        else:
+            # derive animal age at collection
+            animal_age_at_collection, time_units = image_timedelta(
+                record.collection_date, animal.birth_date)
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(
