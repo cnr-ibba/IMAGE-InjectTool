@@ -231,9 +231,11 @@ class CRBAnimReader():
                 # return True and an empty list for check and not found items
                 return True, []
 
-        # if I arrive here, there are species that I couldn't find
-        logger.error("Couldnt' find those species in dictionary tables:")
-        logger.error(not_found)
+            else:
+                # if I arrive here, there are species that I couldn't find
+                logger.error(
+                    "Couldnt' find those species in dictionary tables:")
+                logger.error(not_found)
 
         return check, not_found
 

@@ -11,9 +11,9 @@ import logging
 
 from collections import defaultdict, namedtuple
 
-from common.constants import ERROR, LOADED
+from common.constants import ERROR, LOADED, ACCURACIES
 from image_app.models import (
-    DictBreed, DictCountry, DictSpecie, DictSex, Name)
+    DictBreed, DictCountry, DictSpecie, DictSex, Name, Animal)
 from language.helpers import check_species_synonyms
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -168,6 +168,10 @@ class ExcelTemplate():
             # get the data I need
             data = [row[column_idxs[column]] for column in columns]
 
+            # replace all empty  occurences in a list
+            data = [None if col in [""]
+                    else col for col in data]
+
             # get a new object
             record = Record._make(data)
 
@@ -237,9 +241,11 @@ class ExcelTemplate():
                 # return True and an empty list for check and not found items
                 return True, []
 
-        # if I arrive here, there are species that I couldn't find
-        logger.error("Couldnt' find those species in dictionary tables:")
-        logger.error(not_found)
+            else:
+                # if I arrive here, there are species that I couldn't find
+                logger.error(
+                    "Couldnt' find those species in dictionary tables:")
+                logger.error(not_found)
 
         return check, not_found
 
@@ -251,6 +257,30 @@ class ExcelTemplate():
         item_set = set([animal.sex for animal in self.get_animal_records()])
 
         return self.__check_items(item_set, DictSex, column)
+
+    def check_accuracy(self):
+        """Check accuracy specified in table"""
+
+        item_set = set([animal.birth_location_accuracy
+                        for animal in self.get_animal_records()])
+
+        # a list of not found terms and a status to see if something is missing
+        # or not
+        not_found = []
+        result = True
+
+        for item in item_set:
+            try:
+                ACCURACIES.get_value_by_desc(item)
+
+            except KeyError:
+                logger.warning("accuracy level '%s' not found" % (item))
+                not_found.append(item)
+
+        if len(not_found) != 0:
+            result = False
+
+        return result, not_found
 
 
 def fill_uid_breeds(submission_obj, template):
@@ -347,6 +377,100 @@ def fill_uid_animals(submission_obj, template):
     # debug
     logger.info("called fill_uid_animals()")
 
+    # get submission language
+    language = submission_obj.gene_bank_country.label
+
+    # iterate among excel template
+    for record in template.get_animal_records():
+        # determine sex. Check for values
+        sex = DictSex.objects.get(label__iexact=record.sex)
+
+        # get specie
+        specie = DictSpecie.objects.get(label=record.species)
+
+        # how I can get breed from my data?
+        breeds = [breed for breed in template.get_breed_records()
+                  if breed.supplied_breed == record.breed and
+                  breed.species == record.species]
+
+        # breed is supposed to be unique, from UID constraints. However
+        # I could place the same breed name for two countries. In that case,
+        # I cant derive a unique breed from users data
+        if len(breeds) != 1:
+            raise ExcelImportError(
+                "Can't determine a unique breed for '%s:%s' from user data" %
+                (record.breed, record.species))
+
+        # get a country for this breed
+        country = DictCountry.objects.get(
+            label=breeds[0].efabis_breed_country)
+
+        # ok get a real dictbreed object
+        breed = DictBreed.objects.get(
+            supplied_breed=record.breed,
+            specie=specie,
+            country=country)
+
+        logger.debug("Selected breed is %s" % (breed))
+
+        # define names
+        name, mother, father = None, None, None
+
+        # get name for this animal and for mother and father
+        logger.debug("Getting %s as my name" % (
+            record.animal_id_in_data_source))
+
+        name = Name.objects.get(
+            name=record.animal_id_in_data_source,
+            submission=submission_obj)
+
+        if record.father_id_in_data_source:
+            logger.debug("Getting %s as father" % (
+                record.father_id_in_data_source))
+
+            father = Name.objects.get(
+                name=record.father_id_in_data_source,
+                submission=submission_obj)
+
+        if record.mother_id_in_data_source:
+            logger.debug("Getting %s as mother" % (
+                record.mother_id_in_data_source))
+
+            mother = Name.objects.get(
+                name=record.mother_id_in_data_source,
+                submission=submission_obj)
+
+        # now get accuracy
+        accuracy = ACCURACIES.get_value_by_desc(
+            record.birth_location_accuracy)
+
+        # create a new object. Using defaults to avoid collisions when
+        # updating data
+        defaults = {
+            'alternative_id': record.alternative_animal_id,
+            'description': record.animal_description,
+            'breed': breed,
+            'sex': sex,
+            'father': father,
+            'mother': mother,
+            'birth_date': record.birth_date,
+            'birth_location': record.birth_location,
+            'birth_location_latitude': record.birth_location_latitude,
+            'birth_location_longitude': record.birth_location_longitude,
+            'birth_location_accuracy': accuracy,
+            'owner': submission_obj.owner
+        }
+
+        animal, created = Animal.objects.update_or_create(
+            name=name,
+            defaults=defaults)
+
+        if created:
+            logger.debug("Created %s" % animal)
+
+        else:
+            logger.debug("Updating %s" % animal)
+
     # debug
     logger.info("fill_uid_animals() completed")
 
@@ -390,6 +514,15 @@ def upload_template(submission_obj):
             raise ExcelImportError(
                 "Some species are not loaded in UID database: "
                 "%s" % (not_found))
+
+        check, not_found = reader.check_sex()
+
+        if not check:
+            message = (
+                "Not all accuracy levels are defined in database: "
+                "check for %s in your dataset" % (not_found))
+
+            raise ExcelImportError(message)
 
         # BREEDS
         fill_uid_breeds(submission_obj, reader)

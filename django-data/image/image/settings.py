@@ -257,6 +257,10 @@ LOGGING = {
             'level': 'INFO',
             'handlers': ['console'],
         },
+        'excel': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
     },
 }
 
