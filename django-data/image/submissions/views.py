@@ -8,6 +8,7 @@ Created on Tue Jul 24 15:49:23 2018
 
 import logging
 import ast
+import re
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
@@ -193,7 +194,12 @@ class SubmissionValidationSummaryFixErrorsView(ListView):
         ).get_context_data(**kwargs)
 
         # add submission to context
-        context["message"] = self.kwargs['msg']
+        msg = self.kwargs['msg']
+        context["message"] = msg
+
+        re_str = '.* No value provided for field .* but value in field .* is not missing geographic information'
+        if re.search(re_str, msg):
+            context['attributes_to_show'] = ['birth_location_latitude', 'birth_location_longitude', 'birth_location_accuracy', 'birth_location']
 
         return context
 

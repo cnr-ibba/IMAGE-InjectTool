@@ -1,14 +1,27 @@
 {% extends "base.html" %}
 
+{% load submissions_filters %}
+
 {% block title %}
   Fix validation errors
 {% endblock title %}
 
 {% block content %}
     <h1>{{ message }}</h1>
-    <ul>
+    <hr>
+    <form>
         {% for object in  object_list %}
-            <li>{{ object.id }}</li>
+            <h3>{{ object.name.name }}</h3>
+            {% for show in attributes_to_show %}
+            <div class="from-group">
+                <label for="{{ object.id|create_unique_id:show }}">{{ show|convert_to_human_readable }}:</label>
+                <input type="text" class="form-control" id="{{ object.id|create_unique_id:show }}" value="{{ object|getattribute:show }}">
+            </div>
+            {% endfor %}
+            <br>
         {% endfor %}
-    </ul>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+    </form>
 {% endblock content %}
