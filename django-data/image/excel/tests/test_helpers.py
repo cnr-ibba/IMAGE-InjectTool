@@ -109,6 +109,14 @@ class ExcelTemplateTestCase(BaseExcelMixin, TestCase):
         self.assertFalse(check)
         self.assertGreater(len(not_found), 0)
 
+    def test_check_accuracies(self):
+        """Test check accuracies method"""
+
+        check, not_found = self.reader.check_accuracies()
+
+        self.assertTrue(check)
+        self.assertEqual(len(not_found), 0)
+
 
 class ExcelMixin(WebSocketMixin, BaseExcelMixin):
     """Common tests for Excel classes"""
@@ -141,8 +149,8 @@ class ExcelMixin(WebSocketMixin, BaseExcelMixin):
         notification_message = (
             'Template import completed for submission: 1')
         validation_message = {
-            'animals': 1, 'samples': 2,
-            'animal_unkn': 1, 'sample_unkn': 2,
+            'animals': 3, 'samples': 3,
+            'animal_unkn': 3, 'sample_unkn': 3,
             'animal_issues': 0, 'sample_issues': 0}
 
         self.check_message(message, notification_message, validation_message)

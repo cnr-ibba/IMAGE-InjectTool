@@ -8,15 +8,20 @@ Created on Tue Jul  2 10:44:54 2019
 
 import xlrd
 import logging
+import datetime
 
 from collections import defaultdict, namedtuple
 
-from common.constants import ERROR, LOADED, ACCURACIES
+from common.constants import (
+    ERROR, LOADED, ACCURACIES, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
+from common.helpers import image_timedelta
 from image_app.models import (
-    DictBreed, DictCountry, DictSpecie, DictSex, Name, Animal)
+    DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Name, Animal,
+    Sample)
 from language.helpers import check_species_synonyms
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -172,6 +177,23 @@ class ExcelTemplate():
             data = [None if col in [""]
                     else col for col in data]
 
+            # fix date fields. Search for 'date' in column names
+            date_idxs = [column_idxs[column] for column in columns if
+                         'date' in column]
+
+            # fix date objects using datetime, as described here:
+            # https://stackoverflow.com/a/13962976/4385116
+            for idx in date_idxs:
+                if not data[idx]:
+                    continue
+
+                data[idx] = datetime.datetime(
+                    *xlrd.xldate_as_tuple(
+                        data[idx],
+                        self.book.datemode
+                    )
+                )
+
             # get a new object
             record = Record._make(data)
 
@@ -258,11 +280,8 @@ class ExcelTemplate():
 
         return self.__check_items(item_set, DictSex, column)
 
-    def check_accuracy(self):
-        """Check accuracy specified in table"""
-
-        item_set = set([animal.birth_location_accuracy
-                        for animal in self.get_animal_records()])
+    def __check_accuracy(self, item_set):
+        """A generic method to test for accuracies"""
 
         # a list of not found terms and a status to see if something is missing
         # or not
@@ -281,6 +300,32 @@ class ExcelTemplate():
             result = False
 
         return result, not_found
+
+    def check_accuracies(self):
+        """Check accuracy specified in table"""
+
+        item_set = set([animal.birth_location_accuracy
+                        for animal in self.get_animal_records()])
+
+        # test for accuracy in animal table
+        result_animal, not_found_animal = self.__check_accuracy(item_set)
+
+        item_set = set([sample.collection_place_accuracy
+                        for sample in self.get_sample_records()])
+
+        # test for accuracy in sample table
+        result_sample, not_found_sample = self.__check_accuracy(item_set)
+
+        # merge two results
+        check = result_animal and result_sample
+        not_found = set(not_found_animal + not_found_sample)
+
+        if check is False:
+            logger.error(
+                    "Couldnt' find those accuracies in constants:")
+            logger.error(not_found)
+
+        return check, not_found
 
 
 def fill_uid_breeds(submission_obj, template):
@@ -471,6 +516,18 @@ def fill_uid_animals(submission_obj, template):
         else:
             logger.debug("Updating %s" % animal)
 
+    # create a validation summary object and set all_count
+    validation_summary, created = ValidationSummary.objects.get_or_create(
+        submission=submission_obj, type="animal")
+
+    if created:
+        logger.debug(
+            "ValidationSummary animal created for submission %s" %
+            submission_obj)
+
+    # reset counts
+    validation_summary.reset_all_count()
+
     # debug
     logger.info("fill_uid_animals() completed")
 
@@ -478,6 +535,95 @@ def fill_uid_animals(submission_obj, template):
 def fill_uid_samples(submission_obj, template):
     # debug
     logger.info("called fill_uid_samples()")
+
+    # iterate among excel template
+    for record in template.get_sample_records():
+        # get name for this sample
+        name = Name.objects.get(
+            name=record.sample_id_in_data_source,
+            submission=submission_obj,
+            owner=submission_obj.owner)
+
+        # get animal by reading record
+        animal = Animal.objects.get(
+            name__name=record.animal_id_in_data_source,
+            name__submission=submission_obj)
+
+        # get a organism part. Organism parts need to be in lowercases
+        organism_part, created = DictUberon.objects.get_or_create(
+            label=record.organism_part
+        )
+
+        if created:
+            logger.info("Created %s" % organism_part)
+
+        else:
+            logger.debug("Found %s" % organism_part)
+
+        # TODO: get developmental_stage and physiological_stage terms
+
+        # derive animal age at collection. THis function deals with NULL valies
+        animal_age_at_collection, time_units = image_timedelta(
+            record.collection_date, animal.birth_date)
+
+        # now get accuracy
+        accuracy = ACCURACIES.get_value_by_desc(
+            record.collection_place_accuracy)
+
+        # now get storage and storage processing
+        # TODO; check those values in excel columns
+        storage = SAMPLE_STORAGE.get_value_by_desc(
+            record.sample_storage)
+
+        storage_processing = SAMPLE_STORAGE_PROCESSING.get_value_by_desc(
+            record.sample_storage_processing)
+
+        # create a new object. Using defaults to avoid collisions when
+        # updating data
+        defaults = {
+            'alternative_id': record.alternative_sample_id,
+            'description': record.sample_description,
+            'animal': animal,
+            'protocol': record.specimen_collection_protocol,
+            'collection_date': record.collection_date,
+            'collection_place_latitude': record.collection_place_latitude,
+            'collection_place_longitude': record.collection_place_longitude,
+            'collection_place': record.collection_place,
+            'collection_place_accuracy': accuracy,
+            'organism_part': organism_part,
+            # 'developmental_stage': None,
+            # 'physiological_stage': None,
+            'animal_age_at_collection': animal_age_at_collection,
+            'animal_age_at_collection_units': time_units,
+            'availability': record.availability,
+            'storage': storage,
+            'storage_processing': storage_processing,
+            # TODO: this is a time unit column
+            'preparation_interval': record.sampling_to_preparation_interval,
+            'owner': submission_obj.owner,
+        }
+
+        sample, created = Sample.objects.update_or_create(
+            name=name,
+            defaults=defaults)
+
+        if created:
+            logger.debug("Created %s" % sample)
+
+        else:
+            logger.debug("Updating %s" % sample)
+
+    # create a validation summary object and set all_count
+    validation_summary, created = ValidationSummary.objects.get_or_create(
+        submission=submission_obj, type="sample")
+
+    if created:
+        logger.debug(
+            "ValidationSummary animal created for submission %s" %
+            submission_obj)
+
+    # reset counts
+    validation_summary.reset_all_count()
 
     # debug
     logger.info("fill_uid_samples() completed")
@@ -515,7 +661,7 @@ def upload_template(submission_obj):
                 "Some species are not loaded in UID database: "
                 "%s" % (not_found))
 
-        check, not_found = reader.check_sex()
+        check, not_found = reader.check_accuracies()
 
         if not check:
             message = (
