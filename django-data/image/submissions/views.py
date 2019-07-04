@@ -18,7 +18,7 @@ from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE)
@@ -29,6 +29,7 @@ from image_app.models import Submission, Name, Animal, Sample
 from crbanim.tasks import ImportCRBAnimTask
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
+from animals.tasks import BatchUpdateAnimals
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -201,6 +202,7 @@ class SubmissionValidationSummaryFixErrorsView(ListView):
         if re.search(re_str, msg):
             context['attributes_to_show'] = ['birth_location_latitude', 'birth_location_longitude', 'birth_location_accuracy']
             context['attributes_to_edit'] = ['birth_location']
+            context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
 
         return context
 
@@ -388,3 +390,36 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
             extra_tags="alert alert-dismissible alert-info")
 
         return httpresponseredirect
+
+
+def fix_validation(request, pk):
+    keys_to_fix = dict()
+    for key_to_fix in request.POST:
+        if 'birth_location' in key_to_fix:
+            keys_to_fix[int(re.search('birth_location(.*)', key_to_fix).groups()[0])] = request.POST[key_to_fix]
+
+    submission = Submission.objects.get(pk=pk)
+    submission.message = "waiting for data updating"
+    submission.status = WAITING
+    submission.save()
+
+    # Update validation summary
+    summary_obj, created = ValidationSummary.objects.get_or_create(
+        submission=submission, type='animal')
+    summary_obj.submission = submission
+    summary_obj.pass_count = 0
+    summary_obj.warning_count = 0
+    summary_obj.error_count = 0
+    summary_obj.issues_count = 0
+    summary_obj.validation_known_count = 0
+    summary_obj.messages = list()
+    summary_obj.save()
+
+    # create a task
+    my_task = BatchUpdateAnimals()
+
+    # a valid submission start a task
+    res = my_task.delay(pk, keys_to_fix)
+    logger.info(
+        "Start crbanim importing process with task %s" % res.task_id)
+    return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
