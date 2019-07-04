@@ -86,7 +86,7 @@ class SampleInline(admin.StackedInline):
          'collection_place_longitude', 'collection_place'),
         ('developmental_stage', 'physiological_stage',
          'animal_age_at_collection', 'availability'),
-        ('storage_processing', 'preparation_interval')
+        ('storage', 'storage_processing', 'preparation_interval')
     )
 
     # manage a fields with many FK keys
@@ -109,7 +109,8 @@ class SampleAdmin(admin.ModelAdmin):
         'protocol', 'collection_date', 'collection_place_latitude',
         'collection_place_longitude', 'collection_place', 'organism_part',
         'developmental_stage', 'physiological_stage',
-        'animal_age_at_collection', 'availability', 'storage_processing',
+        'animal_age_at_collection', 'availability', 'storage',
+        'storage_processing',
         'preparation_interval', 'description', 'owner'
     )
 
@@ -126,7 +127,7 @@ class SampleAdmin(admin.ModelAdmin):
          'collection_place_longitude', 'collection_place_accuracy'),
         ('developmental_stage',
          'physiological_stage', 'animal_age_at_collection', 'availability'),
-        ('storage_processing', 'preparation_interval')
+        ('storage', 'storage_processing', 'preparation_interval')
     )
 
     # manage a fields with many FK keys

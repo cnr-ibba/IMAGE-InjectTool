@@ -7,18 +7,20 @@ Created on Wed Mar 27 12:50:16 2019
 """
 
 import logging
+import datetime
 import websockets
 import time
 import json
 
 from dateutil.relativedelta import relativedelta
 
+from django.conf import settings
 from django.contrib.admin.utils import NestedObjects
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.text import capfirst
 from django.utils.encoding import force_text
 
-from .constants import YEARS, MONTHS, DAYS
+from .constants import YEARS, MONTHS, DAYS, OBO_URL
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -90,3 +92,41 @@ async def send_message_to_websocket(message, pk):
     async with websockets.connect(
             'ws://asgi:8001/image/ws/submissions/{}/'.format(pk)) as websocket:
         await websocket.send(json.dumps(message))
+
+
+def format_attribute(value, terms=None, library_uri=OBO_URL, units=None):
+    """Format a generic attribute into biosample dictionary"""
+
+    if value is None:
+        return None
+
+    # pay attention to datetime objects
+    if isinstance(value, datetime.date):
+        value = str(value)
+
+    # HINT: need I deal with multiple values?
+
+    result = {}
+    result["value"] = value
+
+    if terms:
+        result["terms"] = [{
+            "url": "/".join([
+                library_uri,
+                terms])
+        }]
+
+    if units:
+        result["units"] = units
+
+    # return a list of dictionaries
+    return [result]
+
+
+def get_admin_emails():
+    """Return admin email from image.settings"""
+
+    ADMINS = settings.ADMINS
+
+    # return all admin mail addresses
+    return [admin[1] for admin in ADMINS]

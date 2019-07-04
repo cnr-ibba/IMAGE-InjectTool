@@ -9,10 +9,10 @@ This file will reset a submission by setting loaded state to each sample
 
 """
 
-import sys
 import logging
 
 from django.core.management import BaseCommand
+from django.utils import timezone
 
 from common.constants import LOADED
 from image_app.models import Submission, Name
@@ -34,7 +34,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # call commands and fill tables.
-        logger.debug("Called %s" % (sys.argv[1]))
+        logger.debug("Starting reset_submission")
 
         # get a submission object from submission_id
         submission = Submission.objects.get(pk=options['submission_id'])
@@ -50,6 +50,7 @@ class Command(BaseCommand):
         # update name status
         for name in names:
             name.status = LOADED
+            name.last_changed = timezone.now()
             name.save()
 
         # update submission status
@@ -57,4 +58,4 @@ class Command(BaseCommand):
         submission.save()
 
         # call commands and fill tables.
-        logger.debug("%s ended" % (sys.argv[1]))
+        logger.debug("reset_submission ended")

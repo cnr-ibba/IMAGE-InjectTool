@@ -402,13 +402,14 @@ def fill_uid_samples(submission):
         defaults = {
             'alternative_id': v_vessel.db_vessel,
             'collection_date': v_vessel.production_dt,
-            'protocol': v_vessel.get_protocol_name(),
+            # 'protocol': v_vessel.get_protocol_name(),
             'organism_part': organism_part,
             'animal': animal,
             'description': v_vessel.comment,
             'owner': submission.owner,
             'animal_age_at_collection': animal_age_at_collection,
-            'animal_age_at_collection_units': time_units
+            'animal_age_at_collection_units': time_units,
+            # 'storage': v_vessel.ext_vessel_type,
         }
 
         sample, created = Sample.objects.update_or_create(

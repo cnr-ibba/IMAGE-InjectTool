@@ -65,6 +65,9 @@ class SubmitMixin(PersonMixinTestCase):
     ]
 
     def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
         # get a submission object
         self.submission_obj = Submission.objects.get(pk=1)
 

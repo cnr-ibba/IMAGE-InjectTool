@@ -8,9 +8,10 @@ Created on Wed Mar 27 14:35:36 2019
 
 from django.test import TestCase
 from django.utils.dateparse import parse_date
+from django.core.validators import validate_email
 
 from .. import constants
-from ..helpers import image_timedelta
+from ..helpers import format_attribute, get_admin_emails, image_timedelta
 
 
 class TestImageTimedelta(TestCase):
@@ -75,3 +76,47 @@ class TestImageTimedelta(TestCase):
         self.assertEqual(units, constants.YEARS)
         self.assertEqual(len(cm.output), 1)
         self.assertIn("One date is NULL", cm.output[0])
+
+
+class TestAttributes(TestCase):
+
+    def test_format_attribute(self):
+        reference = [{
+            "value": "54.20944444444445",
+            "units": "Decimal degrees"
+        }]
+
+        test = format_attribute(
+            value="54.20944444444445",
+            units="Decimal degrees")
+
+        self.assertEqual(reference, test, msg="testing units")
+
+        # another test
+        reference = [{
+            "value": "organism",
+            "terms": [{
+                "url": "%s/OBI_0100026" % (constants.OBO_URL)
+            }]
+        }]
+
+        test = format_attribute(
+            value="organism",
+            terms="OBI_0100026")
+
+        self.assertEqual(reference, test, msg="testing terms")
+
+    def test_null(self):
+        test = format_attribute(value=None)
+
+        self.assertIsNone(test)
+
+
+class TestAdminEmails(TestCase):
+
+    def test_admin_emails(self):
+        # calling objects
+        emails = get_admin_emails()
+
+        for email in emails:
+            self.assertIsNone(validate_email(email))

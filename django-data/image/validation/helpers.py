@@ -17,7 +17,7 @@ from image_validation.static_parameters import ruleset_filename as \
     IMAGE_RULESET
 
 from common.constants import BIOSAMPLE_URL
-from biosample.helpers import parse_image_alias, get_model_object
+from image_app.helpers import parse_image_alias, get_model_object
 from validation.models import ValidationSummary
 
 # Get an instance of a logger

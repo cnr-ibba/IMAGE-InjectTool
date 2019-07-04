@@ -8,7 +8,7 @@
     "description": "semen collected when the animal turns to 4",
     "material": "Specimen from Organism",
     "animal": 1,
-    "protocol": "NHS_Kryoprotokoll_Schafe_2004",
+    "protocol": "ftp://ftp.faang.ebi.ac.uk/ftp/protocols/samples/WUR_SOP_animal_sampling_20160405.pdf",
     "collection_date": "2017-03-12",
     "collection_place_latitude": null,
     "collection_place_longitude": null,
@@ -20,8 +20,8 @@
     "animal_age_at_collection": 4,
     "animal_age_at_collection_units": 5,
     "availability": "mailto:test@example.com",
-    "storage": null,
-    "storage_processing": null,
+    "storage": 2,
+    "storage_processing": 0,
     "preparation_interval": null,
     "owner": 1
   }

@@ -141,6 +141,11 @@
         ]
       }
     ],
+    "Specimen collection protocol": [
+      {
+        "value": "ftp://ftp.faang.ebi.ac.uk/ftp/protocols/samples/WUR_SOP_animal_sampling_20160405.pdf"
+      }
+    ],
     "Derived from": [
       {
         "value": "ANIMAL:::ID:::132713"
@@ -196,6 +201,16 @@
             "url": "http://www.ebi.ac.uk/efo/EFO_0001272"
           }
         ]
+      }
+    ],
+    "Sample storage": [
+      {
+        "value": "frozen, -80 degrees Celsius freezer"
+      }
+    ],
+    "Sample storage processing": [
+      {
+        "value": "cryopreservation in liquid nitrogen (dead tissue)"
       }
     ]
   },
