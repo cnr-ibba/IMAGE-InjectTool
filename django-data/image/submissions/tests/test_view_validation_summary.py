@@ -24,9 +24,9 @@ class SubmissionValidationSummaryViewTest(GeneralMixinTestCase,
         self.client.login(username='test', password='test')
 
         self.url_animals = reverse('submissions:validation_summary', kwargs={
-            'pk': 1, 'type': 'animals'})
+            'pk': 1, 'type': 'animal'})
         self.url_samples = reverse('submissions:validation_summary', kwargs={
-            'pk': 1, 'type': 'samples'})
+            'pk': 1, 'type': 'sample'})
         self.url = self.url_animals
         self.response = self.client.get(self.url_animals)
 
