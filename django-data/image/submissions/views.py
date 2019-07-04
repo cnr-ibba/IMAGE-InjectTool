@@ -22,7 +22,7 @@ from django.urls import reverse_lazy, reverse
 
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE,
-    VALIDATION_MESSAGES)
+    VALIDATION_MESSAGES, VALIDATION_MESSAGES_ATTRIBUTES)
 from common.helpers import get_deleted_objects
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
@@ -31,6 +31,7 @@ from crbanim.tasks import ImportCRBAnimTask
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 from animals.tasks import BatchUpdateAnimals
+from samples.tasks import BatchUpdateSamples
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -175,18 +176,18 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
 
     def get_queryset(self):
         ids = list()
-        summary_type = self.kwargs['type']
-        submission = Submission.objects.get(pk=self.kwargs['pk'])
+        self.summary_type = self.kwargs['type']
+        self.submission = Submission.objects.get(pk=self.kwargs['pk'])
         validation_summary = ValidationSummary.objects.get(
-            submission=submission, type=summary_type)
-        request_message = self.kwargs['msg']
+            submission=self.submission, type=self.summary_type)
+        self.request_message = self.kwargs['msg']
         for message in validation_summary.messages:
             message = ast.literal_eval(message)
-            if message['message'] == request_message:
+            if message['message'] == self.request_message:
                 ids = message['ids']
-        if summary_type == 'animal':
+        if self.summary_type == 'animal':
             return Animal.objects.filter(id__in=ids)
-        elif summary_type == 'sample':
+        elif self.summary_type == 'sample':
             return Sample.objects.filter(id__in=ids)
 
     def get_context_data(self, **kwargs):
@@ -196,22 +197,21 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         ).get_context_data(**kwargs)
 
         # add submission to context
-        msg = self.kwargs['msg']
-        context["message"] = msg
-        context["type"] = self.kwargs['type']
+        context["message"] = self.request_message
+        context["type"] = self.summary_type
 
-        if re.search(VALIDATION_MESSAGES['coordinate_check'], msg):
-            context['attributes_to_show'] = [
-                'birth_location_latitude',
-                'birth_location_longitude',
-                'birth_location_accuracy'
-            ]
-            context['attributes_to_edit'] = ['birth_location']
+        if re.search(VALIDATION_MESSAGES['coordinate_check'],
+                     self.request_message):
+            type_of_check = f"coordinate_check_{self.summary_type}"
+            context['attributes_to_show'] = VALIDATION_MESSAGES_ATTRIBUTES[
+                type_of_check]['attributes_to_show']
+            context['attributes_to_edit'] = VALIDATION_MESSAGES_ATTRIBUTES[
+                type_of_check]['attributes_to_edit']
         # TODO add checks for other messages
         else:
             context['attributes_to_show'] = []
             context['attributes_to_edit'] = []
-        context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
+        context['submission'] = self.submission
 
         return context
 
@@ -429,7 +429,8 @@ def fix_validation(request, pk, type):
     # create a task
     if type == 'animal':
         my_task = BatchUpdateAnimals()
-    # TODO add task for samples
+    elif type == 'sample':
+        my_task = BatchUpdateSamples()
 
     # a valid submission start a task
     res = my_task.delay(pk, keys_to_fix)

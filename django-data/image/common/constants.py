@@ -188,3 +188,29 @@ VALIDATION_MESSAGES = {
     'species_breed_check': '',
     'parents_sex_check': ''
 }
+
+VALIDATION_MESSAGES_ATTRIBUTES = {
+    'coordinate_check_animal': {
+        'attributes_to_show': ['birth_location_latitude',
+                               'birth_location_longitude',
+                               'birth_location_accuracy'],
+        'attributes_to_edit': ['birth_location']
+    },
+    'coordinate_check_sample': {
+        'attributes_to_show': ['collection_place_latitude',
+                               'collection_place_longitude',
+                               'collection_place_accuracy'],
+        'attributes_to_edit': ['collection_place']
+    }
+}
+
+ATTRIBUTES_HUMAN_READABLE = {
+    'birth_location_latitude': 'Birth location latitude',
+    'birth_location_longitude': 'Birth location longitude',
+    'birth_location_accuracy': 'Birth location accuracy',
+    'birth_location': 'Birth location',
+    'collection_place_latitude': 'Collection place latitude',
+    'collection_place_longitude': 'Collection place longitude',
+    'collection_place_accuracy': 'Collection place accuracy',
+    'collection_place': 'Collection place'
+}
