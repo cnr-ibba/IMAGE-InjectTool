@@ -5,7 +5,7 @@ channels_redis
 uwsgi
 mysqlclient
 psycopg2-binary
-Django==1.11.21
+django==1.11.22
 ipython
 django-debug-toolbar==1.11
 python-decouple
@@ -15,6 +15,7 @@ pytest-django
 pytest-asyncio
 django-widget-tweaks
 requests
+requests_cache
 django-betterforms
 django-registration-redux==2.5
 tornado>=4.2.0,<6.0.0
