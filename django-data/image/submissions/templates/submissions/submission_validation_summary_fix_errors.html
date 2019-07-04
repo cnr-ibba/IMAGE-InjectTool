@@ -13,7 +13,7 @@
             <a href="https://github.com/cnr-ibba/IMAGE-metadata/blob/master/docs/image_sample_metadata.md">IMAGE metadata specification</a>
         </h3>
     </div>
-    <form action="{% url 'submissions:fix_validation' submission.id %}" method="post">
+    <form action="{% url 'submissions:fix_validation' submission.id type %}" method="post">
         {% csrf_token %}
         {% for object in  object_list %}
             <hr>
@@ -31,8 +31,8 @@
                 {% for show in attributes_to_edit %}
                     <li class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center">
                         <div class="from-group form-inline">
-                            <label for="{{ object.id|create_unique_id:show }}">{{ show|convert_to_human_readable }}:</label>
-                            <input type="text" class="form-control" id="{{ object.id|create_unique_id:show }}" value="{{ object|getattribute:show }}" name="{{ object.id|create_unique_id:show }}">
+                            <label for="{{ object.id|create_unique_id:'to_edit' }}">{{ show|convert_to_human_readable }}:</label>
+                            <input type="text" class="form-control" id="{{ object.id|create_unique_id:'to_edit' }}" value="{{ object|getattribute:show }}" name="{{ object.id|create_unique_id:'to_edit' }}">
                         </div>
                     </li>
                 {% endfor %}

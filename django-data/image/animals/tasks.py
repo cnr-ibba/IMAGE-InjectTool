@@ -15,7 +15,6 @@ from image.celery import app as celery_app, MyTask
 from image_app.models import Animal, Submission
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
-from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -74,7 +73,9 @@ class BatchUpdateAnimals(MyTask):
         submission_obj.message = "Data updated, try to rerun validation"
         submission_obj.save()
 
-        send_message(submission_obj, construct_validation_message(submission_obj))
+        send_message(
+            submission_obj, construct_validation_message(submission_obj)
+        )
         return 'success'
 
 

@@ -138,3 +138,18 @@ SAMPLE_STORAGE_TYPES = [
 ]
 
 KNOWN_STATUSES = ['Error', 'Issues', 'Known', 'Pass', 'Warning']
+
+# TODO add all possible messages
+VALIDATION_MESSAGES = {
+    'coordinate_check': '.* No value provided for field .* but value in '
+                        'field .* is not missing geographic information',
+    'ruleset_check': '',
+    'usi_structure_check': '',
+    'duplicates_check': '',
+    'species_check': '',
+    'animal_sample_check': '',
+    'organism_part_sex_check': '',
+    'child_of_check': '',
+    'species_breed_check': '',
+    'parents_sex_check': ''
+}

@@ -21,7 +21,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 
 from common.constants import (
-    WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE)
+    WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE,
+    VALIDATION_MESSAGES)
 from common.helpers import get_deleted_objects
 from common.views import OwnerMixin
 from cryoweb.tasks import import_from_cryoweb
@@ -169,7 +170,7 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
         return context
 
 
-class SubmissionValidationSummaryFixErrorsView(ListView):
+class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
     template_name = "submissions/submission_validation_summary_fix_errors.html"
 
     def get_queryset(self):
@@ -197,12 +198,20 @@ class SubmissionValidationSummaryFixErrorsView(ListView):
         # add submission to context
         msg = self.kwargs['msg']
         context["message"] = msg
+        context["type"] = self.kwargs['type']
 
-        re_str = '.* No value provided for field .* but value in field .* is not missing geographic information'
-        if re.search(re_str, msg):
-            context['attributes_to_show'] = ['birth_location_latitude', 'birth_location_longitude', 'birth_location_accuracy']
+        if re.search(VALIDATION_MESSAGES['coordinate_check'], msg):
+            context['attributes_to_show'] = [
+                'birth_location_latitude',
+                'birth_location_longitude',
+                'birth_location_accuracy'
+            ]
             context['attributes_to_edit'] = ['birth_location']
-            context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
+        # TODO add checks for other messages
+        else:
+            context['attributes_to_show'] = []
+            context['attributes_to_edit'] = []
+        context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
 
         return context
 
@@ -392,11 +401,13 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
         return httpresponseredirect
 
 
-def fix_validation(request, pk):
+def fix_validation(request, pk, type):
+    # Fetch all required ids from input names and use it as keys
     keys_to_fix = dict()
     for key_to_fix in request.POST:
-        if 'birth_location' in key_to_fix:
-            keys_to_fix[int(re.search('birth_location(.*)', key_to_fix).groups()[0])] = request.POST[key_to_fix]
+        if 'to_edit' in key_to_fix:
+            keys_to_fix[int(re.search('to_edit(.*)', key_to_fix).groups()[0])] \
+                = request.POST[key_to_fix]
 
     submission = Submission.objects.get(pk=pk)
     submission.message = "waiting for data updating"
@@ -405,7 +416,7 @@ def fix_validation(request, pk):
 
     # Update validation summary
     summary_obj, created = ValidationSummary.objects.get_or_create(
-        submission=submission, type='animal')
+        submission=submission, type=type)
     summary_obj.submission = submission
     summary_obj.pass_count = 0
     summary_obj.warning_count = 0
@@ -416,7 +427,9 @@ def fix_validation(request, pk):
     summary_obj.save()
 
     # create a task
-    my_task = BatchUpdateAnimals()
+    if type == 'animal':
+        my_task = BatchUpdateAnimals()
+    # TODO add task for samples
 
     # a valid submission start a task
     res = my_task.delay(pk, keys_to_fix)
