@@ -165,7 +165,7 @@
     </tr>
     <tr class="table-primary">
       <th scope="row">Sampling to preparation interval:</th>
-      <td>{{ sample.preparation_interval }}</td>
+      <td>{{ sample.preparation_interval }} {% if sample.preparation_interval_units %}{{ sample.get_preparation_interval_units_display }}{% endif %}</td>
     </tr>
   </tbody>
 </table>

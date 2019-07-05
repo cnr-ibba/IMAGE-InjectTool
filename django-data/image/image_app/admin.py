@@ -13,7 +13,8 @@ from django.contrib.auth.models import User
 
 from .models import (Animal, DictBreed, DictCountry, DictRole, DictSpecie,
                      Name, Ontology, Organization, Person, Publication, Sample,
-                     Submission, DictSex, DictUberon, DictStage)
+                     Submission, DictSex, DictUberon, DictDevelStage,
+                     DictPhysioStage)
 
 
 class DictBreedAdmin(admin.ModelAdmin):
@@ -85,8 +86,10 @@ class SampleInline(admin.StackedInline):
         ('collection_date', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place'),
         ('developmental_stage', 'physiological_stage',
-         'animal_age_at_collection', 'availability'),
-        ('storage', 'storage_processing', 'preparation_interval')
+         'animal_age_at_collection', 'animal_age_at_collection_units',
+         'availability'),
+        ('storage', 'storage_processing', 'preparation_interval',
+         'preparation_interval_units')
     )
 
     # manage a fields with many FK keys
@@ -109,9 +112,10 @@ class SampleAdmin(admin.ModelAdmin):
         'protocol', 'collection_date', 'collection_place_latitude',
         'collection_place_longitude', 'collection_place', 'organism_part',
         'developmental_stage', 'physiological_stage',
-        'animal_age_at_collection', 'availability', 'storage',
-        'storage_processing',
-        'preparation_interval', 'description', 'owner'
+        'animal_age_at_collection', 'animal_age_at_collection_units',
+        'availability', 'storage', 'storage_processing',
+        'preparation_interval', 'preparation_interval_units', 'description',
+        'owner'
     )
 
     # To tell Django we want to perform a join instead of fetching the names of
@@ -126,8 +130,10 @@ class SampleAdmin(admin.ModelAdmin):
         ('collection_date', 'collection_place', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place_accuracy'),
         ('developmental_stage',
-         'physiological_stage', 'animal_age_at_collection', 'availability'),
-        ('storage', 'storage_processing', 'preparation_interval')
+         'physiological_stage', 'animal_age_at_collection',
+         'animal_age_at_collection_units', 'availability'),
+        ('storage', 'storage_processing', 'preparation_interval',
+         'preparation_interval_units')
     )
 
     # manage a fields with many FK keys
@@ -252,7 +258,8 @@ class DictSpecieAdmin(admin.ModelAdmin):
 admin.site.register(DictRole, admin.ModelAdmin)
 admin.site.register(DictSex, admin.ModelAdmin)
 admin.site.register(DictUberon, admin.ModelAdmin)
-admin.site.register(DictStage, admin.ModelAdmin)
+admin.site.register(DictDevelStage, admin.ModelAdmin)
+admin.site.register(DictPhysioStage, admin.ModelAdmin)
 
 # Custom admin class
 admin.site.register(DictSpecie, DictSpecieAdmin)

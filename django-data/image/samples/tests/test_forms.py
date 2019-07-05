@@ -41,7 +41,8 @@ class UpdateSampleFormTest(SampleFeaturesMixin, TestCase):
             'availability',
             'storage',
             'storage_processing',
-            'preparation_interval'
+            'preparation_interval',
+            'preparation_interval_units'
         ]
         actual = list(self.form.fields)
         self.assertSequenceEqual(expected, actual)

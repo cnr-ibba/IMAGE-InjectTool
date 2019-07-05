@@ -203,6 +203,16 @@
         ]
       }
     ],
+    "Physiological stage": [
+      {
+        "value": "mature",
+        "terms": [
+          {
+            "url": "http://purl.obolibrary.org/obo/PATO_0001701"
+          }
+        ]
+      }
+    ],
     "Sample storage": [
       {
         "value": "frozen, -80 degrees Celsius freezer"
@@ -211,6 +221,12 @@
     "Sample storage processing": [
       {
         "value": "cryopreservation in liquid nitrogen (dead tissue)"
+      }
+    ],
+    "Sampling to preparation interval": [
+      {
+        "value": 3,
+        "units": "days"
       }
     ]
   },

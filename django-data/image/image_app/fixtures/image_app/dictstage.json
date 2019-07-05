@@ -1,10 +1,18 @@
 [
 {
-  "model": "image_app.dictstage",
+  "model": "image_app.dictdevelstage",
   "pk": 1,
   "fields": {
     "label": "adult",
     "term": "EFO_0001272"
+  }
+},
+{
+  "model": "image_app.dictphysiostage",
+  "pk": 1,
+  "fields": {
+    "label": "mature",
+    "term": "PATO_0001701"
   }
 }
 ]
