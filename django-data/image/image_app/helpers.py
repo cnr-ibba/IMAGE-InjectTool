@@ -10,8 +10,14 @@ Common functions in image_app
 """
 
 import re
+import logging
 
-from .models import Animal, Sample
+from language.helpers import check_species_synonyms
+
+from .models import Animal, Sample, DictSpecie
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 # a pattern to correctly parse aliases
 ALIAS_PATTERN = re.compile(r"IMAGE([AS])([0-9]+)")
@@ -53,3 +59,54 @@ def get_model_object(table, pk):
         raise Exception("Unknown table '%s'" % (table))
 
     return sample_obj
+
+
+class FileDataSourceMixin():
+    """A class to deal with common operation between Template and CRBanim
+    files"""
+
+    def check_items(self, item_set, model, column):
+        """General check of DataSource items into database"""
+
+        # a list of not found terms and a status to see if something is missing
+        # or not
+        not_found = []
+        result = True
+
+        for item in item_set:
+            # check for species in database
+            if not model.objects.filter(label=item).exists():
+                not_found.append(item)
+
+        if len(not_found) != 0:
+            result = False
+            logger.warning(
+                "Those %s are not present in UID database:" % (column))
+            logger.warning(not_found)
+
+        return result, not_found
+
+    def check_species(self, column, item_set, country):
+        """Check if all species are defined in UID DictSpecies"""
+
+        check, not_found = self.check_items(
+            item_set, DictSpecie, column)
+
+        if check is False:
+            # try to check in dictionary table
+            logger.info("Searching for %s in dictionary tables" % (not_found))
+
+            # if this function return True, I found all synonyms
+            if check_species_synonyms(not_found, country) is True:
+                logger.info("Found %s in dictionary tables" % not_found)
+
+                # return True and an empty list for check and not found items
+                return True, []
+
+            else:
+                # if I arrive here, there are species that I couldn't find
+                logger.error(
+                    "Couldnt' find those species in dictionary tables:")
+                logger.error(not_found)
+
+        return check, not_found

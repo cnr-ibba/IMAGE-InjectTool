@@ -17,10 +17,10 @@ from django.utils.dateparse import parse_date
 
 from common.constants import LOADED, ERROR, MISSING, SAMPLE_STORAGE
 from common.helpers import image_timedelta
+from image_app.helpers import FileDataSourceMixin
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
-from language.helpers import check_species_synonyms
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
@@ -34,7 +34,7 @@ class CRBAnimImportError(Exception):
     pass
 
 
-class CRBAnimReader():
+class CRBAnimReader(FileDataSourceMixin):
     mandatory_columns = [
             'sex',
             'species_latin_name',
@@ -188,27 +188,6 @@ class CRBAnimReader():
 
         # cicle for line
 
-    def __check_items(self, item_set, model, column):
-        """General check of CRBanim items into database"""
-
-        # a list of not found terms and a status to see if something is missing
-        # or not
-        not_found = []
-        result = True
-
-        for item in item_set:
-            # check for species in database
-            if not model.objects.filter(label=item).exists():
-                not_found.append(item)
-
-        if len(not_found) != 0:
-            result = False
-            logger.warning(
-                "Those %s are not present in UID database:" % (column))
-            logger.warning(not_found)
-
-        return result, not_found
-
     # a function to detect if crbanim species are in UID database or not
     def check_species(self, country):
         """Check if all species are defined in UID DictSpecies"""
@@ -216,28 +195,10 @@ class CRBAnimReader():
         # CRBAnim usually have species in the form required for UID
         # However sometimes there could be a common name, not a DictSpecie one
         column = 'species_latin_name'
+        item_set = self.items[column]
 
-        check, not_found = self.__check_items(
-            self.items[column], DictSpecie, column)
-
-        if check is False:
-            # try to check in dictionary table
-            logger.info("Searching for %s in dictionary tables" % (not_found))
-
-            # if this function return True, I found all synonyms
-            if check_species_synonyms(not_found, country) is True:
-                logger.info("Found %s in dictionary tables" % not_found)
-
-                # return True and an empty list for check and not found items
-                return True, []
-
-            else:
-                # if I arrive here, there are species that I couldn't find
-                logger.error(
-                    "Couldnt' find those species in dictionary tables:")
-                logger.error(not_found)
-
-        return check, not_found
+        # call FileDataSourceMixin.check_species
+        return super().check_species(column, item_set, country)
 
     # check that dict sex table contains data
     def check_sex(self):
@@ -247,7 +208,8 @@ class CRBAnimReader():
         column = 'sex'
         item_set = [item.lower() for item in self.items[column]]
 
-        return self.__check_items(item_set, DictSex, column)
+        # call FileDataSourceMixin.check_items
+        return self.check_items(item_set, DictSex, column)
 
 
 def fill_uid_breed(record, language):
