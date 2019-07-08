@@ -10,10 +10,10 @@ import logging
 
 from common.constants import (
     ERROR, LOADED, ACCURACIES, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
-from common.helpers import image_timedelta
+from common.helpers import image_timedelta, parse_image_timedelta
 from image_app.models import (
     DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Name, Animal,
-    Sample)
+    Sample, DictDevelStage, DictPhysioStage)
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
@@ -257,17 +257,53 @@ def fill_uid_samples(submission_obj, template):
         else:
             logger.debug("Found %s" % organism_part)
 
-        # TODO: get developmental_stage and physiological_stage terms
+        # get developmental_stage and physiological_stage terms
+        # they are not mandatory
+        if record.developmental_stage:
+            devel_stage, created = DictDevelStage.objects.get_or_create(
+                label=record.developmental_stage
+            )
+
+            if created:
+                logger.info("Created %s" % devel_stage)
+
+            else:
+                logger.debug("Found %s" % devel_stage)
+
+        else:
+            devel_stage = None
+
+        if record.physiological_stage:
+            physio_stage, created = DictPhysioStage.objects.get_or_create(
+                    label=record.physiological_stage
+            )
+
+            if created:
+                logger.info("Created %s" % physio_stage)
+
+            else:
+                logger.debug("Found %s" % physio_stage)
+
+        else:
+            physio_stage = None
 
         # animal age could be present or not
         if record.animal_age_at_collection:
-            # TODO: do something
-            pass
+            animal_age_at_collection, time_units = parse_image_timedelta(
+                record.animal_age_at_collection)
 
         else:
             # derive animal age at collection
             animal_age_at_collection, time_units = image_timedelta(
                 record.collection_date, animal.birth_date)
+
+        # another time column
+        if record.sampling_to_preparation_interval:
+            preparation_interval, preparation_interval_units = \
+                parse_image_timedelta(record.sampling_to_preparation_interval)
+
+        else:
+            preparation_interval, preparation_interval_units = None, None
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(
@@ -294,15 +330,15 @@ def fill_uid_samples(submission_obj, template):
             'collection_place': record.collection_place,
             'collection_place_accuracy': accuracy,
             'organism_part': organism_part,
-            # 'developmental_stage': None,
-            # 'physiological_stage': None,
+            'developmental_stage': devel_stage,
+            'physiological_stage': physio_stage,
             'animal_age_at_collection': animal_age_at_collection,
             'animal_age_at_collection_units': time_units,
             'availability': record.availability,
             'storage': storage,
             'storage_processing': storage_processing,
-            # TODO: this is a time unit column
-            'preparation_interval': record.sampling_to_preparation_interval,
+            'preparation_interval': preparation_interval,
+            'preparation_interval_units': preparation_interval_units,
             'owner': submission_obj.owner,
         }
 

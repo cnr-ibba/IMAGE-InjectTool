@@ -6,6 +6,7 @@ Created on Wed Mar 27 12:50:16 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import re
 import logging
 import datetime
 import websockets
@@ -20,7 +21,7 @@ from django.db import DEFAULT_DB_ALIAS
 from django.utils.text import capfirst
 from django.utils.encoding import force_text
 
-from .constants import YEARS, MONTHS, DAYS, OBO_URL
+from .constants import YEARS, MONTHS, DAYS, OBO_URL, TIME_UNITS
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -53,6 +54,27 @@ def image_timedelta(t1, t2):
 
     else:
         return rdelta.days, DAYS
+
+
+PATTERN_INTERVAL = re.compile(r"([\d]+) ([\w]+s?)")
+
+
+def parse_image_timedelta(interval):
+    """A function to parse from a image_timdelta string"""
+
+    match = re.search(PATTERN_INTERVAL, interval)
+
+    # get parsed data
+    value, units = match.groups()
+
+    # time units are plural in database
+    if units[-1] != 's':
+        units += 's'
+
+    # get time units from database
+    units = TIME_UNITS.get_value_by_desc(units)
+
+    return int(value), units
 
 
 # https://stackoverflow.com/a/39533619/4385116
