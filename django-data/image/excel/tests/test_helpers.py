@@ -11,6 +11,7 @@ from collections import defaultdict
 from unittest.mock import patch, Mock
 
 from django.test import TestCase
+from django.core.management import call_command
 
 from common.tests import WebSocketMixin
 from image_app.tests.mixins import (
@@ -250,4 +251,58 @@ class ExcelMixin(DataSourceMixinTestCase, WebSocketMixin, BaseExcelMixin):
 class UploadTemplateTestCase(ExcelMixin, TestCase):
     """Test uploading data for Template excel path"""
 
-    pass
+    @patch("excel.helpers.ExcelTemplateReader.check_species",
+           return_value=[False, 'Rainbow trout'])
+    def test_upload_crbanim_errors_with_species(self, my_check):
+        """Testing importing with data into UID with errors in species"""
+
+        message = "Some species are not loaded in UID database"
+        notification_message = (
+            'Error in importing data: Some species '
+            'are not loaded in UID database: Rainbow '
+            'trout')
+
+        # check crbanim import fails
+        self.check_errors(my_check, message, notification_message)
+
+    @patch("excel.helpers.ExcelTemplateReader.check_sex",
+           return_value=[False, 'unknown'])
+    def test_upload_crbanim_errors_with_sex(self, my_check):
+        """Testing importing with data into UID with errors"""
+
+        message = "Not all Sex terms are loaded into database"
+        notification_message = (
+            'Error in importing data: Not all Sex '
+            'terms are loaded into database: check '
+            'for unknown in your dataset')
+
+        # check crbanim import fails
+        self.check_errors(my_check, message, notification_message)
+
+    @patch("excel.helpers.ExcelTemplateReader.check_accuracies",
+           return_value=(False, set(["Fake"])))
+    def test_upload_crbanim_errors_with_accuracies(self, my_check):
+        """Testing importing with data into UID with errors"""
+
+        message = "Not all accuracy levels are defined in database"
+        notification_message = (
+            "Error in importing data: Not all accuracy "
+            "levels are defined in database: check "
+            "for {'Fake'} in your dataset")
+
+        # check crbanim import fails
+        self.check_errors(my_check, message, notification_message)
+
+
+class ReloadTemplateTestCase(ExcelMixin, TestCase):
+    """Simulate a template reload case. Load data as in
+    UploadTemplateTestCase, then call test which reload the same data"""
+
+    # override used fixtures
+    fixtures = [
+        'crbanim/auth',
+        'excel/dictspecie',
+        'excel/image_app',
+        'excel/submission',
+        'excel/speciesynonym'
+    ]

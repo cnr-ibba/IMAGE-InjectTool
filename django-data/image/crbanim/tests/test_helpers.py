@@ -360,7 +360,7 @@ class ReloadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
     """Simulate a crbanim reload case. Load data as in
     UploadCRBAnimTestCase, then call test which reload the same data"""
 
-    # override useal fixtures
+    # override used fixtures
     fixtures = [
         'crbanim/auth',
         'crbanim/dictspecie',
