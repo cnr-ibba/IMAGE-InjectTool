@@ -69,7 +69,7 @@ TEMPLATE_COLUMNS = {
 }
 
 
-class ExcelTemplate(FileDataSourceMixin):
+class ExcelTemplateReader(FileDataSourceMixin):
     """A class to read template excel files"""
 
     def __init__(self):

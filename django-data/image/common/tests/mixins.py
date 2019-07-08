@@ -202,6 +202,7 @@ class PersonMixinTestCase(object):
         person.save()
 
 
+# TODO: move into submission.tests (since related to submission.helpers)
 class WebSocketMixin(object):
     """Override setUp to mock websocket objects"""
 

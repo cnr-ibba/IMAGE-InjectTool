@@ -19,7 +19,7 @@ from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 
 from .exceptions import ExcelImportError
-from .exceltemplate import ExcelTemplate
+from .exceltemplate import ExcelTemplateReader
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -340,7 +340,7 @@ def upload_template(submission_obj):
     fullpath = submission_obj.get_uploaded_file_path()
 
     # read submission data
-    reader = ExcelTemplate()
+    reader = ExcelTemplateReader()
     reader.read_file(fullpath)
 
     # start data loading

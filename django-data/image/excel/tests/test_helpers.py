@@ -13,15 +13,16 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from common.tests import WebSocketMixin
-from image_app.models import DictCountry, DictSpecie, DictSex
-from image_app.tests.mixins import DataSourceMixinTestCase
+from image_app.tests.mixins import (
+    DataSourceMixinTestCase, FileReaderMixinTestCase)
 
-from ..helpers import ExcelTemplate, upload_template, TEMPLATE_COLUMNS
+from ..helpers import ExcelTemplateReader, upload_template, TEMPLATE_COLUMNS
 from .common import BaseExcelMixin
 
 
-class ExcelTemplateTestCase(
-        DataSourceMixinTestCase, BaseExcelMixin, TestCase):
+class ExcelTemplateReaderTestCase(
+        FileReaderMixinTestCase, DataSourceMixinTestCase, BaseExcelMixin,
+        TestCase):
     """Test excel class upload"""
 
     def setUp(self):
@@ -31,7 +32,7 @@ class ExcelTemplateTestCase(
         self.maxDiff = None
 
         # crate a Excel Template object
-        self.reader = ExcelTemplate()
+        self.reader = ExcelTemplateReader()
 
         # get filenames for DataSourceMixinTestCase.dst_path
         self.reader.read_file(self.dst_path)
@@ -99,7 +100,7 @@ class ExcelTemplateTestCase(
         mock_open.return_value = mock_book
 
         # now calling methods
-        reader = ExcelTemplate()
+        reader = ExcelTemplateReader()
         reader.read_file("fake file")
 
         # create the reference error output
@@ -135,45 +136,6 @@ class ExcelTemplateTestCase(
 
         samples = self.reader.get_sample_records()
         self.check_generator(samples, 3)
-
-    # TODO: pretty similar to CRBanim - move to a common mixin
-    def test_check_species(self):
-        """Test check species method"""
-
-        # get a country
-        country = DictCountry.objects.get(label="United Kingdom")
-
-        check, not_found = self.reader.check_species(country)
-
-        self.assertTrue(check)
-        self.assertEqual(len(not_found), 0)
-
-        # changing species set
-        DictSpecie.objects.filter(label='Sus scrofa').delete()
-
-        check, not_found = self.reader.check_species(country)
-
-        # the read species are not included in fixtures
-        self.assertFalse(check)
-        self.assertGreater(len(not_found), 0)
-
-    # TODO: identical to CRBanim - move to a common mixin
-    def test_check_sex(self):
-        """Test check sex method"""
-
-        check, not_found = self.reader.check_sex()
-
-        self.assertTrue(check)
-        self.assertEqual(len(not_found), 0)
-
-        # changing sex set
-        DictSex.objects.filter(label='female').delete()
-
-        check, not_found = self.reader.check_sex()
-
-        # the read species are not included in fixtures
-        self.assertFalse(check)
-        self.assertGreater(len(not_found), 0)
 
     def test_check_accuracies(self):
         """Test check accuracies method"""
@@ -238,7 +200,7 @@ class ExcelTemplateTestCase(
         mock_open.return_value = mock_book
 
         # now calling methods
-        reader = ExcelTemplate()
+        reader = ExcelTemplateReader()
         reader.read_file("fake file")
 
         # define the expected value

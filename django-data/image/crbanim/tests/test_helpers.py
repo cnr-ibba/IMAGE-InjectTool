@@ -16,9 +16,10 @@ from django.test import TestCase
 
 from common.tests import WebSocketMixin
 from image_app.models import (
-    DictSpecie, DictSex, DictBreed, Name, Animal,
+    DictSex, DictBreed, Name, Animal,
     Sample, DictUberon, DictCountry)
-from image_app.tests.mixins import DataSourceMixinTestCase
+from image_app.tests.mixins import (
+    DataSourceMixinTestCase, FileReaderMixinTestCase)
 
 from ..helpers import (
     logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
@@ -63,7 +64,9 @@ class CRBAnimMixin(DataSourceMixinTestCase, WebSocketMixin):
         self.check_message('Error', notification_message)
 
 
-class CRBAnimReaderTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
+class CRBAnimReaderTestCase(
+        FileReaderMixinTestCase, DataSourceMixinTestCase, BaseTestCase,
+        TestCase):
     def setUp(self):
         # calling my base class setup
         super().setUp()
@@ -121,43 +124,6 @@ class CRBAnimReaderTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
 
         self.reader.print_line(0)
         self.assertLogs(logger=logger, level=logging.DEBUG)
-
-    def test_check_species(self):
-        """Test check species method"""
-
-        # get a country
-        country = DictCountry.objects.get(label="United Kingdom")
-
-        check, not_found = self.reader.check_species(country)
-
-        self.assertTrue(check)
-        self.assertEqual(len(not_found), 0)
-
-        # changing species set
-        DictSpecie.objects.filter(label='Bos taurus').delete()
-
-        check, not_found = self.reader.check_species(country)
-
-        # the read species are not included in fixtures
-        self.assertFalse(check)
-        self.assertGreater(len(not_found), 0)
-
-    def test_check_sex(self):
-        """Test check sex method"""
-
-        check, not_found = self.reader.check_sex()
-
-        self.assertTrue(check)
-        self.assertEqual(len(not_found), 0)
-
-        # changing sex set
-        DictSex.objects.filter(label='female').delete()
-
-        check, not_found = self.reader.check_sex()
-
-        # the read species are not included in fixtures
-        self.assertFalse(check)
-        self.assertGreater(len(not_found), 0)
 
     def test_filter_by_column(self):
         """Filter records by column value"""
