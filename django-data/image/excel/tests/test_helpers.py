@@ -11,7 +11,6 @@ from collections import defaultdict
 from unittest.mock import patch, Mock
 
 from django.test import TestCase
-from django.core.management import call_command
 
 from common.tests import WebSocketMixin
 from image_app.tests.mixins import (

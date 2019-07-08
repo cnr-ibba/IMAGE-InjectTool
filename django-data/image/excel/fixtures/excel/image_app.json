@@ -59,6 +59,24 @@
   }
 },
 {
+  "model": "image_app.dictdevelstage",
+  "pk": 1,
+  "fields": {
+    "label": "adult",
+    "term": null,
+    "confidence": null
+  }
+},
+{
+  "model": "image_app.dictphysiostage",
+  "pk": 1,
+  "fields": {
+    "label": "mature",
+    "term": null,
+    "confidence": null
+  }
+},
+{
   "model": "image_app.dictspecie",
   "pk": 1,
   "fields": {
@@ -109,7 +127,7 @@
     "biosample_id": null,
     "owner": 1,
     "status": 1,
-    "last_changed": "2019-07-08T15:00:16.474Z",
+    "last_changed": "2019-07-08T16:05:10.310Z",
     "last_submitted": null,
     "publication": null
   }
@@ -123,7 +141,7 @@
     "biosample_id": null,
     "owner": 1,
     "status": 1,
-    "last_changed": "2019-07-08T15:00:16.479Z",
+    "last_changed": "2019-07-08T16:05:10.313Z",
     "last_submitted": null,
     "publication": null
   }
@@ -137,7 +155,7 @@
     "biosample_id": null,
     "owner": 1,
     "status": 1,
-    "last_changed": "2019-07-08T15:00:16.484Z",
+    "last_changed": "2019-07-08T16:05:10.315Z",
     "last_submitted": null,
     "publication": null
   }
@@ -151,7 +169,7 @@
     "biosample_id": null,
     "owner": 1,
     "status": 1,
-    "last_changed": "2019-07-08T15:00:16.493Z",
+    "last_changed": "2019-07-08T16:05:10.318Z",
     "last_submitted": null,
     "publication": null
   }
@@ -165,7 +183,7 @@
     "biosample_id": null,
     "owner": 1,
     "status": 1,
-    "last_changed": "2019-07-08T15:00:16.498Z",
+    "last_changed": "2019-07-08T16:05:10.321Z",
     "last_submitted": null,
     "publication": null
   }
@@ -179,7 +197,7 @@
     "biosample_id": null,
     "owner": 1,
     "status": 1,
-    "last_changed": "2019-07-08T15:00:16.503Z",
+    "last_changed": "2019-07-08T16:05:10.323Z",
     "last_submitted": null,
     "publication": null
   }
@@ -234,8 +252,8 @@
     "material": "Organism",
     "breed": 4,
     "sex": 1,
-    "father": null,
-    "mother": null,
+    "father": 7,
+    "mother": 8,
     "birth_date": null,
     "birth_location": null,
     "birth_location_latitude": null,
@@ -316,15 +334,15 @@
     "collection_place": "Italy",
     "collection_place_accuracy": 1,
     "organism_part": 2,
-    "developmental_stage": null,
-    "physiological_stage": null,
-    "animal_age_at_collection": null,
+    "developmental_stage": 1,
+    "physiological_stage": 1,
+    "animal_age_at_collection": 1,
     "animal_age_at_collection_units": 5,
     "availability": null,
-    "storage": null,
-    "storage_processing": null,
-    "preparation_interval": null,
-    "preparation_interval_units": null,
+    "storage": 2,
+    "storage_processing": 0,
+    "preparation_interval": 7,
+    "preparation_interval_units": 2,
     "owner": 1
   }
 },
@@ -364,7 +382,7 @@
     "organization": 1,
     "uploaded_file": "data_source/Image_sample_template_with_example_20190405.xlsx",
     "created_at": "2019-07-02T10:49:31.988Z",
-    "updated_at": "2019-07-08T15:00:16.621Z",
+    "updated_at": "2019-07-08T16:05:10.391Z",
     "status": 1,
     "message": "Template import completed for submission: 1",
     "biosample_submission_id": null,
