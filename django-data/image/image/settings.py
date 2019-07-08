@@ -238,7 +238,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'validation': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['console'],
         },
         'animals': {
@@ -254,7 +254,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'crbanim': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['console'],
         },
         'excel': {
