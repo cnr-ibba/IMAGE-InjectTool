@@ -12,16 +12,16 @@ from unittest.mock import patch, Mock
 
 from django.test import TestCase
 
-from common.constants import ERROR, LOADED
 from common.tests import WebSocketMixin
-from image_app.models import (
-    Submission, Animal, Sample, DictCountry, DictSpecie, DictSex, db_has_data)
+from image_app.models import DictCountry, DictSpecie, DictSex
+from image_app.tests.mixins import DataSourceMixinTestCase
 
 from ..helpers import ExcelTemplate, upload_template, TEMPLATE_COLUMNS
 from .common import BaseExcelMixin
 
 
-class ExcelTemplateTestCase(BaseExcelMixin, TestCase):
+class ExcelTemplateTestCase(
+        DataSourceMixinTestCase, BaseExcelMixin, TestCase):
     """Test excel class upload"""
 
     def setUp(self):
@@ -248,34 +248,24 @@ class ExcelTemplateTestCase(BaseExcelMixin, TestCase):
         self.assertEqual(reference, test)
 
 
-class ExcelMixin(WebSocketMixin, BaseExcelMixin):
+class ExcelMixin(DataSourceMixinTestCase, WebSocketMixin, BaseExcelMixin):
     """Common tests for Excel classes"""
+
+    # define the method to upload data from. Since the function is now inside
+    # a class it becomes a method, specifically a bound method and is supposed
+    # to receive the self attribute by default. If we don't want to get the
+    # self attribute, we have to declare function as a staticmetho
+    # https://stackoverflow.com/a/35322635/4385116
+    upload_method = staticmethod(upload_template)
 
     def test_upload_template(self):
         """Testing uploading and importing data from excel template to UID"""
 
-        # assert upload
-        self.assertTrue(upload_template(self.submission))
-
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # assert submission messages
-        self.assertEqual(
-            self.submission.status,
-            LOADED)
-
-        self.assertIn(
-            "Template import completed for submission",
-            self.submission.message)
-
-        # assert data into database
-        self.assertTrue(db_has_data())
-        self.assertTrue(Animal.objects.exists())
-        self.assertTrue(Sample.objects.exists())
+        # test data loaded
+        message = "Template import completed for submission"
+        self.upload_datasource(message)
 
         # check async message called
-        message = 'Loaded'
         notification_message = (
             'Template import completed for submission: 1')
         validation_message = {
@@ -283,41 +273,15 @@ class ExcelMixin(WebSocketMixin, BaseExcelMixin):
             'animal_unkn': 3, 'sample_unkn': 3,
             'animal_issues': 0, 'sample_issues': 0}
 
-        self.check_message(message, notification_message, validation_message)
+        # check async message called using WebSocketMixin.check_message
+        self.check_message('Loaded', notification_message, validation_message)
 
     def check_errors(self, my_check, message, notification_message):
         """Common stuff for error in excel template loading"""
 
-        self.assertFalse(upload_template(self.submission))
+        super().check_errors(my_check, message)
 
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # test my mock method called
-        self.assertTrue(my_check.called)
-
-        # reload submission
-        self.submission = Submission.objects.get(pk=1)
-
-        self.assertEqual(
-            self.submission.status,
-            ERROR)
-
-        # check for two distinct messages
-        self.assertIn(
-            message,
-            self.submission.message)
-
-        self.assertNotIn(
-            "Template import completed for submission",
-            self.submission.message)
-
-        # assert data into database
-        self.assertFalse(db_has_data())
-        self.assertFalse(Animal.objects.exists())
-        self.assertFalse(Sample.objects.exists())
-
-        # check async message called
+        # check async message called using WebSocketMixin.check_message
         self.check_message('Error', notification_message)
 
 

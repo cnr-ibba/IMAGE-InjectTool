@@ -15,10 +15,11 @@ from django.urls import resolve, reverse
 
 from common.tests import (
     FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase,
-    DataSourceMixinTestCase, MessageMixinTestCase, StatusMixinTestCase)
+    MessageMixinTestCase, StatusMixinTestCase)
 from common.constants import (
     CRB_ANIM_TYPE, CRYOWEB_TYPE, TEMPLATE_TYPE, ERROR, WAITING)
 from image_app.models import Submission
+from image_app.tests import DataSourceMixinTestCase
 
 from .common import SubmissionFormMixin
 from ..views import ReloadSubmissionView
@@ -26,9 +27,6 @@ from ..forms import ReloadForm
 
 
 class TestBase(SubmissionFormMixin, DataSourceMixinTestCase, TestCase):
-    # define attribute in DataSourceMixinTestCase
-    model = Submission
-
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",

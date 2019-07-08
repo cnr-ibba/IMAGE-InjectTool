@@ -10,9 +10,10 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from common.tests import (
-    DataSourceMixinTestCase, GeneralMixinTestCase, StatusMixinTestCase,
+    GeneralMixinTestCase, StatusMixinTestCase,
     OwnerMixinTestCase, LoginMixinTestCase)
 
+from . import DataSourceMixinTestCase
 from ..models import Submission
 from ..views import (
     DashBoardView, SummaryView, AboutView, IndexView, PrivacyView, TermsView,
@@ -149,9 +150,6 @@ class SummaryViewTest(GeneralMixinTestCase, Initialize):
 class ProtectedViewTest(DataSourceMixinTestCase, OwnerMixinTestCase,
                         LoginMixinTestCase, TestCase):
     """A class to test protected view"""
-
-    # define attribute in DataSourceMixinTestCase
-    model = Submission
 
     fixtures = [
         "image_app/user",

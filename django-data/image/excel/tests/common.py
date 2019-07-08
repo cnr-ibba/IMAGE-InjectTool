@@ -6,14 +6,10 @@ Created on Tue Jul  2 10:57:13 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from common.tests import DataSourceMixinTestCase
 from image_app.models import Submission
 
 
-class BaseExcelMixin(DataSourceMixinTestCase):
-    # define attribute in DataSourceMixinTestCase
-    model = Submission
-
+class BaseExcelMixin():
     # import this file and populate database once
     fixtures = [
         'excel/dictspecie',
