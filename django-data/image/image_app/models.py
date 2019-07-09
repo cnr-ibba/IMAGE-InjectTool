@@ -232,6 +232,24 @@ class DictSpecie(DictBase, Confidence):
 
         return specie
 
+    @classmethod
+    def get_specie_check_synonyms(cls, species_label, language):
+        """get a DictSpecie object. Species are in latin names, but I can
+        find also a common name in translation tables"""
+
+        try:
+            specie = cls.objects.get(label=species_label)
+
+        except DictSpecie.DoesNotExist:
+            logger.info("Search %s in synonyms" % (species_label))
+            # search for language synonym (if I arrived here a synonym should
+            # exists)
+            specie = cls.get_by_synonym(
+                synonym=species_label,
+                language=language)
+
+        return specie
+
 
 class DictBreed(Confidence):
     """A class to deal with breed objects and their ontologies"""

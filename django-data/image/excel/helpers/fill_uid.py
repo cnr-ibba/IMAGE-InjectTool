@@ -36,19 +36,11 @@ def fill_uid_breeds(submission_obj, template):
 
     # iterate among excel template
     for record in template.get_breed_records():
-        # TODO: move this in a helper module (image_app.helpers?)
         # get a DictSpecie object. Species are in latin names, but I can
         # find also a common name in translation tables
-        try:
-            specie = DictSpecie.objects.get(label=record.species)
-
-        except DictSpecie.DoesNotExist:
-            logger.info("Search %s in synonyms" % (record.species))
-            # search for language synonym (if I arrived here a synonym should
-            # exists)
-            specie = DictSpecie.get_by_synonym(
-                synonym=record.species,
-                language=language)
+        specie = DictSpecie.get_specie_check_synonyms(
+            species_label=record.species,
+            language=language)
 
         # get country for breeds. Ideally will be the same of submission,
         # however, it could be possible to store data from other contries
@@ -96,9 +88,6 @@ def fill_uid_names(submission_obj, template):
 def fill_uid_animals(submission_obj, template):
     # debug
     logger.info("called fill_uid_animals()")
-
-    # get submission language
-    language = submission_obj.gene_bank_country.label
 
     # iterate among excel template
     for record in template.get_animal_records():

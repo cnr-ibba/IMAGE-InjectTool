@@ -218,15 +218,8 @@ def fill_uid_breed(record, language):
 
     # get a DictSpecie object. Species are in latin names, but I can
     # find also a common name in translation tables
-    try:
-        specie = DictSpecie.objects.get(label=record.species_latin_name)
-
-    except DictSpecie.DoesNotExist:
-        logger.info("Search %s in synonyms" % (record.species_latin_name))
-        # search for language synonym (if I arrived here a synonym should
-        # exists)
-        specie = DictSpecie.get_by_synonym(
-            synonym=record.species_latin_name,
+    specie = DictSpecie.get_specie_check_synonyms(
+            species_label=record.species_latin_name,
             language=language)
 
     # get country name using pycountries
