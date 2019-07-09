@@ -11,6 +11,7 @@ import logging
 from common.constants import (
     ERROR, LOADED, ACCURACIES, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
 from common.helpers import image_timedelta, parse_image_timedelta
+from image_app.helpers import get_or_create_obj, update_or_create_obj
 from image_app.models import (
     DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Name, Animal,
     Sample, DictDevelStage, DictPhysioStage)
@@ -51,28 +52,15 @@ def fill_uid_breeds(submission_obj, template):
 
         # get country for breeds. Ideally will be the same of submission,
         # however, it could be possible to store data from other contries
-        country, created = DictCountry.objects.get_or_create(
+        country = get_or_create_obj(
+            DictCountry,
             label=record.efabis_breed_country)
 
-        # I could create a country from a v_breed_specie instance. That's
-        # ok, maybe I could have a lot of breed from different countries and
-        # a few organizations submitting them
-        if created:
-            logger.info("Created %s" % country)
-
-        else:
-            logger.debug("Found %s" % country)
-
-        breed, created = DictBreed.objects.get_or_create(
+        get_or_create_obj(
+            DictBreed,
             supplied_breed=record.supplied_breed,
             specie=specie,
             country=country)
-
-        if created:
-            logger.info("Created %s" % breed)
-
-        else:
-            logger.debug("Found %s" % breed)
 
     logger.info("fill_uid_breeds() completed")
 
@@ -87,30 +75,20 @@ def fill_uid_names(submission_obj, template):
     for record in template.get_animal_records():
         # in the same record I have the sample identifier and animal identifier
         # a name record for animal
-        animal_name, created = Name.objects.get_or_create(
+        get_or_create_obj(
+            Name,
             name=record.animal_id_in_data_source,
             submission=submission_obj,
             owner=submission_obj.owner)
 
-        if created:
-            logger.debug("Created animal name %s" % animal_name)
-
-        else:
-            logger.debug("Found animal name %s" % animal_name)
-
     # iterate among excel template
     for record in template.get_sample_records():
         # name record for sample
-        sample_name, created = Name.objects.get_or_create(
+        get_or_create_obj(
+            Name,
             name=record.sample_id_in_data_source,
             submission=submission_obj,
             owner=submission_obj.owner)
-
-        if created:
-            logger.debug("Created sample name %s" % sample_name)
-
-        else:
-            logger.debug("Found sample name %s" % sample_name)
 
     logger.info("fill_uid_names() completed")
 
@@ -203,24 +181,17 @@ def fill_uid_animals(submission_obj, template):
             'owner': submission_obj.owner
         }
 
-        animal, created = Animal.objects.update_or_create(
+        # creating or updating an object
+        update_or_create_obj(
+            Animal,
             name=name,
             defaults=defaults)
 
-        if created:
-            logger.debug("Created %s" % animal)
-
-        else:
-            logger.debug("Updating %s" % animal)
-
     # create a validation summary object and set all_count
-    validation_summary, created = ValidationSummary.objects.get_or_create(
-        submission=submission_obj, type="animal")
-
-    if created:
-        logger.debug(
-            "ValidationSummary animal created for submission %s" %
-            submission_obj)
+    validation_summary = get_or_create_obj(
+        ValidationSummary,
+        submission=submission_obj,
+        type="animal")
 
     # reset counts
     validation_summary.reset_all_count()
@@ -247,45 +218,26 @@ def fill_uid_samples(submission_obj, template):
             name__submission=submission_obj)
 
         # get a organism part. Organism parts need to be in lowercases
-        organism_part, created = DictUberon.objects.get_or_create(
+        organism_part = get_or_create_obj(
+            DictUberon,
             label=record.organism_part
         )
 
-        if created:
-            logger.info("Created %s" % organism_part)
-
-        else:
-            logger.debug("Found %s" % organism_part)
-
         # get developmental_stage and physiological_stage terms
         # they are not mandatory
+        devel_stage, physio_stage = None, None
+
         if record.developmental_stage:
-            devel_stage, created = DictDevelStage.objects.get_or_create(
+            devel_stage = get_or_create_obj(
+                DictDevelStage,
                 label=record.developmental_stage
             )
 
-            if created:
-                logger.info("Created %s" % devel_stage)
-
-            else:
-                logger.debug("Found %s" % devel_stage)
-
-        else:
-            devel_stage = None
-
         if record.physiological_stage:
-            physio_stage, created = DictPhysioStage.objects.get_or_create(
-                    label=record.physiological_stage
+            physio_stage = get_or_create_obj(
+                DictPhysioStage,
+                label=record.physiological_stage
             )
-
-            if created:
-                logger.info("Created %s" % physio_stage)
-
-            else:
-                logger.debug("Found %s" % physio_stage)
-
-        else:
-            physio_stage = None
 
         # animal age could be present or not
         if record.animal_age_at_collection:
@@ -298,12 +250,11 @@ def fill_uid_samples(submission_obj, template):
                 record.collection_date, animal.birth_date)
 
         # another time column
+        preparation_interval, preparation_interval_units = None, None
+
         if record.sampling_to_preparation_interval:
             preparation_interval, preparation_interval_units = \
                 parse_image_timedelta(record.sampling_to_preparation_interval)
-
-        else:
-            preparation_interval, preparation_interval_units = None, None
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(
@@ -342,24 +293,16 @@ def fill_uid_samples(submission_obj, template):
             'owner': submission_obj.owner,
         }
 
-        sample, created = Sample.objects.update_or_create(
+        update_or_create_obj(
+            Sample,
             name=name,
             defaults=defaults)
 
-        if created:
-            logger.debug("Created %s" % sample)
-
-        else:
-            logger.debug("Updating %s" % sample)
-
     # create a validation summary object and set all_count
-    validation_summary, created = ValidationSummary.objects.get_or_create(
-        submission=submission_obj, type="sample")
-
-    if created:
-        logger.debug(
-            "ValidationSummary animal created for submission %s" %
-            submission_obj)
+    validation_summary = get_or_create_obj(
+        ValidationSummary,
+        submission=submission_obj,
+        type="sample")
 
     # reset counts
     validation_summary.reset_all_count()

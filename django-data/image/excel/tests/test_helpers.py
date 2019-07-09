@@ -252,7 +252,7 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
 
     @patch("excel.helpers.ExcelTemplateReader.check_species",
            return_value=[False, 'Rainbow trout'])
-    def test_upload_crbanim_errors_with_species(self, my_check):
+    def test_upload_template_errors_with_species(self, my_check):
         """Testing importing with data into UID with errors in species"""
 
         message = "Some species are not loaded in UID database"
@@ -261,12 +261,12 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
             'are not loaded in UID database: Rainbow '
             'trout')
 
-        # check crbanim import fails
+        # check template import fails
         self.check_errors(my_check, message, notification_message)
 
     @patch("excel.helpers.ExcelTemplateReader.check_sex",
            return_value=[False, 'unknown'])
-    def test_upload_crbanim_errors_with_sex(self, my_check):
+    def test_upload_template_errors_with_sex(self, my_check):
         """Testing importing with data into UID with errors"""
 
         message = "Not all Sex terms are loaded into database"
@@ -275,12 +275,12 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
             'terms are loaded into database: check '
             'for unknown in your dataset')
 
-        # check crbanim import fails
+        # check template import fails
         self.check_errors(my_check, message, notification_message)
 
     @patch("excel.helpers.ExcelTemplateReader.check_accuracies",
            return_value=(False, set(["Fake"])))
-    def test_upload_crbanim_errors_with_accuracies(self, my_check):
+    def test_upload_template_errors_with_accuracies(self, my_check):
         """Testing importing with data into UID with errors"""
 
         message = "Not all accuracy levels are defined in database"
@@ -289,7 +289,7 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
             "levels are defined in database: check "
             "for {'Fake'} in your dataset")
 
-        # check crbanim import fails
+        # check template import fails
         self.check_errors(my_check, message, notification_message)
 
 

@@ -8,9 +8,11 @@ Created on Wed Feb 14 10:34:44 2018
 
 from django.test import TestCase
 
-from image_app.models import Animal, Sample
+from image_app.models import Animal, Sample, DictSex
 
-from ..helpers import get_model_object, parse_image_alias
+from ..helpers import (
+    get_model_object, parse_image_alias, get_or_create_obj,
+    update_or_create_obj)
 
 
 class GetModelObjectTestCase(TestCase):
@@ -100,3 +102,21 @@ class ParseImageAliasTestCase(TestCase):
             "Cannot deal with 'FAKEA0000123456'",
             parse_image_alias,
             "FAKEA0000123456")
+
+
+class CreateOrGetTestCase(TestCase):
+    fixtures = ['image_app/dictsex']
+
+    def test_get_or_create_obj(self):
+        sex = get_or_create_obj(DictSex, label="male")
+        self.assertIsInstance(sex, DictSex)
+
+        sex = get_or_create_obj(DictSex, label="foo")
+        self.assertIsInstance(sex, DictSex)
+
+    def test_update_or_create_obj(self):
+        sex = update_or_create_obj(DictSex, label="male", term="PATO_0000384")
+        self.assertIsInstance(sex, DictSex)
+
+        sex = update_or_create_obj(DictSex, label="foo", term="bar")
+        self.assertIsInstance(sex, DictSex)

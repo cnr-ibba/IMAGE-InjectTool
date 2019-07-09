@@ -110,3 +110,31 @@ class FileDataSourceMixin():
                 logger.error(not_found)
 
         return check, not_found
+
+
+def get_or_create_obj(model, **kwargs):
+    """Generic method to create or getting a model object"""
+
+    instance, created = model.objects.get_or_create(**kwargs)
+
+    if created:
+        logger.info("Created %s" % instance)
+
+    else:
+        logger.debug("Found %s" % instance)
+
+    return instance
+
+
+def update_or_create_obj(model, **kwargs):
+    """Generic method to create or getting a model object"""
+
+    instance, created = model.objects.update_or_create(**kwargs)
+
+    if created:
+        logger.debug("Created %s" % instance)
+
+    else:
+        logger.debug("Updating %s" % instance)
+
+    return instance

@@ -17,7 +17,8 @@ from django.utils.dateparse import parse_date
 
 from common.constants import LOADED, ERROR, MISSING, SAMPLE_STORAGE
 from common.helpers import image_timedelta
-from image_app.helpers import FileDataSourceMixin
+from image_app.helpers import (
+    FileDataSourceMixin, get_or_create_obj, update_or_create_obj)
 from image_app.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
@@ -234,28 +235,15 @@ def fill_uid_breed(record, language):
 
     # get country for breeds. Ideally will be the same of submission,
     # however, it could be possible to store data from other contries
-    country, created = DictCountry.objects.get_or_create(
+    country = get_or_create_obj(
+        DictCountry,
         label=country_name)
 
-    # I could create a country from a v_breed_specie instance. That's
-    # ok, maybe I could have a lot of breed from different countries and
-    # a few organizations submitting them
-    if created:
-        logger.info("Created %s" % country)
-
-    else:
-        logger.debug("Found %s" % country)
-
-    breed, created = DictBreed.objects.get_or_create(
+    breed = get_or_create_obj(
+        DictBreed,
         supplied_breed=record.breed_name,
         specie=specie,
         country=country)
-
-    if created:
-        logger.info("Created %s" % breed)
-
-    else:
-        logger.debug("Found %s" % breed)
 
     # return a DictBreed object
     return breed
@@ -266,39 +254,27 @@ def fill_uid_names(record, submission):
 
     # in the same record I have the sample identifier and animal identifier
     # a name record for animal
-    animal_name, created = Name.objects.get_or_create(
+    animal_name = get_or_create_obj(
+        Name,
         name=record.animal_ID,
         submission=submission,
         owner=submission.owner)
-
-    if created:
-        logger.debug("Created animal name %s" % animal_name)
-
-    else:
-        logger.debug("Found animal name %s" % animal_name)
 
     # get a publication (if present)
     publication = None
 
     if record.sample_bibliographic_references:
-        publication, created = Publication.objects.get_or_create(
+        publication = get_or_create_obj(
+            Publication,
             doi=record.sample_bibliographic_references)
 
-        if created:
-            logger.debug("Created publication %s" % publication)
-
     # name record for sample
-    sample_name, created = Name.objects.get_or_create(
+    sample_name = get_or_create_obj(
+        Name,
         name=record.sample_identifier,
         submission=submission,
         owner=submission.owner,
         publication=publication)
-
-    if created:
-        logger.debug("Created sample name %s" % sample_name)
-
-    else:
-        logger.debug("Found sample name %s" % sample_name)
 
     # returning 2 Name instances
     return animal_name, sample_name
@@ -339,15 +315,10 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
 
         # HINT: I could have the same animal again and again. Should I update
         # every times?
-        animal, created = Animal.objects.update_or_create(
+        animal = update_or_create_obj(
+            Animal,
             name=animal_name,
             defaults=defaults)
-
-        if created:
-            logger.debug("Created animal %s" % animal)
-
-        else:
-            logger.debug("Updating animal %s" % animal)
 
         # track this animal in dictionary
         animals[animal_name.name] = animal
@@ -395,15 +366,10 @@ def fill_uid_sample(record, sample_name, animal, submission):
         organism_part_label = sample_type_name
 
     # get a organism part. Organism parts need to be in lowercases
-    organism_part, created = DictUberon.objects.get_or_create(
+    organism_part = get_or_create_obj(
+        DictUberon,
         label=organism_part_label
     )
-
-    if created:
-        logger.info("Created uberon %s" % organism_part)
-
-    else:
-        logger.debug("Found uberon %s" % organism_part)
 
     # calculate animal age at collection
     animal_birth_date = parse_date(record.animal_birth_date)
@@ -428,15 +394,10 @@ def fill_uid_sample(record, sample_name, animal, submission):
         'animal_age_at_collection_units': time_units
     }
 
-    sample, created = Sample.objects.update_or_create(
+    sample = update_or_create_obj(
+        Sample,
         name=sample_name,
         defaults=defaults)
-
-    if created:
-        logger.debug("Created sample %s" % sample)
-
-    else:
-        logger.debug("Updating sample %s" % sample)
 
     return sample
 
@@ -507,24 +468,18 @@ def upload_crbanim(submission):
 
         # after processing records, initilize validationsummary objects
         # create a validation summary object and set all_count
-        vs_animal, created = ValidationSummary.objects.get_or_create(
-            submission=submission, type="animal")
-
-        if created:
-            logger.debug(
-                "ValidationSummary animal created for "
-                "submission %s" % submission)
+        vs_animal = get_or_create_obj(
+            ValidationSummary,
+            submission=submission,
+            type="animal")
 
         # reset counts
         vs_animal.reset_all_count()
 
-        vs_sample, created = ValidationSummary.objects.get_or_create(
-            submission=submission, type="sample")
-
-        if created:
-            logger.debug(
-                "ValidationSummary sample created for "
-                "submission %s" % submission)
+        vs_sample = get_or_create_obj(
+            ValidationSummary,
+            submission=submission,
+            type="sample")
 
         # reset counts
         vs_sample.reset_all_count()
