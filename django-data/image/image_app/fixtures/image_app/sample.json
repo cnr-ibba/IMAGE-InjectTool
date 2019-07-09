@@ -16,13 +16,14 @@
     "collection_place_accuracy": 4,
     "organism_part": 1,
     "developmental_stage": 1,
-    "physiological_stage": null,
+    "physiological_stage": 1,
     "animal_age_at_collection": 4,
     "animal_age_at_collection_units": 5,
     "availability": "mailto:test@example.com",
     "storage": 2,
     "storage_processing": 0,
-    "preparation_interval": null,
+    "preparation_interval": 3,
+    "preparation_interval_units": 2,
     "owner": 1
   }
 }

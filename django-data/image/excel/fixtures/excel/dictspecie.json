@@ -1,0 +1,18 @@
+[
+{
+  "model": "image_app.dictspecie",
+  "pk": 1,
+  "fields": {
+    "label": "Sus scrofa",
+    "term": "NCBITaxon_9823"
+  }
+},
+{
+  "model": "image_app.dictspecie",
+  "pk": 2,
+  "fields": {
+    "label": "Capra hircus",
+    "term": "NCBITaxon_9925"
+  }
+}
+]

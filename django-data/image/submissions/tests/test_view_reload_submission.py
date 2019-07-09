@@ -15,10 +15,11 @@ from django.urls import resolve, reverse
 
 from common.tests import (
     FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase,
-    DataSourceMixinTestCase, MessageMixinTestCase, StatusMixinTestCase)
+    MessageMixinTestCase, StatusMixinTestCase)
 from common.constants import (
     CRB_ANIM_TYPE, CRYOWEB_TYPE, TEMPLATE_TYPE, ERROR, WAITING)
 from image_app.models import Submission
+from image_app.tests import DataSourceMixinTestCase
 
 from .common import SubmissionFormMixin
 from ..views import ReloadSubmissionView
@@ -26,9 +27,6 @@ from ..forms import ReloadForm
 
 
 class TestBase(SubmissionFormMixin, DataSourceMixinTestCase, TestCase):
-    # define attribute in DataSourceMixinTestCase
-    model = Submission
-
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",
@@ -222,8 +220,10 @@ class CRBAnimReloadSubmissionViewTest(
 
 
 class TemplateReloadSubmissionViewTest(
-        StatusMixinTestCase, MessageMixinTestCase, TestBase):
-    def setUp(self):
+        SuccessfulReloadMixin, TestBase):
+
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def setUp(self, my_task):
         # call base method
         super().setUp()
 
@@ -240,33 +240,5 @@ class TemplateReloadSubmissionViewTest(
             self.get_data(ds_file=TEMPLATE_TYPE),
             follow=True)
 
-    def tearDown(self):
-        if hasattr(self, "submission"):
-            # read written file
-            self.submission.refresh_from_db()
-
-            # delete uploaded file if exists
-            fullpath = self.submission.uploaded_file.path
-
-            if os.path.exists(fullpath):
-                os.remove(fullpath)
-
-        # call super method
-        super().tearDown()
-
-    def test_message(self):
-        self.check_messages(
-            self.response,
-            "error",
-            "Template reload is not implemented")
-
-    def test_redirect(self):
-        url = reverse('submissions:detail', kwargs={'pk': 1})
-        self.assertRedirects(self.response, url)
-
-    def test_error_in_submission(self):
-        self.submission.refresh_from_db()
-        self.assertEqual(self.submission.status, ERROR)
-        self.assertEqual(
-            self.submission.message,
-            "Template reload is not implemented")
+        # track task
+        self.my_task = my_task

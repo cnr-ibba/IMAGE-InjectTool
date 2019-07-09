@@ -15,6 +15,8 @@ from django.urls import reverse
 from django.test import Client
 from django.contrib.messages import get_messages
 
+from ..constants import LOADED, ERROR
+
 
 class LoginMixinTestCase(object):
     url = None
@@ -102,9 +104,11 @@ class DataSourceMixinTestCase(object):
     # class attributes
     uploaded_file = False
     dst_path = None
-    model = None
-    datasource_filename = None
+    submission_model = None
     base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # the method is use to upload data into database
+    upload_method = None
 
     @classmethod
     def setUpClass(cls):
@@ -114,7 +118,7 @@ class DataSourceMixinTestCase(object):
         super().setUpClass()
 
         # ensuring that file cryoweb_test_data_only.sql is present
-        submission = cls.model.objects.get(pk=1)
+        submission = cls.submission_model.objects.get(pk=1)
         cls.dst_path = submission.uploaded_file.path
 
         # get datasource filename from submission object
@@ -136,6 +140,48 @@ class DataSourceMixinTestCase(object):
         # calling my base class teardown class
         super().tearDownClass()
 
+    def upload_datasource(self, message):
+        """Testing uploading and importing data from crbanim to UID"""
+
+        # assert upload
+        self.assertTrue(self.upload_method(self.submission))
+
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # assert submission messages
+        self.assertEqual(
+            self.submission.status,
+            LOADED)
+
+        self.assertIn(
+            message,
+            self.submission.message)
+
+    def check_errors(self, my_check, message):
+        """Common stuff for error in file loading"""
+
+        self.assertFalse(self.upload_method(self.submission))
+
+        # reload submission
+        self.submission.refresh_from_db()
+
+        # test my mock method called
+        self.assertTrue(my_check.called)
+
+        self.assertEqual(
+            self.submission.status,
+            ERROR)
+
+        # check for two distinct messages
+        self.assertIn(
+            message,
+            self.submission.message)
+
+        self.assertNotIn(
+            "import completed for submission",
+            self.submission.message)
+
 
 # a mixin to correctly instantiate a person object in order to get
 # a biosample json for test data
@@ -156,6 +202,7 @@ class PersonMixinTestCase(object):
         person.save()
 
 
+# TODO: move into submission.tests (since related to submission.helpers)
 class WebSocketMixin(object):
     """Override setUp to mock websocket objects"""
 

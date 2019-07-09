@@ -27,7 +27,7 @@ copyright = '2019, Paolo Cozzi'
 author = 'Paolo Cozzi'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.5.5'
+release = 'v0.6.0'
 
 
 # -- General configuration ---------------------------------------------------

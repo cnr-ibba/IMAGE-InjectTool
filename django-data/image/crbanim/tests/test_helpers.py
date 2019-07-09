@@ -14,11 +14,12 @@ from collections import namedtuple
 
 from django.test import TestCase
 
-from common.constants import ERROR, LOADED
 from common.tests import WebSocketMixin
 from image_app.models import (
-    Submission, db_has_data, DictSpecie, DictSex, DictBreed, Name, Animal,
+    DictSex, DictBreed, Name, Animal,
     Sample, DictUberon, DictCountry)
+from image_app.tests.mixins import (
+    DataSourceMixinTestCase, FileReaderMixinTestCase)
 
 from ..helpers import (
     logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
@@ -26,34 +27,24 @@ from ..helpers import (
 from .common import BaseTestCase
 
 
-class CRBAnimMixin(WebSocketMixin):
+class CRBAnimMixin(DataSourceMixinTestCase, WebSocketMixin):
     """Common test for CRBanim classes"""
+
+    # define the method to upload data from. Since the function is now inside
+    # a class it becomes a method, specifically a bound method and is supposed
+    # to receive the self attribute by default. If we don't want to get the
+    # self attribute, we have to declare function as a staticmetho
+    # https://stackoverflow.com/a/35322635/4385116
+    upload_method = staticmethod(upload_crbanim)
 
     def test_upload_crbanim(self):
         """Testing uploading and importing data from crbanim to UID"""
 
-        # assert upload
-        self.assertTrue(upload_crbanim(self.submission))
-
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # assert submission messages
-        self.assertEqual(
-            self.submission.status,
-            LOADED)
-
-        self.assertIn(
-            "CRBAnim import completed for submission",
-            self.submission.message)
-
-        # assert data into database
-        self.assertTrue(db_has_data())
-        self.assertTrue(Animal.objects.exists())
-        self.assertTrue(Sample.objects.exists())
+        # test data loaded
+        message = "CRBAnim import completed for submission"
+        self.upload_datasource(message)
 
         # check async message called
-        message = 'Loaded'
         notification_message = (
             'CRBAnim import completed for submission: 1')
         validation_message = {
@@ -61,45 +52,21 @@ class CRBAnimMixin(WebSocketMixin):
             'animal_unkn': 1, 'sample_unkn': 2,
             'animal_issues': 0, 'sample_issues': 0}
 
-        self.check_message(message, notification_message, validation_message)
+        # check async message called using WebSocketMixin.check_message
+        self.check_message('Loaded', notification_message, validation_message)
 
     def check_errors(self, my_check, message, notification_message):
         """Common stuff for error in crbanim loading"""
 
-        self.assertFalse(upload_crbanim(self.submission))
+        super().check_errors(my_check, message)
 
-        # reload submission
-        self.submission.refresh_from_db()
-
-        # test my mock method called
-        self.assertTrue(my_check.called)
-
-        # reload submission
-        self.submission = Submission.objects.get(pk=1)
-
-        self.assertEqual(
-            self.submission.status,
-            ERROR)
-
-        # check for two distinct messages
-        self.assertIn(
-            message,
-            self.submission.message)
-
-        self.assertNotIn(
-            "CRBAnim import completed for submission",
-            self.submission.message)
-
-        # assert data into database
-        self.assertFalse(db_has_data())
-        self.assertFalse(Animal.objects.exists())
-        self.assertFalse(Sample.objects.exists())
-
-        # check async message called
+        # check async message called using WebSocketMixin.check_message
         self.check_message('Error', notification_message)
 
 
-class CRBAnimReaderTestCase(BaseTestCase, TestCase):
+class CRBAnimReaderTestCase(
+        FileReaderMixinTestCase, DataSourceMixinTestCase, BaseTestCase,
+        TestCase):
     def setUp(self):
         # calling my base class setup
         super().setUp()
@@ -157,43 +124,6 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
 
         self.reader.print_line(0)
         self.assertLogs(logger=logger, level=logging.DEBUG)
-
-    def test_check_species(self):
-        """Test check species method"""
-
-        # get a country
-        country = DictCountry.objects.get(label="United Kingdom")
-
-        check, not_found = self.reader.check_species(country)
-
-        self.assertTrue(check)
-        self.assertEqual(len(not_found), 0)
-
-        # changing species set
-        DictSpecie.objects.filter(label='Bos taurus').delete()
-
-        check, not_found = self.reader.check_species(country)
-
-        # the read species are not included in fixtures
-        self.assertFalse(check)
-        self.assertGreater(len(not_found), 0)
-
-    def test_check_sex(self):
-        """Test check sex method"""
-
-        check, not_found = self.reader.check_sex()
-
-        self.assertTrue(check)
-        self.assertEqual(len(not_found), 0)
-
-        # changing sex set
-        DictSex.objects.filter(label='female').delete()
-
-        check, not_found = self.reader.check_sex()
-
-        # the read species are not included in fixtures
-        self.assertFalse(check)
-        self.assertGreater(len(not_found), 0)
 
     def test_filter_by_column(self):
         """Filter records by column value"""
@@ -265,7 +195,7 @@ class CRBAnimReaderTestCase(BaseTestCase, TestCase):
         self.assertGreater(len(not_found), 0)
 
 
-class ProcessRecordTestCase(BaseTestCase, TestCase):
+class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
     """A class to test function which process record"""
 
     def setUp(self):
@@ -430,7 +360,7 @@ class ReloadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
     """Simulate a crbanim reload case. Load data as in
     UploadCRBAnimTestCase, then call test which reload the same data"""
 
-    # override useal fixtures
+    # override used fixtures
     fixtures = [
         'crbanim/auth',
         'crbanim/dictspecie',

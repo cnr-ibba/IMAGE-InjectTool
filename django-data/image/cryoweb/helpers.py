@@ -19,6 +19,7 @@ from django.conf import settings
 
 from common.constants import LOADED, ERROR, MISSING, UNKNOWN
 from common.helpers import image_timedelta
+from image_app.helpers import get_or_create_obj, update_or_create_obj
 from image_app.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
@@ -198,28 +199,16 @@ def fill_uid_breeds(submission):
         # get country for breeds. Ideally will be the same of submission,
         # since the Italian cryoweb is supposed to contains italian breeds.
         # however, it could be possible to store data from other contries
-        country, created = DictCountry.objects.get_or_create(
+        country = get_or_create_obj(
+            DictCountry,
             label=v_breed_specie.efabis_country)
 
-        # I could create a country from a v_breed_specie instance. That's
-        # ok, maybe I could have a lot of breed from different countries and
-        # a few organizations submitting them
-        if created:
-            logger.info("Created %s" % country)
-
-        else:
-            logger.debug("Found %s" % country)
-
-        breed, created = DictBreed.objects.get_or_create(
+        # create breed obj if necessary
+        get_or_create_obj(
+            DictBreed,
             supplied_breed=v_breed_specie.efabis_mcname,
             specie=specie,
             country=country)
-
-        if created:
-            logger.info("Created %s:%s" % (breed, country))
-
-        else:
-            logger.debug("Found %s:%s" % (breed, country))
 
     logger.info("fill_uid_breeds() completed")
 
@@ -235,16 +224,11 @@ def fill_uid_names(submission):
         # no name manipulation. If two objects are indentical, there's no
         # duplicates.
         # HINT: The ramon example will be a issue in validation step
-        name, created = Name.objects.get_or_create(
+        get_or_create_obj(
+            Name,
             name=v_tranfer.get_fullname(),
             submission=submission,
             owner=submission.owner)
-
-        if created:
-            logger.debug("Created %s" % name)
-
-        else:
-            logger.debug("Found %s" % name)
 
     logger.info("fill_uid_names() completed")
 
@@ -330,23 +314,17 @@ def fill_uid_animals(submission):
             'owner': submission.owner
         }
 
-        animal, created = Animal.objects.update_or_create(
+        # Upate or create animal obj
+        update_or_create_obj(
+            Animal,
             name=name,
             defaults=defaults)
 
-        if created:
-            logger.debug("Created %s" % animal)
-
-        else:
-            logger.debug("Updating %s" % animal)
-
     # create a validation summary object and set all_count
-    validation_summary, created = ValidationSummary.objects.get_or_create(
-        submission=submission, type="animal")
-
-    if created:
-        logger.debug(
-            "ValidationSummary animal created for submission %s" % submission)
+    validation_summary = get_or_create_obj(
+        ValidationSummary,
+        submission=submission,
+        type="animal")
 
     # reset counts
     validation_summary.reset_all_count()
@@ -363,16 +341,11 @@ def fill_uid_samples(submission):
 
     for v_vessel in VVessels.objects.all():
         # get name for this sample. Need to insert it
-        name, created = Name.objects.get_or_create(
+        name = get_or_create_obj(
+            Name,
             name=v_vessel.ext_vessel,
             submission=submission,
             owner=submission.owner)
-
-        if created:
-            logger.debug("Created %s" % name)
-
-        else:
-            logger.debug("Found %s" % name)
 
         # get animal object using name
         animal = Animal.objects.get(
@@ -380,15 +353,10 @@ def fill_uid_samples(submission):
             name__submission=submission)
 
         # get a organism part. Organism parts need to be in lowercases
-        organism_part, created = DictUberon.objects.get_or_create(
+        organism_part = get_or_create_obj(
+            DictUberon,
             label=v_vessel.get_organism_part().lower()
         )
-
-        if created:
-            logger.info("Created %s" % organism_part)
-
-        else:
-            logger.debug("Found %s" % organism_part)
 
         # get a v_animal instance to get access to animal birth date
         v_animal = VAnimal.objects.get(db_animal=v_vessel.db_animal)
@@ -412,23 +380,16 @@ def fill_uid_samples(submission):
             # 'storage': v_vessel.ext_vessel_type,
         }
 
-        sample, created = Sample.objects.update_or_create(
+        update_or_create_obj(
+            Sample,
             name=name,
             defaults=defaults)
 
-        if created:
-            logger.debug("Created %s" % sample)
-
-        else:
-            logger.debug("Updating %s" % sample)
-
     # create a validation summary object and set all_count
-    validation_summary, created = ValidationSummary.objects.get_or_create(
-        submission=submission, type="sample")
-
-    if created:
-        logger.debug(
-            "ValidationSummary animal created for submission %s" % submission)
+    validation_summary = get_or_create_obj(
+        ValidationSummary,
+        submission=submission,
+        type="sample")
 
     # reset counts
     validation_summary.reset_all_count()

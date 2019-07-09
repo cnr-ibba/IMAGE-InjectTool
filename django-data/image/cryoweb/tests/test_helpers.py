@@ -19,7 +19,7 @@ from language.models import SpecieSynonym
 from image_app.models import (
     Submission, DictBreed, Name, Animal, Sample, DictSex,
     DictCountry, DictSpecie)
-from common.tests import DataSourceMixinTestCase
+from image_app.tests import DataSourceMixinTestCase
 
 from ..helpers import (
     upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
@@ -227,9 +227,6 @@ class CheckUIDTest(CryoWebMixin, BaseMixin, TestCase):
 class UploadCryoweb(
         WebSocketMixin, DataSourceMixinTestCase, BaseMixin, TestCase):
     """Test upload cryoweb dump into cryoweb database"""
-
-    # define attribute in DataSourceMixinTestCase
-    model = Submission
 
     # need to clean database after testing import. Can't use CryowebMixin
     # since i need to test cryoweb import
