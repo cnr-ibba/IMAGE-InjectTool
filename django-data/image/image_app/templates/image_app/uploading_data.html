@@ -1,6 +1,7 @@
 
 {% extends "base.html" %}
 
+{% load static %}
 {% load staticfiles %}
 
 {% load image_app_tags %}
@@ -68,7 +69,8 @@
 
     <p>
       Before starting a new submission with InjectTool, you need to prepare data to upload. Currently,
-      InjectTool support data files from <a href="#cryoweb_dump">Cryoweb</a> and <a href="#crbanim_dump">CRB-Anim</a>. The <a href="#template_file">Template</a> data upload will be implemented in a later stage
+      InjectTool support data files from <a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
+      and <a href="#template_file">Template</a> data upload.
     </p>
 
     <h3><a class="anchor" id="cryoweb_dump"></a>Creating a cryoweb dump</h3>
@@ -167,7 +169,8 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <h3><a id="template_file"></a>Creating a template file</h3>
 
     <p>
-      Data import from Template file is not yet supported
+      Download the template file from <a href="{% get_media_prefix %}/Image_sample_empty_template_20190405.xlsx">here</a>
+      and start filling tables. When you are ready, go through the next paragraph.
     </p>
 
   </section>
@@ -185,8 +188,10 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       data sources types (<a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
       or <a href="#template_file">Template</a> format). Then you have to choose the
       file to upload using the <em>Uploaded file</em> field. File should be
-      in plain text and UTF-8 or ASCII encoding, or the uploading process will
-      be rejected.
+      in <em>plain text</em> and <code>UTF-8</code> or <code>ASCII</code> encoding
+      for the Cryoweb and CRBanim data import,
+      an in <em>.xlsx</em> for the template file. Providing a different file format
+      will result in a failure in uploading process.
     </p>
 
     <div class="row align-items-center">
