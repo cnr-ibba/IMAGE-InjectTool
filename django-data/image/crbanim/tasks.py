@@ -7,12 +7,11 @@ Created on Wed Feb 27 16:38:37 2019
 """
 
 from celery.utils.log import get_task_logger
-import asyncio
 
-from common.constants import ERROR, STATUSES
-from common.helpers import send_message_to_websocket
+from common.constants import ERROR
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission
+from submissions.helpers import send_message
 
 from .helpers import upload_crbanim
 
@@ -38,15 +37,8 @@ class ImportCRBAnimTask(MyTask):
         submission_obj.message = ("Error in CRBAnim loading: %s" % (str(exc)))
         submission_obj.save()
 
-        asyncio.get_event_loop().run_until_complete(
-            send_message_to_websocket(
-                {
-                    'message': STATUSES.get_value_display(ERROR),
-                    'notification_message': submission_obj.message
-                },
-                args[0]
-            )
-        )
+        # send async message
+        send_message(submission_obj)
 
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
@@ -79,7 +71,7 @@ class ImportCRBAnimTask(MyTask):
             return message
 
         else:
-            message = "Cryoweb import completed for submission: %s" % (
+            message = "CRBAnim import completed for submission: %s" % (
                 submission_id)
 
             # debug

@@ -6,20 +6,21 @@ Created on Tue Jul  9 11:51:09 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from billiard.einfo import ExceptionInfo
 
 from django.core import mail
 from django.test import TestCase
 
 from common.constants import ERROR
+from common.tests import WebSocketMixin
 from image_app.models import Submission
 
 from .common import BaseExcelMixin
 from ..tasks import ImportTemplateTask
 
 
-class ImportTemplateTaskTest(BaseExcelMixin, TestCase):
+class ImportTemplateTaskTest(WebSocketMixin, BaseExcelMixin, TestCase):
     def setUp(self):
         # calling my base class setup
         super().setUp()
@@ -27,12 +28,8 @@ class ImportTemplateTaskTest(BaseExcelMixin, TestCase):
         # setting task
         self.my_task = ImportTemplateTask()
 
-    @patch('excel.tasks.send_message_to_websocket')
-    @patch('asyncio.get_event_loop')
-    def test_on_failure(self, asyncio_mock, send_message_to_websocket_mock):
+    def test_on_failure(self):
         """Testing on failure methods"""
-        tmp = asyncio_mock.return_value
-        tmp.run_until_complete = Mock()
 
         exc = Exception("Test")
         task_id = "test_task_id"
@@ -62,12 +59,10 @@ class ImportTemplateTaskTest(BaseExcelMixin, TestCase):
             "Error in Template loading: %s" % self.submission_id,
             email.subject)
 
-        self.assertEqual(asyncio_mock.call_count, 1)
-        self.assertEqual(tmp.run_until_complete.call_count, 1)
-        self.assertEqual(send_message_to_websocket_mock.call_count, 1)
-        send_message_to_websocket_mock.assert_called_with(
-            {'message': 'Error',
-             'notification_message': 'Error in Template loading: Test'}, 1)
+        message = 'Error'
+        notification_message = 'Error in Template loading: Test'
+
+        self.check_message(message, notification_message)
 
     @patch("excel.tasks.upload_template", return_value=True)
     def test_import_from_template(self, my_upload):
