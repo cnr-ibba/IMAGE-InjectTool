@@ -8,10 +8,9 @@ Created on Tue Jul  9 11:50:39 2019
 
 from celery.utils.log import get_task_logger
 
-from common.constants import ERROR
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission
-from submissions.helpers import send_message
+from submissions.tasks import ImportGenericTaskMixin
 
 from .helpers import upload_template
 
@@ -19,66 +18,16 @@ from .helpers import upload_template
 logger = get_task_logger(__name__)
 
 
-class ImportTemplateTask(MyTask):
+class ImportTemplateTask(ImportGenericTaskMixin, MyTask):
     name = "Import Template"
     description = """Import Template data from Excel file"""
+    submission_model = Submission
+    datasource_type = "Template"
 
-    # Ovverride default on failure method
-    # This is not a failed validation for a wrong value, this is an
-    # error in task that mean an error in coding
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
+    def import_data_from_file(self, submission_obj):
+        """Call the custom import method"""
 
-        # get submissio object
-        submission_obj = Submission.objects.get(pk=args[0])
-
-        # mark submission with ERROR
-        submission_obj.status = ERROR
-        submission_obj.message = ("Error in Template loading: %s" % (str(exc)))
-        submission_obj.save()
-
-        # send async message
-        send_message(submission_obj)
-
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in Template loading: %s" % (args[0]),
-            ("Something goes wrong with template loading. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
-
-        # TODO: submit mail to admin
-
-    def run(self, submission_id):
-        """a function to upload data into UID"""
-
-        logger.info(
-            "Start import from Template for submission: %s" % submission_id)
-
-        # get a submission object
-        submission = Submission.objects.get(pk=submission_id)
-
-        # upload data into UID
-        status = upload_template(submission)
-
-        # if something went wrong, uploaded_cryoweb has token the exception
-        # ad update submission.message field
-        if status is False:
-            message = "Error in uploading Template data"
-            logger.error(message)
-
-            # this a failure in my import, not the task itself
-            return message
-
-        else:
-            message = "Template import completed for submission: %s" % (
-                submission_id)
-
-            # debug
-            logger.info(message)
-
-            # always return something
-            return "success"
+        return upload_template(submission_obj)
 
 
 # register explicitly tasks
