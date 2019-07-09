@@ -190,6 +190,8 @@ class MetaDataValidation():
         # this validated in general way
         result = self.ruleset.validate(record)
 
+        logger.debug("Got %s as result from validate" % result.get_messages())
+
         # as defined in image_valdiation.Submission, I will skip further
         # validation check
         if result.get_overall_status() == "Error":
@@ -201,8 +203,15 @@ class MetaDataValidation():
             # context validation evaluate relationships. Get them
             related, result = self.check_relationship(record, result)
 
+            logger.debug(
+                "Got %s and %s as result from check_relationship" % (
+                    related, result.get_messages()))
+
             # this validate context (attributes that depends on another one)
             result = validation.context_validation(record, result, related)
+
+            logger.debug("Got %s as result for context_validation" % (
+                result.get_messages()))
 
         return result
 

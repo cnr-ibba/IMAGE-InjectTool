@@ -377,6 +377,9 @@ class SampleUpdateTestCase(SubmissionMixin, TestCase):
 
         self.record = self.sample.to_biosample()
 
+    # Change BIOSAMPLE_URL to test the real biosample id
+    @patch("validation.helpers.BIOSAMPLE_URL",
+           "https://www.ebi.ac.uk/biosamples/samples")
     def test_sample_update(self):
         """Simulate a validation for an already submitted sample"""
 
