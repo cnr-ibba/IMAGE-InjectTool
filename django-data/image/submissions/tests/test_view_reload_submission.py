@@ -220,8 +220,10 @@ class CRBAnimReloadSubmissionViewTest(
 
 
 class TemplateReloadSubmissionViewTest(
-        StatusMixinTestCase, MessageMixinTestCase, TestBase):
-    def setUp(self):
+        SuccessfulReloadMixin, TestBase):
+
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def setUp(self, my_task):
         # call base method
         super().setUp()
 
@@ -238,33 +240,5 @@ class TemplateReloadSubmissionViewTest(
             self.get_data(ds_file=TEMPLATE_TYPE),
             follow=True)
 
-    def tearDown(self):
-        if hasattr(self, "submission"):
-            # read written file
-            self.submission.refresh_from_db()
-
-            # delete uploaded file if exists
-            fullpath = self.submission.uploaded_file.path
-
-            if os.path.exists(fullpath):
-                os.remove(fullpath)
-
-        # call super method
-        super().tearDown()
-
-    def test_message(self):
-        self.check_messages(
-            self.response,
-            "error",
-            "Template reload is not implemented")
-
-    def test_redirect(self):
-        url = reverse('submissions:detail', kwargs={'pk': 1})
-        self.assertRedirects(self.response, url)
-
-    def test_error_in_submission(self):
-        self.submission.refresh_from_db()
-        self.assertEqual(self.submission.status, ERROR)
-        self.assertEqual(
-            self.submission.message,
-            "Template reload is not implemented")
+        # track task
+        self.my_task = my_task

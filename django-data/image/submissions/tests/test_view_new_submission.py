@@ -13,7 +13,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from common.constants import (
-    ERROR, CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE, WAITING)
+    CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE, WAITING)
 from image_app.models import DictCountry, Organization, Submission
 from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
@@ -174,29 +174,6 @@ class InvalidCreateSubmissionViewTest(InvalidFormMixinTestCase, Initialize):
         self.assertFalse(Submission.objects.exists())
 
 
-class UnsupportedCreateSubmissionViewTest(Initialize):
-    def test_template_loading(self):
-        # submit a cryoweb like dictionary
-        response = self.client.post(
-            self.url,
-            self.get_data(ds_file=TEMPLATE_TYPE),
-            follow=True)
-
-        # get the submission object
-        self.submission = Submission.objects.first()
-
-        # test redirect
-        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
-        self.assertRedirects(response, url)
-
-        # test status
-        self.assertEqual(self.submission.status, ERROR)
-
-        # test message
-        message = "Template import is not implemented"
-        self.assertEqual(self.submission.message, message)
-
-
 class SupportedCreateSubmissionViewTest(Initialize):
     # patch to simulate data load
     @patch('submissions.views.ImportCRBAnimTask.delay')
@@ -205,6 +182,32 @@ class SupportedCreateSubmissionViewTest(Initialize):
         response = self.client.post(
             self.url,
             self.get_data(ds_file=CRB_ANIM_TYPE),
+            follow=True)
+
+        # get the submission object
+        self.assertEqual(Submission.objects.count(), 1)
+        self.submission = Submission.objects.first()
+
+        # test redirect
+        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
+        self.assertRedirects(response, url)
+
+        # test status
+        self.assertEqual(self.submission.status, WAITING)
+
+        # test message
+        message = "waiting for data loading"
+        self.assertEqual(self.submission.message, message)
+
+        # test task
+        self.assertTrue(my_task.called)
+
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def test_template_loading(self, my_task):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file=TEMPLATE_TYPE),
             follow=True)
 
         # get the submission object
