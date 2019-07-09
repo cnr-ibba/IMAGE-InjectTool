@@ -175,58 +175,43 @@ class InvalidCreateSubmissionViewTest(InvalidFormMixinTestCase, Initialize):
 
 
 class SupportedCreateSubmissionViewTest(Initialize):
+    # a generic function for data loading
+    def file_loading(self, my_task, ds_type):
+        # submit a cryoweb like dictionary
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file=ds_type),
+            follow=True)
+
+        # get the submission object
+        self.assertEqual(Submission.objects.count(), 1)
+        self.submission = Submission.objects.first()
+
+        # test redirect
+        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
+        self.assertRedirects(response, url)
+
+        # test status
+        self.assertEqual(self.submission.status, WAITING)
+
+        # test message
+        message = "waiting for data loading"
+        self.assertEqual(self.submission.message, message)
+
+        # test task
+        self.assertTrue(my_task.called)
+
     # patch to simulate data load
     @patch('submissions.views.ImportCRBAnimTask.delay')
     def test_crb_anim_loading(self, my_task):
         # submit a cryoweb like dictionary
-        response = self.client.post(
-            self.url,
-            self.get_data(ds_file=CRB_ANIM_TYPE),
-            follow=True)
-
-        # get the submission object
-        self.assertEqual(Submission.objects.count(), 1)
-        self.submission = Submission.objects.first()
-
-        # test redirect
-        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
-        self.assertRedirects(response, url)
-
-        # test status
-        self.assertEqual(self.submission.status, WAITING)
-
-        # test message
-        message = "waiting for data loading"
-        self.assertEqual(self.submission.message, message)
-
-        # test task
-        self.assertTrue(my_task.called)
+        self.file_loading(my_task, CRB_ANIM_TYPE)
 
     @patch('submissions.views.ImportTemplateTask.delay')
     def test_template_loading(self, my_task):
+        # submit a template file
         # submit a cryoweb like dictionary
-        response = self.client.post(
-            self.url,
-            self.get_data(ds_file=TEMPLATE_TYPE),
-            follow=True)
-
-        # get the submission object
-        self.assertEqual(Submission.objects.count(), 1)
-        self.submission = Submission.objects.first()
-
-        # test redirect
-        url = reverse('submissions:detail', kwargs={'pk': self.submission.pk})
-        self.assertRedirects(response, url)
-
-        # test status
-        self.assertEqual(self.submission.status, WAITING)
-
-        # test message
-        message = "waiting for data loading"
-        self.assertEqual(self.submission.message, message)
-
-        # test task
-        self.assertTrue(my_task.called)
+        self.file_loading(my_task, TEMPLATE_TYPE)
 
     @patch('submissions.views.ImportCRBAnimTask.delay')
     def test_crb_anim_wrong_encoding(self, my_task):
