@@ -11,6 +11,7 @@ django-debug-toolbar==1.11
 python-decouple
 coverage
 coveralls
+scrutinizer-ocular
 pytest-django
 pytest-asyncio
 django-widget-tweaks

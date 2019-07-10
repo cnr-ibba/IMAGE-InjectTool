@@ -19,6 +19,7 @@ script:
   - docker-compose run --no-deps --rm uwsgi /root/wait-for-postgres.sh coverage run --source='.' -m py.test
 after_script:
   - docker-compose run --rm uwsgi coveralls
+  - docker-compose run --rm uwsgi ocular
 env:
   global:
   - DEBUG=False
