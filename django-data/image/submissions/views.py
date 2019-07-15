@@ -31,7 +31,7 @@ from crbanim.tasks import ImportCRBAnimTask
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 from animals.tasks import BatchUpdateAnimals
-from samples.tasks import BatchUpdateSamples
+# from samples.tasks import BatchUpdateSamples
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -207,10 +207,12 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
                 type_of_check]['attributes_to_show']
             context['attributes_to_edit'] = VALIDATION_MESSAGES_ATTRIBUTES[
                 type_of_check]['attributes_to_edit']
+            context['error_type'] = 'coordinate_check'
         # TODO add checks for other messages
         else:
             context['attributes_to_show'] = []
             context['attributes_to_edit'] = []
+            context['error_type'] = 'error'
         context['submission'] = self.submission
 
         return context
@@ -401,7 +403,7 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
         return httpresponseredirect
 
 
-def fix_validation(request, pk, type):
+def fix_validation(request, pk, record_type, error):
     # Fetch all required ids from input names and use it as keys
     keys_to_fix = dict()
     for key_to_fix in request.POST:
@@ -416,7 +418,7 @@ def fix_validation(request, pk, type):
 
     # Update validation summary
     summary_obj, created = ValidationSummary.objects.get_or_create(
-        submission=submission, type=type)
+        submission=submission, type=record_type)
     summary_obj.submission = submission
     summary_obj.pass_count = 0
     summary_obj.warning_count = 0
@@ -427,13 +429,20 @@ def fix_validation(request, pk, type):
     summary_obj.save()
 
     # create a task
-    if type == 'animal':
+    if record_type == 'animal':
         my_task = BatchUpdateAnimals()
-    elif type == 'sample':
-        my_task = BatchUpdateSamples()
+        attribute_name = VALIDATION_MESSAGES_ATTRIBUTES[f"{error}_animal"][
+            'attributes_to_edit'][0]
+    # elif record_type == 'sample':
+    #     # my_task = BatchUpdateSamples()
+    #     # attribute_name = VALIDATION_MESSAGES_ATTRIBUTES[f"{error}_sample"]['attributes_to_edit'][0]
+    # else:
+    #     return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
 
     # a valid submission start a task
-    res = my_task.delay(pk, keys_to_fix)
+    logger.warning('Inside view')
+    logger.warning(type(my_task))
+    res = my_task.delay(pk, keys_to_fix, attribute_name)
     logger.info(
         "Start crbanim importing process with task %s" % res.task_id)
     return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))

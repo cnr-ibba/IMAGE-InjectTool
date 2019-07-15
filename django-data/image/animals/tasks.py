@@ -57,14 +57,19 @@ class BatchUpdateAnimals(MyTask):
 
         # TODO: submit mail to admin
 
-    def run(self, submission_id, animal_ids):
+    def run(self, submission_id, animal_ids, attribute):
         """a function to upload data into UID"""
 
+        logger.info(submission_id)
+        logger.info(animal_ids)
+        logger.info(attribute)
         logger.info("Start batch update for animals")
 
         for animal_id, value in animal_ids.items():
+            logger.warning('Here!!!!!!!')
+            logger.warning(animal_id)
             animal = Animal.objects.get(pk=animal_id)
-            animal.birth_location = value
+            setattr(animal, attribute, value)
             animal.save()
 
         # Update submission
