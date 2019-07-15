@@ -64,7 +64,8 @@ INSTALLED_APPS = [
     'animals',
     'samples',
     'crbanim',
-    'submissions_ws'
+    'submissions_ws',
+    'excel',
 ]
 
 MIDDLEWARE = [
@@ -237,7 +238,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'validation': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'handlers': ['console'],
         },
         'animals': {
@@ -253,7 +254,11 @@ LOGGING = {
             'handlers': ['console'],
         },
         'crbanim': {
-            'level': 'INFO',
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        },
+        'excel': {
+            'level': 'DEBUG',
             'handlers': ['console'],
         },
     },

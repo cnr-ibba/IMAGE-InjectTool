@@ -11,7 +11,8 @@ from django.utils.dateparse import parse_date
 from django.core.validators import validate_email
 
 from .. import constants
-from ..helpers import format_attribute, get_admin_emails, image_timedelta
+from ..helpers import (
+    format_attribute, get_admin_emails, image_timedelta, parse_image_timedelta)
 
 
 class TestImageTimedelta(TestCase):
@@ -76,6 +77,19 @@ class TestImageTimedelta(TestCase):
         self.assertEqual(units, constants.YEARS)
         self.assertEqual(len(cm.output), 1)
         self.assertIn("One date is NULL", cm.output[0])
+
+    def test_parse_image_timedelta(self):
+        interval = "7 days"
+        reference = (7, 2)  # days in common constants
+
+        test = parse_image_timedelta(interval)
+        self.assertEqual(reference, test)
+
+        interval = "1 year"
+        reference = (1, 5)  # years in common constants
+
+        test = parse_image_timedelta(interval)
+        self.assertEqual(reference, test)
 
 
 class TestAttributes(TestCase):

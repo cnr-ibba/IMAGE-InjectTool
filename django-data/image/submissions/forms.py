@@ -11,7 +11,7 @@ import magic
 from django import forms
 
 from common.forms import RequestFormMixin
-from common.constants import CRB_ANIM_TYPE
+from common.constants import CRB_ANIM_TYPE, TEMPLATE_TYPE
 from image_app.models import Submission
 from crbanim.helpers import CRBAnimReader
 
@@ -21,7 +21,10 @@ class SubmissionFormMixin():
         # I can call this method without providing a 'uploaded file'
         # (for instance, when omitting uploaded file)
         if "uploaded_file" in self.cleaned_data:
-            self.check_file_encoding()
+            # avoid file type for excel types (is not an text file)
+            if ("datasource_type" in self.cleaned_data and
+                    self.cleaned_data["datasource_type"] != TEMPLATE_TYPE):
+                self.check_file_encoding()
 
             # same applies for datasource type
             if ("datasource_type" in self.cleaned_data and

@@ -72,7 +72,8 @@ class ValidateSubmissionMixin(
         self.submission_id = self.submission.id
 
         # track names
-        self.name_qs = Name.objects.exclude(name__contains="unknown")
+        self.name_qs = Name.objects.exclude(
+            name__contains="unknown").order_by("animal", "id")
 
         # track animal and samples
         self.animal_qs = Animal.objects.filter(

@@ -1,0 +1,33 @@
+checks:
+    python:
+        code_rating: true
+        duplicate_code: true
+    javascript: true
+build:
+    nodes:
+        analysis:
+            project_setup:
+                override:
+                    - 'true'
+            tests:
+                override:
+                    - py-scrutinizer-run
+                    - command: pylint-run
+                      use_website_config: true
+                    - js-scrutinizer-run
+filter:
+    excluded_paths:
+        - '*/test/*'
+        - '*.min.js'
+        - '*/vendor/*'
+        - '*bootstrap*'
+        - '*jquery*'
+        - '*/static/admin/*'
+        - '*/static/debug_toolbar/*'
+        - '*/static/django_simple_cookie_consent/*'
+        - '*/static/js/renderjson.js'
+    dependency_paths:
+        - 'lib/*'
+tools:
+    external_code_coverage:
+        timeout: 900    # Timeout in seconds.

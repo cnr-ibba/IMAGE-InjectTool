@@ -7,12 +7,16 @@ Created on Tue Jan 22 14:28:16 2019
 """
 
 import json
+import redis
+import requests_cache
 
-from image_validation.ValidationResult import (
-    ValidationResultRecord, ValidationResultColumn)
+from datetime import timedelta
+
+from image_validation.ValidationResult import ValidationResultRecord
 from unittest.mock import patch, Mock
 
 from django.test import TestCase
+from django.conf import settings
 
 from image_app.models import Animal, Sample, Submission, Person, Name
 
@@ -22,6 +26,24 @@ from ..helpers import (
     MetaDataValidation, OntologyCacheError, RulesetError)
 from ..models import ValidationResult, ValidationSummary
 from .common import PickableMock, MetaDataValidationTestMixin
+
+# connect to redis database
+connection = redis.StrictRedis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    db=settings.REDIS_DB)
+
+# erase cache after this timedelta
+expire_after = timedelta(days=7)
+
+# start requests-cache
+requests_cache.install_cache(
+    backend='redis',
+    connection=connection,
+    expire_after=expire_after)
+
+# remove expired items
+requests_cache.remove_expired_responses()
 
 
 class MetaDataValidationTestCase(MetaDataValidationTestMixin, TestCase):
@@ -355,6 +377,9 @@ class SampleUpdateTestCase(SubmissionMixin, TestCase):
 
         self.record = self.sample.to_biosample()
 
+    # Change BIOSAMPLE_URL to test the real biosample id
+    @patch("validation.helpers.BIOSAMPLE_URL",
+           "https://www.ebi.ac.uk/biosamples/samples")
     def test_sample_update(self):
         """Simulate a validation for an already submitted sample"""
 

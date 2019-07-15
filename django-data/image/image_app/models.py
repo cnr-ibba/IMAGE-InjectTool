@@ -163,7 +163,7 @@ class DictUberon(DictBase, Confidence):
         unique_together = (("label", "term"),)
 
 
-class DictStage(DictBase, Confidence):
+class DictDevelStage(DictBase, Confidence):
     """A class to developmental stages defined as descendants of
     descendants of EFO_0000399"""
 
@@ -172,6 +172,18 @@ class DictStage(DictBase, Confidence):
     class Meta:
         # db_table will be <app_name>_<classname>
         verbose_name = "developmental stage"
+        unique_together = (("label", "term"),)
+
+
+class DictPhysioStage(DictBase, Confidence):
+    """A class to physiological stages defined as descendants of
+    descendants of PATO_0000261"""
+
+    library_name = 'PATO'
+
+    class Meta:
+        # db_table will be <app_name>_<classname>
+        verbose_name = "physiological stage"
         unique_together = (("label", "term"),)
 
 
@@ -217,6 +229,24 @@ class DictSpecie(DictBase, Confidence):
             specie = qs.get(
                 new_word=synonym,
                 language="United Kingdom")
+
+        return specie
+
+    @classmethod
+    def get_specie_check_synonyms(cls, species_label, language):
+        """get a DictSpecie object. Species are in latin names, but I can
+        find also a common name in translation tables"""
+
+        try:
+            specie = cls.objects.get(label=species_label)
+
+        except DictSpecie.DoesNotExist:
+            logger.info("Search %s in synonyms" % (species_label))
+            # search for language synonym (if I arrived here a synonym should
+            # exists)
+            specie = cls.get_by_synonym(
+                synonym=species_label,
+                language=language)
 
         return specie
 
@@ -606,17 +636,18 @@ class Sample(BioSampleMixin, models.Model):
         null=True,
         on_delete=models.PROTECT)
 
-    # using a constraint for developmental stage (DictStage)
+    # using a constraint for developmental stage (DictDevelStage)
     developmental_stage = models.ForeignKey(
-        'DictStage',
+        'DictDevelStage',
         null=True,
         blank=True,
         on_delete=models.PROTECT)
 
-    physiological_stage = models.CharField(
-            max_length=255,
-            blank=True,
-            null=True)
+    physiological_stage = models.ForeignKey(
+        'DictPhysioStage',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT)
 
     animal_age_at_collection = models.IntegerField(
         null=True,
@@ -650,7 +681,15 @@ class Sample(BioSampleMixin, models.Model):
         null=True,
         blank=True)
 
-    preparation_interval = models.IntegerField(blank=True, null=True)
+    preparation_interval = models.IntegerField(
+        blank=True,
+        null=True)
+
+    preparation_interval_units = models.SmallIntegerField(
+        choices=[x.value for x in TIME_UNITS],
+        help_text='example: years',
+        null=True,
+        blank=True)
 
     owner = models.ForeignKey(
         User,
@@ -708,8 +747,9 @@ class Sample(BioSampleMixin, models.Model):
             attributes['Developmental stage'] = \
                 self.developmental_stage.format_attribute()
 
-        attributes['Physiological stage'] = format_attribute(
-            value=self.physiological_stage)
+        if self.physiological_stage:
+            attributes['Physiological stage'] = \
+                self.physiological_stage.format_attribute()
 
         attributes['Animal age at collection'] = format_attribute(
             value=self.animal_age_at_collection,
@@ -725,7 +765,8 @@ class Sample(BioSampleMixin, models.Model):
             value=self.get_storage_processing_display())
 
         attributes['Sampling to preparation interval'] = format_attribute(
-            value=self.preparation_interval)
+            value=self.preparation_interval,
+            units=self.get_preparation_interval_units_display())
 
         # filter out empty values
         attributes = {k: v for k, v in attributes.items() if v is not None}
@@ -1021,7 +1062,8 @@ def truncate_database():
     DictSex.truncate()
     DictSpecie.truncate()
     DictUberon.truncate()
-    DictStage.truncate()
+    DictDevelStage.truncate()
+    DictPhysioStage.truncate()
     Name.truncate()
     Ontology.truncate()
     Organization.truncate()

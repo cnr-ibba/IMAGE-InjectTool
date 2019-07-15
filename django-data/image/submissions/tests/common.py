@@ -21,7 +21,7 @@ class SubmissionFormMixin():
         CRYOWEB_TYPE: "cryoweb_test_data_only.sql",
         CRB_ANIM_TYPE: "crbanim_test_data.csv",
         "latin_type": "crbanim_test_data_latin-1.csv",
-        TEMPLATE_TYPE: "crbanim_test_data.csv",  # point to a real template
+        TEMPLATE_TYPE: "Image_sample_template_with_example_20190405.xlsx",
         "not_valid_crbanim": "Mapping_rules_CRB-Anim_InjectTool_v1.csv"
     }
 

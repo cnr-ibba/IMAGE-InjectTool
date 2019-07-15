@@ -38,7 +38,8 @@ class UpdateSampleForm(RequestFormMixin, forms.ModelForm):
             'availability',
             'storage',
             'storage_processing',
-            'preparation_interval'
+            'preparation_interval',
+            'preparation_interval_units'
         )
 
     def __init__(self, sample, *args, **kwargs):

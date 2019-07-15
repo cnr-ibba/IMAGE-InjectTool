@@ -61,16 +61,18 @@ class UpdateSampleViewTest(
 
     def test_form_inputs(self):
         # csrfmiddlewaretoken is tested by FormMixinTestCase
-        self.assertContains(self.response, '<div class="form-group">', 19)
-        self.assertContains(self.response, '<input type="text"', 9)
+        self.assertContains(self.response, '<div class="form-group">', 20)
+        self.assertContains(self.response, '<input type="text"', 8)
         self.assertContains(self.response, '<input type="number"', 4)
-        self.assertContains(self.response, '<select ', 6)
+        self.assertContains(self.response, '<select ', 8)
         self.assertContains(
             self.response, '<select name="collection_place_accuracy"', 1)
         self.assertContains(
             self.response, '<select name="organism_part"', 1)
         self.assertContains(
             self.response, '<select name="developmental_stage"', 1)
+        self.assertContains(
+            self.response, '<select name="physiological_stage"', 1)
 
     def test_contains_navigation_links(self):
         """Testing link to a javascript function"""

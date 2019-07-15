@@ -25,9 +25,12 @@ from common.constants import (
     VALIDATION_MESSAGES, VALIDATION_MESSAGES_ATTRIBUTES)
 from common.helpers import get_deleted_objects
 from common.views import OwnerMixin
-from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission, Name, Animal, Sample
 from crbanim.tasks import ImportCRBAnimTask
+from cryoweb.tasks import import_from_cryoweb
+
+from image_app.models import Submission, Name, Animal, Sample
+from excel.tasks import ImportTemplateTask
+
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 from animals.tasks import BatchUpdateAnimals
@@ -89,14 +92,18 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
                 "Start crbanim importing process with task %s" % res.task_id)
 
         else:
-            message = "{datasource} import is not implemented".format(
-                datasource=self.object.get_datasource_type_display())
-
-            self.object.message = message
-            self.object.status = ERROR
+            # update object and force status
+            self.object.message = "waiting for data loading"
+            self.object.status = WAITING
             self.object.save()
 
-            logger.error(message)
+            # create a task
+            my_task = ImportTemplateTask()
+
+            # a valid submission start a task
+            res = my_task.delay(self.object.pk)
+            logger.info(
+                "Start template importing process with task %s" % res.task_id)
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())
@@ -317,21 +324,13 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
                 "Start crbanim reload process with task %s" % res.task_id)
 
         else:
-            # this is not an invalid form. Template is not implemented
-            # it is a error in our application
-            # TODO: call the proper method
-            message = "{datasource} reload is not implemented".format(
-                datasource=self.object.get_datasource_type_display())
+            # a valid submission start a task
+            my_task = ImportTemplateTask()
 
-            messages.error(
-                self.request,
-                message,
-                extra_tags="alert alert-dismissible alert-danger")
-
-            # set an error message to this submission
-            self.object.message = message
-            self.object.status = ERROR
-            self.object.save()
+            # a valid submission start a task
+            res = my_task.delay(self.object.pk)
+            logger.info(
+                "Start template reload process with task %s" % res.task_id)
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())

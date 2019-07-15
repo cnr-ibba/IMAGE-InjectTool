@@ -6,14 +6,10 @@ Created on Wed Feb 27 17:14:49 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from common.tests import DataSourceMixinTestCase
 from image_app.models import Submission
 
 
-class BaseTestCase(DataSourceMixinTestCase):
-    # define attribute in DataSourceMixinTestCase
-    model = Submission
-
+class BaseTestCase():
     # import this file and populate database once
     fixtures = [
         'crbanim/dictspecie',

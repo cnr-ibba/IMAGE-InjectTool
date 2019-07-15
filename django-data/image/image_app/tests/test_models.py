@@ -119,6 +119,26 @@ class DictSpecieTestCase(TestCase):
         self.assertEqual(sus.label, self.label)
         self.assertEqual(sus.term, self.term)
 
+    def test_get_specie_check_synonyms(self):
+        """Get the same specie from latin or dictionary table"""
+
+        # get a country object
+        language = DictCountry.objects.get(label="Italy")
+
+        sus = DictSpecie.get_specie_check_synonyms(
+            species_label=self.label,
+            language=language)
+
+        self.assertEqual(sus.label, self.label)
+        self.assertEqual(sus.term, self.term)
+
+        sus = DictSpecie.get_specie_check_synonyms(
+            species_label="Pig",
+            language=language)
+
+        self.assertEqual(sus.label, self.label)
+        self.assertEqual(sus.term, self.term)
+
 
 class DictCountryTestCase(TestCase):
     """Testing DictCountry class"""
