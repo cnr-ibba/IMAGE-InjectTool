@@ -17,9 +17,12 @@ def get_dict_from_str(value):
 
 @register.filter
 def getattribute(value, arg):
-    if arg == 'birth_location_accuracy' or arg == 'collection_place_accuracy':
-        return ACCURACIES.get_value_display(getattr(value, arg))
-    return getattr(value, arg)
+    if arg == 'birth_location_accuracy':
+        return value.get_birth_location_accuracy_display()
+    elif arg == 'collection_place_accuracy':
+        return value.get_collection_place_accuracy_display()
+    else:
+        return getattr(value, arg)
 
 
 @register.filter
