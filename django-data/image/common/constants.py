@@ -203,14 +203,3 @@ VALIDATION_MESSAGES_ATTRIBUTES = {
         'attributes_to_edit': ['collection_place']
     }
 }
-
-ATTRIBUTES_HUMAN_READABLE = {
-    'birth_location_latitude': 'Birth location latitude',
-    'birth_location_longitude': 'Birth location longitude',
-    'birth_location_accuracy': 'Birth location accuracy',
-    'birth_location': 'Birth location',
-    'collection_place_latitude': 'Collection place latitude',
-    'collection_place_longitude': 'Collection place longitude',
-    'collection_place_accuracy': 'Collection place accuracy',
-    'collection_place': 'Collection place'
-}

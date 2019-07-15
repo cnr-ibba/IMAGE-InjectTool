@@ -60,8 +60,9 @@ class BatchUpdateAnimals(MyTask):
 
         for animal_id, value in animal_ids.items():
             animal = Animal.objects.get(pk=animal_id)
-            setattr(animal, attribute, value)
-            animal.save()
+            if getattr(animal, attribute) != value:
+                setattr(animal, attribute, value)
+                animal.save()
 
         # Update submission
         submission_obj = Submission.objects.get(pk=submission_id)

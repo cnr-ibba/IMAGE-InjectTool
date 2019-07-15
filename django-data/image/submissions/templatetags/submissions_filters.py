@@ -1,7 +1,8 @@
 import ast
 from django import template
 
-from common.constants import ACCURACIES, ATTRIBUTES_HUMAN_READABLE
+from common.constants import ACCURACIES
+from image_app.models import Animal, Sample
 
 register = template.Library()
 
@@ -27,5 +28,8 @@ def create_unique_id(value, arg):
 
 
 @register.filter
-def convert_to_human_readable(value):
-    return ATTRIBUTES_HUMAN_READABLE[value]
+def convert_to_human_readable(value, record_type):
+    if record_type == 'animal':
+        return  Animal._meta.get_field(value).verbose_name.title()
+    elif record_type == 'sample':
+        return  Sample._meta.get_field(value).verbose_name.title()

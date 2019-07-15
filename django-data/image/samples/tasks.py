@@ -55,8 +55,9 @@ class BatchUpdateSamples(MyTask):
 
         for sample_id, value in sample_ids.items():
             sample = Sample.objects.get(pk=sample_id)
-            setattr(sample, attribute, value)
-            sample.save()
+            if getattr(sample, attribute) != value:
+                setattr(sample, attribute, value)
+                sample.save()
 
         # Update submission
         submission_obj = Submission.objects.get(pk=submission_id)

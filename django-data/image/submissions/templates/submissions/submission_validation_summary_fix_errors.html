@@ -22,7 +22,7 @@
             <h6>Provided values:</h6>
             <ul class="list-group">
                 {% for show in attributes_to_show %}
-                    <li class="list-group-item list-group-item-info">{{ show|convert_to_human_readable }}: {{ object|getattribute:show }}</li>
+                    <li class="list-group-item list-group-item-info">{{ show|convert_to_human_readable:type }}: {{ object|getattribute:show }}</li>
                 {% endfor %}
             </ul>
             <br>
@@ -31,7 +31,7 @@
                 {% for show in attributes_to_edit %}
                     <li class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center">
                         <div class="from-group form-inline">
-                            <label for="{{ object.id|create_unique_id:'to_edit' }}">{{ show|convert_to_human_readable }}:</label>
+                            <label for="{{ object.id|create_unique_id:'to_edit' }}">{{ show|convert_to_human_readable:type }}:</label>
                             <input type="text" class="form-control" id="{{ object.id|create_unique_id:'to_edit' }}" value="{{ object|getattribute:show }}" name="{{ object.id|create_unique_id:'to_edit' }}">
                         </div>
                     </li>
