@@ -21,7 +21,7 @@ logger = get_task_logger(__name__)
 
 
 class BatchUpdateAnimals(MyTask):
-    name = "Batch update"
+    name = "Batch update animals"
     description = """Batch update of field in animals"""
 
     # Ovverride default on failure method
@@ -30,12 +30,13 @@ class BatchUpdateAnimals(MyTask):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
-        # get submissio object
+        # get submission object
         submission_obj = Submission.objects.get(pk=args[0])
 
         # mark submission with ERROR
         submission_obj.status = ERROR
-        submission_obj.message = ("Error in batch update for animals: %s" % (str(exc)))
+        submission_obj.message = ("Error in batch update for animals: %s"
+                                  % (str(exc)))
         submission_obj.save()
 
         asyncio.get_event_loop().run_until_complete(
@@ -66,8 +67,6 @@ class BatchUpdateAnimals(MyTask):
         logger.info("Start batch update for animals")
 
         for animal_id, value in animal_ids.items():
-            logger.warning('Here!!!!!!!')
-            logger.warning(animal_id)
             animal = Animal.objects.get(pk=animal_id)
             setattr(animal, attribute, value)
             animal.save()

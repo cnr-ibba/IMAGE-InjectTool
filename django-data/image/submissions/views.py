@@ -34,7 +34,7 @@ from excel.tasks import ImportTemplateTask
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 from animals.tasks import BatchUpdateAnimals
-# from samples.tasks import BatchUpdateSamples
+from samples.tasks import BatchUpdateSamples
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -432,16 +432,15 @@ def fix_validation(request, pk, record_type, error):
         my_task = BatchUpdateAnimals()
         attribute_name = VALIDATION_MESSAGES_ATTRIBUTES[f"{error}_animal"][
             'attributes_to_edit'][0]
-    # elif record_type == 'sample':
-    #     # my_task = BatchUpdateSamples()
-    #     # attribute_name = VALIDATION_MESSAGES_ATTRIBUTES[f"{error}_sample"]['attributes_to_edit'][0]
-    # else:
-    #     return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
+    elif record_type == 'sample':
+        my_task = BatchUpdateSamples()
+        attribute_name = VALIDATION_MESSAGES_ATTRIBUTES[f"{error}_sample"][
+            'attributes_to_edit'][0]
+    else:
+        return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
 
     # a valid submission start a task
-    logger.warning('Inside view')
-    logger.warning(type(my_task))
     res = my_task.delay(pk, keys_to_fix, attribute_name)
     logger.info(
-        "Start crbanim importing process with task %s" % res.task_id)
+        "Start fix validation process with task %s" % res.task_id)
     return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))

@@ -21,7 +21,7 @@ logger = get_task_logger(__name__)
 
 
 class BatchUpdateSamples(MyTask):
-    name = "Batch update"
+    name = "Batch update samples"
     description = """Batch update of field in samples"""
 
     # Ovverride default on failure method
@@ -35,7 +35,8 @@ class BatchUpdateSamples(MyTask):
 
         # mark submission with ERROR
         submission_obj.status = ERROR
-        submission_obj.message = ("Error in batch update for samples: %s" % (str(exc)))
+        submission_obj.message = ("Error in batch update for samples: %s"
+                                  % (str(exc)))
         submission_obj.save()
 
         asyncio.get_event_loop().run_until_complete(
@@ -63,10 +64,6 @@ class BatchUpdateSamples(MyTask):
         logger.info("Start batch update for samples")
 
         for sample_id, value in sample_ids.items():
-            logger.warning('Inside batch update samples')
-            logger.warning(sample_id)
-            logger.warning(submission_id)
-            logger.warning(attribute)
             sample = Sample.objects.get(pk=sample_id)
             setattr(sample, attribute, value)
             sample.save()
