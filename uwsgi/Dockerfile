@@ -1,6 +1,6 @@
 
 #
-# VERSION 0.6
+# VERSION 0.7
 # DOCKER-VERSION  17.05.0-ce
 # AUTHOR:         Paolo Cozzi <cozzi@ibba.cnr.it>
 # DESCRIPTION:    A django container working on LTS django 1.11 on python 3
@@ -19,7 +19,7 @@ RUN dpkg-reconfigure -f noninteractive tzdata
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
-    mysql-client \
+    default-mysql-client \
     sqlite3 && \
     apt-get clean && \
     apt-get autoclean && \
