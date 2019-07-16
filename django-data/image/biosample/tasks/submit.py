@@ -25,6 +25,8 @@ from common.constants import (
 from submissions.helpers import send_message
 
 from ..helpers import get_auth
+from ..models import (
+    Submission as USISubmission, SubmissionData as USISubmissionData)
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -35,6 +37,14 @@ config = AutoConfig(search_path=settings_dir)
 
 # a threshold of days to determine a very long task
 MAX_DAYS = 5
+
+# how many sample for submission
+MAX_SAMPLES = 100
+
+# When the status is in this list, I can't submit this sample, since
+# is already submitted by this submission or by a previous one
+# and I don't want to submit the same thing if is not necessary
+NOT_MANAGED_STATUSES = [SUBMITTED, COMPLETED]
 
 
 class SubmissionData(object):
@@ -60,7 +70,7 @@ class SubmissionData(object):
         if kwargs['submission_id']:
             self.submission_id = kwargs['submission_id']
 
-            # get submissio object
+            # get submission object
             self.submission_obj = Submission.objects.get(
                 pk=self.submission_id)
 
@@ -83,19 +93,7 @@ class SubmissionData(object):
         return self.submission_obj.biosample_submission_id
 
 
-class SubmitTask(MyTask):
-    name = "Submit to Biosample"
-    description = """Submit to Biosample using USI"""
-
-    # http://docs.celeryproject.org/en/latest/userguide/tasks.html#instantiation
-    # A task is not instantiated for every request, but is registered in
-    # the task registry as a global instance. This means that the __init__
-    # constructor will only be called once per process, and that the
-    # task class is semantically closer to an Actor. if you have a task and
-    # you route every request to the same process, then it will keep state
-    # between requests. This can also be useful to cache resources, For
-    # example, a base Task class that caches a database connection
-
+class SubmissionTaskMixin():
     # Ovverride default on failure method
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
@@ -120,6 +118,20 @@ class SubmitTask(MyTask):
         )
 
         # TODO: submit mail to admin
+
+
+class SubmitTask(SubmissionTaskMixin, MyTask):
+    name = "Submit to Biosample"
+    description = """Submit to Biosample using USI"""
+
+    # http://docs.celeryproject.org/en/latest/userguide/tasks.html#instantiation
+    # A task is not instantiated for every request, but is registered in
+    # the task registry as a global instance. This means that the __init__
+    # constructor will only be called once per process, and that the
+    # task class is semantically closer to an Actor. if you have a task and
+    # you route every request to the same process, then it will keep state
+    # between requests. This can also be useful to cache resources, For
+    # example, a base Task class that caches a database connection
 
     def run(self, submission_id):
         """This function is called when delay is called"""
@@ -242,35 +254,32 @@ class SubmitTask(MyTask):
         logger.info("Fetching data and add to submission %s" % (
             usi_submission_name))
 
-        # When the status is in this list, I can't submit this sample, since
-        # is already submitted by this submission or by a previous one
-        # and I don't want to submit the same thing if is not necessary
-        not_managed_statuses = [SUBMITTED, COMPLETED]
-
         # HINT: what happen if a token expire while submitting?
         for animal in Animal.objects.filter(
                 name__submission=submission_data.submission_obj):
 
             # add animal if not yet submitted, or patch it
-            if animal.name.status not in not_managed_statuses:
+            if animal.name.status not in NOT_MANAGED_STATUSES:
                 logger.info("Appending animal %s" % (animal))
 
                 # check if animal is already submitted, otherwise patch
                 self.__create_or_update(animal, submission_data)
 
             else:
-                logger.debug("Appending animal %s" % (animal))
+                # already submittes, so could be ignored
+                logger.debug("Ignoring animal %s" % (animal))
 
             # Add their specimen
             for sample in animal.sample_set.all():
                 # add sample if not yet submitted
-                if sample.name.status not in not_managed_statuses:
+                if sample.name.status not in NOT_MANAGED_STATUSES:
                     logger.info("Appending sample %s" % (sample))
 
                     # check if sample is already submitted, otherwise patch
                     self.__create_or_update(sample, submission_data)
 
                 else:
+                    # already submittes, so could be ignored
                     logger.debug("Ignoring sample %s" % (sample))
 
         logger.info("submission completed")
@@ -364,6 +373,80 @@ class SubmitTask(MyTask):
         return usi_submission_name
 
 
+class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
+    """Split a submission data in chunks in order to submit data through
+    multiple tasks/processes and with smaller submissions"""
+
+    name = "Split submission data"
+    description = """Split submission data in chunks"""
+
+    def run(self, submission_id):
+        """This function is called when delay is called"""
+
+        logger.info("Starting %s for submission %s" % (
+            self.name, submission_id))
+
+        uid_submission = Submission.objects.get(
+            pk=submission_id)
+
+        usi_submission = USISubmission.objects.create(
+            uid_submission=uid_submission,
+            status=READY)
+
+        counter = 0
+
+        for animal in Animal.objects.filter(
+                name__submission=uid_submission):
+
+            # add animal if not yet submitted, or patch it
+            if animal.name.status not in NOT_MANAGED_STATUSES:
+                logger.info("Appending animal %s to %s" % (
+                    animal,
+                    usi_submission))
+
+                # add animal to submission data and updating counter
+                USISubmissionData.objects.create(
+                    submission=usi_submission,
+                    content_object=animal,
+                    status=READY)
+
+                counter += 1
+
+            else:
+                # already submittes, so could be ignored
+                logger.debug("Ignoring animal %s" % (animal))
+
+            # Add their specimen
+            for sample in animal.sample_set.all():
+                # add sample if not yet submitted
+                if sample.name.status not in NOT_MANAGED_STATUSES:
+                    logger.info("Appending sample %s to %s" % (
+                        sample,
+                        usi_submission))
+
+                    # add sample to submission data and updating counter
+                    USISubmissionData.objects.create(
+                        submission=usi_submission,
+                        content_object=sample,
+                        status=READY)
+
+                    counter += 1
+
+                else:
+                    # already submittes, so could be ignored
+                    logger.debug("Ignoring sample %s" % (sample))
+
+            # cicle for animal
+            if counter >= MAX_SAMPLES:
+                usi_submission = USISubmission.objects.create(
+                    uid_submission=uid_submission,
+                    status=READY)
+                counter = 0
+
+        logger.info("%s completed" % self.name)
+
+
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(SubmitTask)
+celery_app.tasks.register(SplitSubmissionTask)

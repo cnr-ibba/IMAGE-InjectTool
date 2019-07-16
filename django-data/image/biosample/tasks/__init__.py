@@ -7,6 +7,6 @@ Created on Tue Jul 16 11:26:52 2019
 """
 
 from .fetch import FetchStatusTask
-from .submit import SubmitTask
+from .submit import SubmitTask, SplitSubmissionTask
 
-__all__ = ["SubmitTask", "FetchStatusTask"]
+__all__ = ["SubmitTask", "FetchStatusTask", "SplitSubmissionTask"]
