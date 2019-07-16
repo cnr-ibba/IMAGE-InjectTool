@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 from common.constants import STATUSES, NAME_STATUSES, WAITING, LOADED
-from image_app.models import Submission as UIDSubmission, Name
+from image_app.models import Submission as UIDSubmission
 
 
 # Create your models here.
@@ -77,9 +79,20 @@ class SubmissionData(models.Model):
         on_delete=models.CASCADE,
         related_name='submission_data')
 
-    name = models.ForeignKey(
-        Name,
-        on_delete=models.CASCADE)
+    # limit choices for contenttypes
+    # https://axiacore.com/blog/how-use-genericforeignkey-django-531/
+    name_limit = models.Q(app_label='image_app', model='animal') | \
+        models.Q(app_label='image_app', model='sample')
+
+    # Below the mandatory fields for generic relation
+    # https://simpleisbetterthancomplex.com/tutorial/2016/10/13/how-to-use-generic-relations.html
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        limit_choices_to=name_limit)
+
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     # a column to track submission status
     # HINT: should I limit by biosample status? should I move from UID name?
@@ -91,7 +104,7 @@ class SubmissionData(models.Model):
     def __str__(self):
         return "%s: %s" % (
             self.submission.usi_submission_id,
-            self.name.name)
+            self.content_object.name)
 
     class Meta:
         verbose_name = "submission data"

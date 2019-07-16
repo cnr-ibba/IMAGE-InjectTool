@@ -7,7 +7,8 @@ Created on Fri Jul  6 11:39:15 2018
 
 from django.contrib import admin
 
-from .models import Account, ManagedTeam, Submission, SubmissionData
+from .models import (
+    Account, ManagedTeam, Submission, SubmissionData)
 
 
 class SubmissionAdmin(admin.ModelAdmin):
@@ -19,13 +20,6 @@ class SubmissionAdmin(admin.ModelAdmin):
     # I cannot edit a auto_add_now field
     readonly_fields = ('created_at', 'updated_at')
 
-
-class SubmissionDataAdmin(admin.ModelAdmin):
-    list_display = (
-        'submission', 'name', 'status'
-    )
-
-
 # --- registering applications
 
 
@@ -33,4 +27,4 @@ class SubmissionDataAdmin(admin.ModelAdmin):
 admin.site.register(Account)
 admin.site.register(ManagedTeam)
 admin.site.register(Submission, SubmissionAdmin)
-admin.site.register(SubmissionData, SubmissionDataAdmin)
+admin.site.register(SubmissionData)
