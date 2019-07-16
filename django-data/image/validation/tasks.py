@@ -12,7 +12,7 @@ Useful staff to deal with validation process
 import json
 import traceback
 
-from collections import Counter
+from collections import Counter, defaultdict
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
@@ -56,8 +56,11 @@ class ValidateSubmission(object):
         self.ruleset = ruleset
 
         # collect all unique messages for samples and animals
-        self.animals_messages = dict()
-        self.samples_messages = dict()
+        self.animals_messages = defaultdict(list)
+        self.samples_messages = defaultdict(list)
+
+        self.animals_offending_columns = dict()
+        self.samples_offending_columns = dict()
 
         # track global statuses for animals and samples
         # Don't set keys: if you take a key which doesn't exists, you will
@@ -174,21 +177,26 @@ class ValidateSubmission(object):
         # get comparable messages for batch update
         comparable_messages = list()
         for result_set in result.result_set:
-            comparable_messages.append(result_set.get_comparable_str())
+            comparable_messages.append({
+                'message': result_set.get_comparable_str(),
+                'offending_column': result_set.get_field_name()
+            })
         overall_status = result.get_overall_status()
 
         # Save all messages for validation summary
         if isinstance(model, Sample):
             for message in comparable_messages:
                 # samples_messages is a counter object
-                self.samples_messages.setdefault(message, [])
-                self.samples_messages[message].append(model.pk)
+                self.samples_messages[message['message']].append(model.pk)
+                self.samples_offending_columns[message['message']] = \
+                    message['offending_column']
 
         # is as an animal object
         elif isinstance(model, Animal):
             for message in comparable_messages:
-                self.animals_messages.setdefault(message, [])
-                self.animals_messages[message].append(model.pk)
+                self.animals_messages[message['message']].append(model.pk)
+                self.animals_offending_columns[message['message']] = \
+                    message['offending_column']
 
         # get a validation result model or create a new one
         if hasattr(model.name, 'validationresult'):
@@ -240,11 +248,13 @@ class ValidateSubmission(object):
             if model_type == 'animal':
                 messages = self.animals_messages
                 model_statuses = self.animals_statuses
+                offending_column = self.animals_offending_columns
 
             # Im cycling with animal and sample type
             else:
                 messages = self.samples_messages
                 model_statuses = self.samples_statuses
+                offending_column = self.samples_offending_columns
 
             summary_obj.submission = self.submission_obj
 
@@ -261,7 +271,8 @@ class ValidateSubmission(object):
                 validation_messages.append({
                     'message': message,
                     'count': len(ids),
-                    'ids': ids
+                    'ids': ids,
+                    'offending_column': offending_column[message]
                 })
 
             summary_obj.messages = validation_messages

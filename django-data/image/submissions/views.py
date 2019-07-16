@@ -185,13 +185,14 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         ids = list()
         self.summary_type = self.kwargs['type']
         self.submission = Submission.objects.get(pk=self.kwargs['pk'])
-        validation_summary = ValidationSummary.objects.get(
+        self.validation_summary = ValidationSummary.objects.get(
             submission=self.submission, type=self.summary_type)
         self.request_message = self.kwargs['msg']
-        for message in validation_summary.messages:
+        for message in self.validation_summary.messages:
             message = ast.literal_eval(message)
             if message['message'] == self.request_message:
                 ids = message['ids']
+                self.offending_column = message['offending_column']
         if self.summary_type == 'animal':
             return Animal.objects.filter(id__in=ids)
         elif self.summary_type == 'sample':
@@ -206,7 +207,7 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         # add submission to context
         context["message"] = self.request_message
         context["type"] = self.summary_type
-
+        context["offending_column"] = self.offending_column
         if re.search(VALIDATION_MESSAGES['coordinate_check'],
                      self.request_message):
             type_of_check = f"coordinate_check_{self.summary_type}"

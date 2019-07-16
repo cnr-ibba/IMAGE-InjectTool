@@ -1,7 +1,6 @@
 import ast
 from django import template
 
-from common.constants import ACCURACIES
 from image_app.models import Animal, Sample
 
 register = template.Library()
