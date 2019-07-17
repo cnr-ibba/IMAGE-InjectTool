@@ -8,17 +8,17 @@ Created on Wed Feb 27 16:38:37 2019
 
 from celery.utils.log import get_task_logger
 
-from common.constants import ERROR, NEED_REVISION
+from common.constants import ERROR
+from common.tasks import BatchUpdateMixin
 from image.celery import app as celery_app, MyTask
-from image_app.models import Animal, Submission
+from image_app.models import Submission
 from submissions.helpers import send_message
-from validation.helpers import construct_validation_message
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
 
-class BatchUpdateAnimals(MyTask):
+class BatchUpdateAnimals(MyTask, BatchUpdateMixin):
     name = "Batch update animals"
     description = """Batch update of field in animals"""
 
@@ -57,24 +57,8 @@ class BatchUpdateAnimals(MyTask):
         """
 
         logger.info("Start batch update for animals")
-
-        for animal_id, value in animal_ids.items():
-            if value == '':
-                value = None
-            animal = Animal.objects.get(pk=animal_id)
-            if getattr(animal, attribute) != value:
-                setattr(animal, attribute, value)
-                animal.save()
-
-        # Update submission
-        submission_obj = Submission.objects.get(pk=submission_id)
-        submission_obj.status = NEED_REVISION
-        submission_obj.message = "Data updated, try to rerun validation"
-        submission_obj.save()
-
-        send_message(
-            submission_obj, construct_validation_message(submission_obj)
-        )
+        super(BatchUpdateAnimals, self).batch_update(submission_id, animal_ids,
+                                                     attribute, 'animal')
         return 'success'
 
 

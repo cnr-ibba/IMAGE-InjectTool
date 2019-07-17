@@ -13,8 +13,39 @@ from celery.five import monotonic
 
 from django.conf import settings
 
+from image_app.models import Submission, Sample, Animal
+from submissions.helpers import send_message
+from validation.helpers import construct_validation_message
+from common.constants import NEED_REVISION
+
 # Lock expires in 10 minutes
 LOCK_EXPIRE = 60 * 10
+
+
+class BatchUpdateMixin:
+    """Mixin to do batch update of fields to fix validation"""
+
+    def batch_update(self, submission_id, ids, attribute, item_type):
+        for id, value in ids.items():
+            if value == '':
+                value = None
+            if item_type == 'sample':
+                item_object = Sample.objects.get(pk=id)
+            elif item_type == 'animal':
+                item_object = Animal.objects.get(pk=id)
+            if getattr(item_object, attribute) != value:
+                setattr(item_object, attribute, value)
+                item_object.save()
+
+        # Update submission
+        submission_obj = Submission.objects.get(pk=submission_id)
+        submission_obj.status = NEED_REVISION
+        submission_obj.message = "Data updated, try to rerun validation"
+        submission_obj.save()
+
+        send_message(
+            submission_obj, construct_validation_message(submission_obj)
+        )
 
 
 @contextmanager

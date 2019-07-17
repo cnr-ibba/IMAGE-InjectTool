@@ -8,17 +8,17 @@ Created on Wed Feb 27 16:38:37 2019
 
 from celery.utils.log import get_task_logger
 
-from common.constants import ERROR, NEED_REVISION
+from common.constants import ERROR
+from common.tasks import BatchUpdateMixin
 from image.celery import app as celery_app, MyTask
-from image_app.models import Sample, Submission
+from image_app.models import Submission
 from submissions.helpers import send_message
-from validation.helpers import construct_validation_message
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
 
-class BatchUpdateSamples(MyTask):
+class BatchUpdateSamples(MyTask, BatchUpdateMixin):
     name = "Batch update samples"
     description = """Batch update of field in samples"""
 
@@ -49,27 +49,16 @@ class BatchUpdateSamples(MyTask):
         # TODO: submit mail to admin
 
     def run(self, submission_id, sample_ids, attribute):
-        """a function to upload data into UID"""
+        """Function for batch update attribute in samples
+        Args:
+            submission_id (int): id of submission
+            sample_ids (dict): dict with id and values to update
+            attribute (str): attribute to update
+        """
 
         logger.info("Start batch update for samples")
-
-        for sample_id, value in sample_ids.items():
-            if value == '':
-                value = None
-            sample = Sample.objects.get(pk=sample_id)
-            if getattr(sample, attribute) != value:
-                setattr(sample, attribute, value)
-                sample.save()
-
-        # Update submission
-        submission_obj = Submission.objects.get(pk=submission_id)
-        submission_obj.status = NEED_REVISION
-        submission_obj.message = "Data updated, try to rerun validation"
-        submission_obj.save()
-
-        send_message(
-            submission_obj, construct_validation_message(submission_obj)
-        )
+        super(BatchUpdateSamples, self).batch_update(submission_id, sample_ids,
+                                                     attribute, 'sample')
         return 'success'
 
 
