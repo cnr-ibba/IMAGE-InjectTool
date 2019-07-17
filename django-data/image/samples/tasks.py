@@ -54,6 +54,8 @@ class BatchUpdateSamples(MyTask):
         logger.info("Start batch update for samples")
 
         for sample_id, value in sample_ids.items():
+            if value == '':
+                value = None
             sample = Sample.objects.get(pk=sample_id)
             if getattr(sample, attribute) != value:
                 setattr(sample, attribute, value)

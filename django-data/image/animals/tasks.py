@@ -59,6 +59,8 @@ class BatchUpdateAnimals(MyTask):
         logger.info("Start batch update for animals")
 
         for animal_id, value in animal_ids.items():
+            if value == '':
+                value = None
             animal = Animal.objects.get(pk=animal_id)
             if getattr(animal, attribute) != value:
                 setattr(animal, attribute, value)
