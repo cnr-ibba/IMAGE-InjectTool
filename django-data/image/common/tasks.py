@@ -27,7 +27,7 @@ class BatchUpdateMixin:
 
     def batch_update(self, submission_id, ids, attribute, item_type):
         for id, value in ids.items():
-            if value == '':
+            if value == '' or value == 'None':
                 value = None
             if item_type == 'sample':
                 item_object = Sample.objects.get(pk=id)
