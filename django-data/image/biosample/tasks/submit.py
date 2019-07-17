@@ -67,9 +67,13 @@ class SubmissionData(object):
         self.usi_submission = None
         self.usi_root = None
 
-        if kwargs['submission_id']:
+        if 'submission_id' in kwargs:
             self.submission_id = kwargs['submission_id']
 
+        elif len(args) >= 1 and type(args[0]) == int:
+            self.submission_id = args[0]
+
+        if self.submission_id:
             # get submission object
             self.submission_obj = Submission.objects.get(
                 pk=self.submission_id)
@@ -99,7 +103,7 @@ class SubmissionTaskMixin():
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
         # create a instance to store submissison data from a submission_id
-        submission_data = SubmissionData(submission_id=args[0])
+        submission_data = SubmissionData(*args, **kwargs)
 
         submission_data.submission_obj.status = ERROR
         submission_data.submission_obj.message = (

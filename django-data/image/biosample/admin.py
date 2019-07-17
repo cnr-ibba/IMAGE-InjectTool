@@ -20,6 +20,13 @@ class SubmissionAdmin(admin.ModelAdmin):
     # I cannot edit a auto_add_now field
     readonly_fields = ('created_at', 'updated_at')
 
+
+class SubmissionDataAdmin(admin.ModelAdmin):
+    list_display = (
+        'submission', 'content_type', 'object_id', 'status'
+    )
+
+
 # --- registering applications
 
 
@@ -27,4 +34,4 @@ class SubmissionAdmin(admin.ModelAdmin):
 admin.site.register(Account)
 admin.site.register(ManagedTeam)
 admin.site.register(Submission, SubmissionAdmin)
-admin.site.register(SubmissionData)
+admin.site.register(SubmissionData, SubmissionDataAdmin)

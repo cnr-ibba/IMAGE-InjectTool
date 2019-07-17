@@ -67,7 +67,8 @@ class Submission(models.Model):
         default=WAITING)
 
     def __str__(self):
-        return "%s (%s): %s" % (
+        return "%s <%s> (%s): %s" % (
+            self.id,
             self.usi_submission_id,
             self.uid_submission,
             self.get_status_display())
@@ -102,7 +103,8 @@ class SubmissionData(models.Model):
         default=LOADED)
 
     def __str__(self):
-        return "%s: %s" % (
+        return "%s <%s>: %s" % (
+            self.submission.id,
             self.submission.usi_submission_id,
             self.content_object.name)
 
