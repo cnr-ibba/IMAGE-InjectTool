@@ -6,22 +6,18 @@ Created on Wed Jul 17 10:51:40 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from billiard.einfo import ExceptionInfo
 from unittest.mock import patch
 
-from django.core import mail
 from django.test import TestCase
 
-from common.constants import READY, COMPLETED, ERROR
-from common.tests import WebSocketMixin
-from image_app.models import Submission
+from common.constants import READY, COMPLETED
 
 from .common import SubmitMixin
 from ..models import Submission as USISubmission, SubmissionData
 from ..tasks import SplitSubmissionTask
 
 
-class SplitSubmissionTaskTestCase(SubmitMixin, WebSocketMixin, TestCase):
+class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
     def setUp(self):
         # call Mixin method
         super().setUp()
@@ -86,40 +82,3 @@ class SplitSubmissionTaskTestCase(SubmitMixin, WebSocketMixin, TestCase):
 
             for submission_data in submission_data_qs:
                 self.assertEqual(submission_data.status, READY)
-
-    def test_on_failure(self):
-        """Testing on failure methods"""
-
-        exc = Exception("Test")
-        task_id = "test_task_id"
-        args = [self.submission_id]
-        kwargs = {}
-        einfo = ExceptionInfo
-
-        # call on_failure method
-        self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
-
-        # check submission status and message
-        submission = Submission.objects.get(pk=self.submission_id)
-
-        # check submission.state changed
-        self.assertEqual(submission.status, ERROR)
-        self.assertEqual(
-            submission.message,
-            "Error in biosample submission: Test")
-
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
-
-        # read email
-        email = mail.outbox[0]
-
-        self.assertEqual(
-            "Error in biosample submission %s" % self.submission_id,
-            email.subject)
-
-        message = 'Error'
-        notification_message = 'Error in biosample submission: Test'
-
-        # calling a WebSocketMixin method
-        self.check_message(message, notification_message)

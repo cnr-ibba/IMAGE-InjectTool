@@ -8,13 +8,15 @@ Created on Mon Jan 21 15:15:09 2019
 
 import python_jwt
 
+from billiard.einfo import ExceptionInfo
 from unittest.mock import patch, PropertyMock
 
+from django.core import mail
 from django.db.models import Q
 from django.utils import timezone
 
-from common.constants import READY
-from common.tests import PersonMixinTestCase
+from common.constants import READY, ERROR
+from common.tests import PersonMixinTestCase, WebSocketMixin
 from image_app.models import Submission, Person, Name
 
 
@@ -40,7 +42,7 @@ def generate_token(now=None, domains=['subs.test-team-1']):
         algorithm='RS256')
 
 
-class SubmitMixin(PersonMixinTestCase):
+class BaseMixin(PersonMixinTestCase):
     # an attribute for PersonMixinTestCase
     person = Person
 
@@ -118,3 +120,42 @@ class SubmitMixin(PersonMixinTestCase):
 
         self.my_submission.propertymock = PropertyMock(return_value='Draft')
         type(self.my_submission).status = self.my_submission.propertymock
+
+
+class SubmitMixin(WebSocketMixin, BaseMixin):
+    def test_on_failure(self):
+        """Testing on failure methods"""
+
+        exc = Exception("Test")
+        task_id = "test_task_id"
+        args = [self.submission_id]
+        kwargs = {}
+        einfo = ExceptionInfo
+
+        # call on_failure method
+        self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
+
+        # check submission status and message
+        submission = Submission.objects.get(pk=self.submission_id)
+
+        # check submission.state changed
+        self.assertEqual(submission.status, ERROR)
+        self.assertEqual(
+            submission.message,
+            "Error in biosample submission: Test")
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission %s" % self.submission_id,
+            email.subject)
+
+        message = 'Error'
+        notification_message = 'Error in biosample submission: Test'
+
+        # calling a WebSocketMixin method
+        self.check_message(message, notification_message)

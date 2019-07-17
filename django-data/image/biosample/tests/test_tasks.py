@@ -8,7 +8,6 @@ Created on Tue Oct  9 14:51:13 2018
 
 import redis
 
-from billiard.einfo import ExceptionInfo
 from pytest import raises
 from collections import Counter
 from unittest.mock import patch, Mock, PropertyMock
@@ -329,43 +328,6 @@ class SubmitTestCase(SubmitMixin, RedisMixin, WebSocketMixin, TestCase):
 
         message = 'Submitted'
         notification_message = 'Waiting for biosample validation'
-
-        # calling a WebSocketMixin method
-        self.check_message(message, notification_message)
-
-    def test_on_failure(self):
-        """Testing on failure methods"""
-
-        exc = Exception("Test")
-        task_id = "test_task_id"
-        args = [self.submission_id]
-        kwargs = {}
-        einfo = ExceptionInfo
-
-        # call on_failure method
-        self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
-
-        # check submission status and message
-        submission = Submission.objects.get(pk=self.submission_id)
-
-        # check submission.state changed
-        self.assertEqual(submission.status, ERROR)
-        self.assertEqual(
-            submission.message,
-            "Error in biosample submission: Test")
-
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
-
-        # read email
-        email = mail.outbox[0]
-
-        self.assertEqual(
-            "Error in biosample submission %s" % self.submission_id,
-            email.subject)
-
-        message = 'Error'
-        notification_message = 'Error in biosample submission: Test'
 
         # calling a WebSocketMixin method
         self.check_message(message, notification_message)

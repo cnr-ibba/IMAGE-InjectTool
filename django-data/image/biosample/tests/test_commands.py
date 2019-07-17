@@ -16,10 +16,10 @@ from image_app.models import Name
 
 from ..models import ManagedTeam
 
-from .common import SubmitMixin
+from .common import BaseMixin
 
 
-class CommandsTestCase(SubmitMixin, TestCase):
+class CommandsTestCase(BaseMixin, TestCase):
     @classmethod
     def setUpClass(cls):
         # calling my base class setup
