@@ -44,7 +44,7 @@ MAX_SAMPLES = 100
 # When the status is in this list, I can't submit this sample, since
 # is already submitted by this submission or by a previous one
 # and I don't want to submit the same thing if is not necessary
-NOT_MANAGED_STATUSES = [SUBMITTED, COMPLETED]
+DONT_SUBMIT_STATUSES = [SUBMITTED, COMPLETED]
 
 
 class SubmissionData(object):
@@ -259,7 +259,7 @@ class SubmitTask(SubmissionTaskMixin, MyTask):
                 name__submission=submission_data.submission_obj):
 
             # add animal if not yet submitted, or patch it
-            if animal.name.status not in NOT_MANAGED_STATUSES:
+            if animal.name.status not in DONT_SUBMIT_STATUSES:
                 logger.info("Appending animal %s" % (animal))
 
                 # check if animal is already submitted, otherwise patch
@@ -272,7 +272,7 @@ class SubmitTask(SubmissionTaskMixin, MyTask):
             # Add their specimen
             for sample in animal.sample_set.all():
                 # add sample if not yet submitted
-                if sample.name.status not in NOT_MANAGED_STATUSES:
+                if sample.name.status not in DONT_SUBMIT_STATUSES:
                     logger.info("Appending sample %s" % (sample))
 
                     # check if sample is already submitted, otherwise patch
@@ -380,6 +380,44 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
     name = "Split submission data"
     description = """Split submission data in chunks"""
 
+    class Helper():
+        def __init__(self, uid_submission):
+            self.counter = 0
+            self.uid_submission = uid_submission
+            self.usi_submission = None
+
+        def create_submission(self):
+            """Create a new database object and reset counter"""
+
+            self.usi_submission = USISubmission.objects.create(
+                uid_submission=self.uid_submission,
+                status=READY)
+            self.counter = 0
+
+        def add_to_submission_data(self, model):
+            # Create a new submission if necessary
+            if self.usi_submission is None:
+                self.create_submission()
+
+            # TODO: every time I split data in chunks I need to call the
+            # submission task. I should call this in a chord process, in
+            # order to value if submission was completed or not
+            if self.counter >= MAX_SAMPLES:
+                self.create_submission()
+
+            logger.info("Appending %s %s to %s" % (
+                model._meta.verbose_name,
+                model,
+                self.usi_submission))
+
+            # add object to submission data and updating counter
+            USISubmissionData.objects.create(
+                submission=self.usi_submission,
+                content_object=model,
+                status=READY)
+
+            self.counter += 1
+
     def run(self, submission_id):
         """This function is called when delay is called"""
 
@@ -389,28 +427,15 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
         uid_submission = Submission.objects.get(
             pk=submission_id)
 
-        usi_submission = USISubmission.objects.create(
-            uid_submission=uid_submission,
-            status=READY)
-
-        counter = 0
+        # call an helper class to create database objects
+        submission_data_helper = self.Helper(uid_submission)
 
         for animal in Animal.objects.filter(
                 name__submission=uid_submission):
 
             # add animal if not yet submitted, or patch it
-            if animal.name.status not in NOT_MANAGED_STATUSES:
-                logger.info("Appending animal %s to %s" % (
-                    animal,
-                    usi_submission))
-
-                # add animal to submission data and updating counter
-                USISubmissionData.objects.create(
-                    submission=usi_submission,
-                    content_object=animal,
-                    status=READY)
-
-                counter += 1
+            if animal.name.status not in DONT_SUBMIT_STATUSES:
+                submission_data_helper.add_to_submission_data(animal)
 
             else:
                 # already submittes, so could be ignored
@@ -419,31 +444,19 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
             # Add their specimen
             for sample in animal.sample_set.all():
                 # add sample if not yet submitted
-                if sample.name.status not in NOT_MANAGED_STATUSES:
-                    logger.info("Appending sample %s to %s" % (
-                        sample,
-                        usi_submission))
-
-                    # add sample to submission data and updating counter
-                    USISubmissionData.objects.create(
-                        submission=usi_submission,
-                        content_object=sample,
-                        status=READY)
-
-                    counter += 1
+                if sample.name.status not in DONT_SUBMIT_STATUSES:
+                    submission_data_helper.add_to_submission_data(sample)
 
                 else:
                     # already submittes, so could be ignored
                     logger.debug("Ignoring sample %s" % (sample))
 
-            # cicle for animal
-            if counter >= MAX_SAMPLES:
-                usi_submission = USISubmission.objects.create(
-                    uid_submission=uid_submission,
-                    status=READY)
-                counter = 0
+            # end of cicle for animal.
 
         logger.info("%s completed" % self.name)
+
+        # return a status
+        return "success"
 
 
 # register explicitly tasks
