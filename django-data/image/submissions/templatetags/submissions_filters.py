@@ -2,6 +2,7 @@ import ast
 from django import template
 
 from image_app.models import Animal, Sample
+from common.helpers import uid2biosample
 
 register = template.Library()
 
@@ -35,3 +36,8 @@ def convert_to_human_readable(value, record_type):
         return  Animal._meta.get_field(value).verbose_name.title()
     elif record_type == 'sample':
         return  Sample._meta.get_field(value).verbose_name.title()
+
+
+@register.filter
+def convert_to_biosample_field(value):
+    return uid2biosample(value)

@@ -152,3 +152,8 @@ def get_admin_emails():
 
     # return all admin mail addresses
     return [admin[1] for admin in ADMINS]
+
+
+def uid2biosample(value):
+    """Convert human-readable name to model field"""
+    return '_'.join(value.lower().split(" "))

@@ -23,7 +23,7 @@ from django.urls import reverse_lazy, reverse
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE,
     VALIDATION_MESSAGES, VALIDATION_MESSAGES_ATTRIBUTES)
-from common.helpers import get_deleted_objects
+from common.helpers import get_deleted_objects, uid2biosample
 from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import import_from_cryoweb
@@ -186,17 +186,13 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         self.summary_type = self.kwargs['type']
         self.submission = Submission.objects.get(pk=self.kwargs['pk'])
         self.validation_summary = ValidationSummary.objects.get(
-            submission=self.submission, type=self.summary_type)
-        self.request_message = self.kwargs['msg']
-        for message in self.validation_summary.messages:
-            message = ast.literal_eval(message)
-            if message['message'] == self.request_message:
-                ids = message['ids']
-                self.offending_column = message['offending_column']
+            pk=self.kwargs['vk'])
+        self.message = ast.literal_eval(self.validation_summary.messages[int(self.kwargs['message_counter'])])
+        self.offending_column = self.message['offending_column']
         if self.summary_type == 'animal':
-            return Animal.objects.filter(id__in=ids)
+            return Animal.objects.filter(id__in=self.message['ids'])
         elif self.summary_type == 'sample':
-            return Sample.objects.filter(id__in=ids)
+            return Sample.objects.filter(id__in=self.message['ids'])
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -205,21 +201,22 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         ).get_context_data(**kwargs)
 
         # add submission to context
-        context["message"] = self.request_message
+        context["message"] = self.message
         context["type"] = self.summary_type
-        context["offending_column"] = self.offending_column
+        context["offending_column"] = self.offending_column.lower()
         if re.search(VALIDATION_MESSAGES['coordinate_check'],
-                     self.request_message):
+                     self.message['message']):
             type_of_check = f"coordinate_check_{self.summary_type}"
             context['attributes_to_show'] = VALIDATION_MESSAGES_ATTRIBUTES[
                 type_of_check]['attributes_to_show']
-            context['attributes_to_edit'] = VALIDATION_MESSAGES_ATTRIBUTES[
-                type_of_check]['attributes_to_edit']
+            context['attributes_to_edit'] = [
+                uid2biosample(self.offending_column)]
             context['error_type'] = 'coordinate_check'
         # TODO add checks for other messages
         else:
             context['attributes_to_show'] = []
-            context['attributes_to_edit'] = []
+            context['attributes_to_edit'] = [
+                uid2biosample(self.offending_column)]
             context['error_type'] = 'error'
         context['submission'] = self.submission
 
