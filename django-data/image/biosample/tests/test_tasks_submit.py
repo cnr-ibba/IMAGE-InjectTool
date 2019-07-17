@@ -25,6 +25,26 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
         # setting tasks
         self.my_task = SplitSubmissionTask()
 
+        # patching objects
+        self.mock_chord_patcher = patch('biosample.tasks.submit.chord')
+        self.mock_chord = self.mock_chord_patcher.start()
+
+        self.mock_submit_patcher = patch('biosample.tasks.submit.submit')
+        self.mock_submit = self.mock_submit_patcher.start()
+
+        self.mock_complete_patcher = patch(
+            'biosample.tasks.submit.submissioncomplete')
+        self.mock_complete = self.mock_complete_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.mock_chord_patcher.stop()
+        self.mock_submit_patcher.stop()
+        self.mock_complete_patcher.stop()
+
+        # calling base object
+        super().tearDown()
+
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
     def test_split_submission(self):

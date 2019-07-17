@@ -12,6 +12,7 @@ import traceback
 
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
+from celery import chord
 
 import pyUSIrest.client
 
@@ -389,6 +390,7 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
             self.counter = 0
             self.uid_submission = uid_submission
             self.usi_submission = None
+            self.created_ids = []
 
         def create_submission(self):
             """Create a new database object and reset counter"""
@@ -396,6 +398,12 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
             self.usi_submission = USISubmission.objects.create(
                 uid_submission=self.uid_submission,
                 status=READY)
+
+            # track object pks
+            self.usi_submission.refresh_from_db()
+            self.created_ids.append(self.usi_submission.id)
+
+            # reset couter object
             self.counter = 0
 
         def add_to_submission_data(self, model):
@@ -457,10 +465,50 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
 
             # end of cicle for animal.
 
+        # prepare to launch chord tasks
+        callback = submissioncomplete.s()
+        header = [submit.s(pk) for pk in submission_data_helper.created_ids]
+
+        # call chord task. Chord will be called only after all tasks
+        res = chord(header)(callback)
+
+        logger.info(
+            "Start submission chord process for %s with task %s" % (
+                uid_submission,
+                res.task_id))
+
         logger.info("%s completed" % self.name)
 
         # return a status
         return "success"
+
+
+# TODO: costomize and fix this task placeholder
+@celery_app.task
+def submit(usi_submission_id):
+    """A placeholder for the generic submission object"""
+
+    usi_submission = USISubmission.objects.get(pk=usi_submission_id)
+    usi_submission.status = SUBMITTED
+    usi_submission.save()
+
+    # get its related submission data objects and set them to complete
+    for submissiondata in usi_submission.submission_data.all():
+        submissiondata.status = SUBMITTED
+        submissiondata.save()
+
+    return "success", usi_submission_id
+
+
+# TODO: costomize and fix this task placeholder
+@celery_app.task
+def submissioncomplete(submission_statuses):
+    """A placeholder for complete submission object"""
+
+    for submission_status in submission_statuses:
+        logger.debug(submission_status)
+
+    return "success"
 
 
 # register explicitly tasks
