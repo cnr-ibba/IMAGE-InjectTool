@@ -19,7 +19,7 @@
       <li class="list-group-item d-flex justify-content-between align-items-center">
       <span class="badge badge-warning badge-pill align-right">{{ message.count }}</span>
         {{ message.message }}
-        <a href="{% url 'submissions:validation_summary_fix_errors' pk=submission.id type=validation_summary.type vk=validation_summary.id message_counter=forloop.counter0 %}"><span class="badge badge-success badge-pill align-right">Fix this</span></a>
+        <a href="{% url 'submissions:validation_summary_fix_errors' pk=submission.id type=validation_summary.type message_counter=forloop.counter0 %}"><span class="badge badge-success badge-pill align-right">Fix this</span></a>
       </li>
     {% endfor %}
   </ul>

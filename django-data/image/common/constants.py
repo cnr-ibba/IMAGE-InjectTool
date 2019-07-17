@@ -189,17 +189,9 @@ VALIDATION_MESSAGES = {
     'parents_sex_check': ''
 }
 
-VALIDATION_MESSAGES_ATTRIBUTES = {
-    'coordinate_check_animal': {
-        'attributes_to_show': ['birth_location_latitude',
-                               'birth_location_longitude',
-                               'birth_location_accuracy'],
-        'attributes_to_edit': ['birth_location']
-    },
-    'coordinate_check_sample': {
-        'attributes_to_show': ['collection_place_latitude',
-                               'collection_place_longitude',
-                               'collection_place_accuracy'],
-        'attributes_to_edit': ['collection_place']
-    }
-}
+VALIDATION_MESSAGES_ATTRIBUTES = [
+    ['birth_location', 'birth_location_latitude', 'birth_location_longitude',
+     'birth_location_accuracy'],
+    ['collection_place', 'collection_place_latitude',
+     'collection_place_longitude', 'collection_place_accuracy']
+]

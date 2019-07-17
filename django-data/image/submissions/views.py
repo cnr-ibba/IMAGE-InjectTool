@@ -182,13 +182,15 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
     template_name = "submissions/submission_validation_summary_fix_errors.html"
 
     def get_queryset(self):
-        ids = list()
         self.summary_type = self.kwargs['type']
         self.submission = Submission.objects.get(pk=self.kwargs['pk'])
         self.validation_summary = ValidationSummary.objects.get(
-            pk=self.kwargs['vk'])
-        self.message = ast.literal_eval(self.validation_summary.messages[int(self.kwargs['message_counter'])])
-        self.offending_column = self.message['offending_column']
+            submission=self.submission, type=self.summary_type)
+        self.message = ast.literal_eval(self.validation_summary.messages[
+                                            int(self.kwargs['message_counter'])
+                                        ])
+        self.offending_column = uid2biosample(
+            self.message['offending_column'].lower())
         if self.summary_type == 'animal':
             return Animal.objects.filter(id__in=self.message['ids'])
         elif self.summary_type == 'sample':
@@ -203,22 +205,14 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         # add submission to context
         context["message"] = self.message
         context["type"] = self.summary_type
-        context["offending_column"] = self.offending_column.lower()
-        if re.search(VALIDATION_MESSAGES['coordinate_check'],
-                     self.message['message']):
-            type_of_check = f"coordinate_check_{self.summary_type}"
-            context['attributes_to_show'] = VALIDATION_MESSAGES_ATTRIBUTES[
-                type_of_check]['attributes_to_show']
-            context['attributes_to_edit'] = [
-                uid2biosample(self.offending_column)]
-            context['error_type'] = 'coordinate_check'
-        # TODO add checks for other messages
-        else:
-            context['attributes_to_show'] = []
-            context['attributes_to_edit'] = [
-                uid2biosample(self.offending_column)]
-            context['error_type'] = 'error'
+        context['attribute_to_edit'] = self.offending_column
+        for attributes in VALIDATION_MESSAGES_ATTRIBUTES:
+            if self.offending_column in attributes:
+                context['attributes_to_show'] = [
+                    attr for attr in attributes if attr != self.offending_column
+                ]
         context['submission'] = self.submission
+        context['error_type'] = 'coordinate_check'
 
         return context
 
@@ -400,7 +394,7 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
         return httpresponseredirect
 
 
-def fix_validation(request, pk, record_type, error):
+def fix_validation(request, pk, record_type, attribute_to_edit):
     # Fetch all required ids from input names and use it as keys
     keys_to_fix = dict()
     for key_to_fix in request.POST:
@@ -428,17 +422,13 @@ def fix_validation(request, pk, record_type, error):
     # create a task
     if record_type == 'animal':
         my_task = BatchUpdateAnimals()
-        attribute_name = VALIDATION_MESSAGES_ATTRIBUTES[f"{error}_animal"][
-            'attributes_to_edit'][0]
     elif record_type == 'sample':
         my_task = BatchUpdateSamples()
-        attribute_name = VALIDATION_MESSAGES_ATTRIBUTES[f"{error}_sample"][
-            'attributes_to_edit'][0]
     else:
         return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
 
     # a valid submission start a task
-    res = my_task.delay(pk, keys_to_fix, attribute_name)
+    res = my_task.delay(pk, keys_to_fix, attribute_to_edit)
     logger.info(
         "Start fix validation process with task %s" % res.task_id)
     return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
