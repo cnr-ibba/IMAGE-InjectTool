@@ -418,13 +418,7 @@ class FixValidation(View, OwnerMixin):
         summary_obj, created = ValidationSummary.objects.get_or_create(
             submission=submission, type=record_type)
         summary_obj.submission = submission
-        summary_obj.pass_count = 0
-        summary_obj.warning_count = 0
-        summary_obj.error_count = 0
-        summary_obj.issues_count = 0
-        summary_obj.validation_known_count = 0
-        summary_obj.messages = list()
-        summary_obj.save()
+        summary_obj.reset()
 
         # create a task
         if record_type == 'animal':
