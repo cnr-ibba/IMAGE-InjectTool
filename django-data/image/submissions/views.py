@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect
+from django.views import View
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
 from django.shortcuts import get_object_or_404, redirect
@@ -394,41 +395,48 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
         return httpresponseredirect
 
 
-def fix_validation(request, pk, record_type, attribute_to_edit):
-    # Fetch all required ids from input names and use it as keys
-    keys_to_fix = dict()
-    for key_to_fix in request.POST:
-        if 'to_edit' in key_to_fix:
-            keys_to_fix[int(re.search('to_edit(.*)', key_to_fix).groups()[0])] \
-                = request.POST[key_to_fix]
+class FixValidation(View, OwnerMixin):
+    def post(self, request, **kwargs):
+        # Fetch all required ids from input names and use it as keys
+        keys_to_fix = dict()
+        for key_to_fix in request.POST:
+            if 'to_edit' in key_to_fix:
+                keys_to_fix[
+                    int(re.search('to_edit(.*)', key_to_fix).groups()[0])] \
+                    = request.POST[key_to_fix]
 
-    submission = Submission.objects.get(pk=pk)
-    submission.message = "waiting for data updating"
-    submission.status = WAITING
-    submission.save()
+        pk = self.kwargs['pk']
+        record_type = self.kwargs['record_type']
+        attribute_to_edit = self.kwargs['attribute_to_edit']
 
-    # Update validation summary
-    summary_obj, created = ValidationSummary.objects.get_or_create(
-        submission=submission, type=record_type)
-    summary_obj.submission = submission
-    summary_obj.pass_count = 0
-    summary_obj.warning_count = 0
-    summary_obj.error_count = 0
-    summary_obj.issues_count = 0
-    summary_obj.validation_known_count = 0
-    summary_obj.messages = list()
-    summary_obj.save()
+        submission = Submission.objects.get(pk=pk)
+        submission.message = "waiting for data updating"
+        submission.status = WAITING
+        submission.save()
 
-    # create a task
-    if record_type == 'animal':
-        my_task = BatchUpdateAnimals()
-    elif record_type == 'sample':
-        my_task = BatchUpdateSamples()
-    else:
+        # Update validation summary
+        summary_obj, created = ValidationSummary.objects.get_or_create(
+            submission=submission, type=record_type)
+        summary_obj.submission = submission
+        summary_obj.pass_count = 0
+        summary_obj.warning_count = 0
+        summary_obj.error_count = 0
+        summary_obj.issues_count = 0
+        summary_obj.validation_known_count = 0
+        summary_obj.messages = list()
+        summary_obj.save()
+
+        # create a task
+        if record_type == 'animal':
+            my_task = BatchUpdateAnimals()
+        elif record_type == 'sample':
+            my_task = BatchUpdateSamples()
+        else:
+            return HttpResponseRedirect(
+                reverse('submissions:detail', args=(pk,)))
+
+        # a valid submission start a task
+        res = my_task.delay(pk, keys_to_fix, attribute_to_edit)
+        logger.info(
+            "Start fix validation process with task %s" % res.task_id)
         return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
-
-    # a valid submission start a task
-    res = my_task.delay(pk, keys_to_fix, attribute_to_edit)
-    logger.info(
-        "Start fix validation process with task %s" % res.task_id)
-    return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
