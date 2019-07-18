@@ -13,8 +13,8 @@ from .models import (
 
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
-        'uid_submission', 'usi_submission_id', 'created_at', 'updated_at',
-        'status'
+        'uid_submission', 'usi_submission_name', 'created_at', 'updated_at',
+        'message', 'status'
     )
 
     # I cannot edit a auto_add_now field
@@ -23,7 +23,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 class SubmissionDataAdmin(admin.ModelAdmin):
     list_display = (
-        'submission', 'content_type', 'object_id', 'status'
+        'submission', 'content_type', 'object_id'
     )
 
 

@@ -47,17 +47,23 @@ class Submission(models.Model):
         on_delete=models.CASCADE,
         related_name='usi_submissions')
 
-    usi_submission_id = models.CharField(
+    usi_submission_name = models.CharField(
         max_length=255,
         blank=True,
         null=True,
         db_index=True,
         unique=True,
-        help_text='USI submission id')
+        help_text='USI submission name')
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     updated_at = models.DateTimeField(auto_now=True)
+
+    # a field to track errors in UID loading. Should be blank if no errors
+    # are found
+    message = models.TextField(
+        null=True,
+        blank=True)
 
     # a column to track submission status
     # HINT: should I limit by biosample status?
@@ -69,7 +75,7 @@ class Submission(models.Model):
     def __str__(self):
         return "%s <%s> (%s): %s" % (
             self.id,
-            self.usi_submission_id,
+            self.usi_submission_name,
             self.uid_submission,
             self.get_status_display())
 
@@ -95,17 +101,10 @@ class SubmissionData(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
-    # a column to track submission status
-    # HINT: should I limit by biosample status? should I move from UID name?
-    status = models.SmallIntegerField(
-        choices=[x.value for x in STATUSES if x.name in NAME_STATUSES],
-        help_text='example: Submitted',
-        default=LOADED)
-
     def __str__(self):
         return "%s <%s>: %s" % (
             self.submission.id,
-            self.submission.usi_submission_id,
+            self.submission.usi_submission_name,
             self.content_object.name)
 
     class Meta:

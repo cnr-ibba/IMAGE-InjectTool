@@ -59,9 +59,6 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
                 submission=usi_submission)
             self.assertEqual(submission_data_qs.count(), n_of_submissiondata)
 
-            for submission_data in submission_data_qs:
-                self.assertEqual(submission_data.status, READY)
-
         # assert mock objects called
         self.assertTrue(self.mock_chord.called)
 

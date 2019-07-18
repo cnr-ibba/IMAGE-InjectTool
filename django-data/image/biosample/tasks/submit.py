@@ -407,7 +407,7 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
             # reset couter object
             self.counter = 0
 
-        def check_model(self, model):
+        def model_in_submission(self, model):
             """check if model is already in an opened submission"""
 
             # get content type
@@ -422,15 +422,16 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
             data_qs.exclude(submission__status__in=[COMPLETED])
 
             if data_qs.count() > 0:
-                return False
+                # TODO: mark this batch to be called
+                return True
 
             else:
                 # no sample in data. I could append model into submission
-                return True
+                return False
 
         def add_to_submission_data(self, model):
             # check if model is already in an opened submission
-            if not self.check_model(model):
+            if self.model_in_submission(model):
                 logger.info("Ignoring %s %s: already in a submission" % (
                     model._meta.verbose_name,
                     model))
@@ -454,8 +455,7 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
             # add object to submission data and updating counter
             USISubmissionData.objects.create(
                 submission=self.usi_submission,
-                content_object=model,
-                status=READY)
+                content_object=model)
 
             self.counter += 1
 
@@ -520,11 +520,6 @@ def submit(usi_submission_id):
     usi_submission = USISubmission.objects.get(pk=usi_submission_id)
     usi_submission.status = SUBMITTED
     usi_submission.save()
-
-    # get its related submission data objects and set them to complete
-    for submissiondata in usi_submission.submission_data.all():
-        submissiondata.status = SUBMITTED
-        submissiondata.save()
 
     return "success", usi_submission_id
 
