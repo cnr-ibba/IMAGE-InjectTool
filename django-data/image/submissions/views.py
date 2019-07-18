@@ -171,8 +171,19 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
         context = super().get_context_data(**kwargs)
         summary_type = self.kwargs['type']
         try:
-            context['validation_summary'] = self.object.validationsummary_set\
+            validation_summary = self.object.validationsummary_set\
                 .get(type=summary_type)
+            context['validation_summary'] = validation_summary
+            editable = list()
+            for message in validation_summary.messages:
+                message = ast.literal_eval(message)
+                if uid2biosample(message['offending_column']) in \
+                        [val for sublist in VALIDATION_MESSAGES_ATTRIBUTES for
+                         val in sublist]:
+                    editable.append(True)
+                else:
+                    editable.append(False)
+            context['editable'] = editable
         except ObjectDoesNotExist:
             context['validation_summary'] = None
         context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
@@ -191,7 +202,7 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
                                             int(self.kwargs['message_counter'])
                                         ])
         self.offending_column = uid2biosample(
-            self.message['offending_column'].lower())
+            self.message['offending_column'])
         if self.summary_type == 'animal':
             return Animal.objects.filter(id__in=self.message['ids'])
         elif self.summary_type == 'sample':

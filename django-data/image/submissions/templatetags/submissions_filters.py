@@ -41,3 +41,8 @@ def convert_to_human_readable(value, record_type):
 @register.filter
 def convert_to_biosample_field(value):
     return uid2biosample(value)
+
+
+@register.filter
+def can_fix_validation(value, counter):
+    return value[counter]
