@@ -7,17 +7,55 @@ Created on Thu Jul 18 14:14:06 2019
 """
 
 import redis
+
+from celery import chord
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 
-from common.constants import ERROR, SUBMITTED, READY
+from common.constants import (
+    ERROR, READY, SUBMITTED, COMPLETED)
 from image.celery import app as celery_app, MyTask
+from image_app.models import Submission, Animal
+from submissions.helpers import send_message
 
-from ..models import Submission as USISubmission
+
+from ..models import (
+    Submission as USISubmission, SubmissionData as USISubmissionData)
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
+
+# how many sample for submission
+MAX_SAMPLES = 100
+
+
+class SubmissionTaskMixin():
+    # Ovverride default on failure method
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
+
+        # get submission object
+        submission_obj = Submission.objects.get(pk=args[0])
+
+        submission_obj.status = ERROR
+        submission_obj.message = (
+            "Error in biosample submission: %s" % str(exc))
+        submission_obj.save()
+
+        # send async message
+        send_message(submission_obj)
+
+        # send a mail to the user with the stacktrace (einfo)
+        submission_obj.owner.email_user(
+            "Error in biosample submission %s" % (
+                submission_obj.id),
+            ("Something goes wrong with biosample submission. Please report "
+             "this to InjectTool team\n\n %s" % str(einfo)),
+        )
+
+        # TODO: submit mail to admin
 
 
 class SubmissionHelper():
@@ -178,6 +216,152 @@ class SubmitTask(MyTask):
         submission_helper.add_samples()
 
 
+class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
+    """Split a submission data in chunks in order to submit data through
+    multiple tasks/processes and with smaller submissions"""
+
+    name = "Split submission data"
+    description = """Split submission data in chunks"""
+
+    class Helper():
+        def __init__(self, uid_submission):
+            self.counter = 0
+            self.uid_submission = uid_submission
+            self.usi_submission = None
+            self.created_ids = []
+
+        def create_submission(self):
+            """Create a new database object and reset counter"""
+
+            self.usi_submission = USISubmission.objects.create(
+                uid_submission=self.uid_submission,
+                status=READY)
+
+            # track object pks
+            self.usi_submission.refresh_from_db()
+            self.created_ids.append(self.usi_submission.id)
+
+            # reset couter object
+            self.counter = 0
+
+        def model_in_submission(self, model):
+            """check if model is already in an opened submission"""
+
+            # get content type
+            ct = ContentType.objects.get_for_model(model)
+
+            # define a queryset
+            data_qs = USISubmissionData.objects.filter(
+                content_type=ct,
+                object_id=model.id)
+
+            # exclude opened submission
+            data_qs.exclude(submission__status__in=[COMPLETED])
+
+            if data_qs.count() > 0:
+                # TODO: mark this batch to be called
+                return True
+
+            else:
+                # no sample in data. I could append model into submission
+                return False
+
+        def add_to_submission_data(self, model):
+            # check if model is already in an opened submission
+            if self.model_in_submission(model):
+                logger.info("Ignoring %s %s: already in a submission" % (
+                    model._meta.verbose_name,
+                    model))
+                return
+
+            # Create a new submission if necessary
+            if self.usi_submission is None:
+                self.create_submission()
+
+            # TODO: every time I split data in chunks I need to call the
+            # submission task. I should call this in a chord process, in
+            # order to value if submission was completed or not
+            if self.counter >= MAX_SAMPLES:
+                self.create_submission()
+
+            logger.info("Appending %s %s to %s" % (
+                model._meta.verbose_name,
+                model,
+                self.usi_submission))
+
+            # add object to submission data and updating counter
+            USISubmissionData.objects.create(
+                submission=self.usi_submission,
+                content_object=model)
+
+            self.counter += 1
+
+    def run(self, submission_id):
+        """This function is called when delay is called"""
+
+        logger.info("Starting %s for submission %s" % (
+            self.name, submission_id))
+
+        uid_submission = Submission.objects.get(
+            pk=submission_id)
+
+        # call an helper class to create database objects
+        submission_data_helper = self.Helper(uid_submission)
+
+        for animal in Animal.objects.filter(
+                name__submission=uid_submission):
+
+            # add animal if not yet submitted, or patch it
+            if animal.name.status == READY:
+                submission_data_helper.add_to_submission_data(animal)
+
+            else:
+                # already submittes, so could be ignored
+                logger.debug("Ignoring animal %s" % (animal))
+
+            # Add their specimen
+            for sample in animal.sample_set.all():
+                # add sample if not yet submitted
+                if sample.name.status == READY:
+                    submission_data_helper.add_to_submission_data(sample)
+
+                else:
+                    # already submittes, so could be ignored
+                    logger.debug("Ignoring sample %s" % (sample))
+
+            # end of cicle for animal.
+
+        # prepare to launch chord tasks
+        callback = submissioncomplete.s()
+        submit = SubmitTask()
+        header = [submit.s(pk) for pk in submission_data_helper.created_ids]
+
+        # call chord task. Chord will be called only after all tasks
+        res = chord(header)(callback)
+
+        logger.info(
+            "Start submission chord process for %s with task %s" % (
+                uid_submission,
+                res.task_id))
+
+        logger.info("%s completed" % self.name)
+
+        # return a status
+        return "success"
+
+
+# TODO: costomize and fix this task placeholder
+@celery_app.task
+def submissioncomplete(submission_statuses):
+    """A placeholder for complete submission object"""
+
+    for submission_status in submission_statuses:
+        logger.debug(submission_status)
+
+    return "success"
+
+
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(SubmitTask)
+celery_app.tasks.register(SplitSubmissionTask)

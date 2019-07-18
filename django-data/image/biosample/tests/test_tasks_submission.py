@@ -26,7 +26,7 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
         self.my_task = SplitSubmissionTask()
 
         # patching objects
-        self.mock_chord_patcher = patch('biosample.tasks.submit.chord')
+        self.mock_chord_patcher = patch('biosample.tasks.submission.chord')
         self.mock_chord = self.mock_chord_patcher.start()
 
         # other function are not called since chord is patched
@@ -63,7 +63,7 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
         self.assertTrue(self.mock_chord.called)
 
     # ovverride MAX_SAMPLES in order to split data
-    @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
+    @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
     def test_split_submission(self):
         """Test splitting submission data"""
 
@@ -72,7 +72,7 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
         self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
 
     # ovverride MAX_SAMPLES in order to split data
-    @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
+    @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
     def test_split_submission_partial(self):
         """Test splitting submission data with some data already submitted"""
 
@@ -82,7 +82,7 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
 
         self.generic_check(res, n_of_submission=1, n_of_submissiondata=2)
 
-    @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
+    @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
     def test_sample_already_in_submission(self):
         """Test splitting submission with sample in a opened submission"""
 
