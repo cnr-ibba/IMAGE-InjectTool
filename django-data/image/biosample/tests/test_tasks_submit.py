@@ -29,28 +29,17 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
         self.mock_chord_patcher = patch('biosample.tasks.submit.chord')
         self.mock_chord = self.mock_chord_patcher.start()
 
-        self.mock_submit_patcher = patch('biosample.tasks.submit.submit')
-        self.mock_submit = self.mock_submit_patcher.start()
-
-        self.mock_complete_patcher = patch(
-            'biosample.tasks.submit.submissioncomplete')
-        self.mock_complete = self.mock_complete_patcher.start()
+        # other function are not called since chord is patched
 
     def tearDown(self):
         # stopping mock objects
         self.mock_chord_patcher.stop()
-        self.mock_submit_patcher.stop()
-        self.mock_complete_patcher.stop()
 
         # calling base object
         super().tearDown()
 
-    # ovverride MAX_SAMPLES in order to split data
-    @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
-    def test_split_submission(self):
-        """Test splitting submission data"""
-
-        res = self.my_task.run(submission_id=self.submission_id)
+    def generic_check(self, res, n_of_submission, n_of_submissiondata):
+        """Generic check for created data"""
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
@@ -59,7 +48,7 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
         usi_submissions_qs = USISubmission.objects.all()
 
         # asserting two biosample.submission data objects
-        self.assertEqual(usi_submissions_qs.count(), 2)
+        self.assertEqual(usi_submissions_qs.count(), n_of_submission)
 
         # assert two data for each submission
         for usi_submission in usi_submissions_qs:
@@ -68,10 +57,22 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
             # grab submission data queryset
             submission_data_qs = SubmissionData.objects.filter(
                 submission=usi_submission)
-            self.assertEqual(submission_data_qs.count(), 2)
+            self.assertEqual(submission_data_qs.count(), n_of_submissiondata)
 
             for submission_data in submission_data_qs:
                 self.assertEqual(submission_data.status, READY)
+
+        # assert mock objects called
+        self.assertTrue(self.mock_chord.called)
+
+    # ovverride MAX_SAMPLES in order to split data
+    @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
+    def test_split_submission(self):
+        """Test splitting submission data"""
+
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
 
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
@@ -82,23 +83,16 @@ class SplitSubmissionTaskTestCase(SubmitMixin, TestCase):
 
         res = self.my_task.run(submission_id=self.submission_id)
 
-        # assert a success with data uploading
-        self.assertEqual(res, "success")
+        self.generic_check(res, n_of_submission=1, n_of_submissiondata=2)
 
-        # get usi_submission qs
-        usi_submissions_qs = USISubmission.objects.all()
+    @patch('biosample.tasks.submit.MAX_SAMPLES', 2)
+    def test_sample_already_in_submission(self):
+        """Test splitting submission with sample in a opened submission"""
 
-        # asserting one biosample.submission data object
-        self.assertEqual(usi_submissions_qs.count(), 1)
+        # call task once
+        self.my_task.run(submission_id=self.submission_id)
 
-        # assert two data for each submission
-        for usi_submission in usi_submissions_qs:
-            self.assertEqual(usi_submission.status, READY)
+        # call a task a second time
+        res = self.my_task.run(submission_id=self.submission_id)
 
-            # grab submission data queryset
-            submission_data_qs = SubmissionData.objects.filter(
-                submission=usi_submission)
-            self.assertEqual(submission_data_qs.count(), 2)
-
-            for submission_data in submission_data_qs:
-                self.assertEqual(submission_data.status, READY)
+        self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)

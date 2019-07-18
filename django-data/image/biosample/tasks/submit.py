@@ -18,6 +18,7 @@ import pyUSIrest.client
 
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
 
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Animal
@@ -406,7 +407,35 @@ class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
             # reset couter object
             self.counter = 0
 
+        def check_model(self, model):
+            """check if model is already in an opened submission"""
+
+            # get content type
+            ct = ContentType.objects.get_for_model(model)
+
+            # define a queryset
+            data_qs = USISubmissionData.objects.filter(
+                content_type=ct,
+                object_id=model.id)
+
+            # exclude opened submission
+            data_qs.exclude(submission__status__in=[COMPLETED])
+
+            if data_qs.count() > 0:
+                return False
+
+            else:
+                # no sample in data. I could append model into submission
+                return True
+
         def add_to_submission_data(self, model):
+            # check if model is already in an opened submission
+            if not self.check_model(model):
+                logger.info("Ignoring %s %s: already in a submission" % (
+                    model._meta.verbose_name,
+                    model))
+                return
+
             # Create a new submission if necessary
             if self.usi_submission is None:
                 self.create_submission()
