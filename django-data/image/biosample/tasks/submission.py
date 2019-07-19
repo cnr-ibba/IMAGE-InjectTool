@@ -7,12 +7,14 @@ Created on Thu Jul 18 14:14:06 2019
 """
 
 import redis
+import pyUSIrest.client
 
 from celery import chord
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 
 from common.constants import (
     ERROR, READY, SUBMITTED, COMPLETED)
@@ -20,7 +22,7 @@ from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Animal
 from submissions.helpers import send_message
 
-
+from ..helpers import get_auth
 from ..models import (
     Submission as USISubmission, SubmissionData as USISubmissionData)
 
@@ -62,6 +64,7 @@ class TaskFailureMixin():
         # TODO: submit mail to admin
 
 
+# HINT: move into helper module?
 class SubmissionHelper():
     """
     An helper class for submission task, used to deal with pyUSIrest
@@ -136,7 +139,11 @@ class SubmissionHelper():
         # getting token from redis db and set submission data
         self.token = client.get(key).decode("utf8")
 
-        # TODO: get a root object with auth
+        # get a root object with auth
+        self.auth = get_auth(token=self.token)
+
+        logger.debug("getting biosample root")
+        self.root = pyUSIrest.client.Root(auth=self.auth)
 
         return self.token
 
@@ -157,35 +164,88 @@ class SubmissionHelper():
         not defined, return false"""
 
         # If no usi_submission_name, return False
-        # need a pyUSIrest.client.Root instance
-        # need to fetch a submission relying on usi_submission_name
-        # if recovered, read submitted samples with self.read_samples()
-        # if submission in not in Draft, raise exception
-        # Set self.usi_submission attribute with recovered document
-        # return True
+        if not self.usi_submission_name:
+            return False
 
-        return False
+        logger.info("Recovering submission %s for team %s" % (
+            self.usi_submission_name,
+            self.team_name))
+
+        # get the same submission object
+        self.usi_submission = self.root.get_submission_by_name(
+            submission_name=self.usi_submission_name)
+
+        # check that a submission is still editable
+        if self.usi_submission.status != "Draft":
+            raise Exception(
+                "Cannot recover submission '%s': current status is '%s'" % (
+                   self.usi_submission_name,
+                   self.usi_submission.status))
+
+        # read already submitted samples
+        self.read_samples()
+
+        return True
 
     def create_submission(self):
         """Create a nre USI submission object"""
 
-        # need a pyUSIrest.client.Root instance
-        # need to fecth a team
         # need to create an empty submission
         # Set self.usi_submission attribute with created document
         # Set a usi_submission_name attribute and returns it
+
+        # getting team
+        logger.debug("getting team '%s'" % (self.team_name))
+        team = self.root.get_team_by_name(self.team_name)
+
+        # create a new submission
+        logger.info("Creating a new submission for '%s'" % (team.name))
+        self.usi_submission = team.create_submission()
+
+        # track submission_id in table
+        self.usi_submission_name = self.usi_submission.name
+
+        # return USI submission document
+        return self.usi_submission
 
     def read_samples(self):
         """Read sample in a USI submission document and set submitted_samples
         attribute"""
 
-        pass
+        # read already submitted samples
+        logger.debug("Getting info on samples...")
+        samples = self.usi_submission.get_samples()
+        logger.debug("Got %s samples" % (len(samples)))
+
+        for sample in samples:
+            self.submitted_samples[sample.alias] = sample
+
+        return self.submitted_samples
 
     def create_or_update_sample(self, model):
         """Add or patch a sample into USI submission document. Can be
         animal or sample"""
 
-        pass
+        # alias is used to reference the same objects
+        alias = model.biosample_alias
+
+        # check in my submitted samples
+        if alias in self.submitted_samples:
+            # patch sample
+            logger.info("Patching %s" % (alias))
+
+            # get usi sample
+            sample = self.submitted_samples[alias]
+            sample.patch(model.to_biosample())
+
+        else:
+            self.usi_submission.create_sample(
+                model.to_biosample())
+
+        # update sample status
+        model.name.status = SUBMITTED
+        model.name.last_submitted = timezone.now()
+        model.name.save()
 
     def add_samples(self):
         """Iterate over sample data (animal/sample) and call
@@ -197,6 +257,10 @@ class SubmissionHelper():
             model = submission_data.content_object
 
             if model.name.status == READY:
+                logger.debug("Adding %s %s to submission %s" % (
+                    model._meta.verbose_name,
+                    model,
+                    self.usi_submission_name))
                 self.create_or_update_sample(model)
 
             else:
@@ -240,6 +304,7 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
     name = "Split submission data"
     description = """Split submission data in chunks"""
 
+    # HINT: move into helper module?
     class Helper():
         def __init__(self, uid_submission):
             self.counter = 0
