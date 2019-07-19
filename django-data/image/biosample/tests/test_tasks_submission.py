@@ -10,11 +10,12 @@ from unittest.mock import patch, PropertyMock, Mock
 
 from django.test import TestCase
 
-from common.constants import READY, COMPLETED, ERROR, SUBMITTED
+from common.constants import READY, COMPLETED, ERROR, SUBMITTED, WAITING
 
 from .common import TaskFailureMixin, RedisMixin, BaseMixin
 from ..models import Submission as USISubmission, SubmissionData
-from ..tasks.submission import SubmissionHelper, SplitSubmissionTask
+from ..tasks.submission import (
+    SubmissionHelper, SplitSubmissionTask, SubmitTask)
 
 
 class SplitSubmissionTaskTestCase(TaskFailureMixin, TestCase):
@@ -70,6 +71,7 @@ class SplitSubmissionTaskTestCase(TaskFailureMixin, TestCase):
         res = self.my_task.run(submission_id=self.submission_id)
 
         self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
+        self.assertEqual(self.n_to_submit, SubmissionData.objects.count())
 
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
@@ -341,3 +343,140 @@ class SubmissionHelperTestCase(BaseMixin, RedisMixin, TestCase):
         self.usi_submission.refresh_from_db()
         self.usi_submission.status = SUBMITTED
         self.usi_submission.message = "Submitted to biosample"
+
+
+class SubmitTaskTestCase(BaseMixin, TestCase):
+    """Test submission task"""
+
+    # overriding BaseMixin features
+    fixtures = [
+        'biosample/account',
+        'biosample/managedteam',
+        'biosample/submission',
+        'biosample/submissiondata',
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/ontology',
+        'image_app/organization',
+        'image_app/publication',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user'
+    ]
+
+    def setUp(self):
+        # call Mixin method
+        super().setUp()
+
+        # setting tasks
+        self.my_task = SubmitTask()
+
+        # set my pk
+        self.usi_submission_id = 1
+
+        # get a biosample.submission object
+        self.usi_submission = USISubmission.objects.get(
+            pk=self.usi_submission_id)
+
+        # starting mocked objects
+        self.mock_read_patcher = patch.object(SubmissionHelper, "read_token")
+        self.mock_read = self.mock_read_patcher.start()
+
+        self.mock_start_patcher = patch.object(
+            SubmissionHelper, "start_submission")
+        self.mock_start = self.mock_start_patcher.start()
+
+        self.mock_add_patcher = patch.object(SubmissionHelper, "add_samples")
+        self.mock_add = self.mock_add_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.mock_read_patcher.stop()
+        self.mock_start_patcher.stop()
+        self.mock_add_patcher.stop()
+
+        # calling base object
+        super().tearDown()
+
+    def common_test(self, task_result, message, status):
+        # assert a success with data uploading
+        self.assertEqual(task_result, ("success", self.usi_submission_id))
+
+        # check submission status and message
+        self.usi_submission.refresh_from_db()
+
+        # check submission.status changed
+        self.assertEqual(self.usi_submission.status, status)
+        self.assertIn(message, self.usi_submission.message)
+
+        # no status changes for UID submission (will callback change status)
+        self.assertEqual(self.submission_obj.status, WAITING)
+        self.assertEqual(
+            self.submission_obj.message,
+            "Waiting for biosample submission")
+
+        self.assertTrue(self.mock_read.called)
+        self.assertTrue(self.mock_start.called)
+        self.assertTrue(self.mock_add.called)
+
+    def test_submit(self):
+        """Test submitting into biosample"""
+
+        # NOTE that I'm calling the function directly, without delay
+        # (AsyncResult). I've patched the time consuming task
+        # Remeber that submission_id will be biosample.models.Submission.id
+        res = self.my_task.run(usi_submission_id=self.usi_submission_id)
+
+        self.common_test(res, "Submitted to biosample", SUBMITTED)
+
+    def test_issues_with_api(self):
+        """Test errors with submission API"""
+
+        # Set a side effect on the patched methods
+        # so that they raise the errors we want.
+        self.mock_add.side_effect = ConnectionError()
+
+        # call task. No retries with issues at EBI
+        res = self.my_task.run(usi_submission_id=self.usi_submission_id)
+
+        # this is the message I want
+        message = "Errors in EBI API endpoints. Please try again later"
+
+        # assert anyway a success
+        self.common_test(res, message, READY)
+
+    def test_token_expired(self):
+        """Testing token expiring during a submission"""
+
+        # simulating a token expiring during a submission
+        self.mock_add.side_effect = RuntimeError("Your token is expired")
+
+        # calling task
+        res = self.my_task.run(usi_submission_id=self.usi_submission_id)
+
+        message = (
+            "Your token is expired: please submit again to resume submission")
+
+        # assert anyway a success
+        self.common_test(res, message, READY)
+
+    def test_unmanaged(self):
+        """Testing unmanaged Exception"""
+
+        # simulating a token expiring during a submission
+        self.mock_add.side_effect = Exception("Unmanaged")
+
+        # calling task
+        res = self.my_task.run(usi_submission_id=self.usi_submission_id)
+
+        message = "Exception: Unmanaged"
+
+        # assert anyway a success
+        self.common_test(res, message, ERROR)

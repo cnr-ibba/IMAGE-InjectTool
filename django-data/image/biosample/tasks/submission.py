@@ -7,6 +7,7 @@ Created on Thu Jul 18 14:14:06 2019
 """
 
 import redis
+import traceback
 import pyUSIrest.client
 
 from celery import chord
@@ -91,6 +92,8 @@ class SubmissionHelper():
         # get a submission object
         self.submission_obj = USISubmission.objects.get(
             pk=self.submission_id)
+
+        # HINT: should I check my status?
 
     @property
     def owner(self):
@@ -267,17 +270,20 @@ class SubmissionHelper():
                 logger.debug("Ignoring %s %s" % (
                     model._meta.verbose_name, model))
 
+    def mark_submission(self, status, message):
+        self.submission_obj.status = status
+        self.submission_obj.message = message
+        self.submission_obj.save()
+
     def mark_fail(self, message):
         """Set a ERROR status for biosample.models.Submission and a message"""
 
-        self.submission_obj.status = ERROR
-        self.submission_obj.message = message
+        self.mark_submission(ERROR, message)
 
     def mark_success(self, message="Submitted to biosample"):
         """Set a ERROR status for biosample.models.Submission and a message"""
 
-        self.submission_obj.status = SUBMITTED
-        self.submission_obj.message = message
+        self.mark_submission(SUBMITTED, message)
 
 
 class SubmitTask(MyTask):
@@ -288,11 +294,40 @@ class SubmitTask(MyTask):
         # get a submission helper object
         submission_helper = SubmissionHelper(submission_id=usi_submission_id)
 
-        # TODO: set a try-cacth block. No retries, we expect always success
-        submission_helper.read_token()
-        submission_helper.start_submission()
-        submission_helper.add_samples()
-        submission_helper.mark_success()
+        # No retries, we expect always success
+        try:
+            submission_helper.read_token()
+            submission_helper.start_submission()
+            submission_helper.add_samples()
+            submission_helper.mark_success()
+
+        except ConnectionError as exc:
+            logger.error("Error in biosample submission: %s" % exc)
+            message = "Errors in EBI API endpoints. Please try again later"
+            logger.error(message)
+
+            # track message in submission object
+            submission_helper.mark_submission(READY, message)
+
+        # TODO: should I rename this execption with a more informative name
+        # when token expires during a submission?
+        except RuntimeError as exc:
+            logger.error("Error in biosample submission: %s" % exc)
+            message = (
+                "Your token is expired: please submit again to resume "
+                "submission")
+            logger.error(message)
+
+            # track message in submission object
+            submission_helper.mark_submission(READY, message)
+
+        except Exception as exc:
+            logger.error("Unmanaged error: %s" % exc)
+            # get exception info
+            einfo = traceback.format_exc()
+
+            # track traceback in message
+            submission_helper.mark_fail(einfo)
 
         return "success", usi_submission_id
 

@@ -17,7 +17,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
-from common.constants import READY, ERROR
+from common.constants import READY, ERROR, WAITING
 from common.tests import PersonMixinTestCase, WebSocketMixin
 from image_app.models import Submission, Person, Name
 
@@ -72,11 +72,15 @@ class BaseMixin(PersonMixinTestCase):
         # calling my base class setup
         super().setUp()
 
-        # get a submission object
-        self.submission_obj = Submission.objects.get(pk=1)
+        # track submission ID
+        self.submission_id = 1
 
-        # set a status which I can submit
-        self.submission_obj.status = READY
+        # get a submission object
+        self.submission_obj = Submission.objects.get(pk=self.submission_id)
+
+        # set a status which I can submit (equal as calling submit by view)
+        self.submission_obj.status = WAITING
+        self.submission_obj.message = "Waiting for biosample submission"
         self.submission_obj.save()
 
         # get the names I want to submit
@@ -91,9 +95,6 @@ class BaseMixin(PersonMixinTestCase):
         # count number of names in UID for such submission (exclude
         # unknown animals)
         self.n_to_submit = self.name_qs.count()
-
-        # track submission ID
-        self.submission_id = self.submission_obj.id
 
         # starting mocked objects
         self.mock_root_patcher = patch('pyUSIrest.client.Root')
