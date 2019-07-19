@@ -28,7 +28,7 @@ from image_app.models import Submission, Name
 from ..tasks import SubmitTask, FetchStatusTask
 from ..models import ManagedTeam
 
-from .common import SubmitMixin, generate_token
+from .common import TaskFailureMixin, generate_token
 
 
 class RedisMixin():
@@ -61,7 +61,7 @@ class RedisMixin():
         super().tearDownClass()
 
 
-class SubmitTestCase(SubmitMixin, RedisMixin, WebSocketMixin, TestCase):
+class SubmitTestCase(TaskFailureMixin, RedisMixin, WebSocketMixin, TestCase):
 
     def setUp(self):
         # call Mixin method
@@ -393,7 +393,7 @@ class SubmitTestCase(SubmitMixin, RedisMixin, WebSocketMixin, TestCase):
 
 
 class UpdateSubmissionTestCase(
-        SubmitMixin, RedisMixin, WebSocketMixin, TestCase):
+        TaskFailureMixin, RedisMixin, WebSocketMixin, TestCase):
     """Test a submission for an already completed submission which
     receives one update, is valid and need to be updated in biosample"""
 

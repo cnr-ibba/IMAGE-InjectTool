@@ -6,12 +6,14 @@ Created on Mon Jan 21 15:15:09 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import redis
 import python_jwt
 
 from billiard.einfo import ExceptionInfo
 from unittest.mock import patch, PropertyMock
 
 from django.core import mail
+from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
@@ -122,7 +124,7 @@ class BaseMixin(PersonMixinTestCase):
         type(self.my_submission).status = self.my_submission.propertymock
 
 
-class SubmitMixin(WebSocketMixin, BaseMixin):
+class TaskFailureMixin(WebSocketMixin, BaseMixin):
     def test_on_failure(self):
         """Testing on failure methods"""
 
@@ -159,3 +161,33 @@ class SubmitMixin(WebSocketMixin, BaseMixin):
 
         # calling a WebSocketMixin method
         self.check_message(message, notification_message)
+
+
+class RedisMixin():
+    """A class to setup a test token in redis database"""
+
+    # this will be the token key in redis database
+    submission_key = "token:submission:1:test"
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        cls.redis = redis.StrictRedis(
+            host=settings.REDIS_HOST,
+            port=settings.REDIS_PORT,
+            db=settings.REDIS_DB)
+
+        # generate a token
+        cls.token = generate_token(domains=['subs.test-team-1'])
+
+        # write token to database
+        cls.redis.set(cls.submission_key, cls.token, ex=3600)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.redis.exists(cls.submission_key):
+            cls.redis.delete(cls.submission_key)
+
+        super().tearDownClass()

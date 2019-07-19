@@ -31,7 +31,11 @@ logger = get_task_logger(__name__)
 MAX_SAMPLES = 100
 
 
-class SubmissionTaskMixin():
+# TODO: promote this to become a common mixin for tasks
+class TaskFailureMixin():
+    """Mixin candidate to become the common behaviour of task failure which
+    mark submission with ERROR status and send message to owner"""
+
     # Ovverride default on failure method
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
@@ -102,7 +106,7 @@ class SubmissionHelper():
     def usi_submission_name(self):
         """Get biosample submission id from database"""
 
-        return self.submission_obj.usi_submission_id
+        return self.submission_obj.usi_submission_name
 
     @usi_submission_name.setter
     def usi_submission_name(self, name):
@@ -110,59 +114,6 @@ class SubmissionHelper():
 
         self.submission_obj.usi_submission_name = name
         self.submission_obj.save()
-
-    def start_submission(self):
-        """
-        Get a USI submission document. Recover submission if possible,
-        create a new one if not defined. If recovered submission is
-        closed, raise an error
-        """
-
-        if not self.recover_submission():
-            self.create_submission()
-
-        return self.usi_submission
-
-    def recover_submission(self):
-        """Try to recover a USI submission document or raise Exception. If
-        not defined, return false"""
-
-        # need a pyUSIrest.client.Root instance
-        # if recovered, read submitted samples with self.read_samples()
-        # Set self.usi_submission attribute with recovered document
-
-        return False
-
-    def create_submission(self):
-        """Create a nre USI submission object"""
-
-        # need a pyUSIrest.client.Root instance
-        # Set self.usi_submission attribute with created document
-        # Set a usi_submission_name attribute and returns it
-
-    def read_samples(self):
-        """Read sample in a USI submission document and set submitted_samples
-        attribute"""
-
-        pass
-
-    def create_or_update_sample(self, model):
-        """Add or patch a sample into USI submission document. Can be
-        animal or sample"""
-
-        pass
-
-    def mark_fail(self, message):
-        """Set a ERROR status for biosample.models.Submission and a message"""
-
-        self.submission_obj.status = ERROR
-        self.submission_obj.message = message
-
-    def mark_success(self, message="Submitted to biosample"):
-        """Set a ERROR status for biosample.models.Submission and a message"""
-
-        self.submission_obj.status = SUBMITTED
-        self.submission_obj.message = message
 
     def read_token(self):
         """Read token from REDIS database and set root attribute with a
@@ -185,6 +136,57 @@ class SubmissionHelper():
         # getting token from redis db and set submission data
         self.token = client.get(key).decode("utf8")
 
+        # TODO: get a root object with auth
+
+        return self.token
+
+    def start_submission(self):
+        """
+        Get a USI submission document. Recover submission if possible,
+        create a new one if not defined. If recovered submission is
+        closed, raise an error
+        """
+
+        if not self.recover_submission():
+            self.create_submission()
+
+        return self.usi_submission
+
+    def recover_submission(self):
+        """Try to recover a USI submission document or raise Exception. If
+        not defined, return false"""
+
+        # If no usi_submission_name, return False
+        # need a pyUSIrest.client.Root instance
+        # need to fetch a submission relying on usi_submission_name
+        # if recovered, read submitted samples with self.read_samples()
+        # if submission in not in Draft, raise exception
+        # Set self.usi_submission attribute with recovered document
+        # return True
+
+        return False
+
+    def create_submission(self):
+        """Create a nre USI submission object"""
+
+        # need a pyUSIrest.client.Root instance
+        # need to fecth a team
+        # need to create an empty submission
+        # Set self.usi_submission attribute with created document
+        # Set a usi_submission_name attribute and returns it
+
+    def read_samples(self):
+        """Read sample in a USI submission document and set submitted_samples
+        attribute"""
+
+        pass
+
+    def create_or_update_sample(self, model):
+        """Add or patch a sample into USI submission document. Can be
+        animal or sample"""
+
+        pass
+
     def add_samples(self):
         """Iterate over sample data (animal/sample) and call
         create_or_update_sample"""
@@ -201,6 +203,18 @@ class SubmissionHelper():
                 logger.debug("Ignoring %s %s" % (
                     model._meta.verbose_name, model))
 
+    def mark_fail(self, message):
+        """Set a ERROR status for biosample.models.Submission and a message"""
+
+        self.submission_obj.status = ERROR
+        self.submission_obj.message = message
+
+    def mark_success(self, message="Submitted to biosample"):
+        """Set a ERROR status for biosample.models.Submission and a message"""
+
+        self.submission_obj.status = SUBMITTED
+        self.submission_obj.message = message
+
 
 class SubmitTask(MyTask):
     name = "Submit to Biosample"
@@ -214,9 +228,12 @@ class SubmitTask(MyTask):
         submission_helper.read_token()
         submission_helper.start_submission()
         submission_helper.add_samples()
+        submission_helper.mark_success()
+
+        return "success", usi_submission_id
 
 
-class SplitSubmissionTask(SubmissionTaskMixin, MyTask):
+class SplitSubmissionTask(TaskFailureMixin, MyTask):
     """Split a submission data in chunks in order to submit data through
     multiple tasks/processes and with smaller submissions"""
 
