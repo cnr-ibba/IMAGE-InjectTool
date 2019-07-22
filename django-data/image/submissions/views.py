@@ -23,7 +23,8 @@ from django.urls import reverse_lazy, reverse
 
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE,
-    TIME_UNITS, VALIDATION_MESSAGES_ATTRIBUTES)
+    TIME_UNITS, VALIDATION_MESSAGES_ATTRIBUTES, SAMPLE_STORAGE,
+    SAMPLE_STORAGE_PROCESSING, ACCURACIES)
 from common.helpers import get_deleted_objects, uid2biosample
 from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
@@ -203,15 +204,30 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
                                         ])
         self.offending_column = uid2biosample(
             self.message['offending_column'])
-        # Special case fo 'unit' errors
         if re.search(".* for field .* is not in the valid units list (.*)",
                      self.message['message']) or re.search(
             "One of .* need to be present for the field .*",
             self.message['message']):
-            self.offending_column += "_units"
             self.show_units = True
+            if self.offending_column == 'animal_age_at_collection_units':
+                self.offending_column += "_units"
+                self.units = [unit.name for unit in TIME_UNITS]
+            elif self.offending_column == 'preparation_interval_units':
+                self.units = [unit.name for unit in TIME_UNITS]
+        elif re.search(".* of field .* is not in the valid values list .*",
+                       self.message['message']):
+            self.show_units = True
+            if self.offending_column == 'storage':
+                self.units = [unit.name for unit in SAMPLE_STORAGE]
+            elif self.offending_column == 'storage_processing':
+                self.units = [unit.name for unit in SAMPLE_STORAGE_PROCESSING]
+            elif self.offending_column == 'collection_place_accuracy':
+                self.units = [unit.name for unit in ACCURACIES]
+            elif self.offending_column == 'birth_location_accuracy':
+                self.units = [unit.name for unit in ACCURACIES]
         else:
             self.show_units = False
+            self.units = None
         if self.summary_type == 'animal':
             return Animal.objects.filter(id__in=self.message['ids'])
         elif self.summary_type == 'sample':
@@ -235,7 +251,8 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         context['submission'] = self.submission
         context['error_type'] = 'coordinate_check'
         context['show_units'] = self.show_units
-        context['units'] = [unit.name for unit in TIME_UNITS]
+        if self.units:
+            context['units'] = self.units
 
         return context
 

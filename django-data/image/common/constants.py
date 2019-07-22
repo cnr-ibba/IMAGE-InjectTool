@@ -196,5 +196,8 @@ VALIDATION_MESSAGES_ATTRIBUTES = [
      'collection_place_longitude', 'collection_place_accuracy'],
     ['animal_age_at_collection_units', 'animal_age_at_collection'],
     ['preparation_interval_units', 'preparation_interval'],
-    ['availability']
+    ['availability'],
+    ['storage'],
+    ['storage_processing'],
+    ['preparation_interval_units']
 ]
