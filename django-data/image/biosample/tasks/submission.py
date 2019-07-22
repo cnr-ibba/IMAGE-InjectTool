@@ -311,7 +311,7 @@ class SubmitTask(MyTask):
             # track message in submission object
             submission_helper.mark_submission(READY, message)
 
-        # TODO: should I rename this execption with a more informative name
+        # TODO: should I rename this exception with a more informative name
         # when token expires during a submission?
         except RuntimeError as exc:
             logger.error("Error in biosample submission: %s" % exc)
@@ -334,114 +334,138 @@ class SubmitTask(MyTask):
         return "success", usi_submission_id
 
 
+# HINT: move into helper module?
+class SplitSubmissionHelper():
+    def __init__(self, uid_submission):
+        self.counter = 0
+        self.uid_submission = uid_submission
+        self.usi_submission = None
+        self.submission_ids = []
+
+    def process_data(self):
+        for animal in Animal.objects.filter(
+                name__submission=self.uid_submission):
+
+            # add animal if not yet submitted, or patch it
+            if animal.name.status == READY:
+                self.add_to_submission_data(animal)
+
+            else:
+                # already submitted, so could be ignored
+                logger.debug("Ignoring animal %s" % (animal))
+
+            # Add their specimen
+            for sample in animal.sample_set.all():
+                # add sample if not yet submitted
+                if sample.name.status == READY:
+                    self.add_to_submission_data(sample)
+
+                else:
+                    # already submittes, so could be ignored
+                    logger.debug("Ignoring sample %s" % (sample))
+
+            # end of cicle for animal.
+
+    def create_submission(self):
+        """Create a new database object and reset counter"""
+
+        self.usi_submission = USISubmission.objects.create(
+            uid_submission=self.uid_submission,
+            status=READY)
+
+        # track object pks
+        self.usi_submission.refresh_from_db()
+        self.submission_ids.append(self.usi_submission.id)
+
+        # reset couter object
+        self.counter = 0
+
+    def model_in_submission(self, model):
+        """check if model is already in an opened submission"""
+
+        logger.debug("Searching %s %s in submissions" % (
+            model._meta.verbose_name,
+            model))
+
+        # get content type
+        ct = ContentType.objects.get_for_model(model)
+
+        # define a queryset
+        data_qs = USISubmissionData.objects.filter(
+            content_type=ct,
+            object_id=model.id)
+
+        # exclude opened submission
+        data_qs = data_qs.exclude(submission__status__in=[COMPLETED])
+
+        if data_qs.count() == 1:
+            usi_submission = data_qs.first().submission
+
+            logger.debug("Found %s %s in %s" % (
+                model._meta.verbose_name,
+                model,
+                usi_submission))
+
+            # mark this batch to be called like it was created
+            if usi_submission.id not in self.submission_ids:
+                self.submission_ids.append(usi_submission.id)
+
+                logger.debug(
+                    "Reset status for submission %s" % (usi_submission))
+                usi_submission.status = READY
+                usi_submission.save()
+
+            return True
+
+        elif data_qs.count() >= 1:
+            raise SubmissionError(
+                "More than one submission opened for %s %s" % (
+                    model._meta.verbose_name,
+                    model))
+
+        else:
+            # no sample in data. I could append model into submission
+            logger.debug("No %s %s in submission data" % (
+                model._meta.verbose_name,
+                model))
+            return False
+
+    def add_to_submission_data(self, model):
+        # check if model is already in an opened submission
+        if self.model_in_submission(model):
+            logger.info("Ignoring %s %s: already in a submission" % (
+                model._meta.verbose_name,
+                model))
+            return
+
+        # Create a new submission if necessary
+        if self.usi_submission is None:
+            self.create_submission()
+
+        # every time I split data in chunks I need to call the
+        # submission task
+        if self.counter >= MAX_SAMPLES:
+            self.create_submission()
+
+        logger.info("Appending %s %s to %s" % (
+            model._meta.verbose_name,
+            model,
+            self.usi_submission))
+
+        # add object to submission data and updating counter
+        USISubmissionData.objects.create(
+            submission=self.usi_submission,
+            content_object=model)
+
+        self.counter += 1
+
+
 class SplitSubmissionTask(TaskFailureMixin, MyTask):
     """Split submission data in chunks in order to submit data through
     multiple tasks/processes and with smaller submissions"""
 
     name = "Split submission data"
     description = """Split submission data in chunks"""
-
-    # HINT: move into helper module?
-    class Helper():
-        def __init__(self, uid_submission):
-            self.counter = 0
-            self.uid_submission = uid_submission
-            self.usi_submission = None
-            self.submission_ids = []
-
-        def create_submission(self):
-            """Create a new database object and reset counter"""
-
-            self.usi_submission = USISubmission.objects.create(
-                uid_submission=self.uid_submission,
-                status=READY)
-
-            # track object pks
-            self.usi_submission.refresh_from_db()
-            self.submission_ids.append(self.usi_submission.id)
-
-            # reset couter object
-            self.counter = 0
-
-        def model_in_submission(self, model):
-            """check if model is already in an opened submission"""
-
-            logger.debug("Searching %s %s in submissions" % (
-                model._meta.verbose_name,
-                model))
-
-            # get content type
-            ct = ContentType.objects.get_for_model(model)
-
-            # define a queryset
-            data_qs = USISubmissionData.objects.filter(
-                content_type=ct,
-                object_id=model.id)
-
-            # exclude opened submission
-            data_qs = data_qs.exclude(submission__status__in=[COMPLETED])
-
-            if data_qs.count() == 1:
-                usi_submission = data_qs.first().submission
-
-                logger.debug("Found %s %s in %s" % (
-                    model._meta.verbose_name,
-                    model,
-                    usi_submission))
-
-                # mark this batch to be called like it was created
-                if usi_submission.id not in self.submission_ids:
-                    self.submission_ids.append(usi_submission.id)
-
-                    logger.debug(
-                        "Reset status for submission %s" % (usi_submission))
-                    usi_submission.status = READY
-                    usi_submission.save()
-
-                return True
-
-            elif data_qs.count() >= 1:
-                raise SubmissionError(
-                    "More than one submission opened for %s %s" % (
-                        model._meta.verbose_name,
-                        model))
-
-            else:
-                # no sample in data. I could append model into submission
-                logger.debug("No %s %s in submission data" % (
-                    model._meta.verbose_name,
-                    model))
-                return False
-
-        def add_to_submission_data(self, model):
-            # check if model is already in an opened submission
-            if self.model_in_submission(model):
-                logger.info("Ignoring %s %s: already in a submission" % (
-                    model._meta.verbose_name,
-                    model))
-                return
-
-            # Create a new submission if necessary
-            if self.usi_submission is None:
-                self.create_submission()
-
-            # TODO: every time I split data in chunks I need to call the
-            # submission task. I should call this in a chord process, in
-            # order to value if submission was completed or not
-            if self.counter >= MAX_SAMPLES:
-                self.create_submission()
-
-            logger.info("Appending %s %s to %s" % (
-                model._meta.verbose_name,
-                model,
-                self.usi_submission))
-
-            # add object to submission data and updating counter
-            USISubmissionData.objects.create(
-                submission=self.usi_submission,
-                content_object=model)
-
-            self.counter += 1
 
     def run(self, submission_id):
         """This function is called when delay is called"""
@@ -453,30 +477,10 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
             pk=submission_id)
 
         # call an helper class to create database objects
-        submission_data_helper = self.Helper(uid_submission)
+        submission_data_helper = SplitSubmissionHelper(uid_submission)
 
-        for animal in Animal.objects.filter(
-                name__submission=uid_submission):
-
-            # add animal if not yet submitted, or patch it
-            if animal.name.status == READY:
-                submission_data_helper.add_to_submission_data(animal)
-
-            else:
-                # already submitted, so could be ignored
-                logger.debug("Ignoring animal %s" % (animal))
-
-            # Add their specimen
-            for sample in animal.sample_set.all():
-                # add sample if not yet submitted
-                if sample.name.status == READY:
-                    submission_data_helper.add_to_submission_data(sample)
-
-                else:
-                    # already submittes, so could be ignored
-                    logger.debug("Ignoring sample %s" % (sample))
-
-            # end of cicle for animal.
+        # iterate over animal and samples
+        submission_data_helper.process_data()
 
         # prepare to launch chord tasks
         callback = submissioncomplete.s()
