@@ -29,10 +29,22 @@
             <h6>Provide value to fix validation:</h6>
             <ul class="list-group">
                 <li class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center">
-                    <div class="from-group form-inline">
+                    {% if show_units %}
+                    <div class="form-group">
                         <label for="{{ object.id|create_unique_id:'to_edit' }}">{{ attribute_to_edit|convert_to_human_readable:type }}:</label>
-                        <input type="text" class="form-control" id="{{ object.id|create_unique_id:'to_edit' }}" value="{{ object|getattribute:attribute_to_edit }}" name="{{ object.id|create_unique_id:'to_edit' }}">
+                        <select name="{{ object.id|create_unique_id:'to_edit' }}" id="{{ object.id|create_unique_id:'to_edit' }}">
+                            <option value="" selected>---------</option>
+                            {% for unit in units %}
+                                <option value="{{ forloop.counter0 }}">{{ unit }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
+                    {% else %}
+                        <div class="from-group form-inline">
+                            <label for="{{ object.id|create_unique_id:'to_edit' }}">{{ attribute_to_edit|convert_to_human_readable:type }}:</label>
+                            <input type="text" class="form-control" id="{{ object.id|create_unique_id:'to_edit' }}" value="{{ object|getattribute:attribute_to_edit }}" name="{{ object.id|create_unique_id:'to_edit' }}">
+                        </div>
+                    {% endif %}
                 </li>
             </ul>
             <br>

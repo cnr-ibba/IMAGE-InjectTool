@@ -193,5 +193,7 @@ VALIDATION_MESSAGES_ATTRIBUTES = [
     ['birth_location', 'birth_location_latitude', 'birth_location_longitude',
      'birth_location_accuracy'],
     ['collection_place', 'collection_place_latitude',
-     'collection_place_longitude', 'collection_place_accuracy']
+     'collection_place_longitude', 'collection_place_accuracy'],
+    ['animal_age_at_collection_units', 'animal_age_at_collection'],
+    ['preparation_interval_units', 'preparation_interval']
 ]
