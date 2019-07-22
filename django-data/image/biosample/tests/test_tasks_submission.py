@@ -15,7 +15,8 @@ from common.constants import READY, COMPLETED, ERROR, SUBMITTED, WAITING
 from .common import TaskFailureMixin, RedisMixin, BaseMixin
 from ..models import Submission as USISubmission, SubmissionData
 from ..tasks.submission import (
-    SubmissionHelper, SplitSubmissionTask, SubmitTask, SubmissionError)
+    SubmissionHelper, SplitSubmissionTask, SubmitTask, SubmissionError,
+    SubmissionCompleteTask)
 
 
 class SubmissionFeaturesMixin(BaseMixin):
@@ -519,3 +520,41 @@ class SubmitTaskTestCase(SubmissionFeaturesMixin, TestCase):
 
         # assert anyway a success
         self.common_test(res, message, ERROR)
+
+
+class SubmissionCompleteTaskTestCase(
+        SubmissionFeaturesMixin, TaskFailureMixin, BaseMixin, TestCase):
+
+    """Test class for SubmissionCompleteTask"""
+
+    def setUp(self):
+        # call Mixin method
+        super().setUp()
+
+        # setting tasks
+        self.my_task = SubmissionCompleteTask()
+
+        # these will be the tasks arguments, indipendently by status etc
+        self.my_tasks_args = [("success", 1), ("success", 2)]
+
+    def test_submission_complete(self):
+        """test no issues after a submission"""
+
+        # calling task
+        res = self.my_task.run(
+            self.my_tasks_args,
+            uid_submission_id=self.submission_id)
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        message = 'Submitted'
+        notification_message = 'Waiting for biosample validation'
+
+        # check status and messages
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        self.assertEqual(self.submission_obj.message, notification_message)
+
+        # calling a WebSocketMixin method
+        self.check_message(message, notification_message)

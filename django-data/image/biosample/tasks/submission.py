@@ -483,7 +483,12 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
         submission_data_helper.process_data()
 
         # prepare to launch chord tasks
-        callback = submissioncomplete.s()
+        submissioncomplete = SubmissionCompleteTask()
+
+        # assign kwargs to chord
+        callback = submissioncomplete.s(
+            kwargs={'uid_submission_id': submission_id})
+
         submit = SubmitTask()
         header = [submit.s(pk) for pk in submission_data_helper.submission_ids]
 
@@ -503,18 +508,52 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
         return "success"
 
 
-# TODO: costomize and fix this task placeholder
-@celery_app.task
-def submissioncomplete(submission_statuses):
-    """A placeholder for complete submission object"""
+class SubmissionCompleteTask(TaskFailureMixin, MyTask):
+    """Update submission status after batch submission"""
 
-    for submission_status in submission_statuses:
-        logger.debug(submission_status)
+    name = "Complete Submission"
+    description = """Check submission status and update stuff"""
 
-    return "success"
+    def run(self, submission_statuses, uid_submission_id=None):
+        """Fetch submission data and then update UID submission status"""
+
+        logger.debug(submission_statuses)
+
+        # submission_statuses will be an array like this
+        # [("success", 1), ("success"), 2]
+        uid_submission_ids = [status[1] for status in submission_statuses]
+
+        # fetch data from database
+        submission_qs = USISubmission.objects.filter(
+            pk__in=uid_submission_ids)
+
+        # get UID submission
+        uid_submission = Submission.objects.get(
+            pk=uid_submission_id)
+
+        # check for errors in submission
+        if submission_qs.filter(status=ERROR).count() > 0:
+            # submission failed
+            logger.info("Submission %s failed" % uid_submission)
+
+        else:
+            # Update submission status: a completed but not yet finalized
+            # submission
+            logger.info("Submission %s success" % uid_submission)
+
+            uid_submission.status = SUBMITTED
+            uid_submission.message = (
+                "Waiting for biosample validation")
+            uid_submission.save()
+
+        # send async message
+        send_message(uid_submission)
+
+        return "success"
 
 
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(SubmitTask)
 celery_app.tasks.register(SplitSubmissionTask)
+celery_app.tasks.register(SubmissionCompleteTask)
