@@ -37,7 +37,7 @@
 },
 {
   "model": "biosample.submissiondata",
-  "pk": 3,
+  "pk": 4,
   "fields": {
     "submission": 2,
     "content_type": [

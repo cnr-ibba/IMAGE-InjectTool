@@ -15,10 +15,39 @@ from common.constants import READY, COMPLETED, ERROR, SUBMITTED, WAITING
 from .common import TaskFailureMixin, RedisMixin, BaseMixin
 from ..models import Submission as USISubmission, SubmissionData
 from ..tasks.submission import (
-    SubmissionHelper, SplitSubmissionTask, SubmitTask)
+    SubmissionHelper, SplitSubmissionTask, SubmitTask, SubmissionError)
 
 
-class SplitSubmissionTaskTestCase(TaskFailureMixin, TestCase):
+class SubmissionFeaturesMixin(BaseMixin):
+    """Common features for SubmitTask and SubmissionHelper"""
+
+    # overriding BaseMixin features
+    fixtures = [
+        'biosample/account',
+        'biosample/managedteam',
+        'biosample/submission',
+        'biosample/submissiondata',
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/ontology',
+        'image_app/organization',
+        'image_app/publication',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user'
+    ]
+
+
+class SplitSubmissionMixin(TaskFailureMixin, BaseMixin):
+    """Generic stuff for SplitSubmissionTask tests"""
+
     def setUp(self):
         # call Mixin method
         super().setUp()
@@ -63,6 +92,8 @@ class SplitSubmissionTaskTestCase(TaskFailureMixin, TestCase):
         # assert mock objects called
         self.assertTrue(self.mock_chord.called)
 
+
+class SplitSubmissionTaskTestCase(SplitSubmissionMixin, TestCase):
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
     def test_split_submission(self):
@@ -97,30 +128,55 @@ class SplitSubmissionTaskTestCase(TaskFailureMixin, TestCase):
         self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
 
 
-class SubmissionHelperTestCase(BaseMixin, RedisMixin, TestCase):
+class SplitSubmissionTaskUpdateTestCase(
+        SubmissionFeaturesMixin, SplitSubmissionMixin, TestCase):
+    """
+    A particoular test case: I submit data once and then biosample tell me
+    that there are errors in submission data. So I mark name with need revision
+    status and the submission is already opened. I can't send data within a
+    new submission, I need to restore things a submit the data I have (since
+    to_biosample() is called on user data when submitting, there are no issues
+    with old data in biosample.models)"""
 
-    # overriding BaseMixin features
-    fixtures = [
-        'biosample/account',
-        'biosample/managedteam',
-        'biosample/submission',
-        'biosample/submissiondata',
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
-    ]
+    def setUp(self):
+        # call Mixin method
+        super().setUp()
+
+        # ok in this case, my samples are READY since I passed validation
+        # after fail into biosample stage. My submission will be in SUBMITTED
+        # stage
+        USISubmission.objects.update(status=SUBMITTED)
+
+    # ovverride MAX_SAMPLES in order to split data
+    @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
+    def test_split_submission(self):
+        """Test splitting submission data"""
+
+        res = self.my_task.run(submission_id=self.submission_id)
+
+        self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
+        self.assertEqual(self.n_to_submit, SubmissionData.objects.count())
+
+    # ovverride MAX_SAMPLES in order to split data
+    @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
+    def test_split_submission_issues(self):
+        """Test splitting submission data with issues"""
+
+        # add a new submission data with the same sample, just to test
+        # exception handling
+        # https://stackoverflow.com/a/4736172/4385116
+        submission_data = SubmissionData.objects.get(pk=1)
+        submission_data.pk = None
+        submission_data.save()
+
+        self.assertRaisesRegex(
+            SubmissionError,
+            "More than one submission opened",
+            self.my_task.run,
+            submission_id=self.submission_id)
+
+
+class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
 
     def setUp(self):
         # call Mixin method
@@ -202,7 +258,7 @@ class SubmissionHelperTestCase(BaseMixin, RedisMixin, TestCase):
         type(self.my_submission).status = self.my_submission.propertymock
 
         self.assertRaisesRegex(
-            Exception,
+            SubmissionError,
             "Cannot recover submission",
             self.submission_helper.recover_submission)
 
@@ -285,6 +341,9 @@ class SubmissionHelperTestCase(BaseMixin, RedisMixin, TestCase):
         # add model to biosample submission
         self.submission_helper.create_or_update_sample(model)
 
+        # assert status
+        self.assertEqual(model.name.status, SUBMITTED)
+
         # testing things
         self.assertEqual(
             self.my_submission.create_sample.call_count, 1)
@@ -309,6 +368,9 @@ class SubmissionHelperTestCase(BaseMixin, RedisMixin, TestCase):
 
         # add model to biosample submission
         self.submission_helper.create_or_update_sample(model)
+
+        # assert status
+        self.assertEqual(model.name.status, SUBMITTED)
 
         # testing patch
         for sample in my_samples:
@@ -335,41 +397,18 @@ class SubmissionHelperTestCase(BaseMixin, RedisMixin, TestCase):
         self.submission_helper.mark_fail(message="test")
 
         self.usi_submission.refresh_from_db()
-        self.usi_submission.status = ERROR
-        self.usi_submission.message = "test"
+        self.assertEqual(self.usi_submission.status, ERROR)
+        self.assertEqual(self.usi_submission.message, "test")
 
         self.submission_helper.mark_success()
 
         self.usi_submission.refresh_from_db()
-        self.usi_submission.status = SUBMITTED
-        self.usi_submission.message = "Submitted to biosample"
+        self.assertEqual(self.usi_submission.status, SUBMITTED)
+        self.assertEqual(self.usi_submission.message, "Submitted to biosample")
 
 
-class SubmitTaskTestCase(BaseMixin, TestCase):
+class SubmitTaskTestCase(SubmissionFeaturesMixin, TestCase):
     """Test submission task"""
-
-    # overriding BaseMixin features
-    fixtures = [
-        'biosample/account',
-        'biosample/managedteam',
-        'biosample/submission',
-        'biosample/submissiondata',
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
-    ]
 
     def setUp(self):
         # call Mixin method

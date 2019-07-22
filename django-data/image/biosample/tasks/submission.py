@@ -34,6 +34,12 @@ logger = get_task_logger(__name__)
 MAX_SAMPLES = 100
 
 
+class SubmissionError(Exception):
+    """Exception call for Error with submissions"""
+
+    pass
+
+
 # TODO: promote this to become a common mixin for tasks
 class TaskFailureMixin():
     """Mixin candidate to become the common behaviour of task failure which
@@ -180,7 +186,7 @@ class SubmissionHelper():
 
         # check that a submission is still editable
         if self.usi_submission.status != "Draft":
-            raise Exception(
+            raise SubmissionError(
                 "Cannot recover submission '%s': current status is '%s'" % (
                    self.usi_submission_name,
                    self.usi_submission.status))
@@ -192,10 +198,6 @@ class SubmissionHelper():
 
     def create_submission(self):
         """Create a nre USI submission object"""
-
-        # need to create an empty submission
-        # Set self.usi_submission attribute with created document
-        # Set a usi_submission_name attribute and returns it
 
         # getting team
         logger.debug("getting team '%s'" % (self.team_name))
@@ -333,7 +335,7 @@ class SubmitTask(MyTask):
 
 
 class SplitSubmissionTask(TaskFailureMixin, MyTask):
-    """Split a submission data in chunks in order to submit data through
+    """Split submission data in chunks in order to submit data through
     multiple tasks/processes and with smaller submissions"""
 
     name = "Split submission data"
@@ -345,7 +347,7 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
             self.counter = 0
             self.uid_submission = uid_submission
             self.usi_submission = None
-            self.created_ids = []
+            self.submission_ids = []
 
         def create_submission(self):
             """Create a new database object and reset counter"""
@@ -356,13 +358,17 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
 
             # track object pks
             self.usi_submission.refresh_from_db()
-            self.created_ids.append(self.usi_submission.id)
+            self.submission_ids.append(self.usi_submission.id)
 
             # reset couter object
             self.counter = 0
 
         def model_in_submission(self, model):
             """check if model is already in an opened submission"""
+
+            logger.debug("Searching %s %s in submissions" % (
+                model._meta.verbose_name,
+                model))
 
             # get content type
             ct = ContentType.objects.get_for_model(model)
@@ -373,14 +379,38 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
                 object_id=model.id)
 
             # exclude opened submission
-            data_qs.exclude(submission__status__in=[COMPLETED])
+            data_qs = data_qs.exclude(submission__status__in=[COMPLETED])
 
-            if data_qs.count() > 0:
-                # TODO: mark this batch to be called
+            if data_qs.count() == 1:
+                usi_submission = data_qs.first().submission
+
+                logger.debug("Found %s %s in %s" % (
+                    model._meta.verbose_name,
+                    model,
+                    usi_submission))
+
+                # mark this batch to be called like it was created
+                if usi_submission.id not in self.submission_ids:
+                    self.submission_ids.append(usi_submission.id)
+
+                    logger.debug(
+                        "Reset status for submission %s" % (usi_submission))
+                    usi_submission.status = READY
+                    usi_submission.save()
+
                 return True
+
+            elif data_qs.count() >= 1:
+                raise SubmissionError(
+                    "More than one submission opened for %s %s" % (
+                        model._meta.verbose_name,
+                        model))
 
             else:
                 # no sample in data. I could append model into submission
+                logger.debug("No %s %s in submission data" % (
+                    model._meta.verbose_name,
+                    model))
                 return False
 
         def add_to_submission_data(self, model):
@@ -433,7 +463,7 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
                 submission_data_helper.add_to_submission_data(animal)
 
             else:
-                # already submittes, so could be ignored
+                # already submitted, so could be ignored
                 logger.debug("Ignoring animal %s" % (animal))
 
             # Add their specimen
@@ -451,7 +481,9 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
         # prepare to launch chord tasks
         callback = submissioncomplete.s()
         submit = SubmitTask()
-        header = [submit.s(pk) for pk in submission_data_helper.created_ids]
+        header = [submit.s(pk) for pk in submission_data_helper.submission_ids]
+
+        logger.debug("Preparing chord for %s tasks" % len(header))
 
         # call chord task. Chord will be called only after all tasks
         res = chord(header)(callback)
