@@ -535,14 +535,14 @@ class SubmissionCompleteTaskTestCase(
         self.my_task = SubmissionCompleteTask()
 
         # these will be the tasks arguments, indipendently by status etc
-        self.my_tasks_args = [("success", 1), ("success", 2)]
+        self.my_tasks_args = ([("success", 1), ("success", 2)], )
 
     def test_submission_complete(self):
         """test no issues after a submission"""
 
         # calling task
         res = self.my_task.run(
-            self.my_tasks_args,
+            *self.my_tasks_args,
             uid_submission_id=self.submission_id)
 
         # assert a success with data uploading

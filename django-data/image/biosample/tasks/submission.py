@@ -486,8 +486,7 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
         submissioncomplete = SubmissionCompleteTask()
 
         # assign kwargs to chord
-        callback = submissioncomplete.s(
-            kwargs={'uid_submission_id': submission_id})
+        callback = submissioncomplete.s(uid_submission_id=submission_id)
 
         submit = SubmitTask()
         header = [submit.s(pk) for pk in submission_data_helper.submission_ids]
@@ -514,22 +513,26 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
     name = "Complete Submission"
     description = """Check submission status and update stuff"""
 
-    def run(self, submission_statuses, uid_submission_id=None):
+    def run(self, *args, **kwargs):
         """Fetch submission data and then update UID submission status"""
 
+        submission_statuses = args[0]
+
+        logger.debug(args)
+        logger.debug(kwargs)
         logger.debug(submission_statuses)
 
         # submission_statuses will be an array like this
         # [("success", 1), ("success"), 2]
-        uid_submission_ids = [status[1] for status in submission_statuses]
+        usi_submission_ids = [status[1] for status in submission_statuses]
 
         # fetch data from database
         submission_qs = USISubmission.objects.filter(
-            pk__in=uid_submission_ids)
+            pk__in=usi_submission_ids)
 
         # get UID submission
         uid_submission = Submission.objects.get(
-            pk=uid_submission_id)
+            pk=kwargs['uid_submission_id'])
 
         # check for errors in submission
         if submission_qs.filter(status=ERROR).count() > 0:
