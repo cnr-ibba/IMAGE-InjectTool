@@ -10,7 +10,8 @@ from unittest.mock import patch, PropertyMock, Mock
 
 from django.test import TestCase
 
-from common.constants import READY, COMPLETED, ERROR, SUBMITTED, WAITING
+from common.constants import (
+    READY, COMPLETED, ERROR, SUBMITTED, WAITING, STATUSES, NEED_REVISION)
 
 from .common import TaskFailureMixin, RedisMixin, BaseMixin
 from ..models import Submission as USISubmission, SubmissionData
@@ -537,24 +538,88 @@ class SubmissionCompleteTaskTestCase(
         # these will be the tasks arguments, indipendently by status etc
         self.my_tasks_args = ([("success", 1), ("success", 2)], )
 
-    def test_submission_complete(self):
-        """test no issues after a submission"""
+        # update statuses for biosample.models.Submission
+        USISubmission.objects.update(
+            status=SUBMITTED,
+            message='Waiting for biosample validation')
+
+    def common_check(self, status, message):
+        """Common check for tests"""
+
+        # update an object
+        usi_submission = USISubmission.objects.get(pk=1)
+        usi_submission.status = status
+        usi_submission.message = message
+        usi_submission.save()
 
         # calling task
-        res = self.my_task.run(
+        result = self.my_task.run(
             *self.my_tasks_args,
             uid_submission_id=self.submission_id)
 
         # assert a success with data uploading
-        self.assertEqual(res, "success")
-
-        message = 'Submitted'
-        notification_message = 'Waiting for biosample validation'
+        self.assertEqual(result, "success")
 
         # check status and messages
         self.submission_obj.refresh_from_db()
-        self.assertEqual(self.submission_obj.status, SUBMITTED)
-        self.assertEqual(self.submission_obj.message, notification_message)
+        self.assertEqual(self.submission_obj.status, status)
+        self.assertEqual(self.submission_obj.message, message)
 
         # calling a WebSocketMixin method
-        self.check_message(message, notification_message)
+        self.check_message(
+            STATUSES.get_value_display(status),
+            message)
+
+    def test_submission_complete(self):
+        """test no issues after a submission"""
+
+        self.common_check(
+            SUBMITTED,
+            'Waiting for biosample validation')
+
+    def test_error_api_endpoint(self):
+        """test issues with API endpoint"""
+
+        status = READY
+        message = "Errors in EBI API endpoints. Please try again later"
+
+        self.common_check(
+            status,
+            message)
+
+    def test_token_expired(self):
+        """test a token expired during submission"""
+
+        status = READY
+        message = (
+            "Your token is expired: please submit again to resume "
+            "submission")
+
+        self.common_check(
+            status,
+            message)
+
+    def test_unmanaged_exception(self):
+        """test an unmanaged exception"""
+
+        status = ERROR
+        message = "Exception: Unmanaged"
+
+        self.common_check(
+            status,
+            message)
+
+    def test_error_has_higher_priority(self):
+        # update an object with a ready status
+        usi_submission = USISubmission.objects.get(pk=2)
+        usi_submission.status = READY
+        usi_submission.message = "a message"
+        usi_submission.save()
+
+        # then raise a generi error
+        status = ERROR
+        message = "Exception: Unmanaged"
+
+        self.common_check(
+            status,
+            message)

@@ -15,10 +15,10 @@ from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
 from django.utils import timezone
 
-from common.constants import (
-    ERROR, READY, SUBMITTED, COMPLETED)
+from common.constants import ERROR, READY, SUBMITTED, COMPLETED
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Animal
 from submissions.helpers import send_message
@@ -534,25 +534,52 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
         uid_submission = Submission.objects.get(
             pk=kwargs['uid_submission_id'])
 
-        # check for errors in submission
-        if submission_qs.filter(status=ERROR).count() > 0:
+        # annotate biosample submission by statuses
+        statuses = {}
+
+        for res in submission_qs.values('status').annotate(
+                count=Count('status')):
+            statuses[res['status']] = res['count']
+
+        # check for errors in submission. Those are statuses setted by
+        # SubmitTask
+        if ERROR in statuses:
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
+
+            self.__update_message(uid_submission, submission_qs, ERROR)
+
+        elif READY in statuses:
+            # submission failed
+            logger.info("Temporary error for %s" % uid_submission)
+
+            self.__update_message(uid_submission, submission_qs, READY)
 
         else:
             # Update submission status: a completed but not yet finalized
             # submission
             logger.info("Submission %s success" % uid_submission)
 
-            uid_submission.status = SUBMITTED
-            uid_submission.message = (
-                "Waiting for biosample validation")
-            uid_submission.save()
+            self.__update_message(uid_submission, submission_qs, SUBMITTED)
 
         # send async message
         send_message(uid_submission)
 
         return "success"
+
+    def __update_message(self, uid_submission, submission_qs, status):
+        """Read biosample.models.Submission message and set
+        image_app.models.Submission message"""
+
+        # get error messages for submission
+        message = []
+
+        for submission in submission_qs.filter(status=status):
+            message.append(submission.message)
+
+        uid_submission.status = status
+        uid_submission.message = "\n".join(set(message))
+        uid_submission.save()
 
 
 # register explicitly tasks
