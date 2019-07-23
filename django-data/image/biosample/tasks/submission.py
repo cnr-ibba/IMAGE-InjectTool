@@ -282,7 +282,7 @@ class SubmissionHelper():
 
         self.mark_submission(ERROR, message)
 
-    def mark_success(self, message="Submitted to biosample"):
+    def mark_success(self, message="Waiting for biosample validation"):
         """Set a ERROR status for biosample.models.Submission and a message"""
 
         self.mark_submission(SUBMITTED, message)

@@ -11,7 +11,7 @@ from unittest.mock import patch, PropertyMock, Mock
 from django.test import TestCase
 
 from common.constants import (
-    READY, COMPLETED, ERROR, SUBMITTED, WAITING, STATUSES, NEED_REVISION)
+    READY, COMPLETED, ERROR, SUBMITTED, WAITING, STATUSES)
 
 from .common import TaskFailureMixin, RedisMixin, BaseMixin
 from ..models import Submission as USISubmission, SubmissionData
@@ -406,7 +406,9 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
 
         self.usi_submission.refresh_from_db()
         self.assertEqual(self.usi_submission.status, SUBMITTED)
-        self.assertEqual(self.usi_submission.message, "Submitted to biosample")
+        self.assertEqual(
+            self.usi_submission.message,
+            "Waiting for biosample validation")
 
 
 class SubmitTaskTestCase(SubmissionFeaturesMixin, TestCase):
@@ -475,7 +477,7 @@ class SubmitTaskTestCase(SubmissionFeaturesMixin, TestCase):
         # Remeber that submission_id will be biosample.models.Submission.id
         res = self.my_task.run(usi_submission_id=self.usi_submission_id)
 
-        self.common_test(res, "Submitted to biosample", SUBMITTED)
+        self.common_test(res, "Waiting for biosample validation", SUBMITTED)
 
     def test_issues_with_api(self):
         """Test errors with submission API"""
