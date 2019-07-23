@@ -24,7 +24,8 @@ from django.urls import reverse_lazy, reverse
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE,
     TIME_UNITS, VALIDATION_MESSAGES_ATTRIBUTES, SAMPLE_STORAGE,
-    SAMPLE_STORAGE_PROCESSING, ACCURACIES)
+    SAMPLE_STORAGE_PROCESSING, ACCURACIES, ONTOLOGY_VALIDATION_MESSAGES,
+    UNITS_VALIDATION_MESSAGES)
 from common.helpers import get_deleted_objects, uid2biosample
 from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
@@ -40,6 +41,7 @@ from animals.tasks import BatchUpdateAnimals
 from samples.tasks import BatchUpdateSamples
 
 from .forms import SubmissionForm, ReloadForm
+from .helpers import is_target_in_message
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -205,12 +207,10 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
                                         ])
         self.offending_column = uid2biosample(
             self.message['offending_column'])
-        if re.search(".* for field .* is not in the valid units list (.*)",
-                     self.message['message']) or re.search(
-            "One of .* need to be present for the field .*",
-            self.message['message']):
+        if is_target_in_message(self.message['message'],
+                                UNITS_VALIDATION_MESSAGES):
             self.show_units = True
-            if self.offending_column == 'animal_age_at_collection_units':
+            if self.offending_column == 'animal_age_at_collection':
                 self.offending_column += "_units"
                 self.units = [unit.name for unit in TIME_UNITS]
             elif self.offending_column == 'preparation_interval_units':
@@ -226,8 +226,8 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
                 self.units = [unit.name for unit in ACCURACIES]
             elif self.offending_column == 'birth_location_accuracy':
                 self.units = [unit.name for unit in ACCURACIES]
-        elif re.search("Not valid ontology term .* in field .*",
-                       self.message['message']):
+        elif is_target_in_message(self.message['message'],
+                                  ONTOLOGY_VALIDATION_MESSAGES):
             self.show_units = False
             self.units = None
             if self.offending_column == 'organism_part':

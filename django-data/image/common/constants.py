@@ -174,21 +174,6 @@ DAYS = TIME_UNITS.get_value('days')
 
 KNOWN_STATUSES = ['Error', 'Issues', 'Known', 'Pass', 'Warning']
 
-# TODO add all possible messages
-VALIDATION_MESSAGES = {
-    'coordinate_check': '.* No value provided for field .* but value in '
-                        'field .* is not missing geographic information',
-    'ruleset_check': '',
-    'usi_structure_check': '',
-    'duplicates_check': '',
-    'species_check': '',
-    'animal_sample_check': '',
-    'organism_part_sex_check': '',
-    'child_of_check': '',
-    'species_breed_check': '',
-    'parents_sex_check': ''
-}
-
 VALIDATION_MESSAGES_ATTRIBUTES = [
     ['birth_location', 'birth_location_latitude', 'birth_location_longitude',
      'birth_location_accuracy'],
@@ -199,10 +184,22 @@ VALIDATION_MESSAGES_ATTRIBUTES = [
     ['availability'],
     ['storage'],
     ['storage_processing'],
-    ['preparation_interval_units'],
     ['term', 'label'],
     ['organism_part'],
     ['developmental_stage'],
     ['physiological_stage'],
     ['sex'],
+]
+
+ONTOLOGY_VALIDATION_MESSAGES = [
+    "Not valid ontology term .* in field .*",
+    "No url found for the field .* which has the type of ontology_id",
+    "Provided value .* does not match to the provided ontology .*",
+    "Provided iri .* does not match the iri retrieved from OLS in the field .*",
+    "Provided value .* has different letter case to the term referenced by .*"
+]
+
+UNITS_VALIDATION_MESSAGES = [
+    ".* for field .* is not in the valid units list (.*)",
+    "One of .* need to be present for the field .*"
 ]
