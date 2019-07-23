@@ -189,6 +189,7 @@ VALIDATION_MESSAGES_ATTRIBUTES = [
     ['developmental_stage'],
     ['physiological_stage'],
     ['sex'],
+    ['species'],
 ]
 
 ONTOLOGY_VALIDATION_MESSAGES = [

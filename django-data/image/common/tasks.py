@@ -14,7 +14,7 @@ from celery.five import monotonic
 from django.conf import settings
 
 from image_app.models import Submission, Sample, Animal, DictUberon, \
-    DictDevelStage, DictPhysioStage, DictSex
+    DictDevelStage, DictPhysioStage, DictSex, DictSpecie
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 from common.constants import NEED_REVISION
@@ -42,6 +42,9 @@ class BatchUpdateMixin:
                 item_object = DictPhysioStage.objects.get(pk=id)
             elif item_type == 'dictsex':
                 item_object = DictSex.objects.get(pk=id)
+            elif item_type == 'dictspecie_animal' or \
+                    item_type == 'dictspecie_sample':
+                item_object = DictSpecie.objects.get(pk=id)
             if getattr(item_object, attribute) != value:
                 setattr(item_object, attribute, value)
                 item_object.save()
