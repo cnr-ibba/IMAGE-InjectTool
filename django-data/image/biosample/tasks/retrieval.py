@@ -26,6 +26,7 @@ from common.constants import (
 from submissions.helpers import send_message
 
 from ..helpers import get_manager_auth
+from ..models import Submission as USISubmission
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -36,6 +37,239 @@ config = AutoConfig(search_path=settings_dir)
 
 # a threshold of days to determine a very long task
 MAX_DAYS = 5
+
+
+# HINT: how this class could be similar to SubmissionHelper?
+class FetchStatusHelper():
+    """Helper class to deal with submission data"""
+
+    # define my class attributes
+    def __init__(self, usi_submission):
+        """
+        Helper function to have info for a biosample.models.Submission
+
+        Args:
+            usi_submission (biosample.models.Submission): a biosample
+                model Submission instance
+        """
+
+        # ok those are my default class attributes
+        self.usi_submission = usi_submission
+        self.uid_submission = usi_submission.uid_submission
+
+        # here are pyUSIrest object
+        self.auth = get_manager_auth()
+        self.root = pyUSIrest.client.Root(self.auth)
+
+        # here I will track the biosample submission
+        self.submission_name = self.usi_submission.usi_submission_name
+        self.submission = self.root.get_submission_by_name(
+            submission_name=self.submission_name)
+
+    def check_submission_status(self):
+        logger.debug("Checking status for '%s'" % (
+            self.submission_name))
+
+        # Update submission status if completed
+        if self.submission.status == 'Completed':
+            # fetch biosample ids with a proper function
+            self.complete()
+
+        elif self.submission.status == 'Draft':
+            # check for a long task
+            if self.submission_has_issues():
+                # return to the caller. I've just marked the submission with
+                # errors and sent a mail to the user
+                return
+
+            # check validation. If it is ok, finalize submission
+            status = self.submission.get_status()
+
+            # this mean validation statuses, I want to see completed in all
+            # samples
+            if len(status) == 1 and 'Complete' in status:
+                # check for errors and eventually finalize
+                self.finalize()
+
+            else:
+                logger.warning(
+                    "Biosample validation is not completed yet (%s)" %
+                    (status))
+
+        elif self.submission.status == 'Submitted':
+            # check for a long task
+            if self.submission_has_issues():
+                # return to the caller. I've just marked the submission with
+                # errors and sent a mail to the user
+                return
+
+            logger.info(
+                "Submission '%s' is '%s'. Waiting for biosample ids" % (
+                    self.submission_name,
+                    self.submission.status))
+
+            # debug submission status
+            document = self.submission.follow_url(
+                "processingStatusSummary", self.auth)
+
+            logger.debug(
+                "Current status for submission '%s' is '%s'" % (
+                    self.submission_name, document.data))
+
+        else:
+            # HINT: thrown an exception?
+            logger.warning("Unknown status '%s' for submission '%s'" % (
+                self.submission.status,
+                self.submission_name))
+
+    def submission_has_issues(self):
+        """
+        Check that biosample submission has not issues. For example, that
+        it will remain in the same status for a long time
+
+        Returns:
+            bool: True if an issue is detected
+        """
+
+        logger.debug(
+            "Check if submission '%s' remained in the same status "
+            "for a long time" % (
+                self.submission_name))
+
+        if (timezone.now() - self.usi_submission.updated_at).days > MAX_DAYS:
+            message = (
+                "Biosample submission '%s' remained with the same status "
+                "for more than %s days. Please report it to InjectTool "
+                "team" % (self.submission_name, MAX_DAYS))
+
+            self.usi_submission.status = ERROR
+            self.usi_submission.message = message
+            self.usi_submission.save()
+
+            logger.error(
+                "Errors for submission: %s" % (
+                    self.submission_name))
+            logger.error(message)
+
+            return True
+
+        else:
+            return False
+
+    def __sample_has_errors(self, sample, table, pk):
+        """
+        Helper metod to mark a (animal/sample) with its own errors. Table
+        sould be Animal or Sample to update the approriate object. Sample
+        is a USI sample object
+
+        Args:
+            sample (pyUSIrest.client.sample): a USI sample object
+            table (str): ``Animal`` or ``Sample``, mean the table where this
+                object should be searched
+            pk (int): table primary key
+        """
+
+        # get sample/animal object relying on table name and pk
+        sample_obj = get_model_object(table, pk)
+
+        sample_obj.name.status = NEED_REVISION
+        sample_obj.name.save()
+
+        # get a USI validation result
+        validation_result = sample.get_validation_result()
+
+        # TODO: should I store validation_result error in validation tables?
+        errorMessages = validation_result.errorMessages
+
+        # return an error for each object
+        return {str(sample_obj): errorMessages}
+
+    def finalize(self):
+        """Finalize a submission by closing document and send it to
+        biosample"""
+
+        logger.debug("Finalizing submission '%s'" % (
+            self.submission_name))
+
+        # get errors for a submission
+        errors = self.submission.has_errors()
+
+        # collect all error messages in a list
+        messages = []
+
+        if True in errors:
+            # get sample with errors then update database
+            samples = self.submission.get_samples(has_errors=True)
+
+            for sample in samples:
+                # derive pk and table from alias
+                table, pk = parse_image_alias(sample.alias)
+
+                # need to check if this sample/animals has errors or not
+                if sample.has_errors():
+                    logger.warning(
+                        "%s in table %s has errors!!!" % (sample, table))
+
+                    # mark this sample since has problems
+                    errorMessages = self.__sample_has_errors(
+                        sample, table, pk)
+
+                    # append this into error messages list
+                    messages.append(errorMessages)
+
+                # if a sample has no errors, status will be the same
+
+            logger.error(
+                "Errors for submission: '%s'" % (self.submission_name))
+            logger.error("Fix them, then finalize")
+
+            # report error
+            message = "Some items needs revision:\n\n" + \
+                json.dumps(messages, indent=2)
+
+            # Update status for biosample.models.Submission
+            self.usi_submission.status = NEED_REVISION
+            self.usi_submission.message = message
+            self.usi_submission.save()
+
+        else:
+            # raising an exception while finalizing will result
+            # in a failed task.
+            # TODO: model and test exception in finalization
+            self.submission.finalize()
+
+    def complete(self):
+        """Complete a submission and fetch name objects"""
+
+        logger.debug("Completing submission '%s'" % (
+            self.submission_name))
+
+        for sample in self.submission.get_samples():
+            # derive pk and table from alias
+            table, pk = parse_image_alias(sample.alias)
+
+            # if no accession, return without doing anything
+            if sample.accession is None:
+                logger.error("No accession found for sample '%s'" % (sample))
+                logger.error("Ignoring submission '%s'" % (self.submission))
+                return
+
+            # get sample/animal object relying on table name and pk
+            sample_obj = get_model_object(table, pk)
+
+            # update statuses
+            sample_obj.name.status = COMPLETED
+            sample_obj.name.biosample_id = sample.accession
+            sample_obj.name.save()
+
+        # update submission
+        self.usi_submission.status = COMPLETED
+        self.usi_submission.message = "Successful submission into biosample"
+        self.usi_submission.save()
+
+        logger.info(
+            "Submission %s is now completed and recorded into UID" % (
+                self.submission))
 
 
 class FetchStatusTask(MyTask):
