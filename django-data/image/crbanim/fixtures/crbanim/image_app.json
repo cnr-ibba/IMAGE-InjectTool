@@ -277,7 +277,6 @@
     "updated_at": "2019-06-18T17:25:01.353Z",
     "status": 1,
     "message": "CRBAnim import completed for submission: 1",
-    "biosample_submission_id": null,
     "owner": 1
   }
 }
