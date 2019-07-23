@@ -30,7 +30,8 @@ from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import import_from_cryoweb
 
-from image_app.models import Submission, Name, Animal, Sample
+from image_app.models import Submission, Name, Animal, Sample, DictUberon, \
+    DictDevelStage, DictPhysioStage, DictSex
 from excel.tasks import ImportTemplateTask
 
 from validation.helpers import construct_validation_message
@@ -225,6 +226,31 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
                 self.units = [unit.name for unit in ACCURACIES]
             elif self.offending_column == 'birth_location_accuracy':
                 self.units = [unit.name for unit in ACCURACIES]
+        elif re.search("Not valid ontology term .* in field .*",
+                       self.message['message']):
+            self.show_units = False
+            self.units = None
+            if self.offending_column == 'organism_part':
+                self.offending_column = 'term'
+                self.summary_type = 'dictuberon'
+                return DictUberon.objects.filter(id__in=[Sample.objects.get(
+                    pk=self.message['ids'][0]).organism_part_id])
+            elif self.offending_column == 'developmental_stage':
+                self.offending_column = 'term'
+                self.summary_type = 'dictdevelstage'
+                return DictDevelStage.objects.filter(id__in=[Sample.objects.get(
+                    pk=self.message['ids'][0]).developmental_stage_id])
+            elif self.offending_column == 'physiological_stage':
+                self.offending_column = 'term'
+                self.summary_type = 'dictphysiostage'
+                return DictPhysioStage.objects.filter(id__in=[
+                    Sample.objects.get(
+                        pk=self.message['ids'][0]).physiological_stage_id])
+            elif self.offending_column == 'sex':
+                self.offending_column = 'term'
+                self.summary_type = 'dictsex'
+                return DictSex.objects.filter(id__in=[Animal.objects.get(
+                    pk=self.message['ids'][0]).sex_id])
         else:
             self.show_units = False
             self.units = None
@@ -253,7 +279,6 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         context['show_units'] = self.show_units
         if self.units:
             context['units'] = self.units
-
         return context
 
 
@@ -454,22 +479,31 @@ class FixValidation(View, OwnerMixin):
         submission.save()
 
         # Update validation summary
+        if record_type == 'dictuberon' or record_type == 'dictdevelstage' or \
+                record_type == 'dictphysiostage':
+            validation_summary_type = 'sample'
+        elif record_type == 'dictsex':
+            validation_summary_type = 'animal'
+        else:
+            validation_summary_type = record_type
         summary_obj, created = ValidationSummary.objects.get_or_create(
-            submission=submission, type=record_type)
+            submission=submission, type=validation_summary_type)
         summary_obj.submission = submission
         summary_obj.reset()
 
         # create a task
-        if record_type == 'animal':
+        if record_type == 'animal' or record_type == 'dictsex':
             my_task = BatchUpdateAnimals()
-        elif record_type == 'sample':
+        elif record_type == 'sample' or record_type == 'dictuberon' or \
+                record_type == 'dictdevelstage' or \
+                record_type == 'dictphysiostage':
             my_task = BatchUpdateSamples()
         else:
             return HttpResponseRedirect(
                 reverse('submissions:detail', args=(pk,)))
 
         # a valid submission start a task
-        res = my_task.delay(pk, keys_to_fix, attribute_to_edit)
+        res = my_task.delay(pk, keys_to_fix, attribute_to_edit, record_type)
         logger.info(
             "Start fix validation process with task %s" % res.task_id)
         return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))

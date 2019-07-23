@@ -199,5 +199,10 @@ VALIDATION_MESSAGES_ATTRIBUTES = [
     ['availability'],
     ['storage'],
     ['storage_processing'],
-    ['preparation_interval_units']
+    ['preparation_interval_units'],
+    ['term', 'label'],
+    ['organism_part'],
+    ['developmental_stage'],
+    ['physiological_stage'],
+    ['sex'],
 ]

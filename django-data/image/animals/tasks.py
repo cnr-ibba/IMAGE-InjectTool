@@ -48,7 +48,7 @@ class BatchUpdateAnimals(MyTask, BatchUpdateMixin):
 
         # TODO: submit mail to admin
 
-    def run(self, submission_id, animal_ids, attribute):
+    def run(self, submission_id, animal_ids, attribute, item_type='animal'):
         """Function for batch update attribute in animals
         Args:
             submission_id (int): id of submission
@@ -58,7 +58,7 @@ class BatchUpdateAnimals(MyTask, BatchUpdateMixin):
 
         logger.info("Start batch update for animals")
         super(BatchUpdateAnimals, self).batch_update(submission_id, animal_ids,
-                                                     attribute, 'animal')
+                                                     attribute, item_type)
         return 'success'
 
 

@@ -48,17 +48,18 @@ class BatchUpdateSamples(MyTask, BatchUpdateMixin):
 
         # TODO: submit mail to admin
 
-    def run(self, submission_id, sample_ids, attribute):
+    def run(self, submission_id, sample_ids, attribute, item_type='sample'):
         """Function for batch update attribute in samples
         Args:
             submission_id (int): id of submission
             sample_ids (dict): dict with id and values to update
             attribute (str): attribute to update
+            item_type (str): model to update
         """
 
         logger.info("Start batch update for samples")
         super(BatchUpdateSamples, self).batch_update(submission_id, sample_ids,
-                                                     attribute, 'sample')
+                                                     attribute, item_type)
         return 'success'
 
 

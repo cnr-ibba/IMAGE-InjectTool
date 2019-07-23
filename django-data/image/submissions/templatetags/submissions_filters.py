@@ -36,6 +36,8 @@ def convert_to_human_readable(value, record_type):
         return  Animal._meta.get_field(value).verbose_name.title()
     elif record_type == 'sample':
         return  Sample._meta.get_field(value).verbose_name.title()
+    else:
+        return value
 
 
 @register.filter
