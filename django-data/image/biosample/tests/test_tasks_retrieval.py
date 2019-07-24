@@ -22,8 +22,8 @@ from common.constants import (
 from common.tests import WebSocketMixin
 from image_app.models import Submission, Name
 
-from ..tasks import FetchStatusTask
-from ..models import ManagedTeam
+from ..tasks.retrieval import FetchStatusTask, FetchStatusHelper
+from ..models import ManagedTeam, Submission as USISubmission
 
 
 class FetchMixin():
@@ -71,7 +71,6 @@ class FetchMixin():
 
         # set a status which I can fetch_status
         self.submission_obj.status = SUBMITTED
-        self.submission_obj.biosample_submission_id = "test-fetch"
         self.submission_obj.save()
 
         # set status for names, like submittask does. Only sample not unknown
@@ -89,167 +88,15 @@ class FetchMixin():
         # start root object
         self.my_root = self.mock_root.return_value
 
-        # define my task
-        self.my_task = FetchStatusTask()
 
-        # change lock_id (useful when running test during cron)
-        self.my_task.lock_id = "test-FetchStatusTask"
-
-    def common_tests(self, my_submission):
-        # passing submission to Mocked Root
-        self.my_root.get_submission_by_name.return_value = my_submission
-
-        # NOTE that I'm calling the function directly, without delay
-        # (AsyncResult). I've patched the time consuming task
-        res = self.my_task.run()
-
-        # assert a success with data uploading
-        self.assertEqual(res, "success")
-
-        self.assertTrue(self.mock_auth.called)
-        self.assertTrue(self.mock_root.called)
-        self.assertTrue(self.my_root.get_submission_by_name.called)
-
-
-class FetchCompletedTestCase(FetchMixin, WebSocketMixin, TestCase):
-    """a completed submission with two samples"""
+class FetchStatusHelperMixin(FetchMixin):
+    """Test class for FetchStatusHelper"""
 
     fixtures = [
         'biosample/account',
         'biosample/managedteam',
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
-    ]
-
-    def test_fetch_status(self):
-        # a completed submission with two samples
-        my_submission = Mock()
-        my_submission.name = "test-fetch"
-        my_submission.status = 'Completed'
-
-        # Add samples
-        my_sample1 = Mock()
-        my_sample1.name = "test-animal"
-        my_sample1.alias = "IMAGEA000000001"
-        my_sample1.accession = "SAMEA0000001"
-        my_sample2 = Mock()
-        my_sample2.name = "test-sample"
-        my_sample2.alias = "IMAGES000000001"
-        my_sample2.accession = "SAMEA0000002"
-        my_submission.get_samples.return_value = [my_sample1, my_sample2]
-
-        # assert task and mock methods called
-        self.common_tests(my_submission)
-
-        # assert status for submissions
-        self.submission_obj.refresh_from_db()
-        self.assertEqual(self.submission_obj.status, COMPLETED)
-
-        # check name status changed
-        qs = Name.objects.filter(status=COMPLETED)
-        self.assertEqual(len(qs), 2)
-
-        # fetch two name objects
-        name = Name.objects.get(name='ANIMAL:::ID:::132713')
-        self.assertEqual(name.biosample_id, "SAMEA0000001")
-
-        name = Name.objects.get(name='Siems_0722_393449')
-        self.assertEqual(name.biosample_id, "SAMEA0000002")
-
-        message = 'Completed'
-        notification_message = 'Successful submission into biosample'
-
-        # calling a WebSocketMixin method
-        self.check_message(message, notification_message)
-
-    def test_fetch_status_no_accession(self):
-        # a completed submission with two samples
-        my_submission = Mock()
-        my_submission.name = "test-fetch"
-        my_submission.status = 'Submitted'
-
-        # Add samples
-        my_sample1 = Mock()
-        my_sample1.name = "test-animal"
-        my_sample1.alias = "IMAGEA000000001"
-        my_sample1.accession = None
-        my_sample2 = Mock()
-        my_sample2.name = "test-sample"
-        my_sample2.alias = "IMAGES000000001"
-        my_sample2.accession = None
-        my_submission.get_samples.return_value = [my_sample1, my_sample2]
-
-        # assert task and mock methods called
-        self.common_tests(my_submission)
-
-        # assert status for submissions
-        self.submission_obj.refresh_from_db()
-        self.assertEqual(self.submission_obj.status, SUBMITTED)
-
-        # check name status changed
-        qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), self.n_to_submit)
-
-    # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
-    @patch("biosample.tasks.FetchStatusTask.retry")
-    @patch("biosample.tasks.FetchStatusTask.fetch_queryset")
-    def test_fetch_status_retry(self, my_fetch, my_retry):
-        """Test fetch status with retry"""
-
-        # Set a side effect on the patched methods
-        # so that they raise the errors we want.
-        my_retry.side_effect = Retry()
-        my_fetch.side_effect = ConnectionError()
-
-        with raises(Retry):
-            self.my_task.run()
-
-        self.assertTrue(my_fetch.called)
-        self.assertTrue(my_retry.called)
-
-    # Test a non blocking instance
-    @patch("biosample.tasks.FetchStatusTask.fetch_queryset")
-    @patch("redis.lock.Lock.acquire", return_value=False)
-    def test_fetch_status_nb(self, my_lock, my_fetch):
-        """Test FetchSTatus while a lock is present"""
-
-        res = self.my_task.run()
-
-        # assert database is locked
-        self.assertEqual(res, "%s already running!" % (self.my_task.name))
-        self.assertFalse(my_fetch.called)
-
-
-class FetchNotInDBTestCase(FetchMixin, TestCase):
-    """A submission not in db"""
-
-    def test_fetch_status(self):
-        # mocking submissions. A submission not in db
-        my_submission = Mock()
-        my_submission.name = "not-present-in-db"
-
-        # assert task and mock methods called
-        self.common_tests(my_submission)
-
-
-class FetchWithErrorsTestCase(FetchMixin, WebSocketMixin, TestCase):
-    """Test a submission with errors for biosample"""
-
-    fixtures = [
-        'biosample/account',
-        'biosample/managedteam',
+        'biosample/submission',
+        'biosample/submissiondata',
         'image_app/animal',
         'image_app/dictbreed',
         'image_app/dictcountry',
@@ -270,12 +117,122 @@ class FetchWithErrorsTestCase(FetchMixin, WebSocketMixin, TestCase):
         # calling my base setup
         super().setUp()
 
+        # define a biosample submission object
+        self.my_submission = Mock()
+        self.my_submission.name = "test-fetch"
+
+        # passing submission to Mocked Root
+        self.my_root.get_submission_by_name.return_value = self.my_submission
+
+        # get a biosample.model.Submission and update object
+        self.usi_submission = USISubmission.objects.get(pk=1)
+        self.usi_submission.usi_submission_name = self.my_submission.name
+        self.usi_submission.status = SUBMITTED
+        self.usi_submission.save()
+
+        # ok setup the object
+        self.status_helper = FetchStatusHelper(self.usi_submission)
+
+        # track names
+        self.animal_name = Name.objects.get(pk=3)
+        self.sample_name = Name.objects.get(pk=4)
+
+    def common_tests(self):
+        """Assert stuff for each test"""
+
+        # call stuff
+        self.status_helper.check_submission_status()
+
+        # UID submission status remain the same
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
+
+        self.assertTrue(self.mock_auth.called)
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_submission_by_name.called)
+
+
+class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
+    """a completed submission with two samples"""
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # a completed submission with two samples
+        self.my_submission.status = 'Completed'
+
+    def test_fetch_status(self):
+        """Test fetch status for a complete submission"""
+
+        # Add samples
+        my_sample1 = Mock()
+        my_sample1.name = "test-animal"
+        my_sample1.alias = "IMAGEA000000001"
+        my_sample1.accession = "SAMEA0000001"
+        my_sample2 = Mock()
+        my_sample2.name = "test-sample"
+        my_sample2.alias = "IMAGES000000001"
+        my_sample2.accession = "SAMEA0000002"
+        self.my_submission.get_samples.return_value = [my_sample1, my_sample2]
+
+        # assert auth, root and get_submission by name called
+        self.common_tests()
+
+        # USI submission status changed
+        self.usi_submission.refresh_from_db()
+        self.assertEqual(self.usi_submission.status, COMPLETED)
+
+        # check name status changed
+        qs = Name.objects.filter(status=COMPLETED)
+        self.assertEqual(len(qs), 2)
+
+        # fetch two name objects
+        self.animal_name.refresh_from_db()
+        self.assertEqual(self.animal_name.biosample_id, "SAMEA0000001")
+
+        self.sample_name.refresh_from_db()
+        self.assertEqual(self.sample_name.biosample_id, "SAMEA0000002")
+
+    def test_fetch_status_no_accession(self):
+        """Test fetch status for a submission which doens't send accession
+        no updates in such case"""
+
+        # Add samples
+        my_sample1 = Mock()
+        my_sample1.name = "test-animal"
+        my_sample1.alias = "IMAGEA000000001"
+        my_sample1.accession = None
+        my_sample2 = Mock()
+        my_sample2.name = "test-sample"
+        my_sample2.alias = "IMAGES000000001"
+        my_sample2.accession = None
+        self.my_submission.get_samples.return_value = [my_sample1, my_sample2]
+
+        # assert auth, root and get_submission by name called
+        self.common_tests()
+
+        # USI submission status didn't change
+        self.usi_submission.refresh_from_db()
+        self.assertEqual(self.usi_submission.status, SUBMITTED)
+
+        # check name status didn't changed
+        qs = Name.objects.filter(status=SUBMITTED)
+        self.assertEqual(len(qs), self.n_to_submit)
+
+
+class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
+    """Test a submission with errors for biosample"""
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
         # a draft submission with errors
-        my_submission = Mock()
-        my_submission.name = "test-fetch"
-        my_submission.status = 'Draft'
-        my_submission.has_errors.return_value = Counter({True: 1, False: 1})
-        my_submission.get_status.return_value = Counter({'Complete': 2})
+        self.my_submission.status = 'Draft'
+        self.my_submission.has_errors.return_value = Counter(
+            {True: 1, False: 1})
+        self.my_submission.get_status.return_value = Counter({'Complete': 2})
 
         # Add samples. Suppose that first failed, second is ok
         my_validation_result1 = Mock()
@@ -302,22 +259,15 @@ class FetchWithErrorsTestCase(FetchMixin, WebSocketMixin, TestCase):
         my_sample2.get_validation_result.return_value = my_validation_result2
 
         # simulate that IMAGEA000000001 has errors
-        my_submission.get_samples.return_value = [my_sample1, my_sample2]
+        self.my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
-        # track objects
-        self.my_submission = my_submission
-        self.my_validation_result1 = my_validation_result1
-        self.my_validation_result2 = my_validation_result2
+        # track other objects
         self.my_sample1 = my_sample1
         self.my_sample2 = my_sample2
 
-        # track names
-        self.animal_name = Name.objects.get(pk=3)
-        self.sample_name = Name.objects.get(pk=4)
-
     def common_tests(self):
-        # assert task and mock methods called
-        super().common_tests(self.my_submission)
+        # assert auth, root and get_submission by name called
+        super().common_tests()
 
         # assert custom mock attributes called
         self.assertTrue(self.my_sample1.has_errors.called)
@@ -328,12 +278,12 @@ class FetchWithErrorsTestCase(FetchMixin, WebSocketMixin, TestCase):
         self.assertFalse(self.my_sample2.get_validation_result.called)
 
     def test_fetch_status(self):
-        # assert task and mock methods called
+        # assert tmock methods called
         self.common_tests()
 
-        # assert submission status
-        self.submission_obj.refresh_from_db()
-        self.assertEqual(self.submission_obj.status, NEED_REVISION)
+        # USI submission changed
+        self.usi_submission.refresh_from_db()
+        self.assertEqual(self.usi_submission.status, NEED_REVISION)
 
         # check name status changed only for animal (not sample)
         self.animal_name.refresh_from_db()
@@ -342,96 +292,57 @@ class FetchWithErrorsTestCase(FetchMixin, WebSocketMixin, TestCase):
         self.sample_name.refresh_from_db()
         self.assertEqual(self.sample_name.status, SUBMITTED)
 
-        message = 'Need Revision'
-        notification_message = 'Error in biosample submission'
 
-        # calling a WebSocketMixin method
-        self.check_message(message, notification_message)
-
-    def test_email_sent(self):
-        # assert task and mock methods called
-        self.common_tests()
-
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
-
-        # read email
-        email = mail.outbox[0]
-
-        self.assertEqual(
-            "Error in biosample submission %s" % self.submission_obj_id,
-            email.subject)
-
-        # check for error messages in object
-        self.assertIn("a sample message", email.body)
-
-        message = 'Need Revision'
-        notification_message = 'Error in biosample submission'
-
-        # calling a WebSocketMixin method
-        self.check_message(message, notification_message)
-
-
-class FetchDraftTestCase(FetchMixin, TestCase):
+class FetchDraftTestCase(FetchStatusHelperMixin, TestCase):
     """a draft submission without errors"""
+
+    def common_tests(self):
+        # assert auth, root and get_submission by name called
+        super().common_tests()
+
+        # USI submission status didn't change
+        self.usi_submission.refresh_from_db()
+        self.assertEqual(self.usi_submission.status, SUBMITTED)
 
     def test_fetch_status(self):
         # a draft submission without errors
-        my_submission = Mock()
-        my_submission.name = "test-fetch"
-        my_submission.status = 'Draft'
-        my_submission.has_errors.return_value = Counter({False: 1})
-        my_submission.get_status.return_value = Counter({'Complete': 1})
+        self.my_submission.status = 'Draft'
+        self.my_submission.has_errors.return_value = Counter({False: 2})
+        self.my_submission.get_status.return_value = Counter({'Complete': 2})
 
-        # assert task and mock methods called
-        self.common_tests(my_submission)
-
-        # assert status for submissions
-        self.submission_obj.refresh_from_db()
-        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        # assert mock methods called
+        self.common_tests()
 
         # testing a finalized biosample condition
-        self.assertTrue(my_submission.finalize.called)
+        self.assertTrue(self.my_submission.finalize.called)
 
     def test_fetch_status_pending(self):
         """Testing status with pending validation"""
 
         # a draft submission without errors
-        my_submission = Mock()
-        my_submission.name = "test-fetch"
-        my_submission.status = 'Draft'
-        my_submission.has_errors.return_value = Counter({False: 1})
-        my_submission.get_status.return_value = Counter({'Pending': 1})
+        self.my_submission.status = 'Draft'
+        self.my_submission.has_errors.return_value = Counter({False: 2})
+        self.my_submission.get_status.return_value = Counter({'Pending': 2})
 
-        # assert task and mock methods called
-        self.common_tests(my_submission)
-
-        # assert status for submissions
-        self.submission_obj.refresh_from_db()
-        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        # assert mock methods called
+        self.common_tests()
 
         # testing a not finalized biosample condition
-        self.assertFalse(my_submission.finalize.called)
+        self.assertFalse(self.my_submission.finalize.called)
 
     def test_fetch_status_submitted(self):
         """Testing status during biosample submission"""
 
         # a draft submission without errors
-        my_submission = Mock()
-        my_submission.name = "test-fetch"
-        my_submission.status = 'Submitted'
-        my_submission.has_errors.return_value = Counter({False: 1})
-        my_submission.get_status.return_value = Counter({'Complete': 1})
+        self.my_submission.status = 'Submitted'
+        self.my_submission.has_errors.return_value = Counter({False: 2})
+        self.my_submission.get_status.return_value = Counter({'Complete': 2})
 
-        # assert task and mock methods called
-        self.common_tests(my_submission)
-
-        # assert status for submissions
-        self.submission_obj.refresh_from_db()
-        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        # assert mock methods called
+        self.common_tests()
 
         # testing a not finalized biosample condition
-        self.assertFalse(my_submission.finalize.called)
+        self.assertFalse(self.my_submission.finalize.called)
 
 
 class FetchLongTaskTestCase(FetchMixin, WebSocketMixin, TestCase):

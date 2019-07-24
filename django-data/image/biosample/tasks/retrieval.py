@@ -122,6 +122,9 @@ class FetchStatusHelper():
                 self.submission.status,
                 self.submission_name))
 
+        logger.debug("Checking status for '%s' completed" % (
+            self.submission_name))
+
     def submission_has_issues(self):
         """
         Check that biosample submission has not issues. For example, that
