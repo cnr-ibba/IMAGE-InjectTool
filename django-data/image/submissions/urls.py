@@ -41,5 +41,8 @@ urlpatterns = [
         name='delete_samples'),
     url(r'^(?P<pk>[-\w]+)/validation_summary/(?P<type>[\w]+)/$',
         views.SubmissionValidationSummaryView.as_view(),
-        name='validation_summary')
+        name='validation_summary'),
+    url(r'^(?P<pk>[-\w]+)/batch_delete/(?P<type>[\w]+)/$',
+        views.BatchDelete.as_view(),
+        name='batch_delete')
 ]

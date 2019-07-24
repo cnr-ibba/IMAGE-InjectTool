@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Delete {{ delete_type }} from submission
+{% endblock title %}
+
+{% block content %}
+    <h1>Delete {{ delete_type }} from submission</h1>
+    <form action="{% url 'submissions:batch_delete' pk delete_type%}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="to_delete">Please provide ids to delete (one id per row)</label>
+            <textarea class="form-control" name="to_delete" id="to_delete" rows="25"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock content %}
