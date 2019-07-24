@@ -12,9 +12,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic import (
-    CreateView, DetailView, ListView, UpdateView, DeleteView)
+    CreateView, DetailView, ListView, UpdateView, DeleteView, View)
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 
@@ -282,6 +282,16 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())
+
+
+class DeleteAnimalsView(OwnerMixin, View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse('delete animals!!!')
+
+
+class DeleteSamplesView(OwnerMixin, View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse('delete samples!!!')
 
 
 class DeleteSubmissionView(OwnerMixin, DeleteView):
