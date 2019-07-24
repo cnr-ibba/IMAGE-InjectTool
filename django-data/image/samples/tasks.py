@@ -9,7 +9,7 @@ from celery.utils.log import get_task_logger
 
 from common.constants import ERROR, NEED_REVISION
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission
+from image_app.models import Submission, Sample, Name
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 
@@ -51,10 +51,21 @@ class BatchDeleteSamples(MyTask):
         """Function for batch update attribute in animals
         Args:
             submission_id (int): id of submission
-            sample_ids (set): set with ids to delete
+            sample_ids (list): set with ids to delete
         """
 
         logger.info("Start batch delete for samples")
+        success_ids = list()
+        failed_ids = list()
+        for sample_id in sample_ids:
+            try:
+                name = Name.objects.get(name=sample_id)
+                object = Sample.objects.get(name=name)
+                success_ids.append(sample_id)
+            except Name.DoesNotExist:
+                failed_ids.append(sample_id)
+            except Sample.DoesNotExist:
+                failed_ids.append(sample_id)
         # Update submission
         submission_obj = Submission.objects.get(pk=submission_id)
         submission_obj.status = NEED_REVISION
