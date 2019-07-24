@@ -345,7 +345,7 @@ class FetchDraftTestCase(FetchStatusHelperMixin, TestCase):
         self.assertFalse(self.my_submission.finalize.called)
 
 
-class FetchLongTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
+class FetchLongStatusTestCase(FetchStatusHelperMixin, TestCase):
     """A submission wich remain in the same status for a long time"""
 
     def setUp(self):
@@ -360,101 +360,49 @@ class FetchLongTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
             mock_now.return_value = testtime
 
             # update submission updated time with an older date than now
-            self.submission_obj.updated_at = testtime
-            self.submission_obj.save()
+            self.usi_submission.updated_at = testtime
+            self.usi_submission.save()
+
+    def common_tests(self):
+        # assert auth, root and get_submission by name called
+        super().common_tests()
+
+        # biosample.models.Submission status changed
+        self.assertEqual(self.usi_submission.status, ERROR)
+        self.assertIn(
+            "Biosample submission '{}' remained with the same status".format(
+                self.my_submission.name),
+            self.usi_submission.message
+        )
 
     def test_error_in_submitted_status(self):
         # a still running submission
-        self.my_submission = Mock()
-        self.my_submission.name = "test-fetch"
         self.my_submission.status = 'Submitted'
 
-        # assert task and mock methods called
-        self.common_tests(self.my_submission)
-
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
-
-        # read email
-        email = mail.outbox[0]
-
-        self.assertEqual(
-            "Error in biosample submission %s" % self.submission_obj_id,
-            email.subject)
-
-        # check submission.state changed
-        self.submission_obj.refresh_from_db()
-
-        self.assertEqual(self.submission_obj.status, ERROR)
-        self.assertIn(
-            "Biosample subission {} remained with the same status".format(
-                    self.submission_obj),
-            self.submission_obj.message
-            )
-
-        message = 'Error'
-        notification_message = (
-            'Biosample subission Cryoweb '
-            '(United Kingdom, test) remained with the '
-            'same status for more than 5 days. Please '
-            'report it to InjectTool team')
-
-        # calling a WebSocketMixin method
-        self.check_message(message, notification_message)
+        # assert mock methods called
+        self.common_tests()
 
     def test_error_in_draft_status(self):
         # a still running submission
-        self.my_submission = Mock()
-        self.my_submission.name = "test-fetch"
         self.my_submission.status = 'Draft'
 
-        # assert task and mock methods called
-        self.common_tests(self.my_submission)
-
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
-
-        # read email
-        email = mail.outbox[0]
-
-        self.assertEqual(
-            "Error in biosample submission %s" % self.submission_obj_id,
-            email.subject)
-
-        # check submission.state changed
-        self.submission_obj.refresh_from_db()
-
-        self.assertEqual(self.submission_obj.status, ERROR)
-        self.assertIn(
-            "Biosample subission {} remained with the same status".format(
-                    self.submission_obj),
-            self.submission_obj.message
-            )
-
-        message = 'Error'
-        notification_message = (
-            'Biosample subission Cryoweb '
-            '(United Kingdom, test) remained with the '
-            'same status for more than 5 days. Please '
-            'report it to InjectTool team')
-
-        # calling a WebSocketMixin method
-        self.check_message(message, notification_message)
+        # assert mock methods called
+        self.common_tests()
 
 
 class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
-    """A submission object with a status I can ignore"""
+    """A submission object with a status I can ignore. Task will exit
+    immediatey"""
 
     def setUp(self):
         # calling my base setup
         super().setUp()
 
-        # a still running submission
-        self.my_submission = Mock()
-        self.my_submission.name = "test-fetch"
+        # define my task
+        self.my_task = FetchStatusTask()
 
-        # passing submission to Mocked Root
-        self.my_root.get_submission_by_name.return_value = self.my_submission
+        # change lock_id (useful when running test during cron)
+        self.my_task.lock_id = "test-FetchStatusTask"
 
     def update_status(self, status):
         # change status
@@ -476,7 +424,6 @@ class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
         self.assertFalse(self.mock_auth.called)
         self.assertFalse(self.mock_root.called)
         self.assertFalse(self.my_root.get_submission_by_name.called)
-        self.assertFalse(self.my_submission.follow_url.called)
 
         # assert status for submissions
         self.submission_obj.refresh_from_db()
