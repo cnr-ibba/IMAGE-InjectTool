@@ -7,11 +7,14 @@ Created on Wed Feb 27 16:38:37 2019
 
 from celery.utils.log import get_task_logger
 
+from django.db import transaction
+
 from common.constants import ERROR, NEED_REVISION
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Name
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -61,6 +64,9 @@ class BatchDeleteSamples(MyTask):
             try:
                 name = Name.objects.get(name=sample_id)
                 object = Sample.objects.get(name=name)
+                with transaction.atomic():
+                    object.delete()
+                    name.delete()
                 success_ids.append(sample_id)
             except Name.DoesNotExist:
                 failed_ids.append(sample_id)
@@ -69,8 +75,18 @@ class BatchDeleteSamples(MyTask):
         # Update submission
         submission_obj = Submission.objects.get(pk=submission_id)
         submission_obj.status = NEED_REVISION
-        submission_obj.message = "Data updated, try to rerun validation"
+        if len(failed_ids) != 0:
+            submission_obj.message = f"You've removed {len(success_ids)} " \
+                f"samples. It wasn't possible to find records with these ids:" \
+                f" {', '.join(failed_ids)}. Rerun validation please!"
+        else:
+            submission_obj.message = f"You've removed {len(success_ids)} " \
+                f"samples. Rerun validation please!"
         submission_obj.save()
+
+        summary_obj, created = ValidationSummary.objects.get_or_create(
+            submission=submission_obj, type='sample')
+        summary_obj.reset_all_count()
 
         send_message(
             submission_obj, construct_validation_message(submission_obj)

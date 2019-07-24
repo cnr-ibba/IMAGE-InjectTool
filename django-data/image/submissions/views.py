@@ -27,6 +27,7 @@ from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name
 from excel.tasks import ImportTemplateTask
 from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
 from animals.tasks import BatchDeleteAnimals
 from samples.tasks import BatchDeleteSamples
 
@@ -311,12 +312,23 @@ class BatchDelete(OwnerMixin, View):
         keys_to_delete = set()
         for key in request.POST['to_delete'].split('\n'):
             keys_to_delete.add(key.rstrip())
+
+        submission = Submission.objects.get(pk=pk)
+        submission.message = 'waiting for batch delete to complete'
+        submission.status = WAITING
+        submission.save()
+
         if delete_type == 'Animals':
             # Batch delete task for animals
             my_task = BatchDeleteAnimals()
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=submission, type='animal')
         elif delete_type == 'Samples':
             # Batch delete task for samples
             my_task = BatchDeleteSamples()
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=submission, type='sample')
+        summary_obj.reset()
         res = my_task.delay(pk, [item for item in keys_to_delete])
         logger.info(
             "Start fix validation process with task %s" % res.task_id)
