@@ -92,7 +92,7 @@ class ValidateSubmissionMixin(
 class CustomWebSocketMixin(WebSocketMixin):
     """Override setUp to mock websocket objects"""
 
-    def check_async_called(
+    def check_message(
             self, message, notification_message, validation_message=None,
             pk=1):
 
@@ -123,13 +123,6 @@ class CustomWebSocketMixin(WebSocketMixin):
             {'message': message,
              'notification_message': notification_message,
              'validation_message': validation_message}, pk)
-
-    def check_async_not_called(self):
-        """Check django channels async messages not called"""
-
-        self.assertEqual(self.asyncio_mock.call_count, 0)
-        self.assertEqual(self.run_until.run_until_complete.call_count, 0)
-        self.assertEqual(self.send_msg_ws.call_count, 0)
 
 
 class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
@@ -250,7 +243,7 @@ class ValidateTaskTest(
             "Error in IMAGE Validation: Unknown error in validation - Test",
             email.subject)
 
-        self.check_async_called(
+        self.check_message(
             'Error',
             'Unknown error in validation - Test')
 
@@ -276,7 +269,7 @@ class ValidateTaskTest(
         self.assertTrue(self.validate_retry.called)
 
         # asserting django channels not called
-        self.check_async_not_called()
+        self.check_message_not_called()
 
     @patch("validation.tasks.ValidateSubmission.validate_model")
     def test_issues_with_api(self, my_validate):
@@ -321,7 +314,7 @@ class ValidateTaskTest(
         self.assertTrue(self.check_ruleset.called)
         self.assertFalse(self.validate_retry.called)
 
-        self.check_async_called(
+        self.check_message(
             'Loaded',
             'Errors in EBI API endpoints. Please try again later'
         )
@@ -366,7 +359,7 @@ class ValidateTaskTest(
         self.assertFalse(self.check_ruleset.called)
         self.assertFalse(self.validate_retry.called)
 
-        self.check_async_called(
+        self.check_message(
             'Loaded',
             'Errors in EBI API endpoints. Please try again later')
 
@@ -410,7 +403,7 @@ class ValidateTaskTest(
         self.assertFalse(self.check_ruleset.called)
         self.assertFalse(self.validate_retry.called)
 
-        self.check_async_called(
+        self.check_message(
             'Error',
             'Error in IMAGE-metadata ruleset. Please inform InjectTool team')
 
@@ -477,7 +470,7 @@ class ValidateTaskTest(
             'animal_unkn': 0, 'sample_unkn': 0,
             'animal_issues': 0, 'sample_issues': 0}
 
-        self.check_async_called(
+        self.check_message(
             'Ready',
             'Submission validated with success',
             validation_message=validation_message
@@ -555,7 +548,7 @@ class ValidateTaskTest(
         self.assertFalse(self.validate_retry.called)
 
         # all sample and animals have issues
-        self.check_async_called(
+        self.check_message(
             'Need Revision',
             ('Validation got errors: Error in metadata. '
              'Need revisions before submit'),
@@ -614,7 +607,7 @@ class ValidateTaskTest(
         self.assertTrue(self.check_ruleset.called)
         self.assertFalse(self.validate_retry.called)
 
-        self.check_async_called(
+        self.check_message(
             message='Error',
             notification_message=(
                 "Validation got errors: Unsupported validation status "
@@ -719,7 +712,7 @@ class ValidateTaskTest(
         self.assertTrue(self.check_ruleset.called)
         self.assertFalse(self.validate_retry.called)
 
-        self.check_async_called(
+        self.check_message(
             message='Ready',
             notification_message='Submission validated with some warnings',
             validation_message={
@@ -825,7 +818,7 @@ class ValidateTaskTest(
         self.assertTrue(self.check_ruleset.called)
         self.assertFalse(self.validate_retry.called)
 
-        self.check_async_called(
+        self.check_message(
             message='Need Revision',
             notification_message=(
                 'Validation got errors: Error in '

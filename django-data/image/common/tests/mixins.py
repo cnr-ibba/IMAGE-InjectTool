@@ -253,3 +253,10 @@ class WebSocketMixin(object):
         self.send_msg_ws.assert_called_with(
             message,
             pk)
+
+    def check_message_not_called(self):
+        """Check django channels async messages not called"""
+
+        self.assertEqual(self.asyncio_mock.call_count, 0)
+        self.assertEqual(self.run_until.run_until_complete.call_count, 0)
+        self.assertEqual(self.send_msg_ws.call_count, 0)
