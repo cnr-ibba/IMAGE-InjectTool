@@ -18,11 +18,12 @@ from django.core import mail
 from django.utils import timezone
 
 from common.constants import (
-    LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
+    LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
 from common.tests import WebSocketMixin
 from image_app.models import Submission, Name
 
-from ..tasks.retrieval import FetchStatusTask, FetchStatusHelper
+from ..tasks.retrieval import (
+    FetchStatusTask, FetchStatusHelper, RetrievalCompleteTask)
 from ..models import ManagedTeam, Submission as USISubmission
 
 
@@ -82,6 +83,7 @@ class FetchMixin():
 
         # set a status which I can fetch_status
         self.submission_obj.status = SUBMITTED
+        self.submission_obj.message = "Waiting for biosample validation"
         self.submission_obj.save()
 
         # set status for names, like submittask does. Only sample not unknown
@@ -452,14 +454,29 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         # set proper status to biosample.models.Submission
         USISubmission.objects.update(status=SUBMITTED)
 
+        # starting mocked objects
+        self.mock_helper_patcher = patch(
+            'biosample.tasks.retrieval.FetchStatusHelper')
+        self.mock_helper = self.mock_helper_patcher.start()
+
+        self.mock_complete_patcher = patch(
+            'biosample.tasks.retrieval.RetrievalCompleteTask')
+        self.mock_complete = self.mock_complete_patcher.start()
+
         # define my task
         self.my_task = FetchStatusTask()
 
         # change lock_id (useful when running test during cron)
         self.my_task.lock_id = "test-FetchStatusTask"
 
-    @patch("biosample.tasks.retrieval.FetchStatusHelper")
-    def test_fetch_status(self, my_helper):
+    def tearDown(self):
+        self.mock_helper_patcher.stop()
+        self.mock_complete_patcher.stop()
+
+        # calling base method
+        super().tearDown()
+
+    def test_fetch_status(self):
         """Test fetch status task"""
 
         # NOTE that I'm calling the function directly, without delay
@@ -470,15 +487,15 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         self.assertEqual(res, "success")
 
         # assert my objects called
-        self.assertTrue(my_helper.called)
+        self.assertTrue(self.mock_helper.called)
+        self.assertTrue(self.mock_complete.called)
 
         # those objects are proper of FetchStatusHelper class, no one
         # call them in this task itself
         self.assertFalse(self.mock_auth.called)
         self.assertFalse(self.mock_root.called)
 
-    @patch("biosample.tasks.retrieval.FetchStatusHelper")
-    def test_fetch_status_all_completed(self, my_helper):
+    def test_fetch_status_all_completed(self):
         """Test fetch status task with completed biosample.models.Submission"""
 
         # simulate completed case (no more requests to biosample)
@@ -492,7 +509,10 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         self.assertEqual(res, "success")
 
         # assert no helper called for this submission
-        self.assertFalse(my_helper.called)
+        self.assertFalse(self.mock_helper.called)
+
+        # this is called if every submission is completed
+        self.assertTrue(self.mock_complete.called)
 
         # those objects are proper of FetchStatusHelper class, no one
         # call them in this task itself
@@ -516,6 +536,10 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         self.assertTrue(my_fetch.called)
         self.assertTrue(my_retry.called)
 
+        # assert no helper called for this submission
+        self.assertFalse(self.mock_helper.called)
+        self.assertFalse(self.mock_complete.called)
+
     # Test a non blocking instance
     @patch("biosample.tasks.FetchStatusTask.fetch_queryset")
     @patch("redis.lock.Lock.acquire", return_value=False)
@@ -527,3 +551,132 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         # assert database is locked
         self.assertEqual(res, "%s already running!" % (self.my_task.name))
         self.assertFalse(my_fetch.called)
+
+        # assert no helper called for this submission
+        self.assertFalse(self.mock_helper.called)
+        self.assertFalse(self.mock_complete.called)
+
+
+class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
+    """testing update status after a fetch status"""
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # set proper status to biosample.models.Submission
+        USISubmission.objects.update(status=SUBMITTED)
+
+        # define my task
+        self.my_task = RetrievalCompleteTask()
+
+    def updated_check(self, status, message):
+        """Common check for tests"""
+
+        # set proper status to biosample.models.Submission
+        USISubmission.objects.update(status=status, message=message)
+
+        # calling task
+        result = self.my_task.run(
+            uid_submission_id=self.submission_obj_id)
+
+        # assert a success with data uploading
+        self.assertEqual(result, "success")
+
+        # check status and messages
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, status)
+        self.assertEqual(self.submission_obj.message, message)
+
+        # calling a WebSocketMixin method
+        self.check_message(
+            STATUSES.get_value_display(status),
+            message)
+
+    def not_updated_check(self, status, message):
+        """Test a submission not updated"""
+
+        # set proper status to biosample.models.Submission
+        USISubmission.objects.filter(pk=1).update(
+            status=status, message=message)
+
+        # calling task
+        result = self.my_task.run(
+            uid_submission_id=self.submission_obj_id)
+
+        # assert a success with data uploading
+        self.assertEqual(result, "success")
+
+        # check status and messages
+        self.submission_obj.refresh_from_db()
+        self.assertEqual(self.submission_obj.status, SUBMITTED)
+        self.assertEqual(
+            self.submission_obj.message,
+            "Waiting for biosample validation")
+
+        # defined in websoketmixin
+        self.check_message_not_called()
+
+    def test_submitted(self):
+        """Test submitted status"""
+
+        status = SUBMITTED
+        message = "Waiting for biosample validation"
+
+        self.not_updated_check(
+            status,
+            message)
+
+    def test_error(self):
+        """test an error in a submission"""
+
+        status = ERROR
+        message = "error messages"
+
+        self.updated_check(
+            status,
+            message)
+
+    def test_need_revision(self):
+        """test an issue in a submission"""
+
+        status = NEED_REVISION
+        message = "error messages"
+
+        self.updated_check(
+            status,
+            message)
+
+    def test_completed(self):
+        """test a submission completed"""
+
+        status = COMPLETED
+        message = "completed messages"
+
+        self.updated_check(
+            status,
+            message)
+
+    def test_partial_submitted(self):
+        """Having submitted in statuses will not complete the submission"""
+
+        status = ERROR
+        message = "error messages"
+
+        self.not_updated_check(
+            status,
+            message)
+
+        status = NEED_REVISION
+        message = "error messages"
+
+        self.not_updated_check(
+            status,
+            message)
+
+        status = COMPLETED
+        message = "completed messages"
+
+        self.not_updated_check(
+            status,
+            message)

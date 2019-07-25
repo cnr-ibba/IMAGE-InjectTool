@@ -518,10 +518,6 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
 
         submission_statuses = args[0]
 
-        logger.debug(args)
-        logger.debug(kwargs)
-        logger.debug(submission_statuses)
-
         # submission_statuses will be an array like this
         # [("success", 1), ("success"), 2]
         usi_submission_ids = [status[1] for status in submission_statuses]
@@ -564,6 +560,8 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
 
         # send async message
         send_message(uid_submission)
+
+        # TODO: send email?
 
         return "success"
 

@@ -15,6 +15,7 @@ from celery.utils.log import get_task_logger
 import pyUSIrest.client
 
 from django.conf import settings
+from django.db.models import Count
 from django.utils import timezone
 
 from image.celery import app as celery_app, MyTask
@@ -27,6 +28,7 @@ from submissions.helpers import send_message
 
 from ..helpers import get_manager_auth
 from ..models import Submission as USISubmission
+from .submission import TaskFailureMixin
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -361,12 +363,94 @@ class FetchStatusTask(MyTask):
                 status_helper = FetchStatusHelper(usi_submission)
                 status_helper.check_submission_status()
 
-            # TODO: set the final status for a submission like
-            # submission complete task
+            # set the final status for a submission like SubmissionCompleteTask
+            retrievalcomplete = RetrievalCompleteTask()
+
+            # assign kwargs to chord
+            res = retrievalcomplete.s(uid_submission_id=uid_submission.id)
+
+            logger.info(
+                "Start RetrievalCompleteTask process for %s with task %s" % (
+                    uid_submission,
+                    res.task_id))
 
         logger.info("fetch_queryset completed")
+
+
+class RetrievalCompleteTask(TaskFailureMixin, MyTask):
+    """Update submission status after fetching status"""
+
+    name = "Complete Retrieval Process"
+    description = """Check submission status after retrieval nd update stuff"""
+
+    def run(self, *args, **kwargs):
+        """Fetch submission data and then update UID submission status"""
+
+        # get UID submission
+        uid_submission = Submission.objects.get(
+            pk=kwargs['uid_submission_id'])
+
+        # fetch data from database
+        submission_qs = USISubmission.objects.filter(
+            uid_submission=uid_submission)
+
+        # annotate biosample submission by statuses
+        statuses = {}
+
+        for res in submission_qs.values('status').annotate(
+                count=Count('status')):
+            statuses[res['status']] = res['count']
+
+        if SUBMITTED in statuses:
+            # ignoring the other models. No errors thrown until there is
+            # as SUBMITTED USISubmission
+            logger.info("Submission %s not yet finished" % uid_submission)
+
+            return "success"
+
+        # if there is ANY errors in biosample.models.Submission for a
+        # particoular submission, I will mark it as ERROR
+        elif ERROR in statuses:
+            # submission failed
+            logger.info("Submission %s failed" % uid_submission)
+
+            self.__update_message(uid_submission, submission_qs, ERROR)
+
+        # check if submission need revision
+        elif NEED_REVISION in statuses:
+            # submission failed
+            logger.info("Submission %s failed" % uid_submission)
+
+            self.__update_message(uid_submission, submission_qs, NEED_REVISION)
+
+        elif COMPLETED in statuses and len(statuses) == 1:
+            # if all status are complete, the submission is completed
+            logger.info(
+                "Submission %s completed with success" % uid_submission)
+
+            self.__update_message(uid_submission, submission_qs, COMPLETED)
+
+        # send async message
+        send_message(uid_submission)
+
+        return "success"
+
+    def __update_message(self, uid_submission, submission_qs, status):
+        """Read biosample.models.Submission message and set
+        image_app.models.Submission message"""
+
+        # get error messages for submission
+        message = []
+
+        for submission in submission_qs.filter(status=status):
+            message.append(submission.message)
+
+        uid_submission.status = status
+        uid_submission.message = "\n".join(set(message))
+        uid_submission.save()
 
 
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(FetchStatusTask)
+celery_app.tasks.register(RetrievalCompleteTask)
