@@ -9,6 +9,7 @@ Created on Wed Jul 17 10:51:40 2019
 from unittest.mock import patch, PropertyMock, Mock
 
 from django.test import TestCase
+from django.core import mail
 
 from common.constants import (
     READY, COMPLETED, ERROR, SUBMITTED, WAITING, STATUSES)
@@ -589,6 +590,16 @@ class SubmissionCompleteTaskTestCase(
             status,
             message)
 
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Temporary error in biosample submission 1",
+            email.subject)
+
     def test_token_expired(self):
         """test a token expired during submission"""
 
@@ -601,6 +612,16 @@ class SubmissionCompleteTaskTestCase(
             status,
             message)
 
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Temporary error in biosample submission 1",
+            email.subject)
+
     def test_unmanaged_exception(self):
         """test an unmanaged exception"""
 
@@ -610,6 +631,16 @@ class SubmissionCompleteTaskTestCase(
         self.common_check(
             status,
             message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission 1",
+            email.subject)
 
     def test_error_has_higher_priority(self):
         # update an object with a ready status
@@ -625,3 +656,13 @@ class SubmissionCompleteTaskTestCase(
         self.common_check(
             status,
             message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission 1",
+            email.subject)

@@ -545,11 +545,29 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
 
             self.__update_message(uid_submission, submission_qs, ERROR)
 
+            # send a mail to the user
+            uid_submission.owner.email_user(
+                "Error in biosample submission %s" % (
+                    uid_submission.id),
+                ("Something goes wrong with biosample submission. Please "
+                 "report this to InjectTool team\n\n"
+                 "%s" % uid_submission.message),
+            )
+
         elif READY in statuses:
             # submission failed
             logger.info("Temporary error for %s" % uid_submission)
 
             self.__update_message(uid_submission, submission_qs, READY)
+
+            # send a mail to the user
+            uid_submission.owner.email_user(
+                "Temporary error in biosample submission %s" % (
+                    uid_submission.id),
+                ("Something goes wrong with biosample submission. Please "
+                 "try again\n\n"
+                 "%s" % uid_submission.message),
+            )
 
         else:
             # Update submission status: a completed but not yet finalized
@@ -560,8 +578,6 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
 
         # send async message
         send_message(uid_submission)
-
-        # TODO: send email?
 
         return "success"
 

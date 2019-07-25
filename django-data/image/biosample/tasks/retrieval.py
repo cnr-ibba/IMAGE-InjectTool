@@ -416,12 +416,28 @@ class RetrievalCompleteTask(TaskFailureMixin, MyTask):
 
             self.__update_message(uid_submission, submission_qs, ERROR)
 
+            # send a mail to the user
+            uid_submission.owner.email_user(
+                "Error in biosample submission %s" % (
+                    uid_submission.id),
+                ("Something goes wrong with biosample submission. Please "
+                 "report this to InjectTool team\n\n"
+                 "%s" % uid_submission.message),
+            )
+
         # check if submission need revision
         elif NEED_REVISION in statuses:
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
 
             self.__update_message(uid_submission, submission_qs, NEED_REVISION)
+
+            # send a mail to the user
+            uid_submission.owner.email_user(
+                "Error in biosample submission %s" % (
+                    uid_submission.id),
+                uid_submission.message,
+            )
 
         elif COMPLETED in statuses and len(statuses) == 1:
             # if all status are complete, the submission is completed

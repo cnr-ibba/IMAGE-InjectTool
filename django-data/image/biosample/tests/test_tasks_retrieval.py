@@ -637,6 +637,16 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
             status,
             message)
 
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission 1",
+            email.subject)
+
     def test_need_revision(self):
         """test an issue in a submission"""
 
@@ -646,6 +656,16 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
         self.updated_check(
             status,
             message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission 1",
+            email.subject)
 
     def test_completed(self):
         """test a submission completed"""
