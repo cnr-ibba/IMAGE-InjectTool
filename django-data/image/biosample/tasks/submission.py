@@ -510,7 +510,7 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
 class SubmissionCompleteTask(TaskFailureMixin, MyTask):
     """Update submission status after batch submission"""
 
-    name = "Complete Submission"
+    name = "Complete Submission Process"
     description = """Check submission status and update stuff"""
 
     def run(self, *args, **kwargs):

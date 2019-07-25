@@ -32,9 +32,20 @@ class FetchMixin():
     fixtures = [
         'biosample/account',
         'biosample/managedteam',
+        'biosample/submission',
+        'biosample/submissiondata',
+        'image_app/animal',
+        'image_app/dictbreed',
         'image_app/dictcountry',
         'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
         'image_app/organization',
+        'image_app/publication',
+        'image_app/sample',
         'image_app/submission',
         'image_app/user'
     ]
@@ -91,27 +102,6 @@ class FetchMixin():
 
 class FetchStatusHelperMixin(FetchMixin):
     """Test class for FetchStatusHelper"""
-
-    fixtures = [
-        'biosample/account',
-        'biosample/managedteam',
-        'biosample/submission',
-        'biosample/submissiondata',
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
-    ]
 
     def setUp(self):
         # calling my base setup
@@ -452,3 +442,88 @@ class FetchUnsupportedStatusTestCase(FetchMixin, TestCase):
 
         # assert task and mock methods called
         self.common_tests(COMPLETED)
+
+
+class FetchStatusTaskTestCase(FetchMixin, TestCase):
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # set proper status to biosample.models.Submission
+        USISubmission.objects.update(status=SUBMITTED)
+
+        # define my task
+        self.my_task = FetchStatusTask()
+
+        # change lock_id (useful when running test during cron)
+        self.my_task.lock_id = "test-FetchStatusTask"
+
+    @patch("biosample.tasks.retrieval.FetchStatusHelper")
+    def test_fetch_status(self, my_helper):
+        """Test fetch status task"""
+
+        # NOTE that I'm calling the function directly, without delay
+        # (AsyncResult). I've patched the time consuming task
+        res = self.my_task.run()
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        # assert my objects called
+        self.assertTrue(my_helper.called)
+
+        # those objects are proper of FetchStatusHelper class, no one
+        # call them in this task itself
+        self.assertFalse(self.mock_auth.called)
+        self.assertFalse(self.mock_root.called)
+
+    @patch("biosample.tasks.retrieval.FetchStatusHelper")
+    def test_fetch_status_all_completed(self, my_helper):
+        """Test fetch status task with completed biosample.models.Submission"""
+
+        # simulate completed case (no more requests to biosample)
+        USISubmission.objects.update(status=COMPLETED)
+
+        # NOTE that I'm calling the function directly, without delay
+        # (AsyncResult). I've patched the time consuming task
+        res = self.my_task.run()
+
+        # assert a success with data uploading
+        self.assertEqual(res, "success")
+
+        # assert no helper called for this submission
+        self.assertFalse(my_helper.called)
+
+        # those objects are proper of FetchStatusHelper class, no one
+        # call them in this task itself
+        self.assertFalse(self.mock_auth.called)
+        self.assertFalse(self.mock_root.called)
+
+    # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests
+    @patch("biosample.tasks.FetchStatusTask.retry")
+    @patch("biosample.tasks.FetchStatusTask.fetch_queryset")
+    def test_fetch_status_retry(self, my_fetch, my_retry):
+        """Test fetch status with retry"""
+
+        # Set a side effect on the patched methods
+        # so that they raise the errors we want.
+        my_retry.side_effect = Retry()
+        my_fetch.side_effect = ConnectionError()
+
+        with raises(Retry):
+            self.my_task.run()
+
+        self.assertTrue(my_fetch.called)
+        self.assertTrue(my_retry.called)
+
+    # Test a non blocking instance
+    @patch("biosample.tasks.FetchStatusTask.fetch_queryset")
+    @patch("redis.lock.Lock.acquire", return_value=False)
+    def test_fetch_status_nb(self, my_lock, my_fetch):
+        """Test FetchSTatus while a lock is present"""
+
+        res = self.my_task.run()
+
+        # assert database is locked
+        self.assertEqual(res, "%s already running!" % (self.my_task.name))
+        self.assertFalse(my_fetch.called)

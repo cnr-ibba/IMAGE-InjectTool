@@ -346,14 +346,15 @@ class FetchStatusTask(MyTask):
         :py:const:`SUBMITTED <common.constants.SUBMITTED>`
         :py:class:`Submission <image_app.models.Submission>` objects). Iterate
         through submission to get USI info. Calls
-        :py:meth:`fetch_submission_obj`
+        :py:class:`FetchStatusHelper`
         """
 
         logger.info("Searching for submissions into biosample")
 
         for uid_submission in queryset:
             usi_submissions = USISubmission.objects.filter(
-                uid_submission=uid_submission)
+                uid_submission=uid_submission,
+                status=SUBMITTED)
 
             # HINT: fetch statuses using tasks?
             for usi_submission in usi_submissions:
