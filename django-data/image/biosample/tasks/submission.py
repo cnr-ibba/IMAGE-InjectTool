@@ -343,6 +343,8 @@ class SplitSubmissionHelper():
         self.submission_ids = []
 
     def process_data(self):
+        """Add animal and its samples to a submission"""
+
         for animal in Animal.objects.filter(
                 name__submission=self.uid_submission):
 
@@ -376,6 +378,8 @@ class SplitSubmissionHelper():
         # track object pks
         self.usi_submission.refresh_from_db()
         self.submission_ids.append(self.usi_submission.id)
+
+        logger.debug("Created submission %s" % (self.usi_submission))
 
         # reset couter object
         self.counter = 0
@@ -431,10 +435,13 @@ class SplitSubmissionHelper():
             return False
 
     def add_to_submission_data(self, model):
+        # get model type (animal or sample)
+        model_type = model._meta.verbose_name
+
         # check if model is already in an opened submission
         if self.model_in_submission(model):
             logger.info("Ignoring %s %s: already in a submission" % (
-                model._meta.verbose_name,
+                model_type,
                 model))
             return
 
@@ -443,8 +450,9 @@ class SplitSubmissionHelper():
             self.create_submission()
 
         # every time I split data in chunks I need to call the
-        # submission task
-        if self.counter >= MAX_SAMPLES:
+        # submission task. Do it only on animals, to prevent
+        # to put samples in a different submission
+        if model_type == 'animal' and self.counter >= MAX_SAMPLES:
             self.create_submission()
 
         logger.info("Appending %s %s to %s" % (
