@@ -229,8 +229,7 @@ class FetchStatusHelper():
             logger.error("Fix them, then finalize")
 
             # report error
-            message = "Some items needs revision:\n\n" + \
-                json.dumps(messages, indent=2)
+            message = json.dumps(messages, indent=2)
 
             # Update status for biosample.models.Submission
             self.usi_submission.status = NEED_REVISION
@@ -367,7 +366,7 @@ class FetchStatusTask(MyTask):
             retrievalcomplete = RetrievalCompleteTask()
 
             # assign kwargs to chord
-            res = retrievalcomplete.s(uid_submission_id=uid_submission.id)
+            res = retrievalcomplete.delay(uid_submission_id=uid_submission.id)
 
             logger.info(
                 "Start RetrievalCompleteTask process for %s with task %s" % (
@@ -436,7 +435,7 @@ class RetrievalCompleteTask(TaskFailureMixin, MyTask):
             uid_submission.owner.email_user(
                 "Error in biosample submission %s" % (
                     uid_submission.id),
-                uid_submission.message,
+                "Some items needs revision:\n\n" + uid_submission.message,
             )
 
         elif COMPLETED in statuses and len(statuses) == 1:

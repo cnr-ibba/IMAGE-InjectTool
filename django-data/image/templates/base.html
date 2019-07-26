@@ -114,7 +114,7 @@
             {% else %}
               <div id="notifications">
             {% endif %}
-                {{ message }}
+                {{ message|truncatechars:2000 }}
               </div>
           {% endfor %}
         {% endif %}

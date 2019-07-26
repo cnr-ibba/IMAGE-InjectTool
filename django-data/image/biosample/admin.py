@@ -20,6 +20,8 @@ class SubmissionAdmin(admin.ModelAdmin):
     # I cannot edit a auto_add_now field
     readonly_fields = ('created_at', 'updated_at')
 
+    list_filter = ('uid_submission', 'status')
+
 
 class SubmissionDataAdmin(admin.ModelAdmin):
     list_display = (

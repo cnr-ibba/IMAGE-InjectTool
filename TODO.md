@@ -54,8 +54,6 @@ InjectTool TODO
     [here](https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html).
     Others solutions could be [autocomplete fields](http://django-extensions.readthedocs.io/en/latest/admin_extensions.html?highlight=ForeignKeyAutocompleteAdmin)
     or using [django-salmonella](https://github.com/lincolnloop/django-dynamic-raw-id)
-  - django `contettype` framework to model relations between Name and Sample and
-    animal
   - see [django_filters](https://django-filter.readthedocs.io/) and [django_tables](https://django-tables2.readthedocs.io/en/latest/).
     For an example tutorial see [here](https://www.craigderington.me/generic-list-view-with-django-tables/)
   - [django-pgcrypto](https://django-pgcrypto-expressions.readthedocs.io/en/latest/)?
@@ -72,8 +70,6 @@ InjectTool TODO
     - return a default ontology for breed if non mapping occours
 
 * Regarding Data validation:
-  - mock up time consuming modules (`validation.tests.test_helpers`)
-    - hard task: maybe pickling `image_validation.use_ontology.OntologyCache`?
   - Can validation start after data load, and after calling zooma? See celery
     chains
   - reloading submission should invalidate validationresults
@@ -132,7 +128,6 @@ InjectTool TODO
   - `Submission.message` as `ArrayField` (to store more messages?)
   - [Soft-delete](https://github.com/upgrad/django-deletes) items? can I store
     items with a `deleted` attribute?
-  - `Sample.storage_type` and `Sample.storage_processing` as enum values?
 
 * Related to celery
   - Write celery tasks as classes
@@ -151,3 +146,10 @@ InjectTool TODO
 * Related to CRBanim
   - alternative_id issue (now is a duplicate of sample/animal name)
   - deal with biosample records
+
+* Regarding biosample submission: related items should belong to the same submission:
+  check relationship between objects and try to append related items together:
+  ```sql
+  SELECT t1.id, t3.id as submission_id, t1.alternative_id, t4.name AS father_name, t5.name AS mother_name, t2.name FROM image_app_animal AS t1 INNER JOIN image_app_name AS t2 ON t1.name_id = t2.id INNER JOIN image_app_submission AS t3 ON t2.submission_id = t3.id INNER JOIN image_app_name as t4 ON t1.father_id = t4.id INNER JOIN image_app_name AS t5 on t1.mother_id = t5.id WHERE t3.id = 6 AND t4.name != 'ANIMAL:::
+ID:::unknown_sire' AND t5.name != 'ANIMAL:::ID:::unknown_dam' LIMIT 10;
+  ```
