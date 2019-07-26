@@ -192,15 +192,11 @@ VALIDATION_MESSAGES_ATTRIBUTES = [
     ['species'],
 ]
 
-ONTOLOGY_VALIDATION_MESSAGES = [
-    "Not valid ontology term .* in field .*",
-    "No url found for the field .* which has the type of ontology_id",
-    "Provided value .* does not match to the provided ontology .*",
-    "Provided iri .* does not match the iri retrieved from OLS in the field .*",
-    "Provided value .* has different letter case to the term referenced by .*"
+UNITS_VALIDATION_MESSAGES = [
+    ".* for field .* is not in the valid units list .*",
+    "One of .* need to be present for the field .*"
 ]
 
-UNITS_VALIDATION_MESSAGES = [
-    ".* for field .* is not in the valid units list (.*)",
-    "One of .* need to be present for the field .*"
+VALUES_VALIDATION_MESSAGES = [
+    ".* of field .* is not in the valid values list .*",
 ]

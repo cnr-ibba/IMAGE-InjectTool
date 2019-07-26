@@ -24,15 +24,14 @@ from django.urls import reverse_lazy, reverse
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE,
     TIME_UNITS, VALIDATION_MESSAGES_ATTRIBUTES, SAMPLE_STORAGE,
-    SAMPLE_STORAGE_PROCESSING, ACCURACIES, ONTOLOGY_VALIDATION_MESSAGES,
-    UNITS_VALIDATION_MESSAGES)
+    SAMPLE_STORAGE_PROCESSING, ACCURACIES, UNITS_VALIDATION_MESSAGES,
+    VALUES_VALIDATION_MESSAGES)
 from common.helpers import get_deleted_objects, uid2biosample
 from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import import_from_cryoweb
 
-from image_app.models import Submission, Name, Animal, Sample, DictUberon, \
-    DictDevelStage, DictPhysioStage, DictSex, DictSpecie
+from image_app.models import Submission, Name, Animal, Sample
 from excel.tasks import ImportTemplateTask
 
 from validation.helpers import construct_validation_message
@@ -207,55 +206,22 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
                                         ])
         self.offending_column = uid2biosample(
             self.message['offending_column'])
+        self.show_units = True
         if is_target_in_message(self.message['message'],
                                 UNITS_VALIDATION_MESSAGES):
-            self.show_units = True
+            self.units = [unit.name for unit in TIME_UNITS]
             if self.offending_column == 'animal_age_at_collection':
                 self.offending_column += "_units"
-                self.units = [unit.name for unit in TIME_UNITS]
-            elif self.offending_column == 'preparation_interval_units':
-                self.units = [unit.name for unit in TIME_UNITS]
-        elif re.search(".* of field .* is not in the valid values list .*",
-                       self.message['message']):
-            self.show_units = True
+
+        elif is_target_in_message(self.message['message'],
+                                  VALUES_VALIDATION_MESSAGES):
             if self.offending_column == 'storage':
                 self.units = [unit.name for unit in SAMPLE_STORAGE]
             elif self.offending_column == 'storage_processing':
                 self.units = [unit.name for unit in SAMPLE_STORAGE_PROCESSING]
-            elif self.offending_column == 'collection_place_accuracy':
+            elif self.offending_column == 'collection_place_accuracy' or \
+                    self.offending_column == 'birth_location_accuracy':
                 self.units = [unit.name for unit in ACCURACIES]
-            elif self.offending_column == 'birth_location_accuracy':
-                self.units = [unit.name for unit in ACCURACIES]
-        elif is_target_in_message(self.message['message'],
-                                  ONTOLOGY_VALIDATION_MESSAGES):
-            self.show_units = False
-            self.units = None
-            self.offending_column = 'term'
-            if self.offending_column == 'organism_part':
-                self.summary_type = 'dictuberon'
-                return DictUberon.objects.filter(id__in=[Sample.objects.get(
-                    pk=self.message['ids'][0]).organism_part_id])
-            elif self.offending_column == 'developmental_stage':
-                self.summary_type = 'dictdevelstage'
-                return DictDevelStage.objects.filter(id__in=[Sample.objects.get(
-                    pk=self.message['ids'][0]).developmental_stage_id])
-            elif self.offending_column == 'physiological_stage':
-                self.summary_type = 'dictphysiostage'
-                return DictPhysioStage.objects.filter(id__in=[
-                    Sample.objects.get(
-                        pk=self.message['ids'][0]).physiological_stage_id])
-            elif self.offending_column == 'sex':
-                self.summary_type = 'dictsex'
-                return DictSex.objects.filter(id__in=[Animal.objects.get(
-                    pk=self.message['ids'][0]).sex_id])
-            elif self.offending_column == 'species':
-                self.summary_type = f'dictspecie_{self.summary_type}'
-                if self.summary_type == 'dictspecie_animal':
-                    return DictSpecie.objects.filter(id__in=[Animal.objects.get(
-                        pk=self.message['ids'][0]).specie.id])
-                elif self.summary_type == 'dictspecie_sample':
-                    return DictSpecie.objects.filter(id__in=[Sample.objects.get(
-                        pk=self.message['ids'][0]).specie.id])
         else:
             self.show_units = False
             self.units = None
@@ -484,33 +450,22 @@ class FixValidation(View, OwnerMixin):
         submission.save()
 
         # Update validation summary
-        if record_type == 'dictuberon' or record_type == 'dictdevelstage' or \
-                record_type == 'dictphysiostage':
-            validation_summary_type = 'sample'
-        elif record_type == 'dictsex':
-            validation_summary_type = 'animal'
-        else:
-            validation_summary_type = record_type
         summary_obj, created = ValidationSummary.objects.get_or_create(
-            submission=submission, type=validation_summary_type)
+            submission=submission, type=record_type)
         summary_obj.submission = submission
         summary_obj.reset()
 
         # create a task
-        if record_type == 'animal' or record_type == 'dictsex' or \
-                record_type == 'dictspecie_animal':
+        if record_type == 'animal':
             my_task = BatchUpdateAnimals()
-        elif record_type == 'sample' or record_type == 'dictuberon' or \
-                record_type == 'dictdevelstage' or \
-                record_type == 'dictphysiostage' or \
-                record_type == 'dictspecie_sample':
+        elif record_type == 'sample':
             my_task = BatchUpdateSamples()
         else:
             return HttpResponseRedirect(
                 reverse('submissions:detail', args=(pk,)))
 
         # a valid submission start a task
-        res = my_task.delay(pk, keys_to_fix, attribute_to_edit, record_type)
+        res = my_task.delay(pk, keys_to_fix, attribute_to_edit)
         logger.info(
             "Start fix validation process with task %s" % res.task_id)
         return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))

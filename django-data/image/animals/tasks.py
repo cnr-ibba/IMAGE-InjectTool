@@ -11,7 +11,7 @@ from celery.utils.log import get_task_logger
 from common.constants import ERROR
 from common.tasks import BatchUpdateMixin
 from image.celery import app as celery_app, MyTask
-from image_app.models import Submission
+from image_app.models import Submission, Animal
 from submissions.helpers import send_message
 
 # Get an instance of a logger
@@ -21,6 +21,9 @@ logger = get_task_logger(__name__)
 class BatchUpdateAnimals(MyTask, BatchUpdateMixin):
     name = "Batch update animals"
     description = """Batch update of field in animals"""
+
+    item_cls = Animal
+    submission_cls = Submission
 
     # Ovverride default on failure method
     # This is not a failed validation for a wrong value, this is an
@@ -48,7 +51,7 @@ class BatchUpdateAnimals(MyTask, BatchUpdateMixin):
 
         # TODO: submit mail to admin
 
-    def run(self, submission_id, animal_ids, attribute, item_type='animal'):
+    def run(self, submission_id, animal_ids, attribute):
         """Function for batch update attribute in animals
         Args:
             submission_id (int): id of submission
@@ -58,7 +61,7 @@ class BatchUpdateAnimals(MyTask, BatchUpdateMixin):
 
         logger.info("Start batch update for animals")
         super(BatchUpdateAnimals, self).batch_update(submission_id, animal_ids,
-                                                     attribute, item_type)
+                                                     attribute)
         return 'success'
 
 

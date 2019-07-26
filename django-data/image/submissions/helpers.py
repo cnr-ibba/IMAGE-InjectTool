@@ -9,7 +9,7 @@ Created on Thu Jun 27 11:52:37 2019
 import asyncio
 import re
 
-from common.constants import STATUSES, ONTOLOGY_VALIDATION_MESSAGES
+from common.constants import STATUSES
 from common.helpers import send_message_to_websocket
 
 

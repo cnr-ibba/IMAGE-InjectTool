@@ -13,8 +13,6 @@ from celery.five import monotonic
 
 from django.conf import settings
 
-from image_app.models import Submission, Sample, Animal, DictUberon, \
-    DictDevelStage, DictPhysioStage, DictSex, DictSpecie
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 from common.constants import NEED_REVISION
@@ -26,31 +24,22 @@ LOCK_EXPIRE = 60 * 10
 class BatchUpdateMixin:
     """Mixin to do batch update of fields to fix validation"""
 
-    def batch_update(self, submission_id, ids, attribute, item_type):
-        for id, value in ids.items():
+    item_cls = None
+    submission_cls = None
+
+    def batch_update(self, submission_id, ids, attribute):
+        for id_, value in ids.items():
             if value == '' or value == 'None':
                 value = None
-            if item_type == 'sample':
-                item_object = Sample.objects.get(pk=id)
-            elif item_type == 'animal':
-                item_object = Animal.objects.get(pk=id)
-            elif item_type == 'dictuberon':
-                item_object = DictUberon.objects.get(pk=id)
-            elif item_type == 'dictdevelstage':
-                item_object = DictDevelStage.objects.get(pk=id)
-            elif item_type == 'dictphysiostage':
-                item_object = DictPhysioStage.objects.get(pk=id)
-            elif item_type == 'dictsex':
-                item_object = DictSex.objects.get(pk=id)
-            elif item_type == 'dictspecie_animal' or \
-                    item_type == 'dictspecie_sample':
-                item_object = DictSpecie.objects.get(pk=id)
+
+            item_object = self.item_cls.objects.get(pk=id_)
+
             if getattr(item_object, attribute) != value:
                 setattr(item_object, attribute, value)
                 item_object.save()
 
         # Update submission
-        submission_obj = Submission.objects.get(pk=submission_id)
+        submission_obj = self.submission_cls.objects.get(pk=submission_id)
         submission_obj.status = NEED_REVISION
         submission_obj.message = "Data updated, try to rerun validation"
         submission_obj.save()
