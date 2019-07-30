@@ -294,7 +294,8 @@ class FetchStatusTask(MyTask):
         self.debug_task()
 
         # forcing blocking condition: Wait until a get a lock object
-        with redis_lock(self.lock_id, blocking=False) as acquired:
+        with redis_lock(
+                self.lock_id, blocking=False, expire=False) as acquired:
             if acquired:
                 # do stuff and return something
                 return self.fetch_status()
