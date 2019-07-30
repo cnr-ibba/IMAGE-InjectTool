@@ -6,7 +6,7 @@ Created on Wed Jul 17 10:51:40 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch, PropertyMock, Mock
+from unittest.mock import patch, PropertyMock, Mock, call
 
 from django.test import TestCase
 from django.core import mail
@@ -380,8 +380,8 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
             self.assertTrue(sample.patch.called)
 
     @patch.object(SubmissionHelper, "create_or_update_sample")
-    def test_add_samples(self, my_create):
-        """Test adding samples"""
+    def test_add_one_sample(self, my_create):
+        """Test adding one sample"""
 
         # simulate a submission recover: mark an animal as already submitted
         submission_data = SubmissionData.objects.get(pk=1)
@@ -393,6 +393,45 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
 
         # assert create sample in biosample called once
         my_create.assert_called_once()
+
+    @patch.object(SubmissionHelper, "create_or_update_sample")
+    def test_add_samples(self, my_create):
+        """Test adding samples in correct order"""
+
+        # getting submission data an mock called arguments
+        data = list(self.usi_submission.submission_data.order_by('id'))
+        data = [call(el.content_object) for el in data]
+
+        # calling method
+        self.submission_helper.add_samples()
+
+        # assert num called and arguments
+        self.assertEqual(my_create.call_count, 2)
+        self.assertEqual(my_create.call_args_list, data)
+
+    @patch.object(SubmissionHelper, "create_or_update_sample")
+    def test_add_samples_order(self, my_create):
+        """Test adding samples in different order"""
+
+        # now create another animal object as a copy of the previous one
+        # and save it into database,
+        el = self.usi_submission.submission_data.order_by('id').first()
+        el.pk = None
+        el.save()
+
+        # remove the first and check that order is maintaned
+        self.usi_submission.submission_data.order_by('id').first().delete()
+
+        # getting submission data an mock called arguments
+        data = list(self.usi_submission.submission_data.order_by('id'))
+        data = [call(el.content_object) for el in data]
+
+        # calling method
+        self.submission_helper.add_samples()
+
+        # assert num called and arguments
+        self.assertEqual(my_create.call_count, 2)
+        self.assertEqual(my_create.call_args_list, data)
 
     def test_mark_submission(self):
         """test adding status message to submission"""

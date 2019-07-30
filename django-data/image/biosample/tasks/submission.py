@@ -257,7 +257,8 @@ class SubmissionHelper():
         create_or_update_sample"""
 
         # iterate over sample data
-        for submission_data in self.submission_obj.submission_data.all():
+        for submission_data in self.submission_obj.submission_data\
+                .order_by('id'):
             # get model for simplicity
             model = submission_data.content_object
 
