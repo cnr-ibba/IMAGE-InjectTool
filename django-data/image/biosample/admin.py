@@ -20,7 +20,9 @@ class SubmissionAdmin(admin.ModelAdmin):
     # I cannot edit a auto_add_now field
     readonly_fields = ('created_at', 'updated_at')
 
-    list_filter = ('uid_submission', 'status')
+    list_filter = ('uid_submission__owner', 'status')
+
+    list_per_page = 10
 
 
 class SubmissionDataAdmin(admin.ModelAdmin):
@@ -28,12 +30,22 @@ class SubmissionDataAdmin(admin.ModelAdmin):
         'submission', 'content_type', 'object_id'
     )
 
+    list_per_page = 10
+
+
+class AccountAdmin(admin.ModelAdmin):
+    list_display = (
+        'user', 'name', 'team'
+    )
+
+    list_per_page = 10
+
 
 # --- registering applications
 
 
 # Register your models here.
-admin.site.register(Account)
+admin.site.register(Account, AccountAdmin)
 admin.site.register(ManagedTeam)
 admin.site.register(Submission, SubmissionAdmin)
 admin.site.register(SubmissionData, SubmissionDataAdmin)
