@@ -144,6 +144,46 @@ class FetchStatusHelperMixin(FetchMixin):
         self.assertTrue(self.my_root.get_submission_by_name.called)
 
 
+class FetchIgnoreTestCase(FetchStatusHelperMixin, TestCase):
+    """a submission that could be ignored"""
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # an unmanaged status
+        self.my_submission.status = 'Unmanaged'
+
+    def common_tests(self, status):
+        """Override default common tests. Status is the status the
+        submission is supposed to remain"""
+
+        # assert auth, root and get_submission by name called
+        super().common_tests()
+
+        # USI submission status did't changed
+        self.usi_submission.refresh_from_db()
+        self.assertEqual(self.usi_submission.status, status)
+
+        # check name status didn't changed
+        qs = Name.objects.filter(status=SUBMITTED)
+        self.assertEqual(len(qs), self.n_to_submit)
+
+    def test_fetch_unmanaged_submission_status(self):
+        """Test fetch status for an unmanaged submission"""
+
+        # assert my common tests
+        self.common_tests(status=SUBMITTED)
+
+    def test_fetch_not_submitted(self):
+        """Ignore a submission with a status different from SUBMITTED"""
+
+        self.usi_submission.status = COMPLETED
+        self.usi_submission.save()
+
+        self.common_tests(status=COMPLETED)
+
+
 class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
     """a completed submission with two samples"""
 

@@ -69,6 +69,17 @@ class FetchStatusHelper():
             submission_name=self.submission_name)
 
     def check_submission_status(self):
+        """Check submission status, finalize submission, check errors etc"""
+
+        # reload submission status
+        self.usi_submission.refresh_from_db()
+
+        if self.usi_submission.status != SUBMITTED:
+            # someone else has taken this task and done something. Ignore!
+            logger.warning("Ignoring submission %s current status is %s" % (
+                self.usi_submission, self.usi_submission.get_status_display()))
+            return
+
         logger.debug("Checking status for '%s'" % (
             self.submission_name))
 
