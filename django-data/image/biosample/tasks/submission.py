@@ -47,6 +47,9 @@ class TaskFailureMixin():
 
     # Ovverride default on failure method
     def on_failure(self, exc, task_id, args, kwargs, einfo):
+        """Mark submission with error status, send async message and a
+        mail to the owner or such submission"""
+
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
         # get submission object
@@ -104,32 +107,45 @@ class SubmissionHelper():
     @property
     def owner(self):
         """Recover owner from a submission object related with a UID
-        Submission"""
+        Submission
+
+        Returns:
+            :py:attr:`Submission.owner`: a django
+            :py:class:`django.contrib.auth.models.User` object
+        """
 
         return self.submission_obj.uid_submission.owner
 
     @property
     def team_name(self):
-        """Recover team_name from a submission object"""
+        """Recover team_name from a submission object
+
+        Returns:
+            str: the team name"""
 
         return self.owner.biosample_account.team.name
 
     @property
     def usi_submission_name(self):
-        """Get biosample submission id from database"""
+        """Get/set biosample submission id from database
+
+        Returns:
+            str: the biosample USI submission identifier"""
 
         return self.submission_obj.usi_submission_name
 
     @usi_submission_name.setter
     def usi_submission_name(self, name):
-        """Get biosample submission id from database"""
 
         self.submission_obj.usi_submission_name = name
         self.submission_obj.save()
 
     def read_token(self):
         """Read token from REDIS database and set root attribute with a
-        pyUSIrest.client.Root instance"""
+        pyUSIrest.client.Root instance
+
+        Returns:
+            str: the read token"""
 
         # read biosample token from redis database
         client = redis.StrictRedis(
@@ -197,7 +213,12 @@ class SubmissionHelper():
         return True
 
     def create_submission(self):
-        """Create a nre USI submission object"""
+        """Create a new USI submission object
+
+        Returns:
+            :py:class:`pyUSIrest.client.Submission` a pyUSIrest submission
+            object
+        """
 
         # getting team
         logger.debug("getting team '%s'" % (self.team_name))
@@ -229,7 +250,11 @@ class SubmissionHelper():
 
     def create_or_update_sample(self, model):
         """Add or patch a sample into USI submission document. Can be
-        animal or sample"""
+        animal or sample
+
+        Args:
+            model (:py:class:`image_app.mixins.BioSampleMixin`): An animal or
+                sample object"""
 
         # alias is used to reference the same objects
         alias = model.biosample_alias
@@ -279,12 +304,14 @@ class SubmissionHelper():
         self.submission_obj.save()
 
     def mark_fail(self, message):
-        """Set a ERROR status for biosample.models.Submission and a message"""
+        """Set a :py:const:`ERROR <common.constants.ERROR>` status for
+        :py:class:`biosample.models.Submission` and a message"""
 
         self.mark_submission(ERROR, message)
 
     def mark_success(self, message="Waiting for biosample validation"):
-        """Set a ERROR status for biosample.models.Submission and a message"""
+        """Set a :py:const:`SUBMITTED <common.constants.SUBMITTED>`
+        :py:class:`biosample.models.Submission` and a message"""
 
         self.mark_submission(SUBMITTED, message)
 
@@ -294,6 +321,12 @@ class SubmitTask(MyTask):
     description = """Submit to Biosample using USI"""
 
     def run(self, usi_submission_id):
+        """Run task. Instantiate a SubmissionHelper with the provided
+        :py:class:`biosample.models.Submission` id. Read token from database,
+        start or recover a submission, add samples to it and then mark a
+        status for it
+        """
+
         # get a submission helper object
         submission_helper = SubmissionHelper(submission_id=usi_submission_id)
 
@@ -337,6 +370,10 @@ class SubmitTask(MyTask):
 
 # HINT: move into helper module?
 class SplitSubmissionHelper():
+    """
+    helper class to split py:class`image_app.models.Submission` data in
+    bacthes limited in sizes"""
+
     def __init__(self, uid_submission):
         self.counter = 0
         self.uid_submission = uid_submission
@@ -370,7 +407,9 @@ class SplitSubmissionHelper():
             # end of cicle for animal.
 
     def create_submission(self):
-        """Create a new database object and reset counter"""
+        """
+        Create a new :py:class:`biosample.models.Submission` object and
+        set sample counter to 0"""
 
         self.usi_submission = USISubmission.objects.create(
             uid_submission=self.uid_submission,
@@ -386,7 +425,9 @@ class SplitSubmissionHelper():
         self.counter = 0
 
     def model_in_submission(self, model):
-        """check if model is already in an opened submission"""
+        """
+        Check if :py:class:`image_app.mixins.BioSampleMixin` is already in an
+        opened submission"""
 
         logger.debug("Searching %s %s in submissions" % (
             model._meta.verbose_name,
@@ -436,6 +477,10 @@ class SplitSubmissionHelper():
             return False
 
     def add_to_submission_data(self, model):
+        """Add a :py:class:`image_app.mixins.BioSampleMixin` to a
+        :py:class:`biosample.models.Submission` object, or create a new
+        one if there are more samples than required"""
+
         # get model type (animal or sample)
         model_type = model._meta.verbose_name
 
@@ -477,7 +522,11 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
     description = """Split submission data in chunks"""
 
     def run(self, submission_id):
-        """This function is called when delay is called"""
+        """Call :py:class:`SplitSubmissionHelper` to split
+        :py:class:`image_app.models.Submission` data.
+        Call :py:class:`SubmitTask` for each
+        batch of data and then call :py:class:`SubmissionCompleteTask` after
+        all data were submitted"""
 
         logger.info("Starting %s for submission %s" % (
             self.name, submission_id))
@@ -523,7 +572,8 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
     description = """Check submission status and update stuff"""
 
     def run(self, *args, **kwargs):
-        """Fetch submission data and then update UID submission status"""
+        """Fetch submission data and then update
+        :py:class:`image_app.models.Submission` status"""
 
         submission_statuses = args[0]
 

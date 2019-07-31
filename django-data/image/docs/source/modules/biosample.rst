@@ -33,10 +33,16 @@ biosample.tasks
 biosample.tasks module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: biosample.tasks
+.. automodule:: biosample.tasks.retrieval
    :members:
    :show-inheritance:
    :undoc-members:
+
+.. automodule:: biosample.tasks.submission
+  :members:
+  :show-inheritance:
+  :undoc-members:
+
 
 biosample.views
 ---------------
