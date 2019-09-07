@@ -89,13 +89,19 @@ def fill_uid_animals(submission_obj, template):
     # debug
     logger.info("called fill_uid_animals()")
 
+    # get language
+    language = submission_obj.gene_bank_country.label
+
     # iterate among excel template
     for record in template.get_animal_records():
         # determine sex. Check for values
         sex = DictSex.objects.get(label__iexact=record.sex)
 
-        # get specie
-        specie = DictSpecie.objects.get(label=record.species)
+        # get specie (mind synonyms)
+        specie = DictSpecie.get_specie_check_synonyms(
+            species_label=record.species, language=language)
+
+        logger.debug("Found '%s' as specie" % (specie))
 
         # how I can get breed from my data?
         breeds = [breed for breed in template.get_breed_records()

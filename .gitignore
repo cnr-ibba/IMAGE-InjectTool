@@ -9,7 +9,7 @@ tmp/
 *.~lock*
 *_test_mongo
 *tgz
-*tar.gz
+*.gz
 *.tar
 .pytest_cache/
 django-data/image/dumps/

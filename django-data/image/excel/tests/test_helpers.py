@@ -16,7 +16,8 @@ from common.tests import WebSocketMixin
 from image_app.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
-from ..helpers import ExcelTemplateReader, upload_template, TEMPLATE_COLUMNS
+from ..helpers import (
+    ExcelTemplateReader, upload_template, TEMPLATE_COLUMNS, ExcelImportError)
 from .common import BaseExcelMixin
 
 
@@ -144,6 +145,20 @@ class ExcelTemplateReaderTestCase(
 
         self.assertTrue(check)
         self.assertEqual(len(not_found), 0)
+
+    @patch.dict("excel.helpers.exceltemplate.TEMPLATE_COLUMNS",
+                {'breed': ["a column"]})
+    def test_column_not_found(self):
+        """Test a column not found raise an informativa exception"""
+
+        # get a generator object
+        generator = self.reader.get_sheet_records('breed')
+
+        self.assertRaisesRegex(
+            ExcelImportError,
+            "Column 'a column' not found in 'breed' sheet",
+            list,
+            generator)
 
     @patch('xlrd.open_workbook')
     def test_check_accuracies_issue(self, mock_open):
