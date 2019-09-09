@@ -338,6 +338,13 @@ def upload_template(submission_obj):
                 "Some species are not loaded in UID database: "
                 "%s" % (not_found))
 
+        check, not_found = reader.check_species_in_animal_sheet()
+
+        if not check:
+            raise ExcelImportError(
+                "Some species are not defined in breed sheet: "
+                "%s" % (not_found))
+
         check, not_found = reader.check_accuracies()
 
         if not check:

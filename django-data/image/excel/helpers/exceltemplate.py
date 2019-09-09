@@ -235,6 +235,25 @@ class ExcelTemplateReader(FileDataSourceMixin):
         # call FileDataSourceMixin.check_species
         return super().check_species(column, item_set, country)
 
+    def check_species_in_animal_sheet(self):
+        """Check if all animal species are defined in breed sheet"""
+
+        check = True
+        not_found = []
+
+        reference_set = set(
+            [breed.species for breed in self.get_breed_records()])
+
+        test_set = set(
+            [animal.species for animal in self.get_animal_records()])
+
+        for specie in test_set:
+            if specie not in reference_set:
+                check = False
+                not_found.append(specie)
+
+        return check, not_found
+
     def check_sex(self):
         """Check that all sex records are present in database"""
 
