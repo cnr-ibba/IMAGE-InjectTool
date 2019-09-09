@@ -57,31 +57,43 @@ class BatchDeleteSamples(MyTask):
             sample_ids (list): set with ids to delete
         """
 
+        # get a submisision object
+        submission_obj = Submission.objects.get(pk=submission_id)
+
         logger.info("Start batch delete for samples")
         success_ids = list()
         failed_ids = list()
+
         for sample_id in sample_ids:
             try:
-                name = Name.objects.get(name=sample_id)
-                object = Sample.objects.get(name=name)
+                name = Name.objects.get(
+                    name=sample_id, submission=submission_obj)
+
+                sample_obj = Sample.objects.get(name=name)
+
                 with transaction.atomic():
-                    object.delete()
+                    sample_obj.delete()
                     name.delete()
                 success_ids.append(sample_id)
+
             except Name.DoesNotExist:
                 failed_ids.append(sample_id)
+
             except Sample.DoesNotExist:
                 failed_ids.append(sample_id)
+
         # Update submission
-        submission_obj = Submission.objects.get(pk=submission_id)
+        submission_obj.refresh_from_db()
         submission_obj.status = NEED_REVISION
+
         if len(failed_ids) != 0:
             submission_obj.message = f"You've removed {len(success_ids)} " \
-                f"samples. It wasn't possible to find records with these ids:" \
-                f" {', '.join(failed_ids)}. Rerun validation please!"
+                f"samples. It wasn't possible to find records with these " \
+                f"ids: {', '.join(failed_ids)}. Rerun validation please!"
         else:
             submission_obj.message = f"You've removed {len(success_ids)} " \
                 f"samples. Rerun validation please!"
+
         submission_obj.save()
 
         summary_obj, created = ValidationSummary.objects.get_or_create(
@@ -91,6 +103,8 @@ class BatchDeleteSamples(MyTask):
         send_message(
             submission_obj, construct_validation_message(submission_obj)
         )
+
+        logger.info("batch delete for samples completed")
 
         return 'success'
 
