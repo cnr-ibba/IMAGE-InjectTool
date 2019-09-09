@@ -7,7 +7,7 @@ Created on Tue Jul  2 10:58:42 2019
 """
 
 import types
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from unittest.mock import patch, Mock
 
 from django.test import TestCase
@@ -16,7 +16,8 @@ from common.tests import WebSocketMixin
 from image_app.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
-from ..helpers import ExcelTemplateReader, upload_template, TEMPLATE_COLUMNS
+from ..helpers import (
+    ExcelTemplateReader, upload_template, TEMPLATE_COLUMNS, ExcelImportError)
 from .common import BaseExcelMixin
 
 
@@ -145,6 +146,20 @@ class ExcelTemplateReaderTestCase(
         self.assertTrue(check)
         self.assertEqual(len(not_found), 0)
 
+    @patch.dict("excel.helpers.exceltemplate.TEMPLATE_COLUMNS",
+                {'breed': ["a column"]})
+    def test_column_not_found(self):
+        """Test a column not found raise an informativa exception"""
+
+        # get a generator object
+        generator = self.reader.get_sheet_records('breed')
+
+        self.assertRaisesRegex(
+            ExcelImportError,
+            "Column 'a column' not found in 'breed' sheet",
+            list,
+            generator)
+
     @patch('xlrd.open_workbook')
     def test_check_accuracies_issue(self, mock_open):
         """Checking issues with accuracy in excels data"""
@@ -209,6 +224,31 @@ class ExcelTemplateReaderTestCase(
 
         self.assertEqual(reference, test)
 
+    @patch('excel.helpers.ExcelTemplateReader.get_animal_records')
+    def test_species_in_animal_and_breeds_differ(self, my_animal):
+        # creating a fake row of data
+        fake_row = ["" for col in TEMPLATE_COLUMNS['animal']]
+
+        # get birth location accuracy index
+        specie_idx = TEMPLATE_COLUMNS['animal'].index(
+            "Species")
+
+        # set a fake specie item
+        fake_row[specie_idx] = "Fake"
+
+        # create a namedtuple object
+        columns = [col.lower().replace(" ", "_")
+                   for col in TEMPLATE_COLUMNS['animal']]
+        Record = namedtuple("Animal", columns)
+        record = Record._make(fake_row)
+        my_animal.return_value = [record]
+
+        # define the expected value
+        reference = (False, ["Fake"])
+        test = self.reader.check_species_in_animal_sheet()
+
+        self.assertEqual(reference, test)
+
 
 class ExcelMixin(DataSourceMixinTestCase, WebSocketMixin, BaseExcelMixin):
     """Common tests for Excel classes"""
@@ -260,6 +300,19 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
             'Error in importing data: Some species '
             'are not loaded in UID database: Rainbow '
             'trout')
+
+        # check template import fails
+        self.check_errors(my_check, message, notification_message)
+
+    @patch("excel.helpers.ExcelTemplateReader.check_species_in_animal_sheet",
+           return_value=[False, 'Rainbow trout'])
+    def test_upload_template_errors_with_species_in_animal(self, my_check):
+        """Testing importing with data into UID with errors animal"""
+
+        message = "Some species are not defined in breed sheet"
+        notification_message = (
+            'Error in importing data: %s: Rainbow '
+            'trout' % message)
 
         # check template import fails
         self.check_errors(my_check, message, notification_message)

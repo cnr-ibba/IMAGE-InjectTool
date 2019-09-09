@@ -140,40 +140,45 @@
     return color_class
   }
 
-  function disableButtons(current_status) {
+  function updateButtons(current_status) {
     var edit_data = document.querySelector('#edit-data');
     var danger_zone = document.querySelector('#danger-zone');
     var validate_button = document.querySelector('#validate-button');
     var submit_button = document.querySelector('#submit-button');
+
+    // operation pending on objects. No edit at all
     if (current_status === 'Waiting' || current_status === 'Submitted') {
       edit_data.classList.add('disabled');
+      validate_button.classList.add('disabled');
       danger_zone.classList.add('disabled');
     }
-    if (current_status === 'Error' || current_status === 'Waiting' || current_status === 'Submitted' || current_status === 'Completed') {
+
+    // completed operations. Error or submitted with success to biosample
+    else if (current_status === 'Error' || current_status === 'Completed') {
+      enable_button(edit_data);
       validate_button.classList.add('disabled');
+      enable_button(danger_zone);
     }
+
+    else if (current_status === 'Loaded' || current_status === 'Need Revision') {
+      enable_button(edit_data);
+      enable_button(validate_button);
+      enable_button(danger_zone);
+    }
+
+    // Don't submit anything if not ready. If ready, all enabled
     if (current_status !== 'Ready') {
       submit_button.classList.add('disabled');
     } else {
-      submit_button.classList.remove('disabled');
-      remove_disabled(edit_data);
-      remove_disabled(danger_zone);
-      remove_disabled(validate_button);
+      enable_button(edit_data);
+      enable_button(validate_button);
+      enable_button(danger_zone);
+      enable_button(submit_button);
     }
 
-    if (current_status === 'Loaded' || current_status === 'Need Revision') {
-      remove_disabled(edit_data);
-      remove_disabled(danger_zone);
-      remove_disabled(validate_button);
-    }
-
-    if (current_status === 'Completed') {
-      remove_disabled(edit_data);
-      remove_disabled(danger_zone);
-    }
   }
 
-  function remove_disabled(button) {
+  function enable_button(button) {
     if (button.classList.contains('disabled')) {
       button.classList.remove('disabled');
     }
@@ -233,8 +238,8 @@
     document.querySelector('#status-log').textContent = message;
     document.querySelector('#status-log').className = getColor(message);
 
-    // this disable buttons (for example, when in waiting status)
-    disableButtons(message);
+    // this enables/disables buttons (for example, when in waiting status)
+    updateButtons(message);
 
     // choose and updates alert message in the page
     var notificationDiv = document.querySelector('#notifications');

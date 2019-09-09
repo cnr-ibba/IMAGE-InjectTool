@@ -240,8 +240,8 @@ class DictSpecie(DictBase, Confidence):
         try:
             specie = cls.objects.get(label=species_label)
 
-        except DictSpecie.DoesNotExist:
-            logger.info("Search %s in synonyms" % (species_label))
+        except cls.DoesNotExist:
+            logger.info("Search %s in %s synonyms" % (species_label, language))
             # search for language synonym (if I arrived here a synonym should
             # exists)
             specie = cls.get_by_synonym(

@@ -1,6 +1,6 @@
 
 #
-# VERSION 0.6
+# VERSION 0.7
 # DOCKER-VERSION  17.05.0-ce
 # AUTHOR:         Paolo Cozzi <cozzi@ibba.cnr.it>
 # DESCRIPTION:    A django container working on LTS django 1.11 on python 3
