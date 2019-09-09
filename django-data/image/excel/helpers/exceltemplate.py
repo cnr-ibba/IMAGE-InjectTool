@@ -227,13 +227,14 @@ class ExcelTemplateReader(FileDataSourceMixin):
         return self.get_sheet_records(sheet_name)
 
     def check_species(self, country):
-        """Check if all species are defined in UID DictSpecies"""
+        """Check if all species are defined in UID DictSpecies. If not,
+        create dictionary term"""
 
         column = 'species'
         item_set = set([breed.species for breed in self.get_breed_records()])
 
         # call FileDataSourceMixin.check_species
-        return super().check_species(column, item_set, country)
+        return super().check_species(column, item_set, country, create=True)
 
     def check_species_in_animal_sheet(self):
         """Check if all animal species are defined in breed sheet"""

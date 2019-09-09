@@ -86,8 +86,9 @@ class FileDataSourceMixin():
 
         return result, not_found
 
-    def check_species(self, column, item_set, country):
-        """Check if all species are defined in UID DictSpecies"""
+    def check_species(self, column, item_set, country, create=False):
+        """Check if all species are defined in UID DictSpecies. Create
+        dictionary term if create is True and species is not found"""
 
         check, not_found = self.check_items(
             item_set, DictSpecie, column)
@@ -97,7 +98,7 @@ class FileDataSourceMixin():
             logger.info("Searching for %s in dictionary tables" % (not_found))
 
             # if this function return True, I found all synonyms
-            if check_species_synonyms(not_found, country) is True:
+            if check_species_synonyms(not_found, country, create) is True:
                 logger.info("Found %s in dictionary tables" % not_found)
 
                 # return True and an empty list for check and not found items
