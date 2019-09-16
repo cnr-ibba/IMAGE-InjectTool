@@ -57,38 +57,58 @@ class BatchDeleteAnimals(MyTask):
             animal_ids (list): set with ids to delete
         """
 
+        # get a submisision object
+        submission_obj = Submission.objects.get(pk=submission_id)
+
         logger.info("Start batch delete for animals")
         success_ids = list()
         failed_ids = list()
+
         for animal_id in animal_ids:
             try:
-                name = Name.objects.get(name=animal_id)
+                name = Name.objects.get(
+                    name=animal_id, submission=submission_obj)
+
                 animal_object = Animal.objects.get(name=name)
                 samples = animal_object.sample_set.all()
+
                 with transaction.atomic():
                     for sample in samples:
                         sample_name = sample.name
                         sample.delete()
                         sample_name.delete()
+
+                    logger.debug("Clearing all childs from this animal")
                     name.mother_of.clear()
                     name.father_of.clear()
+
+                    # delete this animal object
+                    logger.debug(
+                        "Deleting animal:%s and name:%s" % (
+                            animal_object, name))
                     animal_object.delete()
                     name.delete()
+
                 success_ids.append(animal_id)
+
             except Name.DoesNotExist:
                 failed_ids.append(animal_id)
+
             except Animal.DoesNotExist:
                 failed_ids.append(animal_id)
+
         # Update submission
-        submission_obj = Submission.objects.get(pk=submission_id)
+        submission_obj.refresh_from_db()
         submission_obj.status = NEED_REVISION
+
         if len(failed_ids) != 0:
             submission_obj.message = f"You've removed {len(success_ids)} " \
-                f"animals. It wasn't possible to find records with these ids: " \
-                f"{', '.join(failed_ids)}. Rerun validation please!"
+                f"animals. It wasn't possible to find records with these " \
+                f"ids: {', '.join(failed_ids)}. Rerun validation please!"
         else:
             submission_obj.message = f"You've removed {len(success_ids)} " \
                 f"animals. Rerun validation please!"
+
         submission_obj.save()
 
         summary_obj, created = ValidationSummary.objects.get_or_create(
@@ -98,6 +118,8 @@ class BatchDeleteAnimals(MyTask):
         send_message(
             submission_obj, construct_validation_message(submission_obj)
         )
+
+        logger.info("batch delete for animals completed")
 
         return 'success'
 
