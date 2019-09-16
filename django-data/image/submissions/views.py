@@ -12,7 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView, View)
 from django.shortcuts import get_object_or_404, redirect, render
@@ -310,6 +310,8 @@ class BatchDelete(OwnerMixin, View):
         pk = self.kwargs['pk']
         delete_type = self.kwargs['type']
         keys_to_delete = set()
+
+        # process all keys in form
         for key in request.POST['to_delete'].split('\n'):
             keys_to_delete.add(key.rstrip())
 
@@ -323,15 +325,20 @@ class BatchDelete(OwnerMixin, View):
             my_task = BatchDeleteAnimals()
             summary_obj, created = ValidationSummary.objects.get_or_create(
                 submission=submission, type='animal')
+
         elif delete_type == 'Samples':
             # Batch delete task for samples
             my_task = BatchDeleteSamples()
             summary_obj, created = ValidationSummary.objects.get_or_create(
                 submission=submission, type='sample')
+
+        # reset validation counters
         summary_obj.reset()
         res = my_task.delay(pk, [item for item in keys_to_delete])
+
         logger.info(
-            "Start fix validation process with task %s" % res.task_id)
+            "Start %s batch delete with task %s" % (delete_type, res.task_id))
+
         return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
 
 
