@@ -41,10 +41,8 @@ class BatchDeleteSamplesTest(
 
         exc = Exception("Test")
         task_id = "test_task_id"
-        args = []
-        kwargs = {
-            'submission_id': self.submission_id,
-            'animal_ids': self.sample_ids}
+        args = [self.submission_id, self.sample_ids]
+        kwargs = {}
         einfo = ExceptionInfo
 
         # call on_failure method

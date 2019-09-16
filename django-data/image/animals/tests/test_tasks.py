@@ -44,10 +44,8 @@ class BatchDeleteAnimalsTest(
 
         exc = Exception("Test")
         task_id = "test_task_id"
-        args = []
-        kwargs = {
-            'submission_id': self.submission_id,
-            'animal_ids': self.animal_ids}
+        args = [self.submission_id, self.animal_ids]
+        kwargs = {}
         einfo = ExceptionInfo
 
         # call on_failure method

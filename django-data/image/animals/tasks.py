@@ -30,8 +30,15 @@ class BatchDeleteAnimals(MyTask):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
+        submission_id, animal_ids = args[0], args[1]
+
+        logger.error(
+            ("BatchDeleteAnimals called with submission_id: %s and "
+             "animal_ids: %s" % (submission_id, animal_ids))
+        )
+
         # get submission object
-        submission_obj = Submission.objects.get(pk=kwargs['submission_id'])
+        submission_obj = Submission.objects.get(pk=submission_id)
 
         # mark submission with ERROR
         submission_obj.status = ERROR
