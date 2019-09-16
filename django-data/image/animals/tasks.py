@@ -31,19 +31,20 @@ class BatchDeleteAnimals(MyTask):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
         # get submission object
-        submission_obj = Submission.objects.get(pk=args[0])
+        submission_obj = Submission.objects.get(pk=kwargs['submission_id'])
 
         # mark submission with ERROR
         submission_obj.status = ERROR
-        submission_obj.message = ("Error in batch delete for animals: %s"
-                                  % (str(exc)))
+        submission_obj.message = (
+            "Error in animal batch delete: %s" % (str(exc)))
         submission_obj.save()
 
         send_message(submission_obj)
 
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
-            "Error in batch delete for animals: %s" % (args[0]),
+            "Error in animal batch delete for submission: %s" % (
+                submission_obj.id),
             ("Something goes wrong in batch delete for animals. Please report "
              "this to InjectTool team\n\n %s" % str(einfo)),
         )
