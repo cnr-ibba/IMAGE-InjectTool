@@ -15,7 +15,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView, View)
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 
 from common.constants import (
@@ -287,22 +287,34 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DeleteAnimalsView(OwnerMixin, View):
-    template = 'submissions/submission_batch_delete.html'
+class DeleteAnimalsView(OwnerMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
 
-    def get(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-        return render(request, self.template, {'delete_type': 'Animals',
-                                               'pk': pk})
+    def get_context_data(self, **kwargs):
+        """Add custom values to template context"""
+
+        context = super().get_context_data(**kwargs)
+
+        context['delete_type'] = 'Animals'
+        context['pk'] = self.object.id
+
+        return context
 
 
-class DeleteSamplesView(OwnerMixin, View):
-    template = 'submissions/submission_batch_delete.html'
+class DeleteSamplesView(OwnerMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
 
-    def get(self, request, *args, **kwargs):
-        pk = self.kwargs['pk']
-        return render(request, self.template, {'delete_type': 'Samples',
-                                               'pk': pk})
+    def get_context_data(self, **kwargs):
+        """Add custom values to template context"""
+
+        context = super().get_context_data(**kwargs)
+
+        context['delete_type'] = 'Samples'
+        context['pk'] = self.object.id
+
+        return context
 
 
 class BatchDelete(OwnerMixin, View):

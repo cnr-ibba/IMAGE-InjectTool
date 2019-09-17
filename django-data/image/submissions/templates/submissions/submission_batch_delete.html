@@ -10,8 +10,9 @@
         {% csrf_token %}
         <div class="form-group">
             <label for="to_delete">Please provide ids to delete (one id per row)</label>
-            <textarea class="form-control" name="to_delete" id="to_delete" rows="25"></textarea>
+            <textarea class="form-control" name="to_delete" id="to_delete" rows="10"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
+        <a href="{% url 'submissions:detail' pk=pk %}" class="btn btn-secondary" role="button">Cancel</a>
     </form>
 {% endblock content %}
