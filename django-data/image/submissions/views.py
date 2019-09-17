@@ -14,7 +14,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import (
-    CreateView, DetailView, ListView, UpdateView, DeleteView, View)
+    CreateView, DetailView, ListView, UpdateView, DeleteView)
+from django.views.generic.edit import BaseUpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 
@@ -317,8 +318,14 @@ class DeleteSamplesView(OwnerMixin, DetailView):
         return context
 
 
-class BatchDelete(OwnerMixin, View):
+class BatchDelete(OwnerMixin, BaseUpdateView):
+    model = Submission
+
     def post(self, request, *args, **kwargs):
+        # get object (Submission) like BaseUpdateView does
+        submission = self.get_object()
+
+        # get arguments from post object
         pk = self.kwargs['pk']
         delete_type = self.kwargs['type']
         keys_to_delete = set()
@@ -327,7 +334,6 @@ class BatchDelete(OwnerMixin, View):
         for key in request.POST['to_delete'].split('\n'):
             keys_to_delete.add(key.rstrip())
 
-        submission = Submission.objects.get(pk=pk)
         submission.message = 'waiting for batch delete to complete'
         submission.status = WAITING
         submission.save()
