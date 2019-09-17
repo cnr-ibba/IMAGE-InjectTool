@@ -78,3 +78,16 @@ class ValidationSummary(models.Model):
             raise Exception("Unknown type '%s'" % (self.type))
 
         self.save()
+
+    def reset(self):
+        """Sets all counts to 0, except all_count field"""
+
+        self.pass_count = 0
+        self.warning_count = 0
+        self.error_count = 0
+        self.issues_count = 0
+        self.validation_known_count = 0
+        self.messages = list()
+        self.save()
+
+        # HINT: why not reset all count here ?

@@ -15,8 +15,9 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
+from django.views.generic.edit import BaseUpdateView
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
 from common.constants import (
     WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE)
@@ -27,6 +28,9 @@ from cryoweb.tasks import import_from_cryoweb
 from image_app.models import Submission, Name
 from excel.tasks import ImportTemplateTask
 from validation.helpers import construct_validation_message
+from validation.models import ValidationSummary
+from animals.tasks import BatchDeleteAnimals
+from samples.tasks import BatchDeleteSamples
 
 from .forms import SubmissionForm, ReloadForm
 
@@ -282,6 +286,78 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
 
         # a redirect to self.object.get_absolute_url()
         return HttpResponseRedirect(self.get_success_url())
+
+
+class DeleteAnimalsView(OwnerMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
+
+    def get_context_data(self, **kwargs):
+        """Add custom values to template context"""
+
+        context = super().get_context_data(**kwargs)
+
+        context['delete_type'] = 'Animals'
+        context['pk'] = self.object.id
+
+        return context
+
+
+class DeleteSamplesView(OwnerMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
+
+    def get_context_data(self, **kwargs):
+        """Add custom values to template context"""
+
+        context = super().get_context_data(**kwargs)
+
+        context['delete_type'] = 'Samples'
+        context['pk'] = self.object.id
+
+        return context
+
+
+class BatchDelete(OwnerMixin, BaseUpdateView):
+    model = Submission
+
+    def post(self, request, *args, **kwargs):
+        # get object (Submission) like BaseUpdateView does
+        submission = self.get_object()
+
+        # get arguments from post object
+        pk = self.kwargs['pk']
+        delete_type = self.kwargs['type']
+        keys_to_delete = set()
+
+        # process all keys in form
+        for key in request.POST['to_delete'].split('\n'):
+            keys_to_delete.add(key.rstrip())
+
+        submission.message = 'waiting for batch delete to complete'
+        submission.status = WAITING
+        submission.save()
+
+        if delete_type == 'Animals':
+            # Batch delete task for animals
+            my_task = BatchDeleteAnimals()
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=submission, type='animal')
+
+        elif delete_type == 'Samples':
+            # Batch delete task for samples
+            my_task = BatchDeleteSamples()
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=submission, type='sample')
+
+        # reset validation counters
+        summary_obj.reset()
+        res = my_task.delay(pk, [item for item in keys_to_delete])
+
+        logger.info(
+            "Start %s batch delete with task %s" % (delete_type, res.task_id))
+
+        return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
 
 
 class DeleteSubmissionView(OwnerMixin, DeleteView):

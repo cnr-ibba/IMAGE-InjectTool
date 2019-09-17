@@ -6,7 +6,7 @@ Created on Thu Mar 28 16:01:55 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import resolve, reverse
 
 from common.constants import READY
@@ -15,59 +15,12 @@ from common.tests.mixins import (
 from image_app.models import Submission, Animal, Sample, Name
 
 from ..views import DeleteSubmissionView
-from .common import SubmissionStatusMixin
-
-
-class SubmissionDeleteMixin():
-    fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
-    ]
-
-    def setUp(self):
-        # login a test user (defined in fixture)
-        self.client = Client()
-        self.client.login(username='test', password='test')
-
-        # get a submission object
-        self.submission = Submission.objects.get(pk=1)
-
-        # define url
-        self.url = reverse('submissions:delete', kwargs={'pk': 1})
+from .common import SubmissionStatusMixin, SubmissionDeleteMixin
 
 
 class DeleteSubmissionViewTest(
         SubmissionDeleteMixin, GeneralMixinTestCase, OwnerMixinTestCase,
         TestCase):
-
-    fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
-    ]
 
     def setUp(self):
         # call base method
