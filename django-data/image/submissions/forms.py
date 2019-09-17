@@ -7,6 +7,7 @@ Created on Tue Jul 24 15:51:05 2018
 """
 
 import magic
+import tempfile
 
 from django import forms
 
@@ -14,6 +15,7 @@ from common.forms import RequestFormMixin
 from common.constants import CRB_ANIM_TYPE, TEMPLATE_TYPE
 from image_app.models import Submission
 from crbanim.helpers import CRBAnimReader
+from excel.helpers import ExcelTemplateReader
 
 
 class SubmissionFormMixin():
@@ -26,10 +28,15 @@ class SubmissionFormMixin():
                     self.cleaned_data["datasource_type"] != TEMPLATE_TYPE):
                 self.check_file_encoding()
 
-            # same applies for datasource type
+            # check crbanim files only if provided
             if ("datasource_type" in self.cleaned_data and
                     self.cleaned_data["datasource_type"] == CRB_ANIM_TYPE):
                 self.check_crbanim_columns()
+
+            # check template files only if provided
+            if ("datasource_type" in self.cleaned_data and
+                    self.cleaned_data["datasource_type"] == TEMPLATE_TYPE):
+                self.check_template_file()
 
     def check_file_encoding(self):
         uploaded_file = self.cleaned_data['uploaded_file']
@@ -67,6 +74,40 @@ class SubmissionFormMixin():
 
             # raising an exception:
             raise forms.ValidationError(msg, code='invalid')
+
+    def check_template_file(self):
+        """Check if template file has columns and sheets"""
+
+        uploaded_file = self.cleaned_data['uploaded_file']
+
+        # xlrd can manage onli files. Write a temporary file
+        with tempfile.NamedTemporaryFile(delete=True) as tmpfile:
+            for chunk in uploaded_file.chunks():
+                tmpfile.write(chunk)
+
+            # open the file with proper model
+            reader = ExcelTemplateReader()
+            reader.read_file(tmpfile.name)
+
+            # check that template has at least breed, animal, sample sheets
+            check, not_found = reader.check_sheets()
+
+            if check is False:
+                msg = "Error: file lacks of Template mandatory sheets: %s" % (
+                    not_found)
+
+                # raising an exception:
+                raise forms.ValidationError(msg, code='invalid')
+
+            # check that template has at least breed, animal, sample sheets
+            check, not_found = reader.check_columns()
+
+            if check is False:
+                msg = "Error: file lacks of Template mandatory columns: %s" % (
+                    not_found)
+
+                # raising an exception:
+                raise forms.ValidationError(msg, code='invalid')
 
 
 class SubmissionForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):

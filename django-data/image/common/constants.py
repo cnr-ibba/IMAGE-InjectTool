@@ -51,7 +51,7 @@ class EnumMixin():
             if el.value[1] == value:
                 return el.value[0]
 
-        raise KeyError("value %s not in %s" % (value, cls))
+        raise KeyError("value '%s' not in '%s'" % (value, cls))
 
 
 class ACCURACIES(EnumMixin, Enum):

@@ -16,6 +16,8 @@ from common.constants import ACCURACIES
 from image_app.helpers import FileDataSourceMixin
 from image_app.models import DictSex
 
+from .exceptions import ExcelImportError
+
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -144,7 +146,15 @@ class ExcelTemplateReader(FileDataSourceMixin):
 
         # get the column index I need
         for column in TEMPLATE_COLUMNS[sheet_name]:
-            idx = header.index(column)
+            try:
+                idx = header.index(column)
+
+            except ValueError as e:
+                logger.error(e)
+                raise ExcelImportError(
+                    "Column '%s' not found in '%s' sheet" % (
+                        column, sheet_name))
+
             column_idxs[column.lower().replace(" ", "_")] = idx
 
         # get new column names
@@ -163,6 +173,14 @@ class ExcelTemplateReader(FileDataSourceMixin):
 
             # replace all empty  occurences in a list
             data = [None if col in [""]
+                    else col for col in data]
+
+            # stripping columns
+            data = [col.strip() if type(col) is str
+                    else col for col in data]
+
+            # treat integers as integers
+            data = [int(col) if type(col) is float and col.is_integer()
                     else col for col in data]
 
             # fix date fields. Search for 'date' in column names
@@ -209,13 +227,33 @@ class ExcelTemplateReader(FileDataSourceMixin):
         return self.get_sheet_records(sheet_name)
 
     def check_species(self, country):
-        """Check if all species are defined in UID DictSpecies"""
+        """Check if all species are defined in UID DictSpecies. If not,
+        create dictionary term"""
 
         column = 'species'
         item_set = set([breed.species for breed in self.get_breed_records()])
 
         # call FileDataSourceMixin.check_species
-        return super().check_species(column, item_set, country)
+        return super().check_species(column, item_set, country, create=True)
+
+    def check_species_in_animal_sheet(self):
+        """Check if all animal species are defined in breed sheet"""
+
+        check = True
+        not_found = []
+
+        reference_set = set(
+            [breed.species for breed in self.get_breed_records()])
+
+        test_set = set(
+            [animal.species for animal in self.get_animal_records()])
+
+        for specie in test_set:
+            if specie not in reference_set:
+                check = False
+                not_found.append(specie)
+
+        return check, not_found
 
     def check_sex(self):
         """Check that all sex records are present in database"""
