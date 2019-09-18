@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Sep 18 12:07:40 2019
+
+@author: Paolo Cozzi <cozzi@ibba.cnr.it>
+"""
+
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
@@ -7,9 +15,10 @@ from validation.models import ValidationSummary
 from ..views import SubmissionValidationSummaryView
 
 
-class SubmissionValidationSummaryViewTest(GeneralMixinTestCase,
-                                          OwnerMixinTestCase, TestCase):
-    """Test Submission DetailView"""
+class SubmissionValidationSummaryViewTest(
+        GeneralMixinTestCase, OwnerMixinTestCase, TestCase):
+    """Test SubmissionValidationSummaryViewTest View"""
+
     fixtures = [
         "image_app/user",
         "image_app/dictcountry",

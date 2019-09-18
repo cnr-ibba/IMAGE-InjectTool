@@ -211,8 +211,12 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
     def get_queryset(self):
         """Define columns that need to change"""
 
+        self.submission = get_object_or_404(
+            Submission,
+            pk=self.kwargs['pk'],
+            owner=self.request.user)
+
         self.summary_type = self.kwargs['type']
-        self.submission = Submission.objects.get(pk=self.kwargs['pk'])
         self.validation_summary = ValidationSummary.objects.get(
             submission=self.submission, type=self.summary_type)
         self.message = ast.literal_eval(self.validation_summary.messages[
@@ -275,6 +279,7 @@ class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
 
     def get_queryset(self):
         """Subsetting names relying submission id"""
+
         self.submission = get_object_or_404(
             Submission,
             pk=self.kwargs['pk'],
