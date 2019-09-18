@@ -181,9 +181,20 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
             editable = list()
             for message in validation_summary.messages:
                 message = ast.literal_eval(message)
-                if uid2biosample(message['offending_column']) in \
+
+                if 'offending_column' not in message:
+                    txt = ("Old validation results, please re-run validation"
+                           " step!")
+                    logger.warning(txt)
+                    messages.warning(
+                        request=self.request,
+                        message=txt,
+                        extra_tags="alert alert-dismissible alert-warning")
+                    editable.append(False)
+
+                elif (uid2biosample(message['offending_column']) in
                         [val for sublist in VALIDATION_MESSAGES_ATTRIBUTES for
-                         val in sublist]:
+                         val in sublist]):
                     editable.append(True)
                 else:
                     editable.append(False)
@@ -198,6 +209,8 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
     template_name = "submissions/submission_validation_summary_fix_errors.html"
 
     def get_queryset(self):
+        """Define columns that need to change"""
+
         self.summary_type = self.kwargs['type']
         self.submission = Submission.objects.get(pk=self.kwargs['pk'])
         self.validation_summary = ValidationSummary.objects.get(
