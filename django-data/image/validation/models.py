@@ -80,7 +80,7 @@ class ValidationSummary(models.Model):
         self.save()
 
     def reset(self):
-        """Sets all counts to 0, except all_count field"""
+        """Sets all counts and other counters to 0"""
 
         self.pass_count = 0
         self.warning_count = 0
@@ -90,4 +90,5 @@ class ValidationSummary(models.Model):
         self.messages = list()
         self.save()
 
-        # HINT: why not reset all count here ?
+        # reset also all counts
+        self.reset_all_count()

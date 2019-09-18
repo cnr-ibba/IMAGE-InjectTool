@@ -23,7 +23,8 @@ from image_app.models import Animal, Sample, Submission, Person, Name
 from common.tests import PersonMixinTestCase
 
 from ..helpers import (
-    MetaDataValidation, OntologyCacheError, RulesetError)
+    MetaDataValidation, OntologyCacheError, RulesetError,
+    construct_validation_message)
 from ..models import ValidationResult, ValidationSummary
 from .common import PickableMock, MetaDataValidationTestMixin
 
@@ -479,3 +480,24 @@ class ValidationSummaryTestCase(TestCase):
 
         self.assertEqual(self.validationsummary_sample.all_count, 0)
         self.assertEqual(self.validationsummary_sample.issues_count, 0)
+
+    def test_construct_validation_message(self):
+        """Testing validation message creation"""
+
+        reference = {
+            'animals': 3, 'samples': 1, 'animal_unkn': 2,
+            'sample_unkn': 1, 'animal_issues': 0, 'sample_issues': 0}
+
+        test = construct_validation_message(self.submission)
+
+        self.assertEqual(reference, test)
+
+    def test_construct_validation_message_incomplete(self):
+        """A not fully initialized ValidationSummary object returns None"""
+
+        # remove one object from db
+        self.validationsummary_sample.delete()
+
+        test = construct_validation_message(self.submission)
+
+        self.assertIsNone(test)

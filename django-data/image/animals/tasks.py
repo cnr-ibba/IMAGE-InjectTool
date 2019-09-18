@@ -123,13 +123,13 @@ class BatchDeleteAnimals(MyTask):
 
         summary_obj, created = ValidationSummary.objects.get_or_create(
             submission=submission_obj, type='animal')
-        summary_obj.reset_all_count()
+        summary_obj.reset()
 
         # after removing animal associated samples, we need to update also
         # sample all count
         summary_obj, created = ValidationSummary.objects.get_or_create(
             submission=submission_obj, type='sample')
-        summary_obj.reset_all_count()
+        summary_obj.reset()
 
         # TODO: validation summary could be updated relying database, instead
         # doing validation. Define a method in validation.helpers to update
