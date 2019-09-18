@@ -11,7 +11,7 @@ from celery.utils.log import get_task_logger
 from django.db import transaction
 
 from common.constants import ERROR, NEED_REVISION
-from common.tasks import BatchUpdateMixin
+from common.tasks import BatchUpdateMixin, BatchFailurelMixin
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Name
 from submissions.helpers import send_message
@@ -22,43 +22,12 @@ from validation.models import ValidationSummary
 logger = get_task_logger(__name__)
 
 
-class BatchDeleteSamples(MyTask):
+class BatchDeleteSamples(BatchFailurelMixin, MyTask):
     name = "Batch delete samples"
     description = """Batch remove samples"""
-
-    # Ovverride default on failure method
-    # This is not a failed validation for a wrong value, this is an
-    # error in task that mean an error in coding
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
-
-        submission_id, sample_ids = args[0], args[1]
-
-        logger.error(
-            ("BatchDeleteAnimals called with submission_id: %s and "
-             "sample_ids: %s" % (submission_id, sample_ids))
-        )
-
-        # get submission object
-        submission_obj = Submission.objects.get(pk=submission_id)
-
-        # mark submission with ERROR
-        submission_obj.status = ERROR
-        submission_obj.message = (
-            "Error in sample batch delete: %s" % (str(exc)))
-        submission_obj.save()
-
-        send_message(submission_obj)
-
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in sample batch delete for submission: %s" % (
-                submission_obj.id),
-            ("Something goes wrong in batch delete for samples. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
-
-        # TODO: submit mail to admin
+    batch_type = "delete"
+    model_type = "sample"
+    submission_cls = Submission
 
     def run(self, submission_id, sample_ids):
         """Function for batch update attribute in animals
@@ -119,38 +88,14 @@ class BatchDeleteSamples(MyTask):
         return 'success'
 
 
-class BatchUpdateSamples(MyTask, BatchUpdateMixin):
+class BatchUpdateSamples(BatchFailurelMixin, BatchUpdateMixin, MyTask):
     name = "Batch update samples"
     description = """Batch update of field in samples"""
+    batch_type = "update"
+    model_type = "sample"
 
     item_cls = Sample
     submission_cls = Submission
-
-    # Ovverride default on failure method
-    # This is not a failed validation for a wrong value, this is an
-    # error in task that mean an error in coding
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
-
-        # get submission object
-        submission_obj = Submission.objects.get(pk=args[0])
-
-        # mark submission with ERROR
-        submission_obj.status = ERROR
-        submission_obj.message = ("Error in batch update for samples: %s"
-                                  % (str(exc)))
-        submission_obj.save()
-
-        send_message(submission_obj)
-
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in batch update for samples: %s" % (args[0]),
-            ("Something goes wrong in batch update for samples. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
-
-        # TODO: submit mail to admin
 
     def run(self, submission_id, sample_ids, attribute):
         """Function for batch update attribute in samples
@@ -161,8 +106,8 @@ class BatchUpdateSamples(MyTask, BatchUpdateMixin):
         """
 
         logger.info("Start batch update for samples")
-        super(BatchUpdateSamples, self).batch_update(submission_id, sample_ids,
-                                                     attribute)
+        self.batch_update(submission_id, sample_ids, attribute)
+
         return 'success'
 
 

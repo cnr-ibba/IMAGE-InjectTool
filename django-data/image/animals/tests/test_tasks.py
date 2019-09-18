@@ -16,7 +16,7 @@ from common.constants import NEED_REVISION, STATUSES, ERROR
 from common.tests import WebSocketMixin
 
 from .common import AnimalFeaturesMixin
-from ..tasks import BatchDeleteAnimals
+from ..tasks import BatchDeleteAnimals, BatchUpdateAnimals
 
 
 class BatchDeleteAnimalsTest(
@@ -124,4 +124,87 @@ class BatchDeleteAnimalsTest(
             validation_message={
                 'animals': 3, 'samples': 1, 'animal_unkn': 3,
                 'sample_unkn': 1, 'animal_issues': 0, 'sample_issues': 0}
+        )
+
+
+class BatchUpdateAnimalsTest(
+        AnimalFeaturesMixin, WebSocketMixin, TestCase):
+
+    def setUp(self):
+        # calling base methods
+        super().setUp()
+
+        # get a submission object
+        self.submission = Submission.objects.get(pk=1)
+        self.submission_id = self.submission.id
+
+        # setting animals to delete
+        self.animal_ids = {
+            1: "meow",
+            2: "bark",
+            3: "None"
+        }
+
+        # the attribute to change
+        self.attribute = "birth_location"
+
+        # setting tasks
+        self.my_task = BatchUpdateAnimals()
+
+    def test_on_failure(self):
+        """Testing on failure methods"""
+
+        exc = Exception("Test")
+        task_id = "test_task_id"
+        args = [self.submission_id, self.animal_ids, self.attribute]
+        kwargs = {}
+        einfo = ExceptionInfo
+
+        # call on_failure method
+        self.my_task.on_failure(exc, task_id, args, kwargs, einfo)
+
+        # check submission status and message
+        self.submission.refresh_from_db()
+
+        # check submission.state changed
+        self.assertEqual(self.submission.status, ERROR)
+        self.assertEqual(
+            self.submission.message,
+            "Error in animal batch update: Test")
+
+        # test email sent
+        self.assertGreater(len(mail.outbox), 0)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in animal batch update for submission: 1",
+            email.subject)
+
+        self.check_message(
+            message='Error',
+            notification_message='Error in animal batch update: Test')
+
+    def test_update_animal(self):
+        # calling task and update a animal
+        res = self.my_task.run(
+            submission_id=self.submission_id,
+            animal_ids=self.animal_ids,
+            attribute=self.attribute)
+
+        self.assertEqual(res, "success")
+
+        # asserting updates
+        for key, value in self.animal_ids.items():
+            animal = Animal.objects.get(pk=key)
+            if value == "None":
+                value = None
+            self.assertEqual(getattr(animal, self.attribute), value)
+
+        # calling a WebSocketMixin method
+        # no validation message since no data in validation table
+        self.check_message(
+            message=STATUSES.get_value_display(NEED_REVISION),
+            notification_message="Data updated, try to rerun validation",
         )
