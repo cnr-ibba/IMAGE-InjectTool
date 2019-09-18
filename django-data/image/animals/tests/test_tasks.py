@@ -94,7 +94,11 @@ class BatchDeleteAnimalsTest(
             message=STATUSES.get_value_display(NEED_REVISION),
             notification_message=(
                 "You've removed %s "
-                "animals. Rerun validation please!" % len(self.animal_ids)))
+                "animals. Rerun validation please!" % len(self.animal_ids)),
+            validation_message={
+                'animals': 0, 'samples': 0, 'animal_unkn': 0,
+                'sample_unkn': 0, 'animal_issues': 0, 'sample_issues': 0}
+        )
 
     def test_delete_animal_not_exists(self):
         # calling task and delete a animal
@@ -116,5 +120,8 @@ class BatchDeleteAnimalsTest(
             message=STATUSES.get_value_display(NEED_REVISION),
             notification_message=(
                 "You've removed 0 animals. It wasn't possible to find records "
-                "with these ids: meow. Rerun validation please!")
+                "with these ids: meow. Rerun validation please!"),
+            validation_message={
+                'animals': 3, 'samples': 1, 'animal_unkn': 3,
+                'sample_unkn': 1, 'animal_issues': 0, 'sample_issues': 0}
         )

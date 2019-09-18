@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Feb 27 16:38:37 2019
+
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
@@ -124,6 +125,16 @@ class BatchDeleteAnimals(MyTask):
             submission=submission_obj, type='animal')
         summary_obj.reset_all_count()
 
+        # after removing animal associated samples, we need to update also
+        # sample all count
+        summary_obj, created = ValidationSummary.objects.get_or_create(
+            submission=submission_obj, type='sample')
+        summary_obj.reset_all_count()
+
+        # TODO: validation summary could be updated relying database, instead
+        # doing validation. Define a method in validation.helpers to update
+        # summary relying only on database
+
         send_message(
             submission_obj, construct_validation_message(submission_obj)
         )
@@ -160,8 +171,8 @@ class BatchUpdateAnimals(MyTask, BatchUpdateMixin):
         # send a mail to the user with the stacktrace (einfo)
         submission_obj.owner.email_user(
             "Error in batch update for animals: %s" % (args[0]),
-            ("Something goes wrong  in batch update for animals. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
+            ("Something goes wrong  in batch update for animals. Please "
+             "report this to InjectTool team\n\n %s" % str(einfo)),
         )
 
         # TODO: submit mail to admin
