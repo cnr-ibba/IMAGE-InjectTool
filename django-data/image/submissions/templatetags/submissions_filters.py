@@ -33,9 +33,9 @@ def create_unique_id(value, arg):
 @register.filter
 def convert_to_human_readable(value, record_type):
     if record_type == 'animal':
-        return  Animal._meta.get_field(value).verbose_name.title()
+        return Animal._meta.get_field(value).verbose_name.title()
     elif record_type == 'sample':
-        return  Sample._meta.get_field(value).verbose_name.title()
+        return Sample._meta.get_field(value).verbose_name.title()
     else:
         return value
 
