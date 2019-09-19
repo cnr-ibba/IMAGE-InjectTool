@@ -13,6 +13,7 @@ from django.urls import resolve, reverse
 
 from common.constants import WAITING
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
+from validation.models import ValidationSummary
 
 from .common import SubmissionDataMixin
 from ..views import SubmissionValidationSummaryFixErrorsView, FixValidation
@@ -60,6 +61,94 @@ class SubmissionValidationSummaryFixErrorsViewTest(
                 'message_counter': 0})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
+
+
+class SubmissionValidationSummaryFixErrorsViewColumnTest(
+        SubmissionDataMixin, TestCase):
+
+    def setUp(self):
+        # login a test user (defined in fixture)
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        self.url_animal = reverse(
+            'submissions:validation_summary_fix_errors',
+            kwargs={
+                'pk': 1,
+                'type': 'animal',
+                'message_counter': 0})
+
+        self.url_sample = reverse(
+            'submissions:validation_summary_fix_errors',
+            kwargs={
+                'pk': 1,
+                'type': 'sample',
+                'message_counter': 0})
+
+    def test_animal_age_issue(self):
+        """Testing animal age column"""
+
+        # is an animal VS
+        vs = ValidationSummary.objects.get(pk=2)
+        vs.messages = [
+            ("{'message': 'Error: One of minutes, ... need to be present for "
+             "the field Animal age at collection (specimen from organism "
+             "section)', 'count': 1, 'ids': [1], 'offending_column': 'Animal "
+             "age at collection'}")
+        ]
+        vs.save()
+
+        # get animal page
+        response = self.client.get(self.url_sample)
+        self.assertEqual(response.status_code, 200)
+
+    def test_accuracy_issue(self):
+        """Testing animal age column"""
+
+        # is an animal VS
+        vs = ValidationSummary.objects.get(pk=1)
+        vs.messages = [
+            ("{'message': 'Error: .* of field .* is not in the valid values "
+             "list .*', 'count': 1, 'ids': [1], 'offending_column': 'Birth "
+             "location accuracy'}")
+        ]
+        vs.save()
+
+        # get animal page
+        response = self.client.get(self.url_animal)
+        self.assertEqual(response.status_code, 200)
+
+    def test_storage_processing_issue(self):
+        """Testing sample storage processing column"""
+
+        # is an animal VS
+        vs = ValidationSummary.objects.get(pk=2)
+        vs.messages = [
+            ("{'message': 'Error: .* of field .* is not in the valid values "
+             "list .*', 'count': 1, 'ids': [1], 'offending_column': 'Sample "
+             "storage processing'}")
+        ]
+        vs.save()
+
+        # get animal page
+        response = self.client.get(self.url_sample)
+        self.assertEqual(response.status_code, 200)
+
+    def test_storage_issue(self):
+        """Testing sample storage processing column"""
+
+        # is an animal VS
+        vs = ValidationSummary.objects.get(pk=2)
+        vs.messages = [
+            ("{'message': 'Error: .* of field .* is not in the valid values "
+             "list .*', 'count': 1, 'ids': [1], 'offending_column': 'Sample "
+             "storage'}")
+        ]
+        vs.save()
+
+        # get animal page
+        response = self.client.get(self.url_sample)
+        self.assertEqual(response.status_code, 200)
 
 
 class FixValidationMixin(

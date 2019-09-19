@@ -9,7 +9,6 @@ Created on Thu Mar 28 16:25:39 2019
 import os
 
 from django.test import Client
-from django.urls import reverse
 
 import common.tests
 from image_app.models import Submission
@@ -148,7 +147,8 @@ class SubmissionDataMixin():
         'image_app/publication',
         'image_app/sample',
         'image_app/submission',
-        'image_app/user'
+        'image_app/user',
+        'validation/validationsummary',
     ]
 
     def setUp(self):
