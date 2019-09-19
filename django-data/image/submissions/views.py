@@ -521,8 +521,13 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
         return httpresponseredirect
 
 
-class FixValidation(View, OwnerMixin):
+class FixValidation(OwnerMixin, BaseUpdateView):
+    model = Submission
+
     def post(self, request, **kwargs):
+        # get object (Submission) like BaseUpdateView does
+        submission = self.get_object()
+
         # Fetch all required ids from input names and use it as keys
         keys_to_fix = dict()
         for key_to_fix in request.POST:
@@ -535,7 +540,6 @@ class FixValidation(View, OwnerMixin):
         record_type = self.kwargs['record_type']
         attribute_to_edit = self.kwargs['attribute_to_edit']
 
-        submission = Submission.objects.get(pk=pk)
         submission.message = "waiting for data updating"
         submission.status = WAITING
         submission.save()
