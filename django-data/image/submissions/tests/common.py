@@ -133,7 +133,7 @@ class SubmissionStatusMixin():
         self.assertEqual(response.status_code, 200)
 
 
-class SubmissionDeleteMixin():
+class SubmissionDataMixin():
     fixtures = [
         'image_app/animal',
         'image_app/dictbreed',
@@ -158,6 +158,3 @@ class SubmissionDeleteMixin():
 
         # get a submission object
         self.submission = Submission.objects.get(pk=1)
-
-        # define url
-        self.url = reverse('submissions:delete', kwargs={'pk': 1})

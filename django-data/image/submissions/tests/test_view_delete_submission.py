@@ -15,16 +15,19 @@ from common.tests.mixins import (
 from image_app.models import Submission, Animal, Sample, Name
 
 from ..views import DeleteSubmissionView
-from .common import SubmissionStatusMixin, SubmissionDeleteMixin
+from .common import SubmissionStatusMixin, SubmissionDataMixin
 
 
 class DeleteSubmissionViewTest(
-        SubmissionDeleteMixin, GeneralMixinTestCase, OwnerMixinTestCase,
+        SubmissionDataMixin, GeneralMixinTestCase, OwnerMixinTestCase,
         TestCase):
 
     def setUp(self):
         # call base method
         super().setUp()
+
+        # define url
+        self.url = reverse('submissions:delete', kwargs={'pk': 1})
 
         # update submission status (to get this url)
         self.submission.status = READY
@@ -62,12 +65,15 @@ class DeleteSubmissionViewTest(
 
 
 class DeleteSubmissionViewStatusesTest(
-        SubmissionDeleteMixin, SubmissionStatusMixin, TestCase):
+        SubmissionDataMixin, SubmissionStatusMixin, TestCase):
     """Test page access with different submission status"""
 
     def setUp(self):
         # call base method
         super().setUp()
+
+        # define url
+        self.url = reverse('submissions:delete', kwargs={'pk': 1})
 
         # get redirect url
         self.redirect_url = self.submission.get_absolute_url()
@@ -75,13 +81,16 @@ class DeleteSubmissionViewStatusesTest(
 
 # Here, I'm already tested the urls, csfr. So BaseTest
 class SuccessfulDeleteSubmissionViewTest(
-        SubmissionDeleteMixin, MessageMixinTestCase, TestCase):
+        SubmissionDataMixin, MessageMixinTestCase, TestCase):
 
     def setUp(self):
         """call base method"""
 
         # call base method
         super().setUp()
+
+        # define url
+        self.url = reverse('submissions:delete', kwargs={'pk': 1})
 
         # update submission status (to delete this submission)
         self.submission.status = READY

@@ -101,12 +101,17 @@ class SubmissionValidationSummaryViewTest(
 
         # is an animal VS
         vs = ValidationSummary.objects.get(pk=1)
-        vs.message = ["{'message': 'Wrong JSON structure', 'count': 1"]
+        vs.messages = ["{'message': 'Wrong JSON structure', 'count': 1}"]
         vs.save()
 
         # get animal page
         response = self.client.get(self.url_animals)
         self.assertEqual(response.status_code, 200)
+
+        self.check_messages(
+            response,
+            "warning",
+            "Old validation results")
 
     def test_no_validation_summary(self):
         """Removing validation summary objects doesn't have consequences"""

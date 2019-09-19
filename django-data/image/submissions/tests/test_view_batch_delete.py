@@ -12,17 +12,15 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
 from common.constants import WAITING
-from common.tests.mixins import (
-    GeneralMixinTestCase, OwnerMixinTestCase, MessageMixinTestCase)
-from image_app.models import Submission
+from common.tests.mixins import GeneralMixinTestCase, OwnerMixinTestCase
 
-from .common import SubmissionDeleteMixin
+from .common import SubmissionDataMixin
 from ..views import (
     DeleteAnimalsView, DeleteSamplesView, BatchDelete)
 
 
 class DeleteAnimalsViewTest(
-        SubmissionDeleteMixin, GeneralMixinTestCase, OwnerMixinTestCase,
+        SubmissionDataMixin, GeneralMixinTestCase, OwnerMixinTestCase,
         TestCase):
 
     def setUp(self):
@@ -55,7 +53,7 @@ class DeleteAnimalsViewTest(
 
 
 class DeleteSamplesViewTest(
-        SubmissionDeleteMixin, GeneralMixinTestCase, OwnerMixinTestCase,
+        SubmissionDataMixin, GeneralMixinTestCase, OwnerMixinTestCase,
         TestCase):
 
     def setUp(self):
@@ -88,7 +86,7 @@ class DeleteSamplesViewTest(
 
 
 class BatchDeleteMixin(
-        SubmissionDeleteMixin, MessageMixinTestCase):
+        SubmissionDataMixin, GeneralMixinTestCase):
 
     def tearDown(self):
         self.batch_delete_patcher.stop()
@@ -118,11 +116,11 @@ class BatchDeleteMixin(
 
         self.assertTrue(self.batch_delete.called)
 
-        submission = Submission.objects.get(pk=1)
+        self.submission.refresh_from_db()
 
-        self.assertEqual(submission.status, WAITING)
+        self.assertEqual(self.submission.status, WAITING)
         self.assertEqual(
-            submission.message,
+            self.submission.message,
             "waiting for batch delete to complete")
 
     def test_message(self):
