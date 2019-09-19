@@ -11,7 +11,7 @@
     "warning_count": 1,
     "error_count": 0,
     "type": "animal",
-    "messages": ["{'message': 'Wrong JSON structure', 'count': 1}"]
+    "messages": ["{'message': 'Wrong JSON structure', 'count': 1, 'ids': [1], 'offending_column': 'Birth location'}"]
   }
 },
   {
@@ -26,7 +26,7 @@
     "warning_count": 0,
     "error_count": 0,
     "type": "sample",
-    "messages": ["{'message': 'Wrong JSON structure', 'count': 1}"]
+    "messages": ["{'message': 'Wrong JSON structure', 'count': 1, 'offending_column': 'test'}"]
   }
 }
 ]

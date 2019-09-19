@@ -9,7 +9,6 @@ Created on Thu Mar 28 16:25:39 2019
 import os
 
 from django.test import Client
-from django.urls import reverse
 
 import common.tests
 from image_app.models import Submission
@@ -133,7 +132,7 @@ class SubmissionStatusMixin():
         self.assertEqual(response.status_code, 200)
 
 
-class SubmissionDeleteMixin():
+class SubmissionDataMixin():
     fixtures = [
         'image_app/animal',
         'image_app/dictbreed',
@@ -148,7 +147,8 @@ class SubmissionDeleteMixin():
         'image_app/publication',
         'image_app/sample',
         'image_app/submission',
-        'image_app/user'
+        'image_app/user',
+        'validation/validationsummary',
     ]
 
     def setUp(self):
@@ -158,6 +158,3 @@ class SubmissionDeleteMixin():
 
         # get a submission object
         self.submission = Submission.objects.get(pk=1)
-
-        # define url
-        self.url = reverse('submissions:delete', kwargs={'pk': 1})

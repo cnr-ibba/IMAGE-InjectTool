@@ -152,3 +152,14 @@ def get_admin_emails():
 
     # return all admin mail addresses
     return [admin[1] for admin in ADMINS]
+
+
+def uid2biosample(value):
+    """Convert human-readable name to model field"""
+    if value == 'Sample storage':
+        return 'storage'
+    elif value == 'Sample storage processing':
+        return 'storage_processing'
+    elif value == 'Sampling to preparation interval':
+        return 'preparation_interval_units'
+    return '_'.join(value.lower().split(" "))

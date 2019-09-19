@@ -47,6 +47,16 @@ urlpatterns = [
         views.SubmissionValidationSummaryView.as_view(),
         name='validation_summary'),
 
+    url(r'^(?P<pk>[-\w]+)/validation_summary/(?P<type>[\w]+)/'
+        r'(?P<message_counter>[-\w]+)/$',
+        views.SubmissionValidationSummaryFixErrorsView.as_view(),
+        name='validation_summary_fix_errors'),
+
+    url(r'^(?P<pk>[-\w]+)/fix_validation/(?P<record_type>[\w]+)/'
+        r'(?P<attribute_to_edit>[\w]+)/$',
+        views.FixValidation.as_view(),
+        name='fix_validation'),
+
     url(r'^(?P<pk>[-\w]+)/batch_delete/(?P<type>[\w]+)/$',
         views.BatchDelete.as_view(),
         name='batch_delete')

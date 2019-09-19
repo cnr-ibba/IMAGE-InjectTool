@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Feb 27 16:38:37 2019
+
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
@@ -9,7 +10,8 @@ from celery.utils.log import get_task_logger
 
 from django.db import transaction
 
-from common.constants import ERROR, NEED_REVISION
+from common.constants import NEED_REVISION
+from common.tasks import BatchUpdateMixin, BatchFailurelMixin
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Animal, Name
 from submissions.helpers import send_message
@@ -20,43 +22,12 @@ from validation.models import ValidationSummary
 logger = get_task_logger(__name__)
 
 
-class BatchDeleteAnimals(MyTask):
+class BatchDeleteAnimals(BatchFailurelMixin, MyTask):
     name = "Batch delete animals"
     description = """Batch remove animals and associated samples"""
-
-    # Ovverride default on failure method
-    # This is not a failed validation for a wrong value, this is an
-    # error in task that mean an error in coding
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
-
-        submission_id, animal_ids = args[0], args[1]
-
-        logger.error(
-            ("BatchDeleteAnimals called with submission_id: %s and "
-             "animal_ids: %s" % (submission_id, animal_ids))
-        )
-
-        # get submission object
-        submission_obj = Submission.objects.get(pk=submission_id)
-
-        # mark submission with ERROR
-        submission_obj.status = ERROR
-        submission_obj.message = (
-            "Error in animal batch delete: %s" % (str(exc)))
-        submission_obj.save()
-
-        send_message(submission_obj)
-
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in animal batch delete for submission: %s" % (
-                submission_obj.id),
-            ("Something goes wrong in batch delete for animals. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
-
-        # TODO: submit mail to admin
+    batch_type = "delete"
+    model_type = "animal"
+    submission_cls = Submission
 
     def run(self, submission_id, animal_ids):
         """Function for batch update attribute in animals
@@ -121,7 +92,17 @@ class BatchDeleteAnimals(MyTask):
 
         summary_obj, created = ValidationSummary.objects.get_or_create(
             submission=submission_obj, type='animal')
-        summary_obj.reset_all_count()
+        summary_obj.reset()
+
+        # after removing animal associated samples, we need to update also
+        # sample all count
+        summary_obj, created = ValidationSummary.objects.get_or_create(
+            submission=submission_obj, type='sample')
+        summary_obj.reset()
+
+        # TODO: validation summary could be updated relying database, instead
+        # doing validation. Define a method in validation.helpers to update
+        # summary relying only on database
 
         send_message(
             submission_obj, construct_validation_message(submission_obj)
@@ -132,6 +113,30 @@ class BatchDeleteAnimals(MyTask):
         return 'success'
 
 
+class BatchUpdateAnimals(BatchFailurelMixin, BatchUpdateMixin, MyTask):
+    name = "Batch update animals"
+    description = """Batch update of field in animals"""
+    batch_type = "update"
+    model_type = "animal"
+
+    # defined in common.tasks.BatchUpdateMixin
+    item_cls = Animal
+    submission_cls = Submission
+
+    def run(self, submission_id, animal_ids, attribute):
+        """Function for batch update attribute in animals
+        Args:
+            submission_id (int): id of submission
+            animal_ids (dict): dict with id and values to update
+            attribute (str): attribute to update
+        """
+
+        logger.info("Start batch update for animals")
+        self.batch_update(submission_id, animal_ids, attribute)
+        return 'success'
+
+
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(BatchDeleteAnimals)
+celery_app.tasks.register(BatchUpdateAnimals)

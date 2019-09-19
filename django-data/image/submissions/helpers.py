@@ -7,6 +7,7 @@ Created on Thu Jun 27 11:52:37 2019
 """
 
 import asyncio
+import re
 
 from common.constants import STATUSES
 from common.helpers import send_message_to_websocket
@@ -40,3 +41,15 @@ def send_message(submission_obj, validation_message=None):
             submission_obj.pk
         )
     )
+
+
+def is_target_in_message(target, messages):
+    """
+    This function will return true if target in message
+    Args:
+        target (str): target to search
+    """
+    for message in messages:
+        if re.search(message, target):
+            return True
+    return False

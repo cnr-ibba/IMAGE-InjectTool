@@ -238,7 +238,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         'validation': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['console'],
         },
         'animals': {

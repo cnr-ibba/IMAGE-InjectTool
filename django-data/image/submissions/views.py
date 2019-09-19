@@ -7,6 +7,8 @@ Created on Tue Jul 24 15:49:23 2018
 """
 
 import logging
+import ast
+import re
 from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
@@ -20,19 +22,25 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 
 from common.constants import (
-    WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE)
-from common.helpers import get_deleted_objects
+    WAITING, ERROR, SUBMITTED, NEED_REVISION, CRYOWEB_TYPE, CRB_ANIM_TYPE,
+    TIME_UNITS, VALIDATION_MESSAGES_ATTRIBUTES, SAMPLE_STORAGE,
+    SAMPLE_STORAGE_PROCESSING, ACCURACIES, UNITS_VALIDATION_MESSAGES,
+    VALUES_VALIDATION_MESSAGES)
+from common.helpers import get_deleted_objects, uid2biosample
 from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import import_from_cryoweb
-from image_app.models import Submission, Name
+
+from image_app.models import Submission, Name, Animal, Sample
 from excel.tasks import ImportTemplateTask
+
 from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
-from animals.tasks import BatchDeleteAnimals
-from samples.tasks import BatchDeleteSamples
+from animals.tasks import BatchDeleteAnimals, BatchUpdateAnimals
+from samples.tasks import BatchDeleteSamples, BatchUpdateSamples
 
 from .forms import SubmissionForm, ReloadForm
+from .helpers import is_target_in_message
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -164,16 +172,111 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        summary_type = ''
-        if self.kwargs['type'] == 'animals':
-            summary_type = 'animal'
-        elif self.kwargs['type'] == 'samples':
-            summary_type = 'sample'
+        summary_type = self.kwargs['type']
         try:
-            context['validation_summary'] = self.object.validationsummary_set\
+            validation_summary = self.object.validationsummary_set\
                 .get(type=summary_type)
+            context['validation_summary'] = validation_summary
+
+            editable = list()
+
+            for message in validation_summary.messages:
+                message = ast.literal_eval(message)
+
+                if 'offending_column' not in message:
+                    txt = ("Old validation results, please re-run validation"
+                           " step!")
+                    logger.warning(txt)
+                    messages.warning(
+                        request=self.request,
+                        message=txt,
+                        extra_tags="alert alert-dismissible alert-warning")
+                    editable.append(False)
+
+                elif (uid2biosample(message['offending_column']) in
+                        [val for sublist in VALIDATION_MESSAGES_ATTRIBUTES for
+                         val in sublist]):
+                    logger.debug(
+                        "%s is editable" % message['offending_column'])
+                    editable.append(True)
+                else:
+                    logger.debug(
+                        "%s is not editable" % message['offending_column'])
+                    editable.append(False)
+
+            context['editable'] = editable
+
         except ObjectDoesNotExist:
             context['validation_summary'] = None
+
+        context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
+
+        return context
+
+
+class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
+    template_name = "submissions/submission_validation_summary_fix_errors.html"
+
+    def get_queryset(self):
+        """Define columns that need to change"""
+
+        self.submission = get_object_or_404(
+            Submission,
+            pk=self.kwargs['pk'],
+            owner=self.request.user)
+
+        self.summary_type = self.kwargs['type']
+        self.validation_summary = ValidationSummary.objects.get(
+            submission=self.submission, type=self.summary_type)
+        self.message = ast.literal_eval(self.validation_summary.messages[
+                                            int(self.kwargs['message_counter'])
+                                        ])
+        self.offending_column = uid2biosample(
+            self.message['offending_column'])
+        self.show_units = True
+        if is_target_in_message(self.message['message'],
+                                UNITS_VALIDATION_MESSAGES):
+            self.units = [unit.name for unit in TIME_UNITS]
+            if self.offending_column == 'animal_age_at_collection':
+                self.offending_column += "_units"
+
+        elif is_target_in_message(self.message['message'],
+                                  VALUES_VALIDATION_MESSAGES):
+            if self.offending_column == 'storage':
+                self.units = [unit.name for unit in SAMPLE_STORAGE]
+            elif self.offending_column == 'storage_processing':
+                self.units = [unit.name for unit in SAMPLE_STORAGE_PROCESSING]
+            elif self.offending_column == 'collection_place_accuracy' or \
+                    self.offending_column == 'birth_location_accuracy':
+                self.units = [unit.name for unit in ACCURACIES]
+        else:
+            self.show_units = False
+            self.units = None
+        if self.summary_type == 'animal':
+            return Animal.objects.filter(id__in=self.message['ids'])
+        elif self.summary_type == 'sample':
+            return Sample.objects.filter(id__in=self.message['ids'])
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super(
+            SubmissionValidationSummaryFixErrorsView, self
+        ).get_context_data(**kwargs)
+
+        # add submission to context
+        context["message"] = self.message
+        context["type"] = self.summary_type
+        context['attribute_to_edit'] = self.offending_column
+        for attributes in VALIDATION_MESSAGES_ATTRIBUTES:
+            if self.offending_column in attributes:
+                context['attributes_to_show'] = [
+                    attr for attr in attributes if
+                    attr != self.offending_column
+                ]
+        context['submission'] = self.submission
+        context['show_units'] = self.show_units
+        if self.units:
+            context['units'] = self.units
         return context
 
 
@@ -185,6 +288,7 @@ class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
 
     def get_queryset(self):
         """Subsetting names relying submission id"""
+
         self.submission = get_object_or_404(
             Submission,
             pk=self.kwargs['pk'],
@@ -424,3 +528,48 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
             extra_tags="alert alert-dismissible alert-info")
 
         return httpresponseredirect
+
+
+class FixValidation(OwnerMixin, BaseUpdateView):
+    model = Submission
+
+    def post(self, request, **kwargs):
+        # get object (Submission) like BaseUpdateView does
+        submission = self.get_object()
+
+        # Fetch all required ids from input names and use it as keys
+        keys_to_fix = dict()
+        for key_to_fix in request.POST:
+            if 'to_edit' in key_to_fix:
+                keys_to_fix[
+                    int(re.search('to_edit(.*)', key_to_fix).groups()[0])] \
+                    = request.POST[key_to_fix]
+
+        pk = self.kwargs['pk']
+        record_type = self.kwargs['record_type']
+        attribute_to_edit = self.kwargs['attribute_to_edit']
+
+        submission.message = "waiting for data updating"
+        submission.status = WAITING
+        submission.save()
+
+        # Update validation summary
+        summary_obj, created = ValidationSummary.objects.get_or_create(
+            submission=submission, type=record_type)
+        summary_obj.submission = submission
+        summary_obj.reset()
+
+        # create a task
+        if record_type == 'animal':
+            my_task = BatchUpdateAnimals()
+        elif record_type == 'sample':
+            my_task = BatchUpdateSamples()
+        else:
+            return HttpResponseRedirect(
+                reverse('submissions:detail', args=(pk,)))
+
+        # a valid submission start a task
+        res = my_task.delay(pk, keys_to_fix, attribute_to_edit)
+        logger.info(
+            "Start fix validation process with task %s" % res.task_id)
+        return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))

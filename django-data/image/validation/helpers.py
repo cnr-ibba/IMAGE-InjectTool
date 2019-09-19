@@ -225,7 +225,8 @@ def construct_validation_message(submission):
         submission (image_app.models.Submission) : submission to get data from
 
     Returns:
-        dict: dictionary with all required data for validation message
+        dict: dictionary with all required data for validation message or None
+        if database objects do not exist
     """
     try:
         validation_summary_animal = ValidationSummary.objects.get(

@@ -173,3 +173,30 @@ MONTHS = TIME_UNITS.get_value('months')
 DAYS = TIME_UNITS.get_value('days')
 
 KNOWN_STATUSES = ['Error', 'Issues', 'Known', 'Pass', 'Warning']
+
+VALIDATION_MESSAGES_ATTRIBUTES = [
+    ['birth_location', 'birth_location_latitude', 'birth_location_longitude',
+     'birth_location_accuracy'],
+    ['collection_place', 'collection_place_latitude',
+     'collection_place_longitude', 'collection_place_accuracy'],
+    ['animal_age_at_collection_units', 'animal_age_at_collection'],
+    ['preparation_interval_units', 'preparation_interval'],
+    ['availability'],
+    ['storage'],
+    ['storage_processing'],
+    ['term', 'label'],
+    ['organism_part'],
+    ['developmental_stage'],
+    ['physiological_stage'],
+    ['sex'],
+    ['species'],
+]
+
+UNITS_VALIDATION_MESSAGES = [
+    ".* for field .* is not in the valid units list .*",
+    "One of .* need to be present for the field .*"
+]
+
+VALUES_VALIDATION_MESSAGES = [
+    ".* of field .* is not in the valid values list .*",
+]

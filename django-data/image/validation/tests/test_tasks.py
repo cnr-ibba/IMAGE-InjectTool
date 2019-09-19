@@ -183,8 +183,13 @@ class ValidateSubmissionTest(ValidateSubmissionMixin, TestCase):
         self.submission_data.animals_statuses['Error'] = 1
         self.submission_data.samples_statuses['Warning'] = 1
 
-        self.submission_data.animals_messages['test error'] = 1
-        self.submission_data.samples_messages['test warning'] = 1
+        self.submission_data.animals_messages['test error'] = [1]
+        self.submission_data.samples_messages['test warning'] = [1]
+
+        self.submission_data.animals_offending_columns['test error'] = \
+            'test_error'
+        self.submission_data.samples_offending_columns['test warning'] = \
+            'test_warning'
 
         # call function
         self.submission_data.create_validation_summary()
