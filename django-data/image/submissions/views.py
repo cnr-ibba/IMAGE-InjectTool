@@ -15,7 +15,6 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponseRedirect
-from django.views import View
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
 from django.views.generic.edit import BaseUpdateView
@@ -178,7 +177,9 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
             validation_summary = self.object.validationsummary_set\
                 .get(type=summary_type)
             context['validation_summary'] = validation_summary
+
             editable = list()
+
             for message in validation_summary.messages:
                 message = ast.literal_eval(message)
 
@@ -195,13 +196,21 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
                 elif (uid2biosample(message['offending_column']) in
                         [val for sublist in VALIDATION_MESSAGES_ATTRIBUTES for
                          val in sublist]):
+                    logger.debug(
+                        "%s is editable" % message['offending_column'])
                     editable.append(True)
                 else:
+                    logger.debug(
+                        "%s is not editable" % message['offending_column'])
                     editable.append(False)
+
             context['editable'] = editable
+
         except ObjectDoesNotExist:
             context['validation_summary'] = None
+
         context['submission'] = Submission.objects.get(pk=self.kwargs['pk'])
+
         return context
 
 
@@ -261,10 +270,10 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
         for attributes in VALIDATION_MESSAGES_ATTRIBUTES:
             if self.offending_column in attributes:
                 context['attributes_to_show'] = [
-                    attr for attr in attributes if attr != self.offending_column
+                    attr for attr in attributes if
+                    attr != self.offending_column
                 ]
         context['submission'] = self.submission
-        context['error_type'] = 'coordinate_check'
         context['show_units'] = self.show_units
         if self.units:
             context['units'] = self.units

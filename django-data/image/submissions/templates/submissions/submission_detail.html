@@ -59,7 +59,7 @@
       <td id="validation_message_animals">
         {{ validation_summary.animals }}
         {% if validation_summary.animal_issues %}
-        ({{ validation_summary.animal_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='animal' %}" target="_blank">validation</a>)
+        ({{ validation_summary.animal_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='animal' %}">validation</a>)
         {% endif %}
         {% if validation_summary.animal_unkn %}
         ({{ validation_summary.animal_unkn }} with unknown validation)
@@ -71,7 +71,7 @@
       <td id="validation_message_samples">
         {{ validation_summary.samples }}
         {% if validation_summary.sample_issues %}
-        ({{ validation_summary.sample_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='sample' %}" target="_blank">validation</a>)
+        ({{ validation_summary.sample_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='sample' %}">validation</a>)
         {% endif %}
         {% if validation_summary.sample_unkn %}
         ({{ validation_summary.sample_unkn }} with unknown validation)
@@ -197,11 +197,11 @@
   function construct_validation_message(modelType, message, unknown, issues) {
       modelLink = `validation_summary/${modelType}/`;
       if (unknown !== 0 && issues !== 0) {
-      message += ` (${issues} with issues in <a href=${modelLink} target='_blank'>validation</a>; ${unknown} with unknown validation)`;
+      message += ` (${issues} with issues in <a href=${modelLink}>validation</a>; ${unknown} with unknown validation)`;
     } else if (unknown !== 0 && issues === 0) {
       message += ` (${unknown} with unknown validation)`;
     } else if (unknown === 0 && issues !== 0) {
-      message += ` (${issues} with issues in <a href=${modelLink} target='_blank'>validation</a>)`;
+      message += ` (${issues} with issues in <a href=${modelLink}>validation</a>)`;
     }
       return message;
   }
