@@ -214,7 +214,31 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
         return context
 
 
-class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
+class EditSubmissionMixin():
+    """A mixin to deal with Updates, expecially when searching ListViews"""
+
+    def dispatch(self, request, *args, **kwargs):
+        handler = super(EditSubmissionMixin, self).dispatch(
+                request, *args, **kwargs)
+
+        # here I've done get_queryset. Check for submission status
+        if hasattr(self, "submission") and not self.submission.can_edit():
+            message = "Cannot edit submission: current status is: %s" % (
+                    self.submission.get_status_display())
+
+            logger.warning(message)
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect(self.submission.get_absolute_url())
+
+        return handler
+
+
+class SubmissionValidationSummaryFixErrorsView(
+        EditSubmissionMixin, OwnerMixin, ListView):
     template_name = "submissions/submission_validation_summary_fix_errors.html"
 
     def get_queryset(self):
@@ -282,7 +306,8 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
 
 # a detail view since I need to operate on a submission object
 # HINT: rename to a more informative name?
-class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
+class EditSubmissionView(
+        EditSubmissionMixin, MessagesSubmissionMixin, OwnerMixin, ListView):
     template_name = "submissions/submission_edit.html"
     paginate_by = 10
 
@@ -303,25 +328,6 @@ class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
             Q(submission=self.submission) & (
                 Q(animal__isnull=False) | Q(sample__isnull=False))
             ).order_by('id')
-
-    def dispatch(self, request, *args, **kwargs):
-        handler = super(EditSubmissionView, self).dispatch(
-                request, *args, **kwargs)
-
-        # here I've done get_queryset. Check for submission status
-        if hasattr(self, "submission") and not self.submission.can_edit():
-            message = "Cannot edit submission: current status is: %s" % (
-                    self.submission.get_status_display())
-
-            logger.warning(message)
-            messages.warning(
-                request=self.request,
-                message=message,
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect(self.submission.get_absolute_url())
-
-        return handler
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
