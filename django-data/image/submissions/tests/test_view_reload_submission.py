@@ -15,9 +15,9 @@ from django.urls import resolve, reverse
 
 from common.tests import (
     FormMixinTestCase, OwnerMixinTestCase, InvalidFormMixinTestCase,
-    MessageMixinTestCase, StatusMixinTestCase)
+    StatusMixinTestCase)
 from common.constants import (
-    CRB_ANIM_TYPE, CRYOWEB_TYPE, TEMPLATE_TYPE, ERROR, WAITING)
+    CRB_ANIM_TYPE, CRYOWEB_TYPE, TEMPLATE_TYPE, WAITING)
 from image_app.models import Submission
 from image_app.tests import DataSourceMixinTestCase
 
@@ -165,6 +165,14 @@ class InvalidReloadSubmissionViewTest(
 
 
 class ReloadValidationTest(TestBase):
+    def common_check(self, response, my_task):
+        # check errors
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+        # test task
+        self.assertFalse(my_task.called)
+
     @patch('submissions.views.ImportCRBAnimTask.delay')
     def test_crb_anim_wrong_encoding(self, my_task):
         # submit a cryoweb like dictionary
@@ -173,11 +181,7 @@ class ReloadValidationTest(TestBase):
             self.get_data(ds_file="latin_type"))
 
         # check errors
-        form = response.context.get('form')
-        self.assertGreater(len(form.errors), 0)
-
-        # test task
-        self.assertFalse(my_task.called)
+        self.common_check(response, my_task)
 
     @patch('submissions.views.ImportCRBAnimTask.delay')
     def test_crb_anim_wrong_columns(self, my_task):
@@ -187,11 +191,33 @@ class ReloadValidationTest(TestBase):
             self.get_data(ds_file="not_valid_crbanim"))
 
         # check errors
-        form = response.context.get('form')
-        self.assertGreater(len(form.errors), 0)
+        self.common_check(response, my_task)
 
-        # test task
-        self.assertFalse(my_task.called)
+    @patch('xlrd.book.Book.sheet_names', return_value=['animal', 'sample'])
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def test_template_issues_in_sheets(self, my_task, my_excel):
+        # submit a template file
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file=TEMPLATE_TYPE))
+
+        # check errors
+        self.common_check(response, my_task)
+
+        self.assertTrue(my_excel.called)
+
+    @patch.dict(
+            "excel.helpers.exceltemplate.TEMPLATE_COLUMNS",
+            {'breed': ["a column"]})
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def test_template_issues_in_columns(self, my_task):
+        # submit a template file
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file=TEMPLATE_TYPE))
+
+        # check errors
+        self.common_check(response, my_task)
 
 
 class CRBAnimReloadSubmissionViewTest(

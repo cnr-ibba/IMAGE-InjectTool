@@ -213,36 +213,63 @@ class SupportedCreateSubmissionViewTest(Initialize):
         # submit a cryoweb like dictionary
         self.file_loading(my_task, TEMPLATE_TYPE)
 
+
+class IssuesWithFilesTest(Initialize):
+    """A class to test errors in file during uploads"""
+
+    def common_check(self, response, my_task):
+        # check errors
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+        # no submissions
+        self.assertFalse(Submission.objects.exists())
+
+        # test task
+        self.assertFalse(my_task.called)
+
     @patch('submissions.views.ImportCRBAnimTask.delay')
     def test_crb_anim_wrong_encoding(self, my_task):
-        # submit a cryoweb like dictionary
+        # submit a crbanim with wrong encoding
         response = self.client.post(
             self.url,
             self.get_data(ds_file="latin_type"))
 
         # check errors
-        form = response.context.get('form')
-        self.assertGreater(len(form.errors), 0)
-
-        # no submissions
-        self.assertFalse(Submission.objects.exists())
-
-        # test task
-        self.assertFalse(my_task.called)
+        self.common_check(response, my_task)
 
     @patch('submissions.views.ImportCRBAnimTask.delay')
     def test_crb_anim_wrong_columns(self, my_task):
-        # submit a cryoweb like dictionary
+        # submit a crbanim with wrong column
         response = self.client.post(
             self.url,
             self.get_data(ds_file="not_valid_crbanim"))
 
         # check errors
-        form = response.context.get('form')
-        self.assertGreater(len(form.errors), 0)
+        self.common_check(response, my_task)
 
-        # no submissions
-        self.assertFalse(Submission.objects.exists())
+    @patch('xlrd.book.Book.sheet_names', return_value=['animal', 'sample'])
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def test_template_issues_in_sheets(self, my_task, my_excel):
+        # submit a template file
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file=TEMPLATE_TYPE))
 
-        # test task
-        self.assertFalse(my_task.called)
+        # check errors
+        self.common_check(response, my_task)
+
+        self.assertTrue(my_excel.called)
+
+    @patch.dict(
+            "excel.helpers.exceltemplate.TEMPLATE_COLUMNS",
+            {'breed': ["a column"]})
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def test_template_issues_in_columns(self, my_task):
+        # submit a template file
+        response = self.client.post(
+            self.url,
+            self.get_data(ds_file=TEMPLATE_TYPE))
+
+        # check errors
+        self.common_check(response, my_task)

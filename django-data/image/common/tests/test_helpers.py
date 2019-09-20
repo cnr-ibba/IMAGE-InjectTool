@@ -12,7 +12,8 @@ from django.core.validators import validate_email
 
 from .. import constants
 from ..helpers import (
-    format_attribute, get_admin_emails, image_timedelta, parse_image_timedelta)
+    format_attribute, get_admin_emails, image_timedelta, parse_image_timedelta,
+    uid2biosample)
 
 
 class TestImageTimedelta(TestCase):
@@ -134,3 +135,22 @@ class TestAdminEmails(TestCase):
 
         for email in emails:
             self.assertIsNone(validate_email(email))
+
+
+class TestUid2Biosample(TestCase):
+
+    def test_uid2biosample(self):
+        test = uid2biosample('Sample storage')
+        self.assertEqual(test, 'storage')
+
+        test = uid2biosample('Sample storage processing')
+        self.assertEqual(test, 'storage_processing')
+
+        test = uid2biosample('Sampling to preparation interval')
+        self.assertEqual(test, 'preparation_interval_units')
+
+        test = uid2biosample('Specimen collection protocol')
+        self.assertEqual(test, 'protocol')
+
+        test = uid2biosample('meow bark')
+        self.assertEqual(test, 'meow_bark')

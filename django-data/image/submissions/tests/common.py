@@ -8,7 +8,10 @@ Created on Thu Mar 28 16:25:39 2019
 
 import os
 
+from django.test import Client
+
 import common.tests
+from image_app.models import Submission
 
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED,
@@ -127,3 +130,33 @@ class SubmissionStatusMixin():
         # test no redirect
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
+
+
+class SubmissionDataMixin():
+    fixtures = [
+        'image_app/animal',
+        'image_app/dictbreed',
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/dictsex',
+        'image_app/dictspecie',
+        'image_app/dictstage',
+        'image_app/dictuberon',
+        'image_app/name',
+        'image_app/organization',
+        'image_app/publication',
+        'image_app/sample',
+        'image_app/submission',
+        'image_app/user',
+        'validation/validationsummary',
+    ]
+
+    def setUp(self):
+        # login a test user (defined in fixture)
+        self.client = Client()
+        self.client.login(username='test', password='test')
+
+        # get a submission object
+        self.submission = Submission.objects.get(pk=1)
+        self.submission.status = READY
+        self.submission.save()
