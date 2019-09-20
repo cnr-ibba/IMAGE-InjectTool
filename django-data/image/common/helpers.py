@@ -162,4 +162,6 @@ def uid2biosample(value):
         return 'storage_processing'
     elif value == 'Sampling to preparation interval':
         return 'preparation_interval_units'
+    elif value == 'Specimen collection protocol':
+        return 'protocol'
     return '_'.join(value.lower().split(" "))

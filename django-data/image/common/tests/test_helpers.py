@@ -149,5 +149,8 @@ class TestUid2Biosample(TestCase):
         test = uid2biosample('Sampling to preparation interval')
         self.assertEqual(test, 'preparation_interval_units')
 
+        test = uid2biosample('Specimen collection protocol')
+        self.assertEqual(test, 'protocol')
+
         test = uid2biosample('meow bark')
         self.assertEqual(test, 'meow_bark')

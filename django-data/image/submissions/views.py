@@ -214,7 +214,31 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
         return context
 
 
-class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
+class EditSubmissionMixin():
+    """A mixin to deal with Updates, expecially when searching ListViews"""
+
+    def dispatch(self, request, *args, **kwargs):
+        handler = super(EditSubmissionMixin, self).dispatch(
+                request, *args, **kwargs)
+
+        # here I've done get_queryset. Check for submission status
+        if hasattr(self, "submission") and not self.submission.can_edit():
+            message = "Cannot edit submission: current status is: %s" % (
+                    self.submission.get_status_display())
+
+            logger.warning(message)
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect(self.submission.get_absolute_url())
+
+        return handler
+
+
+class SubmissionValidationSummaryFixErrorsView(
+        EditSubmissionMixin, OwnerMixin, ListView):
     template_name = "submissions/submission_validation_summary_fix_errors.html"
 
     def get_queryset(self):
@@ -282,7 +306,8 @@ class SubmissionValidationSummaryFixErrorsView(OwnerMixin, ListView):
 
 # a detail view since I need to operate on a submission object
 # HINT: rename to a more informative name?
-class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
+class EditSubmissionView(
+        EditSubmissionMixin, MessagesSubmissionMixin, OwnerMixin, ListView):
     template_name = "submissions/submission_edit.html"
     paginate_by = 10
 
@@ -303,25 +328,6 @@ class EditSubmissionView(MessagesSubmissionMixin, OwnerMixin, ListView):
             Q(submission=self.submission) & (
                 Q(animal__isnull=False) | Q(sample__isnull=False))
             ).order_by('id')
-
-    def dispatch(self, request, *args, **kwargs):
-        handler = super(EditSubmissionView, self).dispatch(
-                request, *args, **kwargs)
-
-        # here I've done get_queryset. Check for submission status
-        if hasattr(self, "submission") and not self.submission.can_edit():
-            message = "Cannot edit submission: current status is: %s" % (
-                    self.submission.get_status_display())
-
-            logger.warning(message)
-            messages.warning(
-                request=self.request,
-                message=message,
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect(self.submission.get_absolute_url())
-
-        return handler
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -392,85 +398,11 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DeleteAnimalsView(OwnerMixin, DetailView):
-    model = Submission
-    template_name = 'submissions/submission_batch_delete.html'
-
-    def get_context_data(self, **kwargs):
-        """Add custom values to template context"""
-
-        context = super().get_context_data(**kwargs)
-
-        context['delete_type'] = 'Animals'
-        context['pk'] = self.object.id
-
-        return context
-
-
-class DeleteSamplesView(OwnerMixin, DetailView):
-    model = Submission
-    template_name = 'submissions/submission_batch_delete.html'
-
-    def get_context_data(self, **kwargs):
-        """Add custom values to template context"""
-
-        context = super().get_context_data(**kwargs)
-
-        context['delete_type'] = 'Samples'
-        context['pk'] = self.object.id
-
-        return context
-
-
-class BatchDelete(OwnerMixin, BaseUpdateView):
-    model = Submission
-
-    def post(self, request, *args, **kwargs):
-        # get object (Submission) like BaseUpdateView does
-        submission = self.get_object()
-
-        # get arguments from post object
-        pk = self.kwargs['pk']
-        delete_type = self.kwargs['type']
-        keys_to_delete = set()
-
-        # process all keys in form
-        for key in request.POST['to_delete'].split('\n'):
-            keys_to_delete.add(key.rstrip())
-
-        submission.message = 'waiting for batch delete to complete'
-        submission.status = WAITING
-        submission.save()
-
-        if delete_type == 'Animals':
-            # Batch delete task for animals
-            my_task = BatchDeleteAnimals()
-            summary_obj, created = ValidationSummary.objects.get_or_create(
-                submission=submission, type='animal')
-
-        elif delete_type == 'Samples':
-            # Batch delete task for samples
-            my_task = BatchDeleteSamples()
-            summary_obj, created = ValidationSummary.objects.get_or_create(
-                submission=submission, type='sample')
-
-        # reset validation counters
-        summary_obj.reset()
-        res = my_task.delay(pk, [item for item in keys_to_delete])
-
-        logger.info(
-            "Start %s batch delete with task %s" % (delete_type, res.task_id))
-
-        return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
-
-
-class DeleteSubmissionView(OwnerMixin, DeleteView):
-    model = Submission
-    template_name = "submissions/submission_confirm_delete.html"
-    success_url = reverse_lazy('image_app:dashboard')
+class DeleteSubmissionMixin():
+    """Prevent a delete relying on statuses"""
 
     def dispatch(self, request, *args, **kwargs):
-        handler = super(DeleteSubmissionView, self).dispatch(
+        handler = super(DeleteSubmissionMixin, self).dispatch(
                 request, *args, **kwargs)
 
         # here I've done get_queryset. Check for submission status
@@ -487,6 +419,79 @@ class DeleteSubmissionView(OwnerMixin, DeleteView):
             return redirect(self.object.get_absolute_url())
 
         return handler
+
+
+class BatchDeleteMixin(
+        DeleteSubmissionMixin, OwnerMixin):
+
+    model = Submission
+    delete_type = None
+
+    def get_context_data(self, **kwargs):
+        """Add custom values to template context"""
+
+        context = super().get_context_data(**kwargs)
+
+        context['delete_type'] = self.delete_type
+        context['pk'] = self.object.id
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        # get object (Submission) like BaseUpdateView does
+        submission = self.get_object()
+
+        # get arguments from post object
+        pk = self.kwargs['pk']
+        keys_to_delete = set()
+
+        # process all keys in form
+        for key in request.POST['to_delete'].split('\n'):
+            keys_to_delete.add(key.rstrip())
+
+        submission.message = 'waiting for batch delete to complete'
+        submission.status = WAITING
+        submission.save()
+
+        if self.delete_type == 'Animals':
+            # Batch delete task for animals
+            my_task = BatchDeleteAnimals()
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=submission, type='animal')
+
+        elif self.delete_type == 'Samples':
+            # Batch delete task for samples
+            my_task = BatchDeleteSamples()
+            summary_obj, created = ValidationSummary.objects.get_or_create(
+                submission=submission, type='sample')
+
+        # reset validation counters
+        summary_obj.reset()
+        res = my_task.delay(pk, [item for item in keys_to_delete])
+
+        logger.info(
+            "Start %s batch delete with task %s" % (
+                self.delete_type, res.task_id))
+
+        return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
+
+
+class DeleteAnimalsView(BatchDeleteMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
+    delete_type = 'Animals'
+
+
+class DeleteSamplesView(BatchDeleteMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
+    delete_type = 'Samples'
+
+
+class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
+    model = Submission
+    template_name = "submissions/submission_confirm_delete.html"
+    success_url = reverse_lazy('image_app:dashboard')
 
     # https://stackoverflow.com/a/39533619/4385116
     def get_context_data(self, **kwargs):

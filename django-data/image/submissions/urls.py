@@ -56,8 +56,4 @@ urlpatterns = [
         r'(?P<attribute_to_edit>[\w]+)/$',
         views.FixValidation.as_view(),
         name='fix_validation'),
-
-    url(r'^(?P<pk>[-\w]+)/batch_delete/(?P<type>[\w]+)/$',
-        views.BatchDelete.as_view(),
-        name='batch_delete')
 ]

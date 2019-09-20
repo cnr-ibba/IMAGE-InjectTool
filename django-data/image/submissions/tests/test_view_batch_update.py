@@ -15,27 +15,17 @@ from common.constants import WAITING
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
 from validation.models import ValidationSummary
 
-from .common import SubmissionDataMixin
+from .common import SubmissionDataMixin, SubmissionStatusMixin
 from ..views import SubmissionValidationSummaryFixErrorsView, FixValidation
 
 
 class SubmissionValidationSummaryFixErrorsViewTest(
-        GeneralMixinTestCase, OwnerMixinTestCase, TestCase):
+        SubmissionDataMixin, GeneralMixinTestCase, OwnerMixinTestCase,
+        TestCase):
     """Test SubmissionValidationSummaryViewTest View"""
 
-    fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
-        "validation/validationsummary"
-    ]
-
     def setUp(self):
-        # login a test user (defined in fixture)
-        self.client = Client()
-        self.client.login(username='test', password='test')
+        super().setUp()
 
         self.url = reverse(
             'submissions:validation_summary_fix_errors',
@@ -67,9 +57,8 @@ class SubmissionValidationSummaryFixErrorsViewColumnTest(
         SubmissionDataMixin, TestCase):
 
     def setUp(self):
-        # login a test user (defined in fixture)
-        self.client = Client()
-        self.client.login(username='test', password='test')
+        # calling minxin methods
+        super().setUp()
 
         self.url_animal = reverse(
             'submissions:validation_summary_fix_errors',
@@ -149,6 +138,24 @@ class SubmissionValidationSummaryFixErrorsViewColumnTest(
         # get animal page
         response = self.client.get(self.url_sample)
         self.assertEqual(response.status_code, 200)
+
+
+class NoBatchUpdateTest(
+        SubmissionDataMixin, SubmissionStatusMixin, TestCase):
+    """Test if I can batch delete relying on status"""
+
+    def setUp(self):
+        # call base method
+        super().setUp()
+
+        # explict url (is not a submission:delete view)
+        self.url = reverse(
+            'submissions:validation_summary_fix_errors',
+            kwargs={
+                'pk': 1,
+                'type': 'animal',
+                'message_counter': 0})
+        self.redirect_url = reverse('submissions:detail', kwargs={'pk': 1})
 
 
 class FixValidationMixin(

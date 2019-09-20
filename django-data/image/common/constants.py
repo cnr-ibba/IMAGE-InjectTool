@@ -180,16 +180,10 @@ VALIDATION_MESSAGES_ATTRIBUTES = [
     ['collection_place', 'collection_place_latitude',
      'collection_place_longitude', 'collection_place_accuracy'],
     ['animal_age_at_collection_units', 'animal_age_at_collection'],
-    ['preparation_interval_units', 'preparation_interval'],
-    ['availability'],
-    ['storage'],
-    ['storage_processing'],
-    ['term', 'label'],
-    ['organism_part'],
-    ['developmental_stage'],
-    ['physiological_stage'],
-    ['sex'],
-    ['species'],
+    ['preparation_interval_units', 'preparation_interval',
+     'availability', 'protocol', 'storage', 'storage_processing'],
+    ['organism_part', 'developmental_stage', 'physiological_stage'],
+    ['sex', 'species'],
 ]
 
 UNITS_VALIDATION_MESSAGES = [

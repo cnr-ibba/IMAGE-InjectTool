@@ -14,9 +14,9 @@ from django.urls import resolve, reverse
 from common.constants import WAITING
 from common.tests.mixins import GeneralMixinTestCase, OwnerMixinTestCase
 
-from .common import SubmissionDataMixin
+from .common import SubmissionDataMixin, SubmissionStatusMixin
 from ..views import (
-    DeleteAnimalsView, DeleteSamplesView, BatchDelete)
+    DeleteAnimalsView, DeleteSamplesView)
 
 
 class DeleteAnimalsViewTest(
@@ -85,6 +85,32 @@ class DeleteSamplesViewTest(
         self.assertContains(self.response, 'href="{0}"'.format(link))
 
 
+class NoBatchDeleteAnimalTest(
+        SubmissionDataMixin, SubmissionStatusMixin, TestCase):
+    """Test if I can batch delete relying on status"""
+
+    def setUp(self):
+        # call base method
+        super().setUp()
+
+        # explict url (is not a submission:delete view)
+        self.url = reverse('submissions:delete_animals', kwargs={'pk': 1})
+        self.redirect_url = reverse('submissions:detail', kwargs={'pk': 1})
+
+
+class NoBatchDeleteSampleTest(
+        SubmissionDataMixin, SubmissionStatusMixin, TestCase):
+    """Test if I can batch delete relying on status"""
+
+    def setUp(self):
+        # call base method
+        super().setUp()
+
+        # explict url (is not a submission:delete view)
+        self.url = reverse('submissions:delete_samples', kwargs={'pk': 1})
+        self.redirect_url = reverse('submissions:detail', kwargs={'pk': 1})
+
+
 class BatchDeleteMixin(
         SubmissionDataMixin, GeneralMixinTestCase):
 
@@ -148,9 +174,7 @@ class SuccessfulDeleteAnimalsViewTest(
         self.batch_delete = self.batch_delete_patcher.start()
 
         # explict url (is not a submission:delete view)
-        self.url = reverse(
-            'submissions:batch_delete',
-            kwargs={'pk': 1, 'type': 'Animals'})
+        self.url = reverse('submissions:delete_animals', kwargs={'pk': 1})
 
         self.data = {'to_delete': 'ANIMAL:::ID:::132713'}
 
@@ -160,10 +184,6 @@ class SuccessfulDeleteAnimalsViewTest(
             self.data,
             follow=True
         )
-
-    def test_url_resolves_view(self):
-        view = resolve('/submissions/1/batch_delete/Animals/')
-        self.assertIsInstance(view.func.view_class(), BatchDelete)
 
 
 class SuccessfulDeleteSamplesViewTest(
@@ -181,9 +201,7 @@ class SuccessfulDeleteSamplesViewTest(
         self.batch_delete = self.batch_delete_patcher.start()
 
         # explict url (is not a submission:delete view)
-        self.url = reverse(
-            'submissions:batch_delete',
-            kwargs={'pk': 1, 'type': 'Samples'})
+        self.url = reverse('submissions:delete_samples', kwargs={'pk': 1})
 
         self.data = {'to_delete': 'Siems_0722_393449'}
 
@@ -193,7 +211,3 @@ class SuccessfulDeleteSamplesViewTest(
             self.data,
             follow=True
         )
-
-    def test_url_resolves_view(self):
-        view = resolve('/submissions/1/batch_delete/Samples/')
-        self.assertIsInstance(view.func.view_class(), BatchDelete)
