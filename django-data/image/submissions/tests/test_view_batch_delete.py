@@ -16,7 +16,7 @@ from common.tests.mixins import GeneralMixinTestCase, OwnerMixinTestCase
 
 from .common import SubmissionDataMixin, SubmissionStatusMixin
 from ..views import (
-    DeleteAnimalsView, DeleteSamplesView, BatchDelete)
+    DeleteAnimalsView, DeleteSamplesView)
 
 
 class DeleteAnimalsViewTest(
@@ -174,9 +174,7 @@ class SuccessfulDeleteAnimalsViewTest(
         self.batch_delete = self.batch_delete_patcher.start()
 
         # explict url (is not a submission:delete view)
-        self.url = reverse(
-            'submissions:batch_delete',
-            kwargs={'pk': 1, 'type': 'Animals'})
+        self.url = reverse('submissions:delete_animals', kwargs={'pk': 1})
 
         self.data = {'to_delete': 'ANIMAL:::ID:::132713'}
 
@@ -186,10 +184,6 @@ class SuccessfulDeleteAnimalsViewTest(
             self.data,
             follow=True
         )
-
-    def test_url_resolves_view(self):
-        view = resolve('/submissions/1/batch_delete/Animals/')
-        self.assertIsInstance(view.func.view_class(), BatchDelete)
 
 
 class SuccessfulDeleteSamplesViewTest(
@@ -207,9 +201,7 @@ class SuccessfulDeleteSamplesViewTest(
         self.batch_delete = self.batch_delete_patcher.start()
 
         # explict url (is not a submission:delete view)
-        self.url = reverse(
-            'submissions:batch_delete',
-            kwargs={'pk': 1, 'type': 'Samples'})
+        self.url = reverse('submissions:delete_samples', kwargs={'pk': 1})
 
         self.data = {'to_delete': 'Siems_0722_393449'}
 
@@ -219,7 +211,3 @@ class SuccessfulDeleteSamplesViewTest(
             self.data,
             follow=True
         )
-
-    def test_url_resolves_view(self):
-        view = resolve('/submissions/1/batch_delete/Samples/')
-        self.assertIsInstance(view.func.view_class(), BatchDelete)

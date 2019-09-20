@@ -6,7 +6,7 @@
 
 {% block content %}
     <h1>Delete {{ delete_type }} from submission</h1>
-    <form action="{% url 'submissions:batch_delete' pk delete_type %}" method="post">
+    <form method="post">
         {% csrf_token %}
         <div class="form-group">
             <label for="to_delete">Please provide ids to delete (one id per row)</label>

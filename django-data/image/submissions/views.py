@@ -415,38 +415,21 @@ class DeleteSubmissionMixin():
         return handler
 
 
-class DeleteAnimalsView(DeleteSubmissionMixin, OwnerMixin, DetailView):
+class BatchDeleteMixin(
+        DeleteSubmissionMixin, OwnerMixin):
+
     model = Submission
-    template_name = 'submissions/submission_batch_delete.html'
+    delete_type = None
 
     def get_context_data(self, **kwargs):
         """Add custom values to template context"""
 
         context = super().get_context_data(**kwargs)
 
-        context['delete_type'] = 'Animals'
+        context['delete_type'] = self.delete_type
         context['pk'] = self.object.id
 
         return context
-
-
-class DeleteSamplesView(DeleteSubmissionMixin, OwnerMixin, DetailView):
-    model = Submission
-    template_name = 'submissions/submission_batch_delete.html'
-
-    def get_context_data(self, **kwargs):
-        """Add custom values to template context"""
-
-        context = super().get_context_data(**kwargs)
-
-        context['delete_type'] = 'Samples'
-        context['pk'] = self.object.id
-
-        return context
-
-
-class BatchDelete(DeleteSubmissionMixin, OwnerMixin, BaseUpdateView):
-    model = Submission
 
     def post(self, request, *args, **kwargs):
         # get object (Submission) like BaseUpdateView does
@@ -454,7 +437,6 @@ class BatchDelete(DeleteSubmissionMixin, OwnerMixin, BaseUpdateView):
 
         # get arguments from post object
         pk = self.kwargs['pk']
-        delete_type = self.kwargs['type']
         keys_to_delete = set()
 
         # process all keys in form
@@ -465,13 +447,13 @@ class BatchDelete(DeleteSubmissionMixin, OwnerMixin, BaseUpdateView):
         submission.status = WAITING
         submission.save()
 
-        if delete_type == 'Animals':
+        if self.delete_type == 'Animals':
             # Batch delete task for animals
             my_task = BatchDeleteAnimals()
             summary_obj, created = ValidationSummary.objects.get_or_create(
                 submission=submission, type='animal')
 
-        elif delete_type == 'Samples':
+        elif self.delete_type == 'Samples':
             # Batch delete task for samples
             my_task = BatchDeleteSamples()
             summary_obj, created = ValidationSummary.objects.get_or_create(
@@ -482,9 +464,22 @@ class BatchDelete(DeleteSubmissionMixin, OwnerMixin, BaseUpdateView):
         res = my_task.delay(pk, [item for item in keys_to_delete])
 
         logger.info(
-            "Start %s batch delete with task %s" % (delete_type, res.task_id))
+            "Start %s batch delete with task %s" % (
+                self.delete_type, res.task_id))
 
         return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
+
+
+class DeleteAnimalsView(BatchDeleteMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
+    delete_type = 'Animals'
+
+
+class DeleteSamplesView(BatchDeleteMixin, DetailView):
+    model = Submission
+    template_name = 'submissions/submission_batch_delete.html'
+    delete_type = 'Samples'
 
 
 class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
