@@ -14,7 +14,7 @@ from django.urls import resolve, reverse
 from common.constants import WAITING
 from common.tests.mixins import GeneralMixinTestCase, OwnerMixinTestCase
 
-from .common import SubmissionDataMixin
+from .common import SubmissionDataMixin, SubmissionStatusMixin
 from ..views import (
     DeleteAnimalsView, DeleteSamplesView, BatchDelete)
 
@@ -83,6 +83,32 @@ class DeleteSamplesViewTest(
 
         link = reverse('submissions:detail', kwargs={'pk': 1})
         self.assertContains(self.response, 'href="{0}"'.format(link))
+
+
+class NoBatchDeleteAnimalTest(
+        SubmissionDataMixin, SubmissionStatusMixin, TestCase):
+    """Test if I can batch delete relying on status"""
+
+    def setUp(self):
+        # call base method
+        super().setUp()
+
+        # explict url (is not a submission:delete view)
+        self.url = reverse('submissions:delete_animals', kwargs={'pk': 1})
+        self.redirect_url = reverse('submissions:detail', kwargs={'pk': 1})
+
+
+class NoBatchDeleteSampleTest(
+        SubmissionDataMixin, SubmissionStatusMixin, TestCase):
+    """Test if I can batch delete relying on status"""
+
+    def setUp(self):
+        # call base method
+        super().setUp()
+
+        # explict url (is not a submission:delete view)
+        self.url = reverse('submissions:delete_samples', kwargs={'pk': 1})
+        self.redirect_url = reverse('submissions:detail', kwargs={'pk': 1})
 
 
 class BatchDeleteMixin(

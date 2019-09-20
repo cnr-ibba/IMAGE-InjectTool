@@ -158,3 +158,5 @@ class SubmissionDataMixin():
 
         # get a submission object
         self.submission = Submission.objects.get(pk=1)
+        self.submission.status = READY
+        self.submission.save()

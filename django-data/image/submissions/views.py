@@ -392,7 +392,30 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class DeleteAnimalsView(OwnerMixin, DetailView):
+class DeleteSubmissionMixin():
+    """Prevent a delete relying on statuses"""
+
+    def dispatch(self, request, *args, **kwargs):
+        handler = super(DeleteSubmissionMixin, self).dispatch(
+                request, *args, **kwargs)
+
+        # here I've done get_queryset. Check for submission status
+        if hasattr(self, "object") and not self.object.can_edit():
+            message = "Cannot delete %s: submission status is: %s" % (
+                    self.object, self.object.get_status_display())
+
+            logger.warning(message)
+            messages.warning(
+                request=self.request,
+                message=message,
+                extra_tags="alert alert-dismissible alert-warning")
+
+            return redirect(self.object.get_absolute_url())
+
+        return handler
+
+
+class DeleteAnimalsView(DeleteSubmissionMixin, OwnerMixin, DetailView):
     model = Submission
     template_name = 'submissions/submission_batch_delete.html'
 
@@ -407,7 +430,7 @@ class DeleteAnimalsView(OwnerMixin, DetailView):
         return context
 
 
-class DeleteSamplesView(OwnerMixin, DetailView):
+class DeleteSamplesView(DeleteSubmissionMixin, OwnerMixin, DetailView):
     model = Submission
     template_name = 'submissions/submission_batch_delete.html'
 
@@ -422,7 +445,7 @@ class DeleteSamplesView(OwnerMixin, DetailView):
         return context
 
 
-class BatchDelete(OwnerMixin, BaseUpdateView):
+class BatchDelete(DeleteSubmissionMixin, OwnerMixin, BaseUpdateView):
     model = Submission
 
     def post(self, request, *args, **kwargs):
@@ -464,29 +487,10 @@ class BatchDelete(OwnerMixin, BaseUpdateView):
         return HttpResponseRedirect(reverse('submissions:detail', args=(pk,)))
 
 
-class DeleteSubmissionView(OwnerMixin, DeleteView):
+class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
     model = Submission
     template_name = "submissions/submission_confirm_delete.html"
     success_url = reverse_lazy('image_app:dashboard')
-
-    def dispatch(self, request, *args, **kwargs):
-        handler = super(DeleteSubmissionView, self).dispatch(
-                request, *args, **kwargs)
-
-        # here I've done get_queryset. Check for submission status
-        if hasattr(self, "object") and not self.object.can_edit():
-            message = "Cannot delete %s: submission status is: %s" % (
-                    self.object, self.object.get_status_display())
-
-            logger.warning(message)
-            messages.warning(
-                request=self.request,
-                message=message,
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect(self.object.get_absolute_url())
-
-        return handler
 
     # https://stackoverflow.com/a/39533619/4385116
     def get_context_data(self, **kwargs):
