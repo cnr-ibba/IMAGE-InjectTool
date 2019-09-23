@@ -385,7 +385,6 @@
     "updated_at": "2019-07-08T16:05:10.391Z",
     "status": 1,
     "message": "Template import completed for submission: 1",
-    "biosample_submission_id": null,
     "owner": 1
   }
 }

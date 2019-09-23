@@ -85,3 +85,15 @@ image_app.models module contents
 .. automodule:: image_app.models
    :members:
    :show-inheritance:
+
+
+image_app.mixins
+----------------
+
+image_app.mixins module contents
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: image_app.mixins
+  :members:
+  :show-inheritance:
+  :undoc-members:

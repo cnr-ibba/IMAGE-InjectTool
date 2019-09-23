@@ -238,7 +238,10 @@ $ docker-compose run --rm uwsgi python manage.py makemigrations image_app
 $ docker-compose run --rm uwsgi python manage.py sqlmigrate image_app 0005
 
 # apply migrations to database (all migrations made with makemigrations)
-docker-compose run --rm uwsgi python manage.py migrate
+$ docker-compose run --rm uwsgi python manage.py migrate
+
+# remove old contenttypes (tables which were deleted)
+$ docker-compose run --rm uwsgi python manage.py remove_stale_contenttypes
 
 # connect to the postgres database as administrator
 $ docker-compose run --rm db psql -h db -U postgres

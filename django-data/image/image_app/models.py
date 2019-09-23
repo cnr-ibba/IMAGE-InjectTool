@@ -942,17 +942,6 @@ class Submission(BaseMixin, models.Model):
         null=True,
         blank=True)
 
-    # track biosample submission id in a field
-    # HINT: if I update a completed submision, shuold I track the
-    # last submission id?
-    biosample_submission_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        db_index=True,
-        unique=True,
-        help_text='Biosample submission id')
-
     owner = models.ForeignKey(
         User,
         related_name='submissions',

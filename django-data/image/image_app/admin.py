@@ -178,7 +178,7 @@ class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
         'title', 'description', 'gene_bank_name', 'gene_bank_country',
         'datasource_type', 'datasource_version', 'organization', 'created_at',
-        'updated_at', 'status', 'owner', 'biosample_submission_id'
+        'updated_at', 'status', 'owner'
     )
 
     # I cannot edit a auto_add_now field

@@ -26,7 +26,7 @@ from .forms import (
     GenerateTokenForm, RegisterUserForm, CreateUserForm, SubmitForm)
 from .models import Account, ManagedTeam
 from .helpers import get_auth, get_manager_auth
-from .tasks import SubmitTask
+from .tasks import SplitSubmissionTask
 
 
 # Get an instance of a logger
@@ -525,7 +525,7 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
         submission.save()
 
         # a valid submission start a task
-        submit_task = SubmitTask()
+        submit_task = SplitSubmissionTask()
         res = submit_task.delay(submission.id)
         logger.info(
             "Start submission process for %s with task %s" % (

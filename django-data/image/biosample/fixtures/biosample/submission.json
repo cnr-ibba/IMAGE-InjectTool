@@ -1,0 +1,26 @@
+[
+{
+  "model": "biosample.submission",
+  "pk": 1,
+  "fields": {
+    "uid_submission": 1,
+    "usi_submission_name": null,
+    "created_at": "2019-07-19T09:36:23.194Z",
+    "updated_at": "2019-07-19T09:36:23.195Z",
+    "message": null,
+    "status": 5
+  }
+},
+{
+  "model": "biosample.submission",
+  "pk": 2,
+  "fields": {
+    "uid_submission": 1,
+    "usi_submission_name": null,
+    "created_at": "2019-07-19T09:36:23.213Z",
+    "updated_at": "2019-07-19T09:36:23.213Z",
+    "message": null,
+    "status": 5
+  }
+}
+]

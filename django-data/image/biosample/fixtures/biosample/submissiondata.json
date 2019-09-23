@@ -1,0 +1,50 @@
+[
+{
+  "model": "biosample.submissiondata",
+  "pk": 1,
+  "fields": {
+    "submission": 1,
+    "content_type": [
+      "image_app",
+      "animal"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "biosample.submissiondata",
+  "pk": 2,
+  "fields": {
+    "submission": 1,
+    "content_type": [
+      "image_app",
+      "sample"
+    ],
+    "object_id": 1
+  }
+},
+{
+  "model": "biosample.submissiondata",
+  "pk": 3,
+  "fields": {
+    "submission": 2,
+    "content_type": [
+      "image_app",
+      "animal"
+    ],
+    "object_id": 2
+  }
+},
+{
+  "model": "biosample.submissiondata",
+  "pk": 4,
+  "fields": {
+    "submission": 2,
+    "content_type": [
+      "image_app",
+      "animal"
+    ],
+    "object_id": 3
+  }
+}
+]

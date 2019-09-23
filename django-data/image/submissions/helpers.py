@@ -46,6 +46,7 @@ def send_message(submission_obj, validation_message=None):
 def is_target_in_message(target, messages):
     """
     This function will return true if target in message
+
     Args:
         target (str): target to search
     """

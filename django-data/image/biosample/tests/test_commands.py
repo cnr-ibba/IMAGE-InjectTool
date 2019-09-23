@@ -14,12 +14,12 @@ from django.test import TestCase
 from common.constants import SUBMITTED
 from image_app.models import Name
 
-from ..models import ManagedTeam
+from ..models import ManagedTeam, Submission as USISubmission
 
-from .common import SubmitMixin
+from .common import BaseMixin
 
 
-class CommandsTestCase(SubmitMixin, TestCase):
+class CommandsTestCase(BaseMixin, TestCase):
     @classmethod
     def setUpClass(cls):
         # calling my base class setup
@@ -59,9 +59,11 @@ class CommandsTestCase(SubmitMixin, TestCase):
         self.assertEqual(
             self.submission_obj.message,
             "Waiting for biosample validation")
-        self.assertEqual(
-            self.submission_obj.biosample_submission_id,
-            "new-submission")
+
+        # test biosample.model.Submission object
+        usi_submission = USISubmission.objects.get(
+            uid_submission=self.submission_obj)
+        self.assertEqual(usi_submission.usi_submission_name, "new-submission")
 
         # check name status changed
         qs = Name.objects.filter(status=SUBMITTED)
