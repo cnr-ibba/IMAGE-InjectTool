@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from celery.five import monotonic
 
 from django.conf import settings
+from django.utils import timezone
 
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -86,6 +87,10 @@ class BatchUpdateMixin:
             if getattr(item_object, attribute) != value:
                 setattr(item_object, attribute, value)
                 item_object.save()
+
+                # update name object
+                item_object.name.last_changed = timezone.now()
+                item_object.name.save()
 
         # Update submission
         submission_obj = self.submission_cls.objects.get(pk=submission_id)
