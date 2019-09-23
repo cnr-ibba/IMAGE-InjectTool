@@ -21,7 +21,7 @@ InjectTool TODO
 * Regarding data submissions
   - How I can update an already loaded biosample using a different submission from
     the first one? Need to refator things in user spaces (no same name for same user)
-  - Think about renaming EditSubmissionView with a more useful name
+  - Think about renaming `EditSubmissionView` with a more useful name
   - mail to admin when there are issues in USI?
   - implement the sameAs key for already submitted biosamples:
     ```
@@ -83,7 +83,7 @@ InjectTool TODO
 * Regarding django 3rd party modules:
   - Install `django.contrib.sites` (it is useful?)
   - Use django-bootstrap4 to render forms
-  - django-braces: what does it?
+  - django-braces: it is useful?
   - read about django [session](https://docs.djangoproject.com/en/1.11/topics/http/sessions/)
   - [django-crispy-forms](https://simpleisbetterthancomplex.com/tutorial/2018/08/13/how-to-use-bootstrap-4-forms-with-django.html)
 
@@ -120,7 +120,7 @@ InjectTool TODO
       realfilename and set it to a hidden field. Save to a `model.CharField` and
       display that field in DetailViews
     - add the uploaded time for file?
-  - Change WAITING in PROCESSING (implies something happening)
+  - Change `WAITING` in `PROCESSING` (implies something happening)
   - deal with errors when create a submission with the same parameters of another
     submission:
       duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"

@@ -3,6 +3,15 @@ Submissions App
 
 .. _submissions-app:
 
+submissions.helpers
+-------------------
+
+.. automodule:: submissions.helpers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+
 submissions.views
 -----------------
 

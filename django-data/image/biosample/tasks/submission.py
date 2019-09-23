@@ -269,8 +269,10 @@ class SubmissionHelper():
             sample.patch(model.to_biosample())
 
         else:
-            self.usi_submission.create_sample(
+            sample = self.usi_submission.create_sample(
                 model.to_biosample())
+
+            self.submitted_samples[alias] = sample
 
         # update sample status
         model.name.status = SUBMITTED
@@ -279,7 +281,7 @@ class SubmissionHelper():
 
     def add_samples(self):
         """Iterate over sample data (animal/sample) and call
-        create_or_update_sample"""
+        create_or_update_sample (if model is in READY state)"""
 
         # iterate over sample data
         for submission_data in self.submission_obj.submission_data\
@@ -602,7 +604,7 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
 
-            self.__update_message(uid_submission, submission_qs, ERROR)
+            self.update_message(uid_submission, submission_qs, ERROR)
 
             # send a mail to the user
             uid_submission.owner.email_user(
@@ -617,7 +619,7 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
             # submission failed
             logger.info("Temporary error for %s" % uid_submission)
 
-            self.__update_message(uid_submission, submission_qs, READY)
+            self.update_message(uid_submission, submission_qs, READY)
 
             # send a mail to the user
             uid_submission.owner.email_user(
@@ -633,16 +635,16 @@ class SubmissionCompleteTask(TaskFailureMixin, MyTask):
             # submission
             logger.info("Submission %s success" % uid_submission)
 
-            self.__update_message(uid_submission, submission_qs, SUBMITTED)
+            self.update_message(uid_submission, submission_qs, SUBMITTED)
 
         # send async message
         send_message(uid_submission)
 
         return "success"
 
-    def __update_message(self, uid_submission, submission_qs, status):
-        """Read biosample.models.Submission message and set
-        image_app.models.Submission message"""
+    def update_message(self, uid_submission, submission_qs, status):
+        """Read :py:class:`biosample.models.Submission` message and set
+        :py:class:`image_app.models.Submission` message"""
 
         # get error messages for submission
         message = []

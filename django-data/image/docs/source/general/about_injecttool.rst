@@ -5,7 +5,15 @@ About InjectTool
 Introduction
 ------------
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+The IMAGE-InjectTool is a tool which makes it easier to archive data into BioSamples
+from the user point of view. InjectTool structured as a web application and runs inside
+a web server. User can register into website in order to upload their data in a
+private space, they can validate their data against `IMAGE-metadata`_ and can fix
+or update data using the application. If data are compliant with `IMAGE-metadata`_
+standards, they could upload their data into `BioSamples`_ using and use this
+application even to maintain and update data from InjectTool to `BioSamples`_.
+InjectTool site is available `here <https://www.wp5image.eu/image/>`_,
+while its code is available from `github <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
 
 InjectTool composed image
 -------------------------
@@ -38,6 +46,9 @@ The container componing InjectTool are the followings:
   `uwsgi`_ folder of InjectTool project, while django code is stored inside and
   specifi InjectTool configuration files are stored in `django_data`_ folder
 
+- **asgi**: is part of backend layer. It manages real time message for real time
+  updates (ie status update, messages updates) without reloading pages.
+
 In addtion, we have three container based on *uwsgi* container which run different
 celery operations:
 
@@ -59,3 +70,5 @@ celery operations:
 .. _`postgres`: https://github.com/cnr-ibba/IMAGE-InjectTool/tree/master/postgres
 .. _`uwsgi`: https://github.com/cnr-ibba/IMAGE-InjectTool/tree/master/uwsgi
 .. _`django_data`: https://github.com/cnr-ibba/IMAGE-InjectTool/tree/master/django-data
+.. _`IMAGE-metadata`: https://github.com/cnr-ibba/IMAGE-metadata
+.. _`BioSamples`: https://www.ebi.ac.uk/biosamples/

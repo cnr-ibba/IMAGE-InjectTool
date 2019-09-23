@@ -11,11 +11,13 @@ Django apps
 - **animals**: Implement all stuff to visualize and manage Animals (organims)
   object
 - :ref:`biosample <biosample-app>`: implement stuff regarding `EBI AAP`_ registration
-  (2nd step InjectTool registration) and biosample submission and retrieval
+  (2nd step InjectTool registration) and biosample submission and retrieval. The
+  biosample submission process in described in :ref:`biosample.tasks`
 - :ref:`common <common-app>`: modules and functions that could be imported from
   other django applications
 - **crbanim**: implement stuff regarding CRBanim data import into :ref:`The Unified Internal Database`
 - :ref:`cryoweb <cryoweb-app>`: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
+- **excel**: implement stuff regarding Template data import into :ref:`The Unified Internal Database`
 - **image**: django configuration files
 - :ref:`image_app <image_app-app>`: implement stuff related to :ref:`The Unified Internal Database` and
   views like index, dashboard, about, ...
@@ -24,6 +26,7 @@ Django apps
 - **samples**: Implement all stuff to visualize and manage Samples (specimen from organim)
 - :ref:`submissions <submissions-app>`: Implement all stuff regarding submission (uploading
   user data, starting task as validation and submission, call Sample and Animal views)
+- **submission_ws**: stuff required to deal with real time messages
 - :ref:`validation <validation-app>`: Perform validation stuff by calling `IMAGE-ValidationTool`_
 - **zooma**: Annotate dictionary tables in order to provide ontology informations
   using `zooma`_ API.
@@ -48,6 +51,7 @@ Generic content of a django app
 - **management**: collect management scripts which interact with the database, for
   example for database maintenance
 - **migrations**: collects files created using ``manage.py makemigrations``
+- **mixins**: contain mixins useful and imported by other modules
 - **models.py**: define database tables and low level functions related to data, such
   as biosample conversion
 - **templates**: django templates specific for the application
