@@ -104,6 +104,7 @@ def get_deleted_objects(objs, db_alias=DEFAULT_DB_ALIAS):
 async def send_message_to_websocket(message, pk):
     """
     Function will create websocket object and send message to django-channels
+
     Args:
         message (dict): message to send to websocket
         pk (str): primary key of submission

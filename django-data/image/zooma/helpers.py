@@ -19,12 +19,17 @@ from common.constants import CONFIDENCES
 logger = logging.getLogger(__name__)
 
 
-def annotate_country(country_obj):
-    """Annotate a country object using Zooma"""
+def annotate_generic(model, zooma_type):
+    """Annotate a generic DictTable
 
-    logger.debug("Processing %s" % (country_obj))
+    Args:
+        model (:py:class:`image_app.models.DictBase`): A DictBase istance
+        zooma_type (str): the type of zooma annotation (country, species, ...)
+    """
 
-    result = use_zooma(country_obj.label, "country")
+    logger.debug("Processing %s" % (model))
+
+    result = use_zooma(model.label, zooma_type)
 
     # update object (if possible)
     if result:
@@ -32,29 +37,24 @@ def annotate_country(country_obj):
         # https://stackoverflow.com/a/7253830
         term = url.rsplit('/', 1)[-1]
 
-        # check that term have a correct ontology
-        # TODO: move this check in use_zooma and relate with Ontology
-        # table
-        if term.split("_")[0] != "NCIT":
-            logger.error(
-                "Got an unexpected term for %s: %s" % (
-                    country_obj, term))
-
-            # ignore such term
-            return
-
         # The ontology seems correct. Annotate!
-        logger.info("Updating %s with %s" % (country_obj, result))
+        logger.info("Updating %s with %s" % (model, result))
         url = result['ontologyTerms']
 
-        country_obj.term = term
+        model.term = term
 
         # get an int object for such confidence
         confidence = CONFIDENCES.get_value(
             result["confidence"].lower())
 
-        country_obj.confidence = confidence
-        country_obj.save()
+        model.confidence = confidence
+        model.save()
+
+
+def annotate_country(country_obj):
+    """Annotate a country object using Zooma"""
+
+    annotate_generic(country_obj, "country")
 
 
 def annotate_breed(breed_obj):
@@ -71,21 +71,11 @@ def annotate_breed(breed_obj):
         # https://stackoverflow.com/a/7253830
         term = url.rsplit('/', 1)[-1]
 
-        # check that term have a correct ontology
-        # TODO: move this check in use_zooma and relate with Ontology
-        # table
-        if term.split("_")[0] != "LBO":
-            logger.error(
-                "Got an unexpected term for %s: %s" % (
-                    breed_obj, term))
-
-            # ignore such term
-            return
-
         # The ontology seems correct. Annotate!
         logger.info("Updating %s with %s" % (breed_obj, result))
         url = result['ontologyTerms']
 
+        # this is slight different from annotate_generic
         breed_obj.mapped_breed_term = term
         breed_obj.mapped_breed = result['text']
 
@@ -100,74 +90,10 @@ def annotate_breed(breed_obj):
 def annotate_specie(specie_obj):
     """Annotate a specie object using Zooma"""
 
-    logger.debug("getting ontology term for %s" % (specie_obj))
-
-    result = use_zooma(specie_obj.label, "species")
-
-    # update object (if possible)
-    if result:
-        url = result['ontologyTerms']
-        # https://stackoverflow.com/a/7253830
-        term = url.rsplit('/', 1)[-1]
-
-        # check that term have a correct ontology
-        # TODO: move this check in use_zooma and relate with Ontology
-        # table
-        if term.split("_")[0] != "NCBITaxon":
-            logger.error(
-                "Got an unexpected term for %s: %s" % (
-                    specie_obj, term))
-
-            # ignore such term
-            return
-
-        # The ontology seems correct. Annotate!
-        logger.info("Updating %s with %s" % (specie_obj, result))
-        url = result['ontologyTerms']
-
-        specie_obj.term = term
-
-        # get an int object for such confidence
-        confidence = CONFIDENCES.get_value(
-            result["confidence"].lower())
-
-        specie_obj.confidence = confidence
-        specie_obj.save()
+    annotate_generic(specie_obj, "species")
 
 
 def annotate_uberon(uberon_obj):
     """Annotate an organism part object using Zooma"""
 
-    logger.debug("getting ontology term for %s" % (uberon_obj))
-
-    result = use_zooma(uberon_obj.label, "organism part")
-
-    # update object (if possible)
-    if result:
-        url = result['ontologyTerms']
-        # https://stackoverflow.com/a/7253830
-        term = url.rsplit('/', 1)[-1]
-
-        # check that term have a correct ontology
-        # TODO: move this check in use_zooma and relate with Ontology
-        # table
-        if term.split("_")[0] != "UBERON":
-            logger.error(
-                "Got an unexpected term for %s: %s" % (
-                    uberon_obj, term))
-
-            # ignore such term
-            return
-
-        # The ontology seems correct. Annotate!
-        logger.info("Updating %s with %s" % (uberon_obj, result))
-        url = result['ontologyTerms']
-
-        uberon_obj.term = term
-
-        # get an int object for such confidence
-        confidence = CONFIDENCES.get_value(
-            result["confidence"].lower())
-
-        uberon_obj.confidence = confidence
-        uberon_obj.save()
+    annotate_generic(uberon_obj, "organism part")

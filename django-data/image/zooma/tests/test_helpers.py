@@ -59,30 +59,6 @@ class TestAnnotateBreed(TestCase):
         self.assertEqual(self.breed.mapped_breed_term, "LBO_0000347")
         self.assertEqual(self.breed.confidence, GOOD)
 
-    @patch("zooma.helpers.use_zooma")
-    def test_no_annotation(self, my_zooma):
-        """Ignore terms with non expected ontology"""
-
-        # a fake object
-        my_zooma.return_value = {
-            'type': 'breed',
-            'confidence': 'Good',
-            'text': 'Bentheim Black Pied',
-            'ontologyTerms': '%s/GAZ_00002641' % (OBO_URL)
-        }
-
-        # call my method
-        annotate_breed(self.breed)
-
-        self.assertTrue(my_zooma.called)
-
-        # ensure annotation
-        self.breed.refresh_from_db()
-
-        self.assertIsNone(self.breed.mapped_breed)
-        self.assertIsNone(self.breed.mapped_breed_term)
-        self.assertIsNone(self.breed.confidence)
-
 
 class TestAnnotateCountry(TestCase):
     """A class to test annotate countries"""
@@ -121,29 +97,6 @@ class TestAnnotateCountry(TestCase):
         self.assertEqual(self.country.label, "United Kingdom")
         self.assertEqual(self.country.term, "NCIT_C17233")
         self.assertEqual(self.country.confidence, GOOD)
-
-    @patch("zooma.helpers.use_zooma")
-    def test_no_annotation(self, my_zooma):
-        """Ignore terms with non expected ontology"""
-
-        # a fake object
-        my_zooma.return_value = {
-            'type': 'country',
-            'confidence': 'Good',
-            'text': 'England',
-            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL)
-        }
-
-        # call my method
-        annotate_country(self.country)
-
-        self.assertTrue(my_zooma.called)
-
-        # ensure annotation
-        self.country.refresh_from_db()
-
-        self.assertIsNone(self.country.term)
-        self.assertIsNone(self.country.confidence)
 
 
 class TestAnnotateSpecie(TestCase):
@@ -185,29 +138,6 @@ class TestAnnotateSpecie(TestCase):
         self.assertEqual(self.specie.term, "NCBITaxon_9823")
         self.assertEqual(self.specie.confidence, GOOD)
 
-    @patch("zooma.helpers.use_zooma")
-    def test_no_annotation(self, my_zooma):
-        """Ignore terms with non expected ontology"""
-
-        # a fake object
-        my_zooma.return_value = {
-            'type': 'specie',
-            'confidence': 'Good',
-            'text': 'England',
-            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL)
-        }
-
-        # call my method
-        annotate_specie(self.specie)
-
-        self.assertTrue(my_zooma.called)
-
-        # ensure annotation
-        self.specie.refresh_from_db()
-
-        self.assertIsNone(self.specie.term)
-        self.assertIsNone(self.specie.confidence)
-
 
 class TestAnnotateUberon(TestCase):
     """A class to test annotate uberon"""
@@ -247,26 +177,3 @@ class TestAnnotateUberon(TestCase):
         self.assertEqual(self.part.label, "semen")
         self.assertEqual(self.part.term, "UBERON_0001968")
         self.assertEqual(self.part.confidence, GOOD)
-
-    @patch("zooma.helpers.use_zooma")
-    def test_no_annotation(self, my_zooma):
-        """Ignore terms with non expected ontology"""
-
-        # a fake object
-        my_zooma.return_value = {
-            'type': 'organism part',
-            'confidence': 'Good',
-            'text': 'England',
-            'ontologyTerms': '%s/LBO_0000347' % (OBO_URL)
-        }
-
-        # call my method
-        annotate_uberon(self.part)
-
-        self.assertTrue(my_zooma.called)
-
-        # ensure annotation
-        self.part.refresh_from_db()
-
-        self.assertIsNone(self.part.term)
-        self.assertIsNone(self.part.confidence)
