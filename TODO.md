@@ -58,17 +58,6 @@ InjectTool TODO
     For an example tutorial see [here](https://www.craigderington.me/generic-list-view-with-django-tables/)
   - [django-pgcrypto](https://django-pgcrypto-expressions.readthedocs.io/en/latest/)?
 
-* import June code:
-  - geo standardization
-  - date standardization
-  - import ontology code in zooma module
-  - zooma:
-    - high confidence: use it
-    - good: ask to user?
-    - Add a special confidence status when supplied breed is different from
-      mapped_breed (need revisions)
-    - return a default ontology for breed if non mapping occours
-
 * Regarding Data validation:
   - Can validation start after data load, and after calling zooma? See celery
     chains
