@@ -13,6 +13,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from common.constants import OBO_URL
+from common.helpers import get_deleted_objects
 from common.tests import PersonMixinTestCase
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
@@ -570,6 +571,14 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         self.assertEqual(reference, test)
 
     # TODO: test biosample with None rendering
+
+    def test_related_object(self):
+        """Testing relationship using get_deleted_objects"""
+
+        deletable_objects, model_count, protected = get_deleted_objects(
+            [self.animal])
+
+        self.assertEqual(model_count, {'animals': 1, 'samples': 1})
 
     def test_uid_report(self):
         """testing uid report after a Sample and Animal insert"""

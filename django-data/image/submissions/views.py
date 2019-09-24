@@ -26,7 +26,7 @@ from common.constants import (
     TIME_UNITS, VALIDATION_MESSAGES_ATTRIBUTES, SAMPLE_STORAGE,
     SAMPLE_STORAGE_PROCESSING, ACCURACIES, UNITS_VALIDATION_MESSAGES,
     VALUES_VALIDATION_MESSAGES)
-from common.helpers import get_deleted_objects, uid2biosample
+from common.helpers import uid2biosample
 from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import import_from_cryoweb
@@ -496,20 +496,19 @@ class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
     # https://stackoverflow.com/a/39533619/4385116
     def get_context_data(self, **kwargs):
         # determining related objects
-        # TODO: move this to a custom AJAX call
         context = super().get_context_data(**kwargs)
 
-        deletable_objects, model_count, protected = get_deleted_objects(
-            [self.object])
+        # counting object relying submission
+        animal_count = Animal.objects.filter(
+            name__submission=self.object).count()
+        sample_count = Sample.objects.filter(
+            name__submission=self.object).count()
 
         # get only sample and animals from model_count
-        info_deleted = {}
-
-        items = ['animals', 'samples']
-
-        for item in items:
-            if item in model_count:
-                info_deleted[item] = model_count[item]
+        info_deleted = {
+            'animals': animal_count,
+            'samples': sample_count
+        }
 
         # add info to context
         context['info_deleted'] = dict(info_deleted).items()
