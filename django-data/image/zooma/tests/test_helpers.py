@@ -10,11 +10,14 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from image_app.models import DictBreed, DictSpecie, DictCountry, DictUberon
-from common.constants import OBO_URL, GOOD
+from image_app.models import (
+    DictBreed, DictSpecie, DictCountry, DictUberon, DictDevelStage,
+    DictPhysioStage)
+from common.constants import OBO_URL, GOOD, HIGH
 
 from ..helpers import (
-    annotate_breed, annotate_specie, annotate_country, annotate_uberon)
+    annotate_breed, annotate_specie, annotate_country, annotate_uberon,
+    annotate_dictdevelstage, annotate_dictphysiostage)
 
 
 class TestAnnotateBreed(TestCase):
@@ -177,3 +180,83 @@ class TestAnnotateUberon(TestCase):
         self.assertEqual(self.part.label, "semen")
         self.assertEqual(self.part.term, "UBERON_0001968")
         self.assertEqual(self.part.confidence, GOOD)
+
+
+class TestAnnotateDevelStage(TestCase):
+    """A class to test developmental stage"""
+
+    fixtures = [
+        "image_app/dictstage",
+    ]
+
+    def setUp(self):
+        # get a specie object
+        self.stage = DictDevelStage.objects.get(pk=1)
+
+        # erase attributes
+        self.stage.term = None
+        self.stage.confidence = None
+        self.stage.save()
+
+    @patch("zooma.helpers.use_zooma")
+    def test_annotate_dictdevelstage(self, my_zooma):
+        """Testing annotate dictdevelstage"""
+
+        my_zooma.return_value = {
+            'confidence': 'High',
+            'ontologyTerms': 'http://www.ebi.ac.uk/efo/EFO_0001272',
+            'text': 'adult',
+            'type': 'developmental stage'
+        }
+
+        # call my method
+        annotate_dictdevelstage(self.stage)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.stage.refresh_from_db()
+
+        self.assertEqual(self.stage.label, "adult")
+        self.assertEqual(self.stage.term, "EFO_0001272")
+        self.assertEqual(self.stage.confidence, HIGH)
+
+
+class TestAnnotatePhysioStage(TestCase):
+    """A class to test developmental stage"""
+
+    fixtures = [
+        "image_app/dictstage",
+    ]
+
+    def setUp(self):
+        # get a specie object
+        self.stage = DictPhysioStage.objects.get(pk=1)
+
+        # erase attributes
+        self.stage.term = None
+        self.stage.confidence = None
+        self.stage.save()
+
+    @patch("zooma.helpers.use_zooma")
+    def test_annotate_dictphysiostage(self, my_zooma):
+        """Testing annotate dictphysiostage"""
+
+        my_zooma.return_value = {
+            'confidence': 'High',
+            'ontologyTerms': 'http://purl.obolibrary.org/obo/PATO_0001701',
+            'text': 'mature',
+            'type': 'developmental stage'
+        }
+
+        # call my method
+        annotate_dictphysiostage(self.stage)
+
+        self.assertTrue(my_zooma.called)
+
+        # ensure annotation
+        self.stage.refresh_from_db()
+
+        self.assertEqual(self.stage.label, "mature")
+        self.assertEqual(self.stage.term, "PATO_0001701")
+        self.assertEqual(self.stage.confidence, HIGH)

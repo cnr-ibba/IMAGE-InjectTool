@@ -11,7 +11,9 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TestCase
 
-from image_app.models import DictBreed, DictCountry, DictSpecie, DictUberon
+from image_app.models import (
+    DictBreed, DictCountry, DictSpecie, DictUberon, DictDevelStage,
+    DictPhysioStage)
 
 
 class CommandsTestCase(TestCase):
@@ -35,6 +37,8 @@ class CommandsTestCase(TestCase):
         DictCountry.objects.update(term=None)
         DictSpecie.objects.update(term=None)
         DictUberon.objects.update(term=None)
+        DictDevelStage.objects.update(term=None)
+        DictPhysioStage.objects.update(term=None)
 
     @patch('zooma.helpers.annotate_breed')
     def test_annotate_breeds(self, my_func):
@@ -77,5 +81,27 @@ class CommandsTestCase(TestCase):
         args = []
         opts = {}
         call_command('annotate_uberon', *args, **opts)
+
+        self.assertTrue(my_func.called)
+
+    @patch('zooma.helpers.annotate_dictdevelstage')
+    def test_annotate_dictdevelstage(self, my_func):
+        "Test annotate_dictdevelstage command"
+
+        # mocking objects
+        args = []
+        opts = {}
+        call_command('annotate_dictdevelstage', *args, **opts)
+
+        self.assertTrue(my_func.called)
+
+    @patch('zooma.helpers.annotate_dictphysiostage')
+    def test_annotate_dictphysiostage(self, my_func):
+        "Test annotate_dictphysiostage command"
+
+        # mocking objects
+        args = []
+        opts = {}
+        call_command('annotate_dictphysiostage', *args, **opts)
 
         self.assertTrue(my_func.called)

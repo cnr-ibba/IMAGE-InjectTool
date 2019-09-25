@@ -9,10 +9,13 @@ Created on Thu Oct 25 11:27:52 2018
 from celery.utils.log import get_task_logger
 
 from image.celery import app as celery_app, MyTask
-from image_app.models import DictCountry, DictBreed, DictSpecie, DictUberon
+from image_app.models import (
+    DictCountry, DictBreed, DictSpecie, DictUberon, DictDevelStage,
+    DictPhysioStage)
 
 from .helpers import (
-    annotate_country, annotate_breed, annotate_specie, annotate_uberon)
+    annotate_country, annotate_breed, annotate_specie, annotate_uberon,
+    annotate_dictdevelstage, annotate_dictphysiostage)
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -89,6 +92,45 @@ class AnnotateUberon(MyTask):
 
         return "success"
 
+
+class AnnotateDictDevelStage(MyTask):
+    name = "Annotate DictDevelStage"
+    description = (
+        "Annotate developmental stages with ontologies using Zooma tools")
+
+    def run(self):
+        """This function is called when delay is called"""
+
+        logger.debug("Starting annotate developmental stages")
+
+        # get all breeds without a term
+        for stage in DictDevelStage.objects.filter(term__isnull=True):
+            annotate_dictdevelstage(stage)
+
+        logger.debug("Annotate developmental stages completed")
+
+        return "success"
+
+
+class AnnotateDictPhysioStage(MyTask):
+    name = "Annotate DictPhysioStage"
+    description = (
+        "Annotate physiological stages with ontologies using Zooma tools")
+
+    def run(self):
+        """This function is called when delay is called"""
+
+        logger.debug("Starting annotate physiological stages")
+
+        # get all breeds without a term
+        for stage in DictPhysioStage.objects.filter(term__isnull=True):
+            annotate_dictphysiostage(stage)
+
+        logger.debug("Annotate physiological stages completed")
+
+        return "success"
+
+
 # --- task registering
 
 
@@ -98,3 +140,5 @@ celery_app.tasks.register(AnnotateCountries)
 celery_app.tasks.register(AnnotateBreeds)
 celery_app.tasks.register(AnnotateSpecies)
 celery_app.tasks.register(AnnotateUberon)
+celery_app.tasks.register(AnnotateDictDevelStage)
+celery_app.tasks.register(AnnotateDictPhysioStage)

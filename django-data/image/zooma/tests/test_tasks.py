@@ -10,10 +10,13 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from image_app.models import DictBreed, DictCountry, DictSpecie, DictUberon
+from image_app.models import (
+    DictBreed, DictCountry, DictSpecie, DictUberon, DictDevelStage,
+    DictPhysioStage)
 
 from ..tasks import (
-    AnnotateBreeds, AnnotateCountries, AnnotateSpecies, AnnotateUberon)
+    AnnotateBreeds, AnnotateCountries, AnnotateSpecies, AnnotateUberon,
+    AnnotateDictDevelStage, AnnotateDictPhysioStage)
 
 
 class TestAnnotateBreeds(TestCase):
@@ -119,6 +122,60 @@ class TestAnnotateUberon(TestCase):
         part.save()
 
     @patch("zooma.tasks.annotate_uberon")
+    def test_task(self, my_func):
+        res = self.my_task.run()
+
+        # assert a success
+        self.assertEqual(res, "success")
+        self.assertTrue(my_func.called)
+
+
+class TestAnnotateDictDevelStage(TestCase):
+    """A class to test annotate developmental stages"""
+
+    fixtures = [
+        "image_app/dictstage",
+    ]
+
+    def setUp(self):
+        self.my_task = AnnotateDictDevelStage()
+
+        # get a specie object
+        stage = DictDevelStage.objects.get(pk=1)
+
+        # erase attributes
+        stage.term = None
+        stage.confidence = None
+        stage.save()
+
+    @patch("zooma.tasks.annotate_dictdevelstage")
+    def test_task(self, my_func):
+        res = self.my_task.run()
+
+        # assert a success
+        self.assertEqual(res, "success")
+        self.assertTrue(my_func.called)
+
+
+class TestAnnotateDictPhysioStage(TestCase):
+    """A class to test annotate physiological stages"""
+
+    fixtures = [
+        "image_app/dictstage",
+    ]
+
+    def setUp(self):
+        self.my_task = AnnotateDictPhysioStage()
+
+        # get a specie object
+        stage = DictPhysioStage.objects.get(pk=1)
+
+        # erase attributes
+        stage.term = None
+        stage.confidence = None
+        stage.save()
+
+    @patch("zooma.tasks.annotate_dictphysiostage")
     def test_task(self, my_func):
         res = self.my_task.run()
 
