@@ -9,6 +9,7 @@ Created on Thu Oct 25 11:27:52 2018
 import time
 
 from celery import group
+from celery.result import allow_join_result
 from celery.utils.log import get_task_logger
 
 from common.tasks import redis_lock
@@ -149,12 +150,15 @@ class AnnotateAll(MyTask):
 
         logger.debug(result)
 
-        while result.waiting() is True:
-            logger.debug("Waiting for zooma tasks to complete")
-            time.sleep(10)
+        # in order to avoid: Never call result.get() within a task!
+        # https://stackoverflow.com/a/39975099/4385116
+        with allow_join_result():
+            while result.waiting() is True:
+                logger.debug("Waiting for zooma tasks to complete")
+                time.sleep(10)
 
-        # get results
-        results = result.join()
+            # get results
+            results = result.join()
 
         for i, task in enumerate(tasks):
             logger.debug("%s returned %s" % (task.name, results[i]))
