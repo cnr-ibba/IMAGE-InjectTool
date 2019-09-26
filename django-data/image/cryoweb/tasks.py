@@ -16,6 +16,7 @@ from celery.utils.log import get_task_logger
 from image_app.models import Submission
 
 from common.tasks import redis_lock
+from zooma.tasks import AnnotateAll
 
 from .helpers import cryoweb_import, upload_cryoweb
 from .models import truncate_database
@@ -108,6 +109,13 @@ def import_from_cryoweb(self, submission_id, blocking=True):
 
             # debug
             logger.info(message)
+
+            # calling zooma tasks
+            annotate_task = AnnotateAll()
+            res = annotate_task.delay()
+
+            logger.info(
+                "Start zooma annotation with task %s" % res.task_id)
 
             # always return something
             return "success"

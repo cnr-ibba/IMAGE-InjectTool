@@ -9,6 +9,7 @@ Created on Tue Jul  9 16:10:06 2019
 import logging
 
 from common.constants import ERROR
+from zooma.tasks import AnnotateAll
 
 from .helpers import send_message
 
@@ -80,6 +81,13 @@ class ImportGenericTaskMixin():
 
             # debug
             logger.info(message)
+
+            # calling zooma tasks
+            annotate_task = AnnotateAll()
+            res = annotate_task.delay()
+
+            logger.info(
+                "Start zooma annotation with task %s" % res.task_id)
 
             # always return something
             return "success"

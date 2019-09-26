@@ -27,6 +27,21 @@ class ImportCryowebTest(TestCase):
         "language/speciesynonym"
     ]
 
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # patching objects
+        self.mock_annotateall_patcher = patch('cryoweb.tasks.AnnotateAll')
+        self.mock_annotateall = self.mock_annotateall_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.mock_annotateall_patcher.stop()
+
+        # calling base object
+        super().tearDown()
+
     # patching upload_cryoweb and truncate database
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import")
@@ -48,6 +63,9 @@ class ImportCryowebTest(TestCase):
 
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
+
+        # assering zooma called
+        self.assertTrue(self.mock_annotateall.called)
 
     @patch('submissions.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -85,6 +103,9 @@ class ImportCryowebTest(TestCase):
              'notification_message': 'Error in importing data: '
                                      'Cryoweb has data'}, 1)
 
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
+
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import")
     @patch("cryoweb.tasks.upload_cryoweb", return_value=False)
@@ -104,6 +125,9 @@ class ImportCryowebTest(TestCase):
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
+
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import", return_value=False)
     @patch("cryoweb.tasks.upload_cryoweb", return_value=True)
@@ -122,6 +146,9 @@ class ImportCryowebTest(TestCase):
 
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
+
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
 
     # Test a non blocking instance
     @patch("redis.lock.Lock.acquire", return_value=False)
@@ -144,5 +171,8 @@ class ImportCryowebTest(TestCase):
         self.assertFalse(my_upload.called)
         self.assertFalse(my_import.called)
         self.assertTrue(my_lock.called)
+
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
 
     # HINT: Uploading the same submission fails or overwrite?
