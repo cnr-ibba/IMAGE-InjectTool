@@ -67,7 +67,7 @@ class TestAnnotateCountries(TestCase):
         country.confidence = None
         country.save()
 
-    @patch("zooma.tasks.annotate_country")
+    @patch("zooma.tasks.AnnotateCountries.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 
@@ -94,7 +94,7 @@ class TestAnnotateSpecies(TestCase):
         specie.confidence = None
         specie.save()
 
-    @patch("zooma.tasks.annotate_specie")
+    @patch("zooma.tasks.AnnotateSpecies.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 
@@ -121,7 +121,7 @@ class TestAnnotateUberon(TestCase):
         part.confidence = None
         part.save()
 
-    @patch("zooma.tasks.annotate_uberon")
+    @patch("zooma.tasks.AnnotateUberon.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 
@@ -148,7 +148,7 @@ class TestAnnotateDictDevelStage(TestCase):
         stage.confidence = None
         stage.save()
 
-    @patch("zooma.tasks.annotate_dictdevelstage")
+    @patch("zooma.tasks.AnnotateDictDevelStage.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 
@@ -175,7 +175,7 @@ class TestAnnotateDictPhysioStage(TestCase):
         stage.confidence = None
         stage.save()
 
-    @patch("zooma.tasks.annotate_dictphysiostage")
+    @patch("zooma.tasks.AnnotateDictPhysioStage.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 

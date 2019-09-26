@@ -25,22 +25,31 @@ from .helpers import (
 logger = get_task_logger(__name__)
 
 
-class AnnotateCountries(MyTask):
-    name = "Annotate Countries"
-    description = """Annotate countries with ontologies using Zooma tools"""
+class AnnotateTaskMixin():
+    name = None
+    descripttion = None
+    model = None
+    annotate_func = None
 
     def run(self):
         """This function is called when delay is called"""
 
-        logger.debug("Starting annotate countries")
+        logger.debug("Starting %s" % self.name.lower())
 
         # get all countries without a term
-        for country in DictCountry.objects.filter(term__isnull=True):
-            annotate_country(country)
+        for term in self.model.objects.filter(term__isnull=True):
+            self.annotate_func(term)
 
-        logger.debug("Annotate countries completed")
+        logger.debug("%s completed" % self.name.lower())
 
         return "success"
+
+
+class AnnotateCountries(AnnotateTaskMixin, MyTask):
+    name = "Annotate Countries"
+    description = """Annotate countries with ontologies using Zooma tools"""
+    model = DictCountry
+    annotate_func = staticmethod(annotate_country)
 
 
 class AnnotateBreeds(MyTask):
@@ -50,89 +59,45 @@ class AnnotateBreeds(MyTask):
     def run(self):
         """This function is called when delay is called"""
 
-        logger.debug("Starting annotate breeds")
+        logger.debug("Starting %s" % self.name.lower())
 
         # get all breeds without a term
         for breed in DictBreed.objects.filter(mapped_breed_term__isnull=True):
             annotate_breed(breed)
 
-        logger.debug("Annotate breeds completed")
+        logger.debug("%s completed" % self.name.lower())
 
         return "success"
 
 
-class AnnotateSpecies(MyTask):
+class AnnotateSpecies(AnnotateTaskMixin, MyTask):
     name = "Annotate Species"
     description = """Annotate species with ontologies using Zooma tools"""
-
-    def run(self):
-        """This function is called when delay is called"""
-
-        logger.debug("Starting annotate species")
-
-        # get all breeds without a term
-        for specie in DictSpecie.objects.filter(term__isnull=True):
-            annotate_specie(specie)
-
-        logger.debug("Annotate species completed")
-
-        return "success"
+    model = DictSpecie
+    annotate_func = staticmethod(annotate_specie)
 
 
-class AnnotateUberon(MyTask):
+class AnnotateUberon(AnnotateTaskMixin, MyTask):
     name = "Annotate Uberon"
     description = "Annotate organism parts with ontologies using Zooma tools"
-
-    def run(self):
-        """This function is called when delay is called"""
-
-        logger.debug("Starting annotate uberon")
-
-        # get all breeds without a term
-        for part in DictUberon.objects.filter(term__isnull=True):
-            annotate_uberon(part)
-
-        logger.debug("Annotate uberon completed")
-
-        return "success"
+    model = DictUberon
+    annotate_func = staticmethod(annotate_uberon)
 
 
-class AnnotateDictDevelStage(MyTask):
+class AnnotateDictDevelStage(AnnotateTaskMixin, MyTask):
     name = "Annotate DictDevelStage"
     description = (
         "Annotate developmental stages with ontologies using Zooma tools")
-
-    def run(self):
-        """This function is called when delay is called"""
-
-        logger.debug("Starting annotate developmental stages")
-
-        # get all breeds without a term
-        for stage in DictDevelStage.objects.filter(term__isnull=True):
-            annotate_dictdevelstage(stage)
-
-        logger.debug("Annotate developmental stages completed")
-
-        return "success"
+    model = DictDevelStage
+    annotate_func = staticmethod(annotate_dictdevelstage)
 
 
-class AnnotateDictPhysioStage(MyTask):
+class AnnotateDictPhysioStage(AnnotateTaskMixin, MyTask):
     name = "Annotate DictPhysioStage"
     description = (
         "Annotate physiological stages with ontologies using Zooma tools")
-
-    def run(self):
-        """This function is called when delay is called"""
-
-        logger.debug("Starting annotate physiological stages")
-
-        # get all breeds without a term
-        for stage in DictPhysioStage.objects.filter(term__isnull=True):
-            annotate_dictphysiostage(stage)
-
-        logger.debug("Annotate physiological stages completed")
-
-        return "success"
+    model = DictPhysioStage
+    annotate_func = staticmethod(annotate_dictphysiostage)
 
 
 class AnnotateAll(MyTask):
