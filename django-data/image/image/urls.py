@@ -80,6 +80,10 @@ urlpatterns = [
         include(
             ('samples.urls', 'samples'),
             namespace='samples')),
+    url(r'^zooma/',
+        include(
+            ('zooma.urls', 'zooma'),
+            namespace='zooma')),
 ]
 
 # Activate django-debug-toolbar only when settings.DEBUG is True
