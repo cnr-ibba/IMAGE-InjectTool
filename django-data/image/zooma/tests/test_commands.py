@@ -33,7 +33,7 @@ class CommandsTestCase(TestCase):
 
         super().setUpClass()
 
-        DictBreed.objects.update(mapped_breed_term=None)
+        DictBreed.objects.update(term=None)
         DictCountry.objects.update(term=None)
         DictSpecie.objects.update(term=None)
         DictUberon.objects.update(term=None)

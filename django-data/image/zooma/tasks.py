@@ -53,22 +53,11 @@ class AnnotateCountries(AnnotateTaskMixin, MyTask):
     annotate_func = staticmethod(annotate_country)
 
 
-class AnnotateBreeds(MyTask):
+class AnnotateBreeds(AnnotateTaskMixin, MyTask):
     name = "Annotate Breeds"
     description = """Annotate breeds with ontologies using Zooma tools"""
-
-    def run(self):
-        """This function is called when delay is called"""
-
-        logger.debug("Starting %s" % self.name.lower())
-
-        # get all breeds without a term
-        for breed in DictBreed.objects.filter(mapped_breed_term__isnull=True):
-            annotate_breed(breed)
-
-        logger.debug("%s completed" % self.name.lower())
-
-        return "success"
+    model = DictBreed
+    annotate_func = staticmethod(annotate_breed)
 
 
 class AnnotateSpecies(AnnotateTaskMixin, MyTask):

@@ -40,7 +40,7 @@ class TestAnnotateBreeds(TestCase):
         breed.confidence = None
         breed.save()
 
-    @patch("zooma.tasks.annotate_breed")
+    @patch("zooma.tasks.AnnotateBreeds.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 

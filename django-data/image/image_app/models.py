@@ -258,13 +258,18 @@ class DictBreed(Confidence):
 
     # this was the description field in cryoweb v_breeds_species tables
     supplied_breed = models.CharField(max_length=255, blank=False)
-    mapped_breed = models.CharField(max_length=255, blank=False, null=True)
 
-    mapped_breed_term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: LBO_0000347")
+    # those can't be null like other DictBase classes
+    # HINT: if every breed should have a mapped breed referring a specie
+    # at least, could I inherit from DictBase class?
+    label = models.CharField(max_length=255, blank=False, null=True)
+
+    # old mapped_breed_term
+    term = models.CharField(
+        max_length=255,
+        blank=False,
+        null=True,
+        help_text="Example: LBO_0000347")
 
     # using a constraint for country.
     country = models.ForeignKey(
@@ -277,7 +282,7 @@ class DictBreed(Confidence):
         on_delete=models.PROTECT)
 
     class Meta:
-        verbose_name = 'Breed'
+        verbose_name = 'breed'
         unique_together = (("supplied_breed", "specie", "country"),)
 
     def __str__(self):
@@ -285,6 +290,30 @@ class DictBreed(Confidence):
             supplied=self.supplied_breed,
             mapped=self.mapped_breed,
             specie=self.specie.label)
+
+    @property
+    def mapped_breed(self):
+        """Alias for label attribute"""
+
+        return self.label
+
+    @mapped_breed.setter
+    def mapped_breed(self, label):
+        """Alias for label attribute"""
+
+        self.label = label
+
+    @property
+    def mapped_breed_term(self):
+        """Alias for term attribute"""
+
+        return self.term
+
+    @mapped_breed_term.setter
+    def mapped_breed_term(self, term):
+        """Alias for label attribute"""
+
+        self.term = term
 
     def format_attribute(self):
         """Format mapped_breed attribute (with its ontology). Return None if
@@ -1096,7 +1125,7 @@ def uid_report(user):
     # HINT: have they sense in a per user statistic?
 
     # check breeds without ontologies
-    breed = DictBreed.objects.filter(mapped_breed_term=None)
+    breed = DictBreed.objects.filter(term=None)
     report['breeds_without_ontology'] = breed.count()
 
     # check countries without ontology

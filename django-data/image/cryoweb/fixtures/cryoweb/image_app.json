@@ -91,8 +91,8 @@
   "fields": {
     "confidence": null,
     "supplied_breed": "Bunte Bentheimer",
-    "mapped_breed": "Bentheim Black Pied",
-    "mapped_breed_term": "LBO_0000347",
+    "label": "Bentheim Black Pied",
+    "term": "LBO_0000347",
     "country": 1,
     "specie": 1
   }
@@ -103,8 +103,8 @@
   "fields": {
     "confidence": null,
     "supplied_breed": "Ostfriesisches Milchschaf",
-    "mapped_breed": null,
-    "mapped_breed_term": null,
+    "label": null,
+    "term": null,
     "country": 2,
     "specie": 2
   }
@@ -115,8 +115,8 @@
   "fields": {
     "confidence": null,
     "supplied_breed": "Aberdeen Angus",
-    "mapped_breed": null,
-    "mapped_breed_term": null,
+    "label": null,
+    "term": null,
     "country": 3,
     "specie": 1
   }
@@ -127,8 +127,8 @@
   "fields": {
     "confidence": null,
     "supplied_breed": "Ostfriesisches Milchschaf",
-    "mapped_breed": null,
-    "mapped_breed_term": null,
+    "label": null,
+    "term": null,
     "country": 3,
     "specie": 2
   }

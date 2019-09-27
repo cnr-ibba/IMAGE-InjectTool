@@ -21,5 +21,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # get all species without a term
-        for breed in DictBreed.objects.filter(mapped_breed_term__isnull=True):
+        for breed in DictBreed.objects.filter(term__isnull=True):
             annotate_breed(breed)
