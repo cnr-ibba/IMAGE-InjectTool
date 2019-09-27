@@ -1122,19 +1122,35 @@ def uid_report(user):
     report['n_of_samples'] = Sample.objects.filter(
         owner=user).count()
 
+    # merging dictionaries: https://stackoverflow.com/a/26853961
     # HINT: have they sense in a per user statistic?
+    report = {**report, **missing_terms()}
 
-    # check breeds without ontologies
-    breed = DictBreed.objects.filter(term=None)
-    report['breeds_without_ontology'] = breed.count()
+    return report
 
-    # check countries without ontology
-    country = DictCountry.objects.filter(term=None)
-    report['countries_without_ontology'] = country.count()
 
-    # check species without ontology
-    species = DictSpecie.objects.filter(term=None)
-    report['species_without_ontology'] = species.count()
+def missing_terms():
+    """Get informations about dictionary terms without ontologies"""
+
+    # a list with all dictionary classes
+    dict_classes = [
+        DictBreed, DictCountry, DictSpecie, DictUberon, DictDevelStage,
+        DictPhysioStage
+    ]
+
+    # get a dictionary to report data
+    report = {}
+
+    for dict_class in dict_classes:
+        # get a queryset with missing terms
+        missing = dict_class.objects.filter(term=None)
+
+        # ket a key for report dictionary
+        key = "%s_without_ontology" % (
+            dict_class._meta.verbose_name_plural.replace(" ", "_"))
+
+        # track counts
+        report[key] = missing.count()
 
     return report
 

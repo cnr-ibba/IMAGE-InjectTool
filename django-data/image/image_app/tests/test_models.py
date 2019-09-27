@@ -580,6 +580,9 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
                 'breeds_without_ontology': 0,
                 'countries_without_ontology': 0,
                 'species_without_ontology': 0,
+                'developmental_stages_without_ontology': 0,
+                'organism_parts_without_ontology': 0,
+                'physiological_stages_without_ontology': 0,
                 }
 
         user = User.objects.get(pk=1)
