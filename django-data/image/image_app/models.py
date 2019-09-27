@@ -262,14 +262,19 @@ class DictBreed(Confidence):
     # those can't be null like other DictBase classes
     # HINT: if every breed should have a mapped breed referring a specie
     # at least, could I inherit from DictBase class?
-    label = models.CharField(max_length=255, blank=False, null=True)
+    label = models.CharField(
+        max_length=255,
+        blank=False,
+        null=True,
+        verbose_name="mapped breed")
 
     # old mapped_breed_term
     term = models.CharField(
         max_length=255,
         blank=False,
         null=True,
-        help_text="Example: LBO_0000347")
+        help_text="Example: LBO_0000347",
+        verbose_name="mapped breed term")
 
     # using a constraint for country.
     country = models.ForeignKey(
