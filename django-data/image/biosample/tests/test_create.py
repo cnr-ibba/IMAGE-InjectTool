@@ -175,7 +175,7 @@ class SuccessfulCreateUserViewTest(Basetest):
     @patch('biosample.helpers.Auth', new=mocked_auth)
     @patch('pyUSIrest.client.User.create_user',
            side_effect=ConnectionError("test"))
-    def test_error_with_biosample(
+    def test_error_with_create_user(
             self, create_user, create_team, get_domain_by_name,
             add_user_to_team):
         """Testing create user with biosample errors"""
@@ -193,6 +193,92 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.assertFalse(create_team.called)
         self.assertFalse(get_domain_by_name.called)
         self.assertFalse(add_user_to_team.called)
+
+    def mock_create_team_error(**kwargs):
+        """Raise a custom exception when creating team"""
+
+        msg = (
+            '{"timestamp":1569592802046,"status":500,"error":"Internal Server '
+            'Error","exception":"org.springframework.web.client.ResourceAccess'
+            'Exception","message":"I/O error on POST request for \"https://'
+            'explore.api.aai.ebi.ac.uk/domains/\": No content to map due '
+            'to end-of-input\n at [Source: ; line: 1, column: 0]; nested '
+            'exception is com.fasterxml.jackson.databind.JsonMappingException:'
+            ' No content to map due to end-of-input\n at [Source: ; line: 1, '
+            'column: 0]","path":"/api/user/teams"}')
+
+        return ConnectionError(msg)
+
+    @patch('pyUSIrest.client.User.add_user_to_team')
+    @patch('pyUSIrest.client.User.get_domain_by_name')
+    @patch('pyUSIrest.client.User.create_team',
+           side_effect=mock_create_team_error())
+    @patch('biosample.views.get_manager_auth', new=mocked_auth)
+    @patch('biosample.views.get_auth', new=mocked_auth)
+    @patch('pyUSIrest.client.User.create_user',
+           return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
+    def test_error_with_create_team(
+            self, create_user, create_team, get_domain_by_name,
+            add_user_to_team):
+        """Testing create user"""
+
+        # setting mock objects
+        get_domain_by_name.return_value.domainReference = (
+                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
+
+        self.data = {
+            'password1': 'image-password',
+            'password2': 'image-password',
+        }
+
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 200)
+        self.check_messages(response, "error", "Problem in creating team")
+
+        self.assertTrue(create_user.called)
+        self.assertTrue(create_team.called)
+        self.assertFalse(get_domain_by_name.called)
+        self.assertFalse(add_user_to_team.called)
+
+    @patch('pyUSIrest.client.User.add_user_to_team',
+           side_effect=ConnectionError("test"))
+    @patch('pyUSIrest.client.User.get_domain_by_name')
+    @patch('pyUSIrest.client.User.create_team')
+    @patch('biosample.views.get_manager_auth', new=mocked_auth)
+    @patch('biosample.views.get_auth', new=mocked_auth)
+    @patch('pyUSIrest.client.User.create_user',
+           return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
+    def test_generic_error(
+            self, create_user, create_team, get_domain_by_name,
+            add_user_to_team):
+
+        """Testing a generic error during user creation step"""
+
+        # setting mock objects
+        create_team.return_value.name = "subs.test-team-3"
+        get_domain_by_name.return_value.domainReference = (
+                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
+
+        self.data = {
+            'password1': 'image-password',
+            'password2': 'image-password',
+        }
+
+        # posting user and password to generate a new user
+        response = self.client.post(self.url, self.data)
+        dashboard_url = reverse('image_app:dashboard')
+
+        self.assertRedirects(response, dashboard_url)
+        self.assertEqual(response.status_code, 200)
+        self.check_messages(
+            response,
+            "error",
+            "Problem with EBI-AAP endoints. Please contact IMAGE team")
+
+        self.assertTrue(create_user.called)
+        self.assertTrue(create_team.called)
+        self.assertTrue(get_domain_by_name.called)
+        self.assertTrue(add_user_to_team.called)
 
 
 class InvalidCreateUserViewTests(Basetest):
