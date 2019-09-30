@@ -6,7 +6,7 @@
 Welcome to IMAGE-InjectTool's documentation!
 ============================================
 
-InjectTool is developed to help gene bank managers to enhance, standardize, tag and submit their gene bank data to EBI BioSamples, that integrates all gene bank records from across Europe. The interface guides users throughout submission and allow standardization of data following an agreed rule set
+InjectTool is developed to help gene bank managers to enhance, standardize, tag and submit their gene bank data to EBI BioSamples, that integrates all gene bank records from across Europe. The interface guides users throughout submission and allows standardization of data following an agreed IMAGE rule set
 
 General Documentation
 ---------------------
