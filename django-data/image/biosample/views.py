@@ -294,6 +294,28 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
     form_class = CreateUserForm
     success_url_message = "Account created"
 
+    def deal_with_errors(self, error_message, exception):
+        """Add messages to view for encountered errors
+
+        Args:
+            error_message (str): An informative text
+            exception (Exception): an exception instance
+        """
+
+        exception_message = "Message was: %s" % (exception)
+
+        logger.error(error_message)
+        logger.error(exception_message)
+
+        messages.error(
+            self.request,
+            message=error_message,
+            extra_tags="alert alert-dismissible alert-danger")
+        messages.error(
+            self.request,
+            message=exception_message,
+            extra_tags="alert alert-dismissible alert-danger")
+
     def get_form_kwargs(self):
         """Override get_form_kwargs"""
 
@@ -307,10 +329,18 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
         return kwargs
 
-    # HINT: move to a celery task?
-    def form_valid(self, form):
-        """Create a new team in with biosample manager user, then create a new
-        user and register it"""
+    # create an user or throw an exception
+    def create_biosample_user(self, form, full_name, affiliation):
+        """Create a biosample user
+
+        Args:
+            form (:py:class:`CreateUserForm`) an instantiated form object
+            full_name (str): the user full name (Name + Surname)
+            affiliation (str): the organization the user belongs to
+
+        Returns:
+            str: a biosamples user id
+        """
 
         password = form.cleaned_data['password1']
         confirmPwd = form.cleaned_data['password2']
@@ -318,21 +348,16 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         # get user model associated with this session
         user = self.request.user
 
-        first_name = user.first_name
-        last_name = user.last_name
+        # get email
         email = user.email
 
-        # Affiliation is the institution the user belong
-        affiliation = user.person.affiliation.name
-
-        # set full name as
-        full_name = " ".join([first_name, last_name])
+        biosample_user_id = None
 
         # creating a user
         logger.debug("Creating user %s" % (form.username))
 
         try:
-            user_id = User.create_user(
+            biosample_user_id = User.create_user(
                 user=form.username,
                 password=password,
                 confirmPwd=confirmPwd,
@@ -341,21 +366,25 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
                 organisation=affiliation
             )
 
+            logger.info("user_id %s generated" % (biosample_user_id))
+
         except ConnectionError as e:
-            logger.error("Problem in creating user %s" % (form.username))
-            logger.error("Message was: %s" % (e))
-            messages.error(
-                self.request,
-                message="Problem in creating user %s",
-                extra_tags="alert alert-dismissible alert-danger")
+            message = "Problem in creating user %s" % (form.username)
+            self.deal_with_errors(message, e)
 
-            messages.error(
-                self.request,
-                message="Message was: %s" % (e),
-                extra_tags="alert alert-dismissible alert-danger")
+        return biosample_user_id
 
-            # return invalid form
-            return self.form_invalid(form)
+    def create_biosample_team(self, full_name, affiliation):
+        """Create a biosample team
+
+        Args:
+            full_name (str): the user full name (Name + Surname)
+            affiliation (str): the organization the user belongs to
+
+        Returns:
+            :py:class:`pyUSIrest.client.Team`: a pyUSIrest Team instance
+            :py:class:`biosample.models.ManagedTeam`: a model object
+        """
 
         # creating a new team. First create an user object
         # create a new auth object
@@ -367,20 +396,34 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
         description = "Team for %s" % (full_name)
 
+        # the values I want to return
+        team, managed_team = None, None
+
         # now create a team
         logger.debug("Creating team for %s" % (full_name))
-        team = admin.create_team(
-            description=description,
-            centreName=affiliation)
 
-        logger.info("Team %s generated" % (team.name))
+        try:
 
-        # register team in ManagedTeam table
-        managed, created = ManagedTeam.objects.get_or_create(
-            name=team.name)
+            team = admin.create_team(
+                description=description,
+                centreName=affiliation)
 
-        if created is True:
-            logger.info("Created: %s" % (managed))
+            logger.info("Team %s generated" % (team.name))
+
+            # register team in ManagedTeam table
+            managed_team, created = ManagedTeam.objects.get_or_create(
+                name=team.name)
+
+            if created is True:
+                logger.info("Created: %s" % (managed_team))
+
+        except ConnectionError as e:
+            message = "Problem in creating team for %s" % (full_name)
+            self.deal_with_errors(message, e)
+
+        return team, managed_team
+
+    def add_biosample_user_to_team(self, form, user_id, team, managed_team):
 
         # I need to generate a new token to see the new team
         logger.debug("Generate a new token for 'USI_MANAGER'")
@@ -397,26 +440,87 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
         domain = admin.get_domain_by_name(team.name)
         domain_id = domain.domainReference
 
+        # the value I want to return
+        account = None
+
         logger.debug(
             "Adding user %s to team %s" % (form.username, team.name))
 
-        # user to team
-        admin.add_user_to_team(user_id=user_id, domain_id=domain_id)
+        try:
+            # user to team
+            admin.add_user_to_team(user_id=user_id, domain_id=domain_id)
 
-        # save objects in accounts table
-        account = Account.objects.create(
-            user=self.request.user,
-            name=form.username,
-            team=managed
-        )
+            # save objects in accounts table
+            account = Account.objects.create(
+                user=self.request.user,
+                name=form.username,
+                team=managed_team
+            )
 
-        logger.info("%s created" % (account))
+            logger.info("%s created" % (account))
 
-        # add message
-        messages.debug(
-            request=self.request,
-            message="User %s added to team %s" % (form.username, team.name),
-            extra_tags="alert alert-dismissible alert-light")
+            # add message
+            messages.debug(
+                request=self.request,
+                message="User %s added to team %s" % (
+                    form.username, team.name),
+                extra_tags="alert alert-dismissible alert-light")
+
+        except ConnectionError as e:
+            message = "Problem in adding user %s to team %s" % (
+                form.username, team.name)
+            self.deal_with_errors(message, e)
+
+        return account
+
+    # HINT: move to a celery task?
+    def form_valid(self, form):
+        """Create a new team in with biosample manager user, then create a new
+        user and register it"""
+
+        # get user model associated with this session
+        user = self.request.user
+
+        # get user info
+        first_name = user.first_name
+        last_name = user.last_name
+
+        # set full name as
+        full_name = " ".join([first_name, last_name])
+
+        # Affiliation is the institution the user belong
+        affiliation = user.person.affiliation.name
+
+        # model generic errors from EBI API endpoints
+        try:
+            user_id = self.create_biosample_user(form, full_name, affiliation)
+
+            if user_id is None:
+                # return invalid form
+                return self.form_invalid(form)
+
+            # create a biosample team
+            team, managed_team = self.create_biosample_team(
+                full_name, affiliation)
+
+            if team is None:
+                # return invalid form
+                return self.form_invalid(form)
+
+            account = self.add_biosample_user_to_team(
+                form, user_id, team, managed_team)
+
+            if account is None:
+                # return invalid form
+                return self.form_invalid(form)
+
+        except ConnectionError as e:
+            message = (
+                "Problem with EBI-AAP endoints. Please contact IMAGE team")
+            self.deal_with_errors(message, e)
+
+            # return invalid form
+            return self.form_invalid(form)
 
         # call to a inherited function (which does an HttpResponseRedirect
         # to success_url)
