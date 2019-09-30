@@ -17,6 +17,7 @@ from dateutil.relativedelta import relativedelta
 
 from django.conf import settings
 from django.contrib.admin.utils import NestedObjects
+from django.core.mail import send_mass_mail
 from django.db import DEFAULT_DB_ALIAS
 from django.utils.text import capfirst
 from django.utils.encoding import force_text
@@ -153,6 +154,29 @@ def get_admin_emails():
 
     # return all admin mail addresses
     return [admin[1] for admin in ADMINS]
+
+
+def send_mail_to_admins(
+        email_subject, email_message,
+        default_from=settings.DEFAULT_FROM_EMAIL,
+        addresses=get_admin_emails()):
+    """Send a mail to all admins
+
+    Args:
+        email_subject (str): the email subject
+        email_message (str): the body of the email
+        default_from (str): the from field of the email
+        addresses (list): a list of email addresses
+    """
+
+    # submit mail to admins
+    datatuple = (
+        email_subject,
+        email_message,
+        default_from,
+        addresses)
+
+    send_mass_mail((datatuple, ))
 
 
 def uid2biosample(value):

@@ -20,7 +20,7 @@ from django.core.mail import send_mass_mail
 
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
-from common.helpers import get_admin_emails
+from common.helpers import send_mail_to_admins
 from image.celery import app as celery_app, MyTask
 from image_app.models import Submission, Sample, Animal
 from submissions.helpers import send_message
@@ -350,16 +350,10 @@ class ValidateTask(MyTask):
             email_message,
         )
 
-        # TODO: should this be a common.helpers method?
+        # this is a common.helpers method that should be used when needed
         if notify_admins:
             # submit mail to admins
-            datatuple = (
-                email_subject,
-                email_message,
-                settings.DEFAULT_FROM_EMAIL,
-                get_admin_emails())
-
-            send_mass_mail((datatuple, ))
+            send_mail_to_admins(email_subject, email_message)
 
     # Ovverride default on failure method
     # This is not a failed validation for a wrong value, this is an
