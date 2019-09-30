@@ -5,7 +5,7 @@ About InjectTool
 Introduction
 ------------
 
-The IMAGE-InjectTool is a tool which makes it easier to archive data into BioSamples
+The IMAGE InjectTool is a tool which makes it easier to archive data into BioSamples
 from the user point of view. InjectTool structured as a web application and runs inside
 a web server. User can register into website in order to upload their data in a
 private space, they can validate their data against `IMAGE-metadata`_ and can fix

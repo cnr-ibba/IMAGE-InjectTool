@@ -17,7 +17,7 @@ The main object is :py:class:`image_app.models.Submission` which is the object t
 a registered user create when starts creating a new submission. Animals and Samples
 data loaded by user are manged by the :py:class:`image_app.models.Animal` and
 :py:class:`image_app.models.Sample` class. The original name of such objects (defined
-as ``Data source id`` from the IMAGE-metadata rules) is managed by :py:class:`image_app.models.Name`
+as ``Data source id`` from the IMAGE metadata rules) is managed by :py:class:`image_app.models.Name`
 class, which track also the ``biosample_id`` of such objects and its :ref:`Common statuses`.
 Here are presented the relations between ``Names`` objects:
 
