@@ -29,14 +29,14 @@
       of domestic animals (mammals, birds, fishes and shellfishes) in the country.
       Other countries have developed relational databases to manage their collections.
       Using InjectTool, data derived from different sources can be standardized and
-      validated against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      validated against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
       standards and finally submitted to <a href="https://www.ebi.ac.uk/biosamples/">EBI BioSamples</a>,
-      which has been chosen as the reference archive for all IMAGE data.
+      which has been chosen as the sample reference archive for all IMAGE data.
     </p>
     <p class="lead text-primary text-justify">
       <strong>
-        The IMAGE-InjectTool is a tool which makes it easier to
-        archive data into BioSamples from the user point of view.
+        The IMAGE InjectTool is a tool which makes it easier to
+        archive data into BioSamples from the user's point of view.
       </strong>
     </p>
 
@@ -47,33 +47,31 @@
 
     <p>
       The InjectTool has been developed to help gene bank/genomic collections
-      managers to enhance, standardise, tag and submit their gene bank data to a
-      <a href="https://www.wp5image.eu/">Common Data Pool</a> that integrates all
+      managers to enhance, standardize, tag and submit their gene bank data to
+      <a href="https://www.ebi.ac.uk/biosamples/">BioSamples archive</a> that integrates all
       gene bank records from across Europe. The InjectTool uses a well-defined
       metadata ruleset ensuring high quality and comparable data across the diverse
       collections originating in different storage formats and languages.
     </p>
     <p>
-      The system relies on a <a href="https://docs.docker.com/compose/">docker-compose</a>
-      instance of some custom <a href="https://www.docker.com/">docker</a> images:
+      The system is built on a set of customized <a href="https://www.docker.com/">docker</a> images using
+      <a href="https://docs.docker.com/compose/">docker-compose</a> :
       the user will interact on a web application rendered using
       <a href="https://www.nginx.com/">Nginx</a>, while
       on the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
       stores user data and a <a href="https://www.djangoproject.com/">Django</a>
       image renders pages in HTML using <a href="https://getbootstrap.com/">Bootstrap 4</a>
-      in order to display data and proving forms able to do data manipulation. A
-      <a href="http://www.celeryproject.org/">Celery</a> and a
-      <a href="https://redis.io/">Redis</a> instances perform long tasks such as
-      the data validation process, data submissions to biosample and monitoring of
-      biosample submission statuses.
+      in order to display data and proving forms able to do data manipulation.
+      <a href="http://www.celeryproject.org/">Celery</a> and <a href="https://redis.io/">Redis</a> are used to perform
+      long tasks such as the data validation process, data submissions to BioSamples archive and monitoring of
+      BioSamples submission statuses.
     </p>
     <p>
-      No user intervention is required to validate/submit data through InjectTool,
-      however a manual revision is required if the validation process fails
-      against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
-      standards.
-      User will be able to upload data from their Cryoweb dump files or
-      excel spreadsheet defined in the metadata rules context.
+      User will be able to import data from the dump files of either Cryoweb or CRB-Anim, or the template spreadsheet
+      file into InjectTool and Injects tool will validates and submits data to BioSamples archive. User interaction is
+      only required when the data fails the validation against <a href="https://github.com/cnr-ibba/IMAGE-metadata">
+      IMAGE metadata</a> standards to make manual curations.
+
       The project is mainly written in <a href="https://www.python.org/downloads/">Python 3</a>
       using the <a href="http://www.obeythetestinggoat.com/">test-driven</a> approach. A live version of the system is available
       at <a href="{% url 'index' %}">{% absolute_url '/image/' %}</a> while
@@ -83,57 +81,57 @@
     <h3><a class="anchor" id="submission_statuses"></a>Submission statuses</h3>
 
     <p>
-      Processes like data import, data validation and submission to Biosamples
-      requires time and can't be accomplished in the same time required to get
-      an HTML page. For this reason, InjectTool performs long tasks asynchronously
-      in the background, in order to render web pages fast. However, you can't
-      modify your data while performing such long tasks, otherwise you could invalidate
-      valid-data during a submission process. In such way, we have defined
-      different submission statuses relying on which tasks are accomplished
-      on your data. Statuses may change when tasks are completed,
+      Processes like data import, data validation and submission to BioSamples
+      require a period of time and can't be completed immediately to get the instant result page.
+      InjectTool have monitoring procedures running constantly and asynchronously
+      in the background, in order to provide 'live' result pages. However, you can't
+      modify your data while performing such background tasks, otherwise valid data could be modified to be invalid
+      by mistake during a submission process.
+      Various submission statuses have been defined within InjectTool depending on which tasks are accomplished
+      on your data. Statuses may change when tasks are completed.
+      TODO: Following sentence could be removed?
       you should try to reload the page in order to see updates in statuses. We
       plan to develop status updates in the visualized page without user intervention.
       Current statuses are:
       <ul>
         <li>
           <strong>Loaded:</strong> Data were correctly imported from your data sources.
-          You need to validate them before submitting to biosample
+          You need to validate them before submitting to BioSamples archive
         </li>
         <li>
           <strong>Waiting:</strong> Some tasks are currently running on your data, you
           can't edit or delete your data or perform other tasks like validation or
-          submission to biosample. All links or buttons related to such changes are
-          disabled, and you have to wait in order to modify your data again. Try to
+          submission to BioSamples. All links or buttons related to such changes are
+          disabled, and you have to wait in order to modify your data again. TODO: Try to
           reload the page in order to update submission status.
         </li>
         <li>
           <strong>Error:</strong> This status should never be seen. This status
           could be determined by an issue in InjectTool. You may receive an email describing
-          what is gone wrong, please forward this email to InjectTool
+          what has gone wrong, please forward this email to InjectTool
           <a href="mailto:{% get_admin_email %}?subject=feedback">developers</a>
-          by describing also what you are doing when you got this particular status.
+          with description of the steps you have taken to reach this particular status.
         </li>
         <li>
           <strong>Ready:</strong> Submission has been validated with success and
-          could be submitted to Biosamples
+          could be submitted to BioSamples
         </li>
         <li>
           <strong>Need revision:</strong> Submission has issues in validation or
-          in Biosamples submission. You need to check error message and fix your
-          data accordingly. Modifing or deleting your data in any other submission
+          in BioSamples submission. You need to check error message and fix your
+          data accordingly. Modifying or deleting your data in any other submission
           states, will result in a <em>Need revision</em> status. You have to
-          validate your submission with success to get a <em>Ready</em> state and
-          being able to submit your data to Biosample.
+          validate your submission with success to get a <em>Ready</em> status and
+          being able to submit your data to BioSamples.
         </li>
         <li>
-          <strong>Submitted:</strong> Data have been submitted to Biosamples using
-          API. The system is waiting for Biosamples response in order to get a Biosamples
-          ID.
+          <strong>Submitted:</strong> Data has been submitted to BioSamples. InjectTool is waiting for the submission
+          response from BioSamples to retrieve assigned BioSamples accessions.
         </li>
         <li>
-          <strong>Completed:</strong> Data were submitted to biosample with success and
-          have received a Biosamples ID. Congratulations! now your data are published
-          in Biosamples archives.
+          <strong>Completed:</strong> Data has been submitted to BioSamples with success and
+          has received the assigned BioSamples accession(s). Congratulations! Now your data will be publicly available
+          in BioSamples archives in a few days.
         </li>
       </ul>
     </p>
@@ -189,10 +187,10 @@
     <h2>InjectTool test site</h2>
 
     <p>
-      This site is currently in testing phase. We currently submit data to
-      <a href="https://wwwdev.ebi.ac.uk/biosamples/">BioSamples test server</a>.
-      Therefore data submitted through InjectTool will be deleted from BioSamples
-      test servers every week. We are doing our best to shorten the test period
+      InjectTool is currently in testing stage. We currently submit data to
+      <a href="https://wwwdev.ebi.ac.uk/biosamples/">BioSamples test server</a>, which synchronize the data with
+      production server weekly. Therefore data submitted through InjectTool will be lost as planned.
+      We are doing our best to shorten the test period
       while making the system as reliable as possible. We welcome any
       feedback/comment/suggestion which can be submitted by
       <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
