@@ -2,6 +2,7 @@
 import os
 import redis
 import logging
+import traceback
 
 from decouple import AutoConfig
 
@@ -20,6 +21,7 @@ from django.http import HttpResponseRedirect
 from pyUSIrest.client import User
 
 from common.constants import WAITING
+from common.helpers import send_mail_to_admins
 from image_app.models import Submission
 
 from .forms import (
@@ -311,10 +313,17 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
             self.request,
             message=error_message,
             extra_tags="alert alert-dismissible alert-danger")
+
         messages.error(
             self.request,
             message=exception_message,
             extra_tags="alert alert-dismissible alert-danger")
+
+        # get exception info
+        einfo = traceback.format_exc()
+
+        # send a mail to admin
+        send_mail_to_admins(error_message, einfo)
 
     def get_form_kwargs(self):
         """Override get_form_kwargs"""

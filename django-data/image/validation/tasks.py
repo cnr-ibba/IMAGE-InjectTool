@@ -15,9 +15,6 @@ import traceback
 from collections import Counter, defaultdict
 from celery.utils.log import get_task_logger
 
-from django.conf import settings
-from django.core.mail import send_mass_mail
-
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
 from common.helpers import send_mail_to_admins

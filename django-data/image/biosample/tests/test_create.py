@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
+from django.core import mail
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
@@ -129,6 +130,33 @@ class SuccessfulCreateUserViewTest(Basetest):
         # get the url for dashboard
         self.url = reverse('biosample:create')
         self.response = self.client.get(self.url)
+
+    @patch('pyUSIrest.client.User.add_user_to_team')
+    @patch('pyUSIrest.client.User.get_domain_by_name')
+    @patch('pyUSIrest.client.User.create_team')
+    @patch('biosample.helpers.Auth')
+    @patch('pyUSIrest.client.User.create_user',
+           side_effect=ConnectionError("test"))
+    def test_deal_with_errors(
+            self, create_user, mock_auth, create_team, get_domain_by_name,
+            add_user_to_team):
+        """Testing deal with errors method"""
+
+        self.data = {
+            'password1': 'image-password',
+            'password2': 'image-password',
+        }
+
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 200)
+
+        # assert mail sent
+        self.assertGreater(len(mail.outbox), 0)
+
+        self.assertTrue(create_user.called)
+        self.assertFalse(create_team.called)
+        self.assertFalse(get_domain_by_name.called)
+        self.assertFalse(add_user_to_team.called)
 
     def mocked_auth(**kwargs):
         token = generate_token(
