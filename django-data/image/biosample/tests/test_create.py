@@ -123,6 +123,12 @@ class SuccessfulCreateUserViewTest(Basetest):
         # saving updated object
         user.save()
 
+        # those will be POST parameters
+        self.data = {
+            'password1': 'image-password',
+            'password2': 'image-password',
+        }
+
         # this is django.test.Client
         self.client = Client()
         self.client.login(username='test', password='test')
@@ -131,21 +137,48 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.url = reverse('biosample:create')
         self.response = self.client.get(self.url)
 
-    @patch('pyUSIrest.client.User.add_user_to_team')
-    @patch('pyUSIrest.client.User.get_domain_by_name')
-    @patch('pyUSIrest.client.User.create_team')
-    @patch('biosample.helpers.Auth')
-    @patch('pyUSIrest.client.User.create_user',
-           side_effect=ConnectionError("test"))
-    def test_deal_with_errors(
-            self, create_user, mock_auth, create_team, get_domain_by_name,
-            add_user_to_team):
+        # patching object
+        self.create_user_patcher = patch('pyUSIrest.client.User.create_user')
+        self.create_user = self.create_user_patcher.start()
+        self.create_user.return_value = (
+            "usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
+
+        def mocked_auth():
+            token = generate_token(
+                domains=['subs.test-team-1', 'subs.test-team-3'])
+            return Auth(token=token)
+
+        self.get_auth_patcher = patch('biosample.views.get_manager_auth')
+        self.get_auth = self.get_auth_patcher.start()
+        self.get_auth.return_value = mocked_auth()
+
+        self.create_team_patcher = patch('pyUSIrest.client.User.create_team')
+        self.create_team = self.create_team_patcher.start()
+        self.create_team.return_value.name = "subs.test-team-3"
+
+        self.get_domain_patcher = patch(
+            'pyUSIrest.client.User.get_domain_by_name')
+        self.get_domain = self.get_domain_patcher.start()
+        self.get_domain.return_value.domainReference = (
+                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
+
+        self.add_user_patcher = patch('pyUSIrest.client.User.add_user_to_team')
+        self.add_user = self.add_user_patcher.start()
+
+    def tearDown(self):
+        self.create_user_patcher.stop()
+        self.get_auth_patcher.stop()
+        self.create_team_patcher.stop()
+        self.get_domain_patcher.stop()
+        self.add_user_patcher.stop()
+
+        super().tearDown()
+
+    def test_deal_with_errors(self):
         """Testing deal with errors method"""
 
-        self.data = {
-            'password1': 'image-password',
-            'password2': 'image-password',
-        }
+        # change create user reply
+        self.create_user.side_effect = ConnectionError("test")
 
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 200)
@@ -153,37 +186,14 @@ class SuccessfulCreateUserViewTest(Basetest):
         # assert mail sent
         self.assertGreater(len(mail.outbox), 0)
 
-        self.assertTrue(create_user.called)
-        self.assertFalse(create_team.called)
-        self.assertFalse(get_domain_by_name.called)
-        self.assertFalse(add_user_to_team.called)
+        self.assertTrue(self.create_user.called)
+        self.assertFalse(self.get_auth.called)
+        self.assertFalse(self.create_team.called)
+        self.assertFalse(self.get_domain.called)
+        self.assertFalse(self.add_user.called)
 
-    def mocked_auth(**kwargs):
-        token = generate_token(
-                    domains=['subs.test-team-1', 'subs.test-team-3'])
-        return Auth(token=token)
-
-    @patch('pyUSIrest.client.User.add_user_to_team')
-    @patch('pyUSIrest.client.User.get_domain_by_name')
-    @patch('pyUSIrest.client.User.create_team')
-    @patch('biosample.views.get_manager_auth', new=mocked_auth)
-    @patch('biosample.views.get_auth', new=mocked_auth)
-    @patch('pyUSIrest.client.User.create_user',
-           return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
-    def test_user_create(
-            self, create_user, create_team, get_domain_by_name,
-            add_user_to_team):
+    def test_user_create(self):
         """Testing create user"""
-
-        # setting mock objects
-        create_team.return_value.name = "subs.test-team-3"
-        get_domain_by_name.return_value.domainReference = (
-                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
-
-        self.data = {
-            'password1': 'image-password',
-            'password2': 'image-password',
-        }
 
         # posting user and password to generate a new user
         response = self.client.post(self.url, self.data)
@@ -192,37 +202,35 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.assertRedirects(response, dashboard_url)
         self.check_messages(response, "success", "Account created")
 
-        self.assertTrue(create_user.called)
-        self.assertTrue(create_team.called)
-        self.assertTrue(get_domain_by_name.called)
-        self.assertTrue(add_user_to_team.called)
+        self.assertTrue(self.create_user.called)
+        self.assertTrue(self.get_auth.called)
+        self.assertTrue(self.create_team.called)
+        self.assertTrue(self.get_domain.called)
+        self.assertTrue(self.add_user.called)
 
-    @patch('pyUSIrest.client.User.add_user_to_team')
-    @patch('pyUSIrest.client.User.get_domain_by_name')
-    @patch('pyUSIrest.client.User.create_team')
-    @patch('biosample.helpers.Auth', new=mocked_auth)
-    @patch('pyUSIrest.client.User.create_user',
-           side_effect=ConnectionError("test"))
-    def test_error_with_create_user(
-            self, create_user, create_team, get_domain_by_name,
-            add_user_to_team):
-        """Testing create user with biosample errors"""
-
-        self.data = {
-            'password1': 'image-password',
-            'password2': 'image-password',
-        }
+    def check_message(self, message):
+        """assert a non ridirect and a message"""
 
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 200)
-        self.check_messages(response, "error", "Problem in creating user")
+        self.check_messages(response, "error", message)
 
-        self.assertTrue(create_user.called)
-        self.assertFalse(create_team.called)
-        self.assertFalse(get_domain_by_name.called)
-        self.assertFalse(add_user_to_team.called)
+    def test_error_with_create_user(self):
+        """Testing create user with biosample errors"""
 
-    def mock_create_team_error(**kwargs):
+        # setting mock objects
+        self.create_user.side_effect = ConnectionError("test")
+
+        message = "Problem in creating user"
+        self.check_message(message)
+
+        self.assertTrue(self.create_user.called)
+        self.assertFalse(self.get_auth.called)
+        self.assertFalse(self.create_team.called)
+        self.assertFalse(self.get_domain.called)
+        self.assertFalse(self.add_user.called)
+
+    def mock_create_team_error(self):
         """Raise a custom exception when creating team"""
 
         msg = (
@@ -237,112 +245,51 @@ class SuccessfulCreateUserViewTest(Basetest):
 
         return ConnectionError(msg)
 
-    @patch('pyUSIrest.client.User.add_user_to_team')
-    @patch('pyUSIrest.client.User.get_domain_by_name')
-    @patch('pyUSIrest.client.User.create_team',
-           side_effect=mock_create_team_error())
-    @patch('biosample.views.get_manager_auth', new=mocked_auth)
-    @patch('biosample.views.get_auth', new=mocked_auth)
-    @patch('pyUSIrest.client.User.create_user',
-           return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
-    def test_error_with_create_team(
-            self, create_user, create_team, get_domain_by_name,
-            add_user_to_team):
+    def test_error_with_create_team(self):
         """Testing create user"""
 
         # setting mock objects
-        get_domain_by_name.return_value.domainReference = (
-                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
+        self.create_team.side_effect = self.mock_create_team_error()
 
-        self.data = {
-            'password1': 'image-password',
-            'password2': 'image-password',
-        }
+        message = "Problem in creating team"
+        self.check_message(message)
 
-        response = self.client.post(self.url, self.data)
-        self.assertEqual(response.status_code, 200)
-        self.check_messages(response, "error", "Problem in creating team")
+        self.assertTrue(self.create_user.called)
+        self.assertTrue(self.get_auth.called)
+        self.assertTrue(self.create_team.called)
+        self.assertFalse(self.get_domain.called)
+        self.assertFalse(self.add_user.called)
 
-        self.assertTrue(create_user.called)
-        self.assertTrue(create_team.called)
-        self.assertFalse(get_domain_by_name.called)
-        self.assertFalse(add_user_to_team.called)
-
-    @patch('pyUSIrest.client.User.add_user_to_team',
-           side_effect=ConnectionError("test"))
-    @patch('pyUSIrest.client.User.get_domain_by_name')
-    @patch('pyUSIrest.client.User.create_team')
-    @patch('biosample.views.get_manager_auth', new=mocked_auth)
-    @patch('biosample.views.get_auth', new=mocked_auth)
-    @patch('pyUSIrest.client.User.create_user',
-           return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
-    def test_error_with_add_user_to_team(
-            self, create_user, create_team, get_domain_by_name,
-            add_user_to_team):
-
+    def test_error_with_add_user_to_team(self):
         """Testing a generic error during user creation step"""
 
         # setting mock objects
-        create_team.return_value.name = "subs.test-team-3"
-        get_domain_by_name.return_value.domainReference = (
-                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
+        self.add_user.side_effect = ConnectionError("test")
 
-        self.data = {
-            'password1': 'image-password',
-            'password2': 'image-password',
-        }
+        message = "Problem in adding user"
+        self.check_message(message)
 
-        # posting user and password to generate a new user
-        response = self.client.post(self.url, self.data)
+        self.assertTrue(self.create_user.called)
+        self.assertTrue(self.get_auth.called)
+        self.assertTrue(self.create_team.called)
+        self.assertTrue(self.get_domain.called)
+        self.assertTrue(self.add_user.called)
 
-        self.assertEqual(response.status_code, 200)
-        self.check_messages(
-            response,
-            "error",
-            "Problem in adding user")
-
-        self.assertTrue(create_user.called)
-        self.assertTrue(create_team.called)
-        self.assertTrue(get_domain_by_name.called)
-        self.assertTrue(add_user_to_team.called)
-
-    @patch('pyUSIrest.client.User.add_user_to_team')
-    @patch('pyUSIrest.client.User.get_domain_by_name')
-    @patch('pyUSIrest.client.User.create_team')
-    @patch('biosample.views.get_manager_auth',
-           side_effect=ConnectionError("test"))
-    @patch('biosample.views.get_auth', new=mocked_auth)
-    @patch('pyUSIrest.client.User.create_user',
-           return_value="usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
-    def test_generic_error(
-            self, create_user, manager_auth, create_team, get_domain_by_name,
-            add_user_to_team):
-
+    def test_generic_error(self):
         """Testing a generic error during user creation step"""
 
         # setting mock objects
-        create_team.return_value.name = "subs.test-team-3"
-        get_domain_by_name.return_value.domainReference = (
-                "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
+        self.get_auth.side_effect = ConnectionError("test")
 
-        self.data = {
-            'password1': 'image-password',
-            'password2': 'image-password',
-        }
+        message = "Problem with EBI-AAP endoints. Please contact IMAGE team"
+        self.check_message(message)
 
-        # posting user and password to generate a new user
-        response = self.client.post(self.url, self.data)
-        self.assertEqual(response.status_code, 200)
-        self.check_messages(
-            response,
-            "error",
-            "Problem with EBI-AAP endoints. Please contact IMAGE team")
-
-        # the firts manager auth called is in create user
-        self.assertTrue(create_user.called)
-        self.assertFalse(create_team.called)
-        self.assertFalse(get_domain_by_name.called)
-        self.assertFalse(add_user_to_team.called)
+        # the first manager auth called is in create user
+        self.assertTrue(self.create_user.called)
+        self.assertTrue(self.get_auth.called)
+        self.assertFalse(self.create_team.called)
+        self.assertFalse(self.get_domain.called)
+        self.assertFalse(self.add_user.called)
 
 
 class InvalidCreateUserViewTests(Basetest):
