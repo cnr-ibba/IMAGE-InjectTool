@@ -204,7 +204,7 @@ class SupportedCreateSubmissionViewTest(Initialize):
     # patch to simulate data load
     @patch('submissions.views.ImportCRBAnimTask.delay')
     def test_crb_anim_loading(self, my_task):
-        # submit a cryoweb like dictionary
+        # submit a crbanim like dictionary
         self.file_loading(my_task, CRB_ANIM_TYPE)
 
     @patch('submissions.views.ImportTemplateTask.delay')
@@ -273,3 +273,23 @@ class IssuesWithFilesTest(Initialize):
 
         # check errors
         self.common_check(response, my_task)
+
+    @patch('submissions.views.ImportCRBAnimTask.delay')
+    @patch('submissions.views.ImportTemplateTask.delay')
+    def test_template_issues_in_file(self, my_task, my_crbanim):
+        # get data for CRB_ANIM
+        data = self.get_data(ds_file=CRB_ANIM_TYPE)
+
+        # override datasource type
+        data['datasource_type'] = TEMPLATE_TYPE
+
+        # submit a template file with a CRBanim
+        response = self.client.post(
+            self.url,
+            data)
+
+        # check errors and assert my_task not called
+        self.common_check(response, my_task)
+
+        # assert not calling also CRBanim
+        self.assertFalse(my_crbanim.called)

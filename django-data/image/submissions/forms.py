@@ -80,7 +80,14 @@ class SubmissionFormMixin():
 
         uploaded_file = self.cleaned_data['uploaded_file']
 
-        # xlrd can manage onli files. Write a temporary file
+        chunk = next(uploaded_file.chunks())
+        magic_line = magic.from_buffer(chunk)
+
+        if 'Microsoft' not in magic_line:
+            msg = "The file you provided is not a Template file"
+            raise forms.ValidationError(msg, code='invalid')
+
+        # xlrd can manage only files. Write a temporary file
         with tempfile.NamedTemporaryFile(delete=True) as tmpfile:
             for chunk in uploaded_file.chunks():
                 tmpfile.write(chunk)
