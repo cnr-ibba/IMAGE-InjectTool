@@ -11,7 +11,6 @@ from django.urls import reverse_lazy, reverse
 from django.utils.crypto import get_random_string
 from django.utils.http import is_safe_url
 from django.shortcuts import redirect, get_object_or_404
-from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView, CreateView, ModelFormMixin
@@ -44,7 +43,31 @@ config = AutoConfig(search_path=settings_dir)
 # inherited, but isn’t meant for instantiation on its own. In programming
 # languages with multiple inheritance, mixins can be used to add enhanced
 # functionality and behavior to classes.
-class TokenMixin(object):
+class AccountMixin(object):
+    """A generic mixin associated with biosample.models. You need to costomize
+    account_found and account_not_found in to do a custom redirect in case
+    a manager account is found or not"""
+
+    def account_not_found(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def account_found(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        # get user from request and user model. This could be also Anonymous
+        # user:however with metod decorator a login is required before dispatch
+        # method is called
+        user = self.request.user
+
+        if hasattr(user, "biosample_account"):
+            return self.account_found(request, *args, **kwargs)
+
+        else:
+            return self.account_not_found(request, *args, **kwargs)
+
+
+class TokenMixin(AccountMixin):
     """Get common stuff for Token visualization. Redirect to AAP registration
     if no valid AAP credentials are found for request.user"""
 
@@ -58,57 +81,36 @@ class TokenMixin(object):
 
         return initial
 
-    def dispatch(self, request, *args, **kwargs):
-        # get user from request and user model. This could be also Anonymous
-        # user:however with metod decorator a login is required before dispatch
-        # method is called
-        User = get_user_model()
-        user = self.request.user
+    # override AccountMixin method
+    def account_not_found(self, request, *args, **kwargs):
+        """If a user has not an account, redirect to activation complete"""
 
-        try:
-            user.biosample_account
+        logger.warning("Error for user:%s: not managed" % self.request.user)
 
-        except User.biosample_account.RelatedObjectDoesNotExist:
-            logger.warning("Error for user:%s: not managed" % user)
-            messages.warning(
-                request=self.request,
-                message='You need to register a valid AAP profile',
-                extra_tags="alert alert-dismissible alert-warning")
+        messages.warning(
+            request=self.request,
+            message='You need to register a valid AAP profile',
+            extra_tags="alert alert-dismissible alert-warning")
 
-            return redirect('accounts:registration_activation_complete')
-
-        else:
-            # call the default get method
-            return super(
-                TokenMixin, self).dispatch(request, *args, **kwargs)
+        return redirect('accounts:registration_activation_complete')
 
 
-class RegisterMixin(object):
+class RegisterMixin(AccountMixin):
     """If a biosample account is already registered, returns to dashboard"""
 
-    def dispatch(self, request, *args, **kwargs):
-        # get user from request and user model. This could be also Anonymous
-        # user:however with metod decorator a login is required before dispatch
-        # method is called
-        User = get_user_model()
-        user = self.request.user
+    # override AccountMixin method
+    def account_found(self, request, *args, **kwargs):
+        """If a user has been registered, redirect to dashboard"""
 
-        try:
-            user.biosample_account
+        logger.warning(
+            "Error for user:%s: Already registered" % self.request.user)
 
-        except User.biosample_account.RelatedObjectDoesNotExist:
-            # call the default get method
-            return super(
-                RegisterMixin, self).dispatch(request, *args, **kwargs)
+        messages.warning(
+            request=self.request,
+            message='Your AAP profile is already registered',
+            extra_tags="alert alert-dismissible alert-warning")
 
-        else:
-            logger.warning("Error for user:%s: Already registered" % user)
-            messages.warning(
-                request=self.request,
-                message='Your AAP profile is already registered',
-                extra_tags="alert alert-dismissible alert-warning")
-
-            return redirect('image_app:dashboard')
+        return redirect('image_app:dashboard')
 
 
 class MyFormMixin(object):
