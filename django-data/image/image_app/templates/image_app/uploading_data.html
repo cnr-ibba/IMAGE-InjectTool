@@ -16,7 +16,8 @@
 
   <h1>Uploading data into BioSamples</h1>
 
-  <p>The following steps illustrate the procedure to input a dataset into the BioSamples archive, thus subsequently making it available on the IMAGE data portal</p>
+  <p>The following steps illustrate the procedure to deposit datasets into the BioSamples archive,
+    thus subsequently making it available on the IMAGE data portal</p>
 
   <section>
     <h2>Signing Up and registering to EBI AAP</h2>
@@ -39,10 +40,9 @@
     in order to submit your data into BioSamples.
     Please note that we can't store your AAP credentials on our site, you need
     to keep record of AAP credentials, otherwise you will not be able to submit
-    your data to BioSamples. Please note also that this site is in beta stage,
-    so this registration will be done on Biosample tests servers. Click on
-    <em>Generate a new AAP profile button</em> a fill out the form by providing
-    a strong password to create a new EBI AAP profile:</p>
+    your data to BioSamples. Please note that this site is in beta stage,
+    so this registration will be done on BioSample tests servers. Click on
+    <em>Generate a new AAP profile button</em> to fill out the form to create a new EBI AAP profile:</p>
 
     <div class="row align-items-center">
       <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left w-25" src="{% static 'images/03-create_aap.png' %}" alt="Generate a new AAP profile">
@@ -54,7 +54,7 @@
       BioSamples submission. The token will be valid for one hour. When submitting
       data to BioSamples, InjectTool will check token validity and will ask
       the user to generate a new token if necessary. You can check your token
-      status by cliking on <a href="{% url 'biosample:token' %}">My Token</a> on
+      status by clicking <a href="{% url 'biosample:token' %}">My Token</a> on
       your username dropdown list in the right upper side of the page
     </p>
 
@@ -73,7 +73,7 @@
       and <a href="#template_file">Template</a> data upload.
     </p>
 
-    <h3><a class="anchor" id="cryoweb_dump"></a>Creating a cryoweb dump</h3>
+    <h3><a class="anchor" id="cryoweb_dump"></a>Creating a Cryoweb dump</h3>
 
     <p>
       Cryoweb data need to be imported as <em>data-only</em> dumps, as described from
@@ -114,8 +114,8 @@ postgres=# \l
     </pre>
 
     <p>
-      <code>cryoweb_data_only_dump.sql</code> will be a plain text-file in <code>UTF8</code> encoding
-      we need in order to create a new submission from Cryoweb data. Those are the first line of such
+      <code>cryoweb_data_only_dump.sql</code> will be a plain text-file in <code>UTF8</code> encoding we need in order
+      to create a new submission from Cryoweb data. Those are the first few lines of the
       <em>data-only</em> dump:
     </p>
 
@@ -169,8 +169,8 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <h3><a id="template_file"></a>Creating a template file</h3>
 
     <p>
-      Download the template file from <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
-      and start filling tables. When you are ready, go through the next paragraph.
+      Download the empty template file from <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
+      and start filling tables. When it is completed, please continue to the next paragraph.
     </p>
 
   </section>
@@ -180,17 +180,17 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <p>
       From the <a href="{% url 'image_app:dashboard' %}">Dashboard</a> page, click
       on <a href="{% url 'submissions:create' %}">Create</a> submission button,
-      and then fill the form properly: each filled value will be used for biosample
+      and then fill the form properly: each filled value will be used as part of metadata in BioSamples
       submission. The <em>Gene bank country</em> field is important since it
-      will be used to traslate terms from the provided language into the standard
-      english used for Biosamples submission. Another important field is the
+      will be used to translate terms from the provided language into the standard
+      English used for BioSamples submission. Another important field is the
       <em>Data source type</em> which will be used to import data from the different
       data sources types (<a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
       or <a href="#template_file">Template</a> format). Then you have to choose the
       file to upload using the <em>Uploaded file</em> field. File should be
       in <em>plain text</em> and <code>UTF-8</code> or <code>ASCII</code> encoding
       for the Cryoweb and CRBanim data import,
-      an in <em>.xlsx</em> for the template file. Providing a different file format
+      and in <em>.xlsx</em> for the template file. Providing a different file format
       will result in a failure in uploading process.
     </p>
 
@@ -203,15 +203,15 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       After the submission is created, data will be imported in background by the
       system. When submission status has the <em>Loaded</em> state, data are imported
       with success from your data source and need to be validated before submission.
-      You can have more info on submission statuses <a href="{% url 'about' %}#submission_statuses">here</a>.
+      You can have more information on submission statuses <a href="{% url 'about' %}#submission_statuses">here</a>.
     </p>
   </section>
 
   <section>
-    <h2 class="mt-3">InjectTool demostration video</h2>
+    <h2 class="mt-3">InjectTool demonstration video</h2>
 
     <p>
-      The following video shows the main steps starting from user registration to biosample
+      The following video shows the main steps starting from user registration to BioSamples
       submission:
     </p>
 
@@ -221,7 +221,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
         <div class="embed-responsive embed-responsive-16by9">
           <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/_etbI5wPwxY"></iframe>
         </div>
-        <p class="card-text mt-2">InjectTool video demostration</p>
+        <p class="card-text mt-2">InjectTool video demonstration</p>
       </div>
     </div>
 

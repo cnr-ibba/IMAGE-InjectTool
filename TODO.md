@@ -11,10 +11,10 @@ InjectTool TODO
   - move flower to another port (eg 15555; however is flower needed?)
   - move /image/ location to injecttool (or use a CNAME domain)
 
-* Data export: How data needs to be exported? how IMAGE-metadata works?
-  - IMAGE-metadata define fields in .xls used for import. There is a correspondance
-    between IMAGE-metadata columns and UID database columns
-  - Exporting data in IMAGE-metadata excel template, could be useful for data
+* Data export: How data needs to be exported? How IMAGE metadata works?
+  - IMAGE metadata defines fields in .xls used for import. There is a correspondance
+    between IMAGE metadata columns and UID database columns
+  - Exporting data in IMAGE metadata excel template, could be useful for data
     cleaning?
   - if needed, should be implemented using [django-rest-framework](https://www.django-rest-framework.org/)
 

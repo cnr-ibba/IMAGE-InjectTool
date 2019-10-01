@@ -8,12 +8,13 @@ Created on Wed Mar 27 14:35:36 2019
 
 from django.test import TestCase
 from django.utils.dateparse import parse_date
+from django.core import mail
 from django.core.validators import validate_email
 
 from .. import constants
 from ..helpers import (
     format_attribute, get_admin_emails, image_timedelta, parse_image_timedelta,
-    uid2biosample)
+    uid2biosample, send_mail_to_admins)
 
 
 class TestImageTimedelta(TestCase):
@@ -129,12 +130,27 @@ class TestAttributes(TestCase):
 
 class TestAdminEmails(TestCase):
 
-    def test_admin_emails(self):
-        # calling objects
-        emails = get_admin_emails()
+    def setUp(self):
+        # tracking admin emails
+        self.admin_emails = get_admin_emails()
 
-        for email in emails:
+    def test_admin_emails(self):
+        """Test admin emails are valid"""
+
+        for email in self.admin_emails:
             self.assertIsNone(validate_email(email))
+
+    def test_send_mail_to_admins(self):
+        """Test mails sent to admin"""
+
+        # sending mails
+        send_mail_to_admins("subject", "body")
+
+        # checking messages
+        email = mail.outbox[0]
+        self.assertEqual(email.subject, "subject")
+        self.assertEqual(email.body, "body")
+        self.assertEqual(email.to, self.admin_emails)
 
 
 class TestUid2Biosample(TestCase):
