@@ -23,7 +23,7 @@ from image_app.tests.mixins import (
 
 from ..helpers import (
     logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
-    fill_uid_animal, fill_uid_sample, find_storage_type)
+    fill_uid_animal, fill_uid_sample, find_storage_type, sanitize_url)
 from .common import BaseTestCase
 
 
@@ -368,3 +368,22 @@ class ReloadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
         'crbanim/submission',
         'language/speciesynonym'
     ]
+
+
+class SanitizeAccessionTest(TestCase):
+
+    def setUp(self):
+        self.queries = [
+            (
+                ("https://crb-anim.fr/access-to-collection/#/simplesearch?"
+                 "SAMPLEIDENTIFIER=Ovar-Mér-3796-1"),
+                ("https://crb-anim.fr/access-to-collection/#/simplesearch?"
+                 "SAMPLEIDENTIFIER=Ovar-M%C3%A9r-3796-1")
+            ),
+        ]
+
+    def test_sanitize_accession(self):
+        for query in self.queries:
+            url, reference = query
+            test = sanitize_url(url)
+            self.assertEqual(reference, test)

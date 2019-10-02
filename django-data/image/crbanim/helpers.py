@@ -8,6 +8,7 @@ Created on Thu Feb 21 15:37:16 2019
 
 import io
 import csv
+import urllib
 import logging
 import pycountry
 
@@ -343,6 +344,12 @@ def find_storage_type(record):
         return None
 
 
+def sanitize_url(url):
+    """Quote URLs for accession"""
+
+    return urllib.parse.quote(url, ':/#?=')
+
+
 def fill_uid_sample(record, sample_name, animal, submission):
     """Helper function to fill animal data in UID sample table"""
 
@@ -382,7 +389,7 @@ def fill_uid_sample(record, sample_name, animal, submission):
         # 'description': v_vessel.comment,
         'owner': submission.owner,
         'storage': find_storage_type(record),
-        'availability': record.sample_availability,
+        'availability': sanitize_url(record.sample_availability),
         'animal_age_at_collection': animal_age_at_collection,
         'animal_age_at_collection_units': time_units
     }
