@@ -126,6 +126,19 @@
 {% block custom-js %}
 <script>
   $(document).ready(function() {
+    // force page reload when using browser history
+    // useful when an old detail pages changes status furing browsing
+    // https://stackoverflow.com/a/43043658/4385116
+    window.addEventListener( "pageshow", function ( event ) {
+      var historyTraversal = event.persisted ||
+                             ( typeof window.performance != "undefined" &&
+                                  window.performance.navigation.type === 2 );
+      if ( historyTraversal ) {
+        // Handle page restore.
+        window.location.reload();
+      }
+    });
+
     function getColor(current_status) {
     var color_class;
     if (current_status === 'Loaded' || current_status === 'Waiting' || current_status == 'Submitted') {
