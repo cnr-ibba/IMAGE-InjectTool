@@ -882,6 +882,14 @@ class VBreedsSpecies(models.Model):
 
         return [entry.ext_species for entry in queryset]
 
+    @classmethod
+    def get_all_countries(cls):
+        # get all distinct objects
+        queryset = cls.objects.distinct('efabis_country').order_by(
+            'efabis_country')
+
+        return [entry.efabis_country for entry in queryset]
+
 
 class VTransfer(models.Model):
     v_guid = models.BigIntegerField(primary_key=True)

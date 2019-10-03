@@ -213,6 +213,19 @@ class CRBAnimReader(FileDataSourceMixin):
         # call FileDataSourceMixin.check_items
         return self.check_items(item_set, DictSex, column)
 
+    def check_countries(self):
+        """Check that all efabis countries are present in database"""
+
+        def get_label(country_of_origin):
+            return pycountry.countries.get(
+                alpha_2=country_of_origin).name
+
+        column = "country_of_origin"
+        item_set = [get_label(item) for item in self.items[column]]
+
+        # call FileDataSourceMixin.check_items
+        return self.check_items(item_set, DictCountry, column)
+
 
 def fill_uid_breed(record, language):
     """Fill DictBreed from a crbanim record"""
@@ -229,9 +242,7 @@ def fill_uid_breed(record, language):
 
     # get country for breeds. Ideally will be the same of submission,
     # however, it could be possible to store data from other contries
-    country = get_or_create_obj(
-        DictCountry,
-        label=country_name)
+    country = DictCountry.objects.get(label=country_name)
 
     breed = get_or_create_obj(
         DictBreed,
@@ -426,6 +437,35 @@ def process_record(record, submission, animals, language):
     fill_uid_sample(record, sample_name, animal, submission)
 
 
+def check_UID(submission, reader):
+    # check for species and sex in a similar way as cryoweb does
+    check, not_found = reader.check_sex()
+
+    if not check:
+        message = (
+            "Not all Sex terms are loaded into database: "
+            "check for '%s' in your dataset" % (not_found))
+
+        raise CRBAnimImportError(message)
+
+    # check for countries
+    check, not_found = reader.check_countries()
+
+    if not check:
+        message = (
+            "Not all countries are loaded into database: "
+            "check for '%s' in your dataset" % (not_found))
+
+        raise CRBAnimImportError(message)
+
+    check, not_found = reader.check_species(submission.gene_bank_country)
+
+    if not check:
+        raise CRBAnimImportError(
+            "Some species are not loaded in UID database: "
+            "check for '%s' in your dataset" % (not_found))
+
+
 def upload_crbanim(submission):
     # debug
     logger.info("Importing from CRB-Anim file")
@@ -439,22 +479,8 @@ def upload_crbanim(submission):
 
     # start data loading
     try:
-        # check for species and sex in a similar way as cryoweb does
-        check, not_found = reader.check_sex()
-
-        if not check:
-            message = (
-                "Not all Sex terms are loaded into database: "
-                "check for %s in your dataset" % (not_found))
-
-            raise CRBAnimImportError(message)
-
-        check, not_found = reader.check_species(submission.gene_bank_country)
-
-        if not check:
-            raise CRBAnimImportError(
-                "Some species are not loaded in UID database: "
-                "%s" % (not_found))
+        # check UID data like cryoweb does
+        check_UID(submission, reader)
 
         # ok get languages from submission (useful for translation)
         # HINT: no traslations implemented, at the moment

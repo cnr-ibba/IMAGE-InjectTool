@@ -77,3 +77,20 @@ class FileReaderMixinTestCase:
         # the read species are not included in fixtures
         self.assertFalse(check)
         self.assertGreater(len(not_found), 0)
+
+    def test_check_countries(self):
+        "Testing country method"""
+
+        # assert countries are present
+        check, not_found = self.reader.check_countries()
+
+        self.assertTrue(check)
+        self.assertEqual(len(not_found), 0)
+
+        # remove a country from UID
+        DictCountry.objects.filter(label="Italy").delete()
+
+        check, not_found = self.reader.check_countries()
+
+        self.assertFalse(check)
+        self.assertGreater(len(not_found), 0)

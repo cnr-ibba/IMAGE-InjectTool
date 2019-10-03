@@ -333,9 +333,9 @@ class UploadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
 
         message = "Some species are not loaded in UID database"
         notification_message = (
-            'Error in importing data: Some species '
-            'are not loaded in UID database: Rainbow '
-            'trout')
+            "Error in importing data: Some species "
+            "are not loaded in UID database: check for 'Rainbow "
+            "trout' in your dataset")
 
         # check crbanim import fails
         self.check_errors(my_check, message, notification_message)
@@ -347,9 +347,21 @@ class UploadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
 
         message = "Not all Sex terms are loaded into database"
         notification_message = (
-            'Error in importing data: Not all Sex '
-            'terms are loaded into database: check '
-            'for unknown in your dataset')
+            "Error in importing data: %s: check "
+            "for 'unknown' in your dataset" % (message))
+
+        # check crbanim import fails
+        self.check_errors(my_check, message, notification_message)
+
+    @patch("crbanim.helpers.CRBAnimReader.check_countries",
+           return_value=[False, 'unknown'])
+    def test_upload_crbanim_errors_with_countries(self, my_check):
+        """Testing importing with data into UID with errors"""
+
+        message = "Not all countries are loaded into database"
+        notification_message = (
+            "Error in importing data: %s: check "
+            "for 'unknown' in your dataset" % (message))
 
         # check crbanim import fails
         self.check_errors(my_check, message, notification_message)
