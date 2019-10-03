@@ -23,7 +23,7 @@ from image_app.tests import DataSourceMixinTestCase
 
 from ..helpers import (
     upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
-    check_UID)
+    check_UID, check_countries)
 from ..models import db_has_data, truncate_database, BreedsSpecies
 
 
@@ -158,6 +158,22 @@ class CheckSpecie(CryoWebMixin, BaseMixin, TestCase):
             check_species, "United Kingdom")
 
 
+class CheckCountry(CryoWebMixin, BaseMixin, TestCase):
+    def test_check_country(self):
+        """Test that all Cryoweb countries are defined in database"""
+
+        countries_not_found = check_countries()
+
+        self.assertEqual(countries_not_found, [])
+
+        # remove a country from UID
+        DictCountry.objects.filter(label="Germany").delete()
+
+        countries_not_found = check_countries()
+
+        self.assertEqual(countries_not_found, ['Germany'])
+
+
 class CheckBreed(TestCase):
     # import this file and populate database once
     fixtures = [
@@ -216,6 +232,15 @@ class CheckUIDTest(CryoWebMixin, BaseMixin, TestCase):
         self.assertRaisesRegex(
             CryoWebImportError,
             "Some species haven't a synonym!",
+            check_UID, self.submission)
+
+    def test_missing_country(self):
+        # remove a country from UID
+        DictCountry.objects.filter(label="Germany").delete()
+
+        self.assertRaisesRegex(
+            CryoWebImportError,
+            "Those countries are not in UID:",
             check_UID, self.submission)
 
     def test_check_UID(self):
