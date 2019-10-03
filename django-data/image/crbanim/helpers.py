@@ -229,9 +229,7 @@ def fill_uid_breed(record, language):
 
     # get country for breeds. Ideally will be the same of submission,
     # however, it could be possible to store data from other contries
-    country = get_or_create_obj(
-        DictCountry,
-        label=country_name)
+    country = DictCountry.objects.get(label=country_name)
 
     breed = get_or_create_obj(
         DictBreed,

@@ -44,9 +44,7 @@ def fill_uid_breeds(submission_obj, template):
 
         # get country for breeds. Ideally will be the same of submission,
         # however, it could be possible to store data from other contries
-        country = get_or_create_obj(
-            DictCountry,
-            label=record.efabis_breed_country)
+        country = DictCountry.objects.get(label=record.efabis_breed_country)
 
         get_or_create_obj(
             DictBreed,

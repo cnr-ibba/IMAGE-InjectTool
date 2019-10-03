@@ -199,9 +199,7 @@ def fill_uid_breeds(submission):
         # get country for breeds. Ideally will be the same of submission,
         # since the Italian cryoweb is supposed to contains italian breeds.
         # however, it could be possible to store data from other contries
-        country = get_or_create_obj(
-            DictCountry,
-            label=v_breed_specie.efabis_country)
+        country = DictCountry.objects.get(label=v_breed_specie.efabis_country)
 
         # create breed obj if necessary
         get_or_create_obj(

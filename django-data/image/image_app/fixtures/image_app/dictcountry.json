@@ -14,5 +14,14 @@
     "label": "Italy",
     "term": "NCIT_C16761"
   }
+},
+{
+  "model": "image_app.dictcountry",
+  "pk": 3,
+  "fields": {
+    "label": "Germany",
+    "term": "NCIT_C16636",
+    "confidence": 1
+  }
 }
 ]
