@@ -213,6 +213,19 @@ class CRBAnimReader(FileDataSourceMixin):
         # call FileDataSourceMixin.check_items
         return self.check_items(item_set, DictSex, column)
 
+    def check_countries(self):
+        """Check that all efabis countries are present in database"""
+
+        def get_label(country_of_origin):
+            return pycountry.countries.get(
+                alpha_2=country_of_origin).name
+
+        column = "country_of_origin"
+        item_set = [get_label(item) for item in self.items[column]]
+
+        # call FileDataSourceMixin.check_items
+        return self.check_items(item_set, DictCountry, column)
+
 
 def fill_uid_breed(record, language):
     """Fill DictBreed from a crbanim record"""
@@ -443,7 +456,17 @@ def upload_crbanim(submission):
         if not check:
             message = (
                 "Not all Sex terms are loaded into database: "
-                "check for %s in your dataset" % (not_found))
+                "check for '%s' in your dataset" % (not_found))
+
+            raise CRBAnimImportError(message)
+
+        # check for countries
+        check, not_found = reader.check_countries()
+
+        if not check:
+            message = (
+                "Not all countries are loaded into database: "
+                "check for '%s' in your dataset" % (not_found))
 
             raise CRBAnimImportError(message)
 
@@ -452,7 +475,7 @@ def upload_crbanim(submission):
         if not check:
             raise CRBAnimImportError(
                 "Some species are not loaded in UID database: "
-                "%s" % (not_found))
+                "check for '%s' in your dataset" % (not_found))
 
         # ok get languages from submission (useful for translation)
         # HINT: no traslations implemented, at the moment
