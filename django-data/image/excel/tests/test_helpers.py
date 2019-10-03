@@ -250,19 +250,6 @@ class ExcelTemplateReaderTestCase(
 
         self.assertEqual(reference, test)
 
-    def test_check_countries(self):
-        # assert countries are present
-        test = self.reader.check_countries()
-
-        self.assertEqual(test, (True, []))
-
-        # remove a country from UID
-        DictCountry.objects.filter(label="Italy").delete()
-
-        test = self.reader.check_countries()
-
-        self.assertEqual(test, (False, ["Italy", ]))
-
 
 class ExcelMixin(DataSourceMixinTestCase, WebSocketMixin, BaseExcelMixin):
     """Common tests for Excel classes"""

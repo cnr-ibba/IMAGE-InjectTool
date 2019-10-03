@@ -240,7 +240,7 @@ class CheckUIDTest(CryoWebMixin, BaseMixin, TestCase):
 
         self.assertRaisesRegex(
             CryoWebImportError,
-            "Those countries are not in UID:",
+            "Not all countries are loaded into database:",
             check_UID, self.submission)
 
     def test_check_UID(self):

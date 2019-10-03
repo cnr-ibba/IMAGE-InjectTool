@@ -101,7 +101,9 @@ def check_UID(submission):
 
     if len(countries_not_found) > 0:
         raise CryoWebImportError(
-            "Those countries are not in UID: %s" % (countries_not_found))
+            "Not all countries are loaded into database: "
+            "check for '%s' in your dataset" % (countries_not_found)
+        )
 
     # return a status
     return True

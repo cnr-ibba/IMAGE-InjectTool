@@ -437,6 +437,35 @@ def process_record(record, submission, animals, language):
     fill_uid_sample(record, sample_name, animal, submission)
 
 
+def check_UID(submission, reader):
+    # check for species and sex in a similar way as cryoweb does
+    check, not_found = reader.check_sex()
+
+    if not check:
+        message = (
+            "Not all Sex terms are loaded into database: "
+            "check for '%s' in your dataset" % (not_found))
+
+        raise CRBAnimImportError(message)
+
+    # check for countries
+    check, not_found = reader.check_countries()
+
+    if not check:
+        message = (
+            "Not all countries are loaded into database: "
+            "check for '%s' in your dataset" % (not_found))
+
+        raise CRBAnimImportError(message)
+
+    check, not_found = reader.check_species(submission.gene_bank_country)
+
+    if not check:
+        raise CRBAnimImportError(
+            "Some species are not loaded in UID database: "
+            "check for '%s' in your dataset" % (not_found))
+
+
 def upload_crbanim(submission):
     # debug
     logger.info("Importing from CRB-Anim file")
@@ -450,32 +479,8 @@ def upload_crbanim(submission):
 
     # start data loading
     try:
-        # check for species and sex in a similar way as cryoweb does
-        check, not_found = reader.check_sex()
-
-        if not check:
-            message = (
-                "Not all Sex terms are loaded into database: "
-                "check for '%s' in your dataset" % (not_found))
-
-            raise CRBAnimImportError(message)
-
-        # check for countries
-        check, not_found = reader.check_countries()
-
-        if not check:
-            message = (
-                "Not all countries are loaded into database: "
-                "check for '%s' in your dataset" % (not_found))
-
-            raise CRBAnimImportError(message)
-
-        check, not_found = reader.check_species(submission.gene_bank_country)
-
-        if not check:
-            raise CRBAnimImportError(
-                "Some species are not loaded in UID database: "
-                "check for '%s' in your dataset" % (not_found))
+        # check UID data like cryoweb does
+        check_UID(submission, reader)
 
         # ok get languages from submission (useful for translation)
         # HINT: no traslations implemented, at the moment
