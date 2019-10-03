@@ -14,7 +14,7 @@ from collections import defaultdict, namedtuple
 
 from common.constants import ACCURACIES
 from image_app.helpers import FileDataSourceMixin
-from image_app.models import DictSex
+from image_app.models import DictSex, DictCountry
 
 from .exceptions import ExcelImportError
 
@@ -263,6 +263,16 @@ class ExcelTemplateReader(FileDataSourceMixin):
 
         # call FileDataSourceMixin.check_items
         return self.check_items(item_set, DictSex, column)
+
+    def check_countries(self):
+        """Check that all efabis countries are present in database"""
+
+        column = "efabis_breed_country"
+        item_set = set([breed.efabis_breed_country for
+                        breed in self.get_breed_records()])
+
+        # call FileDataSourceMixin.check_items
+        return self.check_items(item_set, DictCountry, column)
 
     def __check_accuracy(self, item_set):
         """A generic method to test for accuracies"""

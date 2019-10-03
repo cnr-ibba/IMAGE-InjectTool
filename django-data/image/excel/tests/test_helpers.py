@@ -13,6 +13,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from common.tests import WebSocketMixin
+from image_app.models import DictCountry
 from image_app.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
@@ -249,6 +250,19 @@ class ExcelTemplateReaderTestCase(
 
         self.assertEqual(reference, test)
 
+    def test_check_countries(self):
+        # assert countries are present
+        test = self.reader.check_countries()
+
+        self.assertEqual(test, (True, []))
+
+        # remove a country from UID
+        DictCountry.objects.filter(label="Italy").delete()
+
+        test = self.reader.check_countries()
+
+        self.assertEqual(test, (False, ["Italy", ]))
+
 
 class ExcelMixin(DataSourceMixinTestCase, WebSocketMixin, BaseExcelMixin):
     """Common tests for Excel classes"""
@@ -295,11 +309,11 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
     def test_upload_template_errors_with_species(self, my_check):
         """Testing importing with data into UID with errors in species"""
 
-        message = "Some species are not loaded in UID database"
+        message = "species are not loaded into database"
         notification_message = (
-            'Error in importing data: Some species '
-            'are not loaded in UID database: Rainbow '
-            'trout')
+            "Error in importing data: Some species "
+            "are not loaded into database: check "
+            "for 'Rainbow trout' in your dataset")
 
         # check template import fails
         self.check_errors(my_check, message, notification_message)
@@ -311,8 +325,8 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
 
         message = "Some species are not defined in breed sheet"
         notification_message = (
-            'Error in importing data: %s: Rainbow '
-            'trout' % message)
+            "Error in importing data: %s: check for 'Rainbow trout' "
+            "in your dataset" % message)
 
         # check template import fails
         self.check_errors(my_check, message, notification_message)
@@ -324,9 +338,9 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
 
         message = "Not all Sex terms are loaded into database"
         notification_message = (
-            'Error in importing data: Not all Sex '
-            'terms are loaded into database: check '
-            'for unknown in your dataset')
+            "Error in importing data: Not all Sex "
+            "terms are loaded into database: check "
+            "for 'unknown' in your dataset")
 
         # check template import fails
         self.check_errors(my_check, message, notification_message)
@@ -340,7 +354,20 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
         notification_message = (
             "Error in importing data: Not all accuracy "
             "levels are defined in database: check "
-            "for {'Fake'} in your dataset")
+            "for '{'Fake'}' in your dataset")
+
+        # check template import fails
+        self.check_errors(my_check, message, notification_message)
+
+    @patch("excel.helpers.ExcelTemplateReader.check_countries",
+           return_value=(False, set(["Fake"])))
+    def test_upload_template_errors_with_countries(self, my_check):
+        """Testing importing with data into UID with errors"""
+
+        message = "Those countries are not loaded in database"
+        notification_message = (
+            "Error in importing data: %s: check for '{'Fake'}' "
+            "in your dataset" % message)
 
         # check template import fails
         self.check_errors(my_check, message, notification_message)

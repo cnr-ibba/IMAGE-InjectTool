@@ -304,6 +304,54 @@ def fill_uid_samples(submission_obj, template):
     logger.info("fill_uid_samples() completed")
 
 
+def check_UID(submission_obj, reader):
+    # check for species and sex in a similar way as cryoweb does
+    # TODO: identical to CRBanim. Move to a mixin
+    check, not_found = reader.check_sex()
+
+    # check sex
+    if not check:
+        message = (
+            "Not all Sex terms are loaded into database: "
+            "check for '%s' in your dataset" % (not_found))
+
+        raise ExcelImportError(message)
+
+    check, not_found = reader.check_species(
+        submission_obj.gene_bank_country)
+
+    # check species and related
+    if not check:
+        raise ExcelImportError(
+            "Some species are not loaded into database: "
+            "check for '%s' in your dataset" % (not_found))
+
+    check, not_found = reader.check_species_in_animal_sheet()
+
+    if not check:
+        raise ExcelImportError(
+            "Some species are not defined in breed sheet: "
+            "check for '%s' in your dataset" % (not_found))
+
+    # check countries
+    check, not_found = reader.check_countries()
+
+    if not check:
+        raise ExcelImportError(
+            "Those countries are not loaded in database: "
+            "check for '%s' in your dataset" % (not_found))
+
+    # check accuracies
+    check, not_found = reader.check_accuracies()
+
+    if not check:
+        message = (
+            "Not all accuracy levels are defined in database: "
+            "check for '%s' in your dataset" % (not_found))
+
+        raise ExcelImportError(message)
+
+
 def upload_template(submission_obj):
     # debug
     logger.info("Importing from Excel template file")
@@ -317,40 +365,8 @@ def upload_template(submission_obj):
 
     # start data loading
     try:
-        # check for species and sex in a similar way as cryoweb does
-        # TODO: identical to CRBanim. Move to a mixin
-        check, not_found = reader.check_sex()
-
-        if not check:
-            message = (
-                "Not all Sex terms are loaded into database: "
-                "check for %s in your dataset" % (not_found))
-
-            raise ExcelImportError(message)
-
-        check, not_found = reader.check_species(
-            submission_obj.gene_bank_country)
-
-        if not check:
-            raise ExcelImportError(
-                "Some species are not loaded in UID database: "
-                "%s" % (not_found))
-
-        check, not_found = reader.check_species_in_animal_sheet()
-
-        if not check:
-            raise ExcelImportError(
-                "Some species are not defined in breed sheet: "
-                "%s" % (not_found))
-
-        check, not_found = reader.check_accuracies()
-
-        if not check:
-            message = (
-                "Not all accuracy levels are defined in database: "
-                "check for %s in your dataset" % (not_found))
-
-            raise ExcelImportError(message)
+        # check UID data like cryoweb does
+        check_UID(submission_obj, reader)
 
         # BREEDS
         fill_uid_breeds(submission_obj, reader)
