@@ -10,7 +10,6 @@ from celery.utils.log import get_task_logger
 
 from common.tasks import BaseTask
 from image.celery import app as celery_app
-from image_app.models import Submission
 from submissions.tasks import ImportGenericTaskMixin
 
 from .helpers import upload_crbanim
@@ -22,8 +21,7 @@ logger = get_task_logger(__name__)
 class ImportCRBAnimTask(ImportGenericTaskMixin, BaseTask):
     name = "Import CRBAnim"
     description = """Import CRBAnim data from CRBAnim data file"""
-    submission_model = Submission
-    datasource_type = "CRBAnim"
+    action = "crbanim import"
 
     def import_data_from_file(self, submission_obj):
         """Call the custom import method"""

@@ -14,7 +14,6 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 from celery.utils.log import get_task_logger
 
 from common.tasks import ExclusiveTask
-from image_app.models import Submission
 from image.celery import app as celery_app
 from submissions.tasks import ImportGenericTaskMixin
 
@@ -67,8 +66,7 @@ class ImportCryowebTask(ImportGenericTaskMixin, ExclusiveTask):
 
     name = "Import Cryoweb"
     description = """Import Cryoweb data from Cryoweb dump"""
-    submission_model = Submission
-    datasource_type = "Cryoweb"
+    action = "cryoweb import"
 
     # ExclusiveTask attributes
     lock_id = 'ImportFromCryoWeb'

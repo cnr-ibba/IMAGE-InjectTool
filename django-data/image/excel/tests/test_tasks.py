@@ -22,7 +22,7 @@ class ImportTemplateTaskTest(
 
     # custom values
     upload_method = "excel.tasks.upload_template"
-    datasource_type = "Template"
+    action = "template import"
 
     def setUp(self):
         # calling my base class setup

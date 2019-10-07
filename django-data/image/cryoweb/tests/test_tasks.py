@@ -105,7 +105,7 @@ class ImportCryowebTest(TestCase):
         res = self.my_task.run(submission_id=1)
 
         # assert an error in data uploading
-        self.assertEqual(res, "Error in uploading Cryoweb data")
+        self.assertEqual(res, "Error in cryoweb import")
 
         # assert that method were called
         self.assertTrue(my_upload.called)
@@ -124,7 +124,7 @@ class ImportCryowebTest(TestCase):
         res = self.my_task.run(submission_id=1)
 
         # assert an error in data uploading
-        self.assertEqual(res, "Error in uploading Cryoweb data")
+        self.assertEqual(res, "Error in cryoweb import")
 
         # assert that method were called
         self.assertTrue(my_upload.called)
