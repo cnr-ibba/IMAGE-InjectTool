@@ -586,7 +586,7 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
     def test_fetch_status_nb(self, my_lock, my_fetch):
         """Test FetchSTatus while a lock is present"""
 
-        res = self.my_task.run()
+        res = self.my_task.delay()
 
         # assert database is locked
         self.assertEqual(res, "%s already running!" % (self.my_task.name))

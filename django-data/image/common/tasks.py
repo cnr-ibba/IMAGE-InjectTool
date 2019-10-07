@@ -31,14 +31,24 @@ logger = get_task_logger(__name__)
 class BaseTask(celery_app.Task):
     """Base class to celery tasks. Define logs for on_failure and debug_task"""
 
+    name = None
     description = None
     action = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.name is None:
+            self.name = str(self.__class__)
+
+        if self.action is None:
+            self.action = str(self.__class__)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
 
     def debug_task(self):
-        # this does't throw an error when debugging a task called with run()
+        # this doesn't throw an error when debugging a task called with run()
         if self.request_stack:
             logger.debug('Request: {0!r}'.format(self.request))
 
@@ -191,3 +201,57 @@ def redis_lock(lock_id, blocking=False, expire=True):
             # owned by someone else
             # if no timeout and lock is taken, release it
             lock.release()
+
+
+class ExclusiveTask(BaseTask):
+    """A class to execute an exclusive task (run this task once, others
+    task calls will return already running message without calling task or
+    will wait until other tasks of this type are completed)
+
+    Args:
+        blocking (bool): set task as blocking (wait until no other tasks
+            are running. def. False)
+        lock_expire (bool): define if lock will expire or not after a
+            certain time (def. False)
+    """
+
+    lock_id = None
+    blocking = False
+    lock_expire = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.lock_id is None:
+            # add a lock id as a name
+            self.lock_id = self.name
+
+    def delay(self, *args, **kwargs):
+        """Star argument version of :meth:`apply_async`.
+
+        Does not support the extra options enabled by :meth:`apply_async`.
+
+        Arguments:
+            *args (Any): Positional arguments passed on to the task.
+            **kwargs (Any): Keyword arguments passed on to the task.
+
+        Returns:
+            celery.result.AsyncResult: Future promise.
+        """
+
+        # forcing blocking condition: Wait until a get a lock object
+        with redis_lock(
+                self.lock_id,
+                blocking=self.blocking,
+                expire=self.lock_expire) as acquired:
+
+            if acquired:
+                # do stuff and return something
+                return self.apply_async(args, kwargs)
+
+            else:
+                # warn user and return a default message
+                message = "%s already running!" % (self.name)
+                logger.warning(message)
+
+                return message

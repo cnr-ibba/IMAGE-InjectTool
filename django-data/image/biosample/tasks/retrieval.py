@@ -21,7 +21,7 @@ from django.utils import timezone
 from image.celery import app as celery_app
 from image_app.helpers import parse_image_alias, get_model_object
 from image_app.models import Submission
-from common.tasks import redis_lock, BaseTask
+from common.tasks import BaseTask, ExclusiveTask
 from common.constants import (
     ERROR, NEED_REVISION, SUBMITTED, COMPLETED)
 from submissions.helpers import send_message
@@ -287,7 +287,7 @@ class FetchStatusHelper():
                 self.submission))
 
 
-class FetchStatusTask(BaseTask):
+class FetchStatusTask(ExclusiveTask):
     name = "Fetch USI status"
     description = """Fetch biosample using USI API"""
     lock_id = "FetchStatusTask"
@@ -304,18 +304,8 @@ class FetchStatusTask(BaseTask):
         # debugging instance
         self.debug_task()
 
-        # forcing blocking condition: Wait until a get a lock object
-        with redis_lock(
-                self.lock_id, blocking=False, expire=False) as acquired:
-            if acquired:
-                # do stuff and return something
-                return self.fetch_status()
-
-        message = "%s already running!" % (self.name)
-
-        logger.warning(message)
-
-        return message
+        # do stuff and return something
+        return self.fetch_status()
 
     def fetch_status(self):
         """
