@@ -8,7 +8,8 @@ Created on Thu Oct 25 11:27:52 2018
 
 from celery.utils.log import get_task_logger
 
-from image.celery import app as celery_app, MyTask
+from common.tasks import BaseTask
+from image.celery import app as celery_app
 from image_app.models import DictCountry, DictBreed, DictSpecie, DictUberon
 
 from .helpers import (
@@ -18,7 +19,7 @@ from .helpers import (
 logger = get_task_logger(__name__)
 
 
-class AnnotateCountries(MyTask):
+class AnnotateCountries(BaseTask):
     name = "Annotate Countries"
     description = """Annotate countries with ontologies using Zooma tools"""
 
@@ -36,7 +37,7 @@ class AnnotateCountries(MyTask):
         return "success"
 
 
-class AnnotateBreeds(MyTask):
+class AnnotateBreeds(BaseTask):
     name = "Annotate Breeds"
     description = """Annotate breeds with ontologies using Zooma tools"""
 
@@ -54,7 +55,7 @@ class AnnotateBreeds(MyTask):
         return "success"
 
 
-class AnnotateSpecies(MyTask):
+class AnnotateSpecies(BaseTask):
     name = "Annotate Species"
     description = """Annotate species with ontologies using Zooma tools"""
 
@@ -72,7 +73,7 @@ class AnnotateSpecies(MyTask):
         return "success"
 
 
-class AnnotateUberon(MyTask):
+class AnnotateUberon(BaseTask):
     name = "Annotate Uberon"
     description = "Annotate organism parts with ontologies using Zooma tools"
 

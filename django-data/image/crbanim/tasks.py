@@ -8,7 +8,8 @@ Created on Wed Feb 27 16:38:37 2019
 
 from celery.utils.log import get_task_logger
 
-from image.celery import app as celery_app, MyTask
+from common.tasks import BaseTask
+from image.celery import app as celery_app
 from image_app.models import Submission
 from submissions.tasks import ImportGenericTaskMixin
 
@@ -18,7 +19,7 @@ from .helpers import upload_crbanim
 logger = get_task_logger(__name__)
 
 
-class ImportCRBAnimTask(ImportGenericTaskMixin, MyTask):
+class ImportCRBAnimTask(ImportGenericTaskMixin, BaseTask):
     name = "Import CRBAnim"
     description = """Import CRBAnim data from CRBAnim data file"""
     submission_model = Submission

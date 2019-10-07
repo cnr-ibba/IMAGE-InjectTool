@@ -7,14 +7,16 @@ Created on Tue Jan 15 16:42:24 2019
 """
 
 import redis
-import logging
 
 from contextlib import contextmanager
 from celery.five import monotonic
+from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.utils import timezone
+from django.core import management
 
+from image.celery import app as celery_app
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 from common.constants import NEED_REVISION, ERROR
@@ -23,7 +25,41 @@ from common.constants import NEED_REVISION, ERROR
 LOCK_EXPIRE = 60 * 10
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = get_task_logger(__name__)
+
+
+class BaseTask(celery_app.Task):
+    """Base class to celery tasks. Define logs for on_failure and debug_task"""
+
+    description = None
+    action = None
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
+
+    def debug_task(self):
+        # this does't throw an error when debugging a task called with run()
+        if self.request_stack:
+            logger.debug('Request: {0!r}'.format(self.request))
+
+
+# https://stackoverflow.com/a/51429597
+@celery_app.task(bind=True, base=BaseTask)
+def clearsessions(self):
+    """Cleanup expired sessions by using Django management command."""
+
+    logger.info("Clearing session with celery...")
+
+    # debugging instance
+    self.debug_task()
+
+    # calling management command
+    management.call_command("clearsessions", verbosity=1)
+
+    # debug
+    logger.info("Sessions cleaned!")
+
+    return "Session cleaned with success"
 
 
 class BatchFailurelMixin():

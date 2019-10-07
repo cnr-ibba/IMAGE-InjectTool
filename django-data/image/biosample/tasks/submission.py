@@ -19,7 +19,8 @@ from django.db.models import Count
 from django.utils import timezone
 
 from common.constants import ERROR, READY, SUBMITTED, COMPLETED
-from image.celery import app as celery_app, MyTask
+from common.tasks import BaseTask
+from image.celery import app as celery_app
 from image_app.models import Submission, Animal
 from submissions.helpers import send_message
 
@@ -318,7 +319,7 @@ class SubmissionHelper():
         self.mark_submission(SUBMITTED, message)
 
 
-class SubmitTask(MyTask):
+class SubmitTask(BaseTask):
     name = "Submit to Biosample"
     description = """Submit to Biosample using USI"""
 
@@ -516,7 +517,7 @@ class SplitSubmissionHelper():
         self.counter += 1
 
 
-class SplitSubmissionTask(TaskFailureMixin, MyTask):
+class SplitSubmissionTask(TaskFailureMixin, BaseTask):
     """Split submission data in chunks in order to submit data through
     multiple tasks/processes and with smaller submissions"""
 
@@ -567,7 +568,7 @@ class SplitSubmissionTask(TaskFailureMixin, MyTask):
         return "success"
 
 
-class SubmissionCompleteTask(TaskFailureMixin, MyTask):
+class SubmissionCompleteTask(TaskFailureMixin, BaseTask):
     """Update submission status after batch submission"""
 
     name = "Complete Submission Process"

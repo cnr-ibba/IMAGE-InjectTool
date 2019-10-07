@@ -10,9 +10,9 @@ from celery.utils.log import get_task_logger
 
 from django.db import transaction
 
-from common.constants import ERROR, NEED_REVISION
-from common.tasks import BatchUpdateMixin, BatchFailurelMixin
-from image.celery import app as celery_app, MyTask
+from common.constants import NEED_REVISION
+from common.tasks import BatchUpdateMixin, BatchFailurelMixin, BaseTask
+from image.celery import app as celery_app
 from image_app.models import Submission, Sample, Name
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -22,7 +22,7 @@ from validation.models import ValidationSummary
 logger = get_task_logger(__name__)
 
 
-class BatchDeleteSamples(BatchFailurelMixin, MyTask):
+class BatchDeleteSamples(BatchFailurelMixin, BaseTask):
     name = "Batch delete samples"
     description = """Batch remove samples"""
     batch_type = "delete"
@@ -88,7 +88,7 @@ class BatchDeleteSamples(BatchFailurelMixin, MyTask):
         return 'success'
 
 
-class BatchUpdateSamples(BatchFailurelMixin, BatchUpdateMixin, MyTask):
+class BatchUpdateSamples(BatchFailurelMixin, BatchUpdateMixin, BaseTask):
     name = "Batch update samples"
     description = """Batch update of field in samples"""
     batch_type = "update"

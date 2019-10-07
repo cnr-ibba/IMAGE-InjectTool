@@ -18,10 +18,10 @@ from django.conf import settings
 from django.db.models import Count
 from django.utils import timezone
 
-from image.celery import app as celery_app, MyTask
+from image.celery import app as celery_app
 from image_app.helpers import parse_image_alias, get_model_object
 from image_app.models import Submission
-from common.tasks import redis_lock
+from common.tasks import redis_lock, BaseTask
 from common.constants import (
     ERROR, NEED_REVISION, SUBMITTED, COMPLETED)
 from submissions.helpers import send_message
@@ -287,7 +287,7 @@ class FetchStatusHelper():
                 self.submission))
 
 
-class FetchStatusTask(MyTask):
+class FetchStatusTask(BaseTask):
     name = "Fetch USI status"
     description = """Fetch biosample using USI API"""
     lock_id = "FetchStatusTask"
@@ -388,7 +388,7 @@ class FetchStatusTask(MyTask):
         logger.info("fetch_queryset completed")
 
 
-class RetrievalCompleteTask(TaskFailureMixin, MyTask):
+class RetrievalCompleteTask(TaskFailureMixin, BaseTask):
     """Update submission status after fetching status"""
 
     name = "Complete Retrieval Process"

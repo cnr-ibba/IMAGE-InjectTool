@@ -18,7 +18,8 @@ from celery.utils.log import get_task_logger
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
 from common.helpers import send_mail_to_admins
-from image.celery import app as celery_app, MyTask
+from common.tasks import BaseTask
+from image.celery import app as celery_app
 from image_app.models import Submission, Sample, Animal
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -284,7 +285,7 @@ class ValidateSubmission(object):
         )
 
 
-class ValidateTask(MyTask):
+class ValidateTask(BaseTask):
     name = "Validate Submission"
     description = """Validate submission data against IMAGE rules"""
 
