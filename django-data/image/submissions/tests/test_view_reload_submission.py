@@ -130,7 +130,7 @@ class SuccessfulReloadMixin(StatusMixinTestCase):
 class SuccessfulReloadSubmissionViewTest(
         SuccessfulReloadMixin, OwnerMixinTestCase, TestBase):
     # patch to simulate data load
-    @patch('cryoweb.tasks.import_from_cryoweb.delay')
+    @patch('submissions.views.ImportCryowebTask.delay')
     def setUp(self, my_task):
         # call base method
         super().setUp()
@@ -152,7 +152,7 @@ class InvalidReloadSubmissionViewTest(
         InvalidFormMixinTestCase, OwnerMixinTestCase, TestBase):
 
     # patch to simulate data load
-    @patch('cryoweb.tasks.import_from_cryoweb.delay')
+    @patch('submissions.views.ImportCryowebTask.delay')
     def setUp(self, my_task):
         # call base method
         super().setUp()

@@ -93,7 +93,7 @@ class CreateSubmissionViewTest(FormMixinTestCase, Initialize):
 
 class SuccessfulCreateSubmissionViewTest(Initialize):
     # patch to simulate data load
-    @patch('cryoweb.tasks.import_from_cryoweb.delay')
+    @patch('submissions.views.ImportCryowebTask.delay')
     def setUp(self, my_task):
         # create a test user
         super().setUp()
@@ -136,7 +136,7 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         self.assertTrue(self.my_task.called)
         self.my_task.assert_called_with(self.submission.pk)
 
-    @patch('cryoweb.tasks.import_from_cryoweb.delay')
+    @patch('submissions.views.ImportCryowebTask.delay')
     def test_different_user(self, my_task):
         """Create a new submission with the same data for a different user"""
 
