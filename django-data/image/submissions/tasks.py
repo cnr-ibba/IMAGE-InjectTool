@@ -37,15 +37,28 @@ class SubmissionTaskMixin():
 
         return Submission.objects.get(pk=submission_id)
 
+    # extract a generic send_message for all modules which need it
+    def send_message(self, submission_obj):
+        """
+        Update submission.status and submission message using django
+        channels
+
+        Args:
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+        """
+
+        send_message(submission_obj)
+
     def update_submission_status(self, submission_obj, status, message):
         """Mark submission with status, then send message"""
 
-        submission_obj.status = ERROR
+        submission_obj.status = status
         submission_obj.message = message
         submission_obj.save()
 
         # send async message
-        send_message(submission_obj)
+        self.send_message(submission_obj)
 
     def mail_to_owner(self, submission_obj, subject, body):
         # truncate message body if necessary
@@ -72,7 +85,8 @@ class SubmissionTaskMixin():
         )
 
         # send a mail to the user with the stacktrace (einfo)
-        subject = "Error in %s: %s" % (self.action, submission_id)
+        subject = "Error in %s for submission %s" % (
+            self.action, submission_id)
         body = (
             "Something goes wrong with %s. Please report "
             "this to InjectTool team\n\n %s" % (
