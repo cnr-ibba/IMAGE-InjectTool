@@ -18,7 +18,7 @@ from image_app.models import Submission
 class ImportGenericTaskMixinTestCase():
     # the method use for importing data as a string
     upload_method = None
-    datasource_type = None
+    action = None
 
     def setUp(self):
         # calling my base class setup
@@ -59,22 +59,22 @@ class ImportGenericTaskMixinTestCase():
         self.assertEqual(submission.status, ERROR)
         self.assertEqual(
             submission.message,
-            "Error in %s loading: Test" % (self.datasource_type))
+            "Error in %s: Test" % (self.action))
 
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
+        # test email sent. One mail for admin, une for users
+        self.assertEqual(len(mail.outbox), 2)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
-            "Error in %s loading: %s" % (
-                self.datasource_type, self.submission_id),
+            "Error in %s for submission %s" % (
+                self.action, self.submission_id),
             email.subject)
 
         message = 'Error'
-        notification_message = 'Error in %s loading: Test' % (
-            self.datasource_type)
+        notification_message = 'Error in %s: Test' % (
+            self.action)
 
         self.check_message(message, notification_message)
 
@@ -109,11 +109,22 @@ class ImportGenericTaskMixinTestCase():
         res = self.my_task.run(submission_id=1)
 
         # assert a success with data uploading
-        self.assertEqual(res, "Error in uploading %s data" % (
-            self.datasource_type))
+        self.assertEqual(res, "Error in %s" % (
+            self.action))
 
         # assert that method were called
         self.assertTrue(self.my_upload.called)
 
         # assering zooma not called
         self.assertFalse(self.mock_annotateall.called)
+
+    def test_mail_to_owner(self):
+        """Testing a message to owner"""
+
+        # test truncating message
+        self.my_task.max_body_size = 9
+        self.my_task.mail_to_owner(self.submission, "subject", "1234567890")
+
+        # read email
+        email = mail.outbox[0]
+        self.assertEqual(email.body, "123456789...[truncated]")

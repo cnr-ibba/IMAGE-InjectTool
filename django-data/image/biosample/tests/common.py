@@ -132,7 +132,7 @@ class TaskFailureMixin(WebSocketMixin, BaseMixin):
         exc = Exception("Test")
         task_id = "test_task_id"
         args = [self.submission_id]
-        kwargs = {}
+        kwargs = {'uid_submission_id': self.submission_id}
         einfo = ExceptionInfo
 
         # call on_failure method
@@ -148,13 +148,14 @@ class TaskFailureMixin(WebSocketMixin, BaseMixin):
             "Error in biosample submission: Test")
 
         # test email sent
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 2)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
-            "Error in biosample submission %s" % self.submission_id,
+            "Error in biosample submission for submission %s" % (
+                self.submission_id),
             email.subject)
 
         message = 'Error'

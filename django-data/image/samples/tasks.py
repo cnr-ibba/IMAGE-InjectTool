@@ -10,24 +10,21 @@ from celery.utils.log import get_task_logger
 
 from django.db import transaction
 
-from common.constants import ERROR, NEED_REVISION
-from common.tasks import BatchUpdateMixin, BatchFailurelMixin
-from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Sample, Name
-from submissions.helpers import send_message
-from validation.helpers import construct_validation_message
+from common.constants import NEED_REVISION
+from common.tasks import BaseTask, NotifyAdminTaskMixin
+from image.celery import app as celery_app
+from image_app.models import Sample, Name
+from submissions.tasks import BatchUpdateMixin, SubmissionTaskMixin
 from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
 
-class BatchDeleteSamples(BatchFailurelMixin, MyTask):
+class BatchDeleteSamples(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     name = "Batch delete samples"
     description = """Batch remove samples"""
-    batch_type = "delete"
-    model_type = "sample"
-    submission_cls = Submission
+    action = "batch delete samples"
 
     def run(self, submission_id, sample_ids):
         """Function for batch update attribute in animals
@@ -36,8 +33,8 @@ class BatchDeleteSamples(BatchFailurelMixin, MyTask):
             sample_ids (list): set with ids to delete
         """
 
-        # get a submisision object
-        submission_obj = Submission.objects.get(pk=submission_id)
+        # get a submission object (from SubmissionTaskMixin)
+        submission_obj = self.get_uid_submission(submission_id)
 
         logger.info("Start batch delete for samples")
         success_ids = list()
@@ -61,26 +58,24 @@ class BatchDeleteSamples(BatchFailurelMixin, MyTask):
             except Sample.DoesNotExist:
                 failed_ids.append(sample_id)
 
-        # Update submission
-        submission_obj.refresh_from_db()
-        submission_obj.status = NEED_REVISION
-
         if len(failed_ids) != 0:
-            submission_obj.message = f"You've removed {len(success_ids)} " \
+            message = f"You've removed {len(success_ids)} " \
                 f"samples. It wasn't possible to find records with these " \
                 f"ids: {', '.join(failed_ids)}. Rerun validation please!"
         else:
-            submission_obj.message = f"You've removed {len(success_ids)} " \
+            message = f"You've removed {len(success_ids)} " \
                 f"samples. Rerun validation please!"
-
-        submission_obj.save()
 
         summary_obj, created = ValidationSummary.objects.get_or_create(
             submission=submission_obj, type='sample')
         summary_obj.reset_all_count()
 
-        send_message(
-            submission_obj, construct_validation_message(submission_obj)
+        # mark submission with NEED_REVISION and send message
+        self.update_submission_status(
+            submission_obj,
+            NEED_REVISION,
+            message,
+            construct_message=True
         )
 
         logger.info("batch delete for samples completed")
@@ -88,14 +83,13 @@ class BatchDeleteSamples(BatchFailurelMixin, MyTask):
         return 'success'
 
 
-class BatchUpdateSamples(BatchFailurelMixin, BatchUpdateMixin, MyTask):
+class BatchUpdateSamples(BatchUpdateMixin, NotifyAdminTaskMixin, BaseTask):
     name = "Batch update samples"
     description = """Batch update of field in samples"""
-    batch_type = "update"
-    model_type = "sample"
+    action = "batch update samples"
 
+    # defined in common.tasks.BatchUpdateMixin
     item_cls = Sample
-    submission_cls = Submission
 
     def run(self, submission_id, sample_ids, attribute):
         """Function for batch update attribute in samples

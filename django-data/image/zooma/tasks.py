@@ -12,8 +12,8 @@ from celery import group
 from celery.result import allow_join_result
 from celery.utils.log import get_task_logger
 
-from common.tasks import redis_lock
-from image.celery import app as celery_app, MyTask
+from common.tasks import BaseTask, redis_lock
+from image.celery import app as celery_app
 from image_app.models import (
     DictCountry, DictBreed, DictSpecie, DictUberon, DictDevelStage,
     DictPhysioStage)
@@ -46,35 +46,35 @@ class AnnotateTaskMixin():
         return "success"
 
 
-class AnnotateCountries(AnnotateTaskMixin, MyTask):
+class AnnotateCountries(AnnotateTaskMixin, BaseTask):
     name = "Annotate Countries"
     description = """Annotate countries with ontologies using Zooma tools"""
     model = DictCountry
     annotate_func = staticmethod(annotate_country)
 
 
-class AnnotateBreeds(AnnotateTaskMixin, MyTask):
+class AnnotateBreeds(AnnotateTaskMixin, BaseTask):
     name = "Annotate Breeds"
     description = """Annotate breeds with ontologies using Zooma tools"""
     model = DictBreed
     annotate_func = staticmethod(annotate_breed)
 
 
-class AnnotateSpecies(AnnotateTaskMixin, MyTask):
+class AnnotateSpecies(AnnotateTaskMixin, BaseTask):
     name = "Annotate Species"
     description = """Annotate species with ontologies using Zooma tools"""
     model = DictSpecie
     annotate_func = staticmethod(annotate_specie)
 
 
-class AnnotateUberon(AnnotateTaskMixin, MyTask):
+class AnnotateUberon(AnnotateTaskMixin, BaseTask):
     name = "Annotate Uberon"
     description = "Annotate organism parts with ontologies using Zooma tools"
     model = DictUberon
     annotate_func = staticmethod(annotate_uberon)
 
 
-class AnnotateDictDevelStage(AnnotateTaskMixin, MyTask):
+class AnnotateDictDevelStage(AnnotateTaskMixin, BaseTask):
     name = "Annotate DictDevelStage"
     description = (
         "Annotate developmental stages with ontologies using Zooma tools")
@@ -82,7 +82,7 @@ class AnnotateDictDevelStage(AnnotateTaskMixin, MyTask):
     annotate_func = staticmethod(annotate_dictdevelstage)
 
 
-class AnnotateDictPhysioStage(AnnotateTaskMixin, MyTask):
+class AnnotateDictPhysioStage(AnnotateTaskMixin, BaseTask):
     name = "Annotate DictPhysioStage"
     description = (
         "Annotate physiological stages with ontologies using Zooma tools")
@@ -90,7 +90,7 @@ class AnnotateDictPhysioStage(AnnotateTaskMixin, MyTask):
     annotate_func = staticmethod(annotate_dictphysiostage)
 
 
-class AnnotateAll(MyTask):
+class AnnotateAll(BaseTask):
     name = "Annotate All"
     description = """Annotate all dict tables using Zooma"""
     lock_id = "AnnotateAll"

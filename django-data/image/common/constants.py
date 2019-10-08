@@ -120,6 +120,7 @@ class SAMPLE_STORAGE(EnumMixin, Enum):
     paraffinambient = (9, "paraffin block at ambient temperatures "
                           "(+15 to +30 degrees Celsius)")
     dried = (10, "freeze dried")
+    frozen40 = (11, "frozen, -40 degrees Celsius freezer")
 
 
 class SAMPLE_STORAGE_PROCESSING(EnumMixin, Enum):

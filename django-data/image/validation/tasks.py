@@ -18,10 +18,10 @@ from celery.utils.log import get_task_logger
 from common.constants import (
     READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
 from common.helpers import send_mail_to_admins
-from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Sample, Animal
-from submissions.helpers import send_message
-from validation.helpers import construct_validation_message
+from common.tasks import BaseTask, NotifyAdminTaskMixin
+from image.celery import app as celery_app
+from image_app.models import Sample, Animal
+from submissions.tasks import SubmissionTaskMixin
 from validation.models import ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel
@@ -284,9 +284,10 @@ class ValidateSubmission(object):
         )
 
 
-class ValidateTask(MyTask):
+class ValidateTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     name = "Validate Submission"
     description = """Validate submission data against IMAGE rules"""
+    action = "validation"
 
     # http://docs.celeryproject.org/en/latest/userguide/tasks.html#instantiation
     # A task is not instantiated for every request, but is registered in
@@ -297,20 +298,21 @@ class ValidateTask(MyTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
-    # extract a generic send_message for all modules which need it
-    def send_message(self, submission_obj):
-        """
-        Update submission.status and submission message using django
-        channels
+    # override SubmissionTaskMixin update_submission_status
+    def update_submission_status(
+            self, submission_obj, status, message, construct_message=True):
+        """Mark submission with status, then send message
 
         Args:
             submission_obj (image_app.models.Submission): an UID submission
             object
+            status (int): a :py:class:`common.constants.STATUSES` value
+            message (str): the message to send
+            construct_message (bool): construct validation message or not
         """
 
-        send_message(
-            submission_obj,
-            validation_message=construct_validation_message(submission_obj))
+        super().update_submission_status(
+            submission_obj, status, message, construct_message)
 
     def __generic_error_report(
             self, submission_obj, status, message, notify_admins=False):
@@ -327,11 +329,11 @@ class ValidateTask(MyTask):
         """
 
         # mark submission with its status
-        submission_obj.status = status
-        submission_obj.message = message
-        submission_obj.save()
-
-        self.send_message(submission_obj)
+        self.update_submission_status(
+            submission_obj,
+            status,
+            message
+        )
 
         # get exception info
         einfo = traceback.format_exc()
@@ -342,33 +344,12 @@ class ValidateTask(MyTask):
             "Something goes wrong with validation. Please report "
             "this to InjectTool team\n\n %s" % str(einfo))
 
-        submission_obj.owner.email_user(
-            email_subject,
-            email_message,
-        )
+        self.mail_to_owner(submission_obj, email_subject, email_message)
 
         # this is a common.helpers method that should be used when needed
         if notify_admins:
             # submit mail to admins
             send_mail_to_admins(email_subject, email_message)
-
-    # Ovverride default on failure method
-    # This is not a failed validation for a wrong value, this is an
-    # error in task that mean an error in coding
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
-
-        # define message
-        message = "Unknown error in validation - %s" % str(exc)
-
-        # get submissio object
-        submission_obj = Submission.objects.get(pk=args[0])
-
-        # call generic report which update submission and send email
-        self.__generic_error_report(
-            submission_obj, ERROR, message, notify_admins=True)
-
-        # returns None: this task will have the ERROR status
 
     # TODO: define a method to inform user for error in validation (Task run
     # with success but errors in data)
@@ -430,7 +411,7 @@ class ValidateTask(MyTask):
         logger.info("Validate Submission started")
 
         # get submissio object
-        submission_obj = Submission.objects.get(pk=submission_id)
+        submission_obj = self.get_uid_submission(submission_id)
 
         # read rules when task starts. Model issues when starting
         # OntologyCache at start
@@ -528,26 +509,17 @@ class ValidateTask(MyTask):
 
         return "success"
 
-    def __mark_submission(self, submission_obj, message, status):
-        """Mark submission with status and message"""
-
-        submission_obj.status = status
-        submission_obj.message = message
-        submission_obj.save()
-
-        self.send_message(submission_obj)
-
     def submission_fail(self, submission_obj, message, status=NEED_REVISION):
         """Mark a submission with NEED_REVISION status"""
 
         # ovverride message
         message = ("Validation got errors: %s" % (message))
-        self.__mark_submission(submission_obj, message, status)
+        self.update_submission_status(submission_obj, status, message)
 
     def submission_ready(self, submission_obj, message):
         """Mark a submission with READY status"""
 
-        self.__mark_submission(submission_obj, message, READY)
+        self.update_submission_status(submission_obj, READY, message)
 
 
 # register explicitly tasks

@@ -29,7 +29,7 @@ from common.constants import (
 from common.helpers import uid2biosample
 from common.views import OwnerMixin
 from crbanim.tasks import ImportCRBAnimTask
-from cryoweb.tasks import import_from_cryoweb
+from cryoweb.tasks import ImportCryowebTask
 
 from image_app.models import Submission, Name, Animal, Sample
 from excel.tasks import ImportTemplateTask
@@ -75,8 +75,11 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
             self.object.status = WAITING
             self.object.save()
 
+            # create a task
+            my_task = ImportCryowebTask()
+
             # a valid submission start a task
-            res = import_from_cryoweb.delay(self.object.pk)
+            res = my_task.delay(self.object.pk)
             logger.info(
                 "Start cryoweb importing process with task %s" % res.task_id)
 
@@ -367,12 +370,12 @@ class ReloadSubmissionView(OwnerMixin, UpdateView):
         self.object.status = WAITING
         self.object.save()
 
-        # HINT: can I change datasource type?
-
         # call the proper method
         if self.object.datasource_type == CRYOWEB_TYPE:
             # a valid submission start a task
-            res = import_from_cryoweb.delay(self.object.pk)
+            my_task = ImportCryowebTask()
+
+            res = my_task.delay(self.object.pk)
             logger.info(
                 "Start cryoweb reload process with task %s" % res.task_id)
 

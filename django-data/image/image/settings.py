@@ -389,7 +389,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 # Other Celery settings
 CELERY_BEAT_SCHEDULE = {
     'clearsessions': {
-        'task': 'image.celery.clearsessions',
+        'task': 'common.tasks.clearsessions',
         'schedule': crontab(hour=12, minute=0),
     },
     'fetch_biosample_status': {

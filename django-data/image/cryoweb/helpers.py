@@ -62,6 +62,22 @@ def check_species(country):
     return check_species_synonyms(words, country, create=True)
 
 
+# a function to test if I have all countries or not
+def check_countries():
+    """Check that all efabis countries have a dictionary object"""
+
+    # get all countries
+    countries = VBreedsSpecies.get_all_countries()
+
+    countries_not_found = []
+
+    for country in countries:
+        if not DictCountry.objects.filter(label=country).exists():
+            countries_not_found.append(country)
+
+    return countries_not_found
+
+
 # a function specific for cryoweb import path to ensure that all required
 # fields in UID are present. There could be a function like this in others
 # import paths
@@ -79,6 +95,15 @@ def check_UID(submission):
     # otherwise, fill synonym table with new terms then throw exception
     if not check_species(submission.gene_bank_country):
         raise CryoWebImportError("Some species haven't a synonym!")
+
+    # test for countries in UID
+    countries_not_found = check_countries()
+
+    if len(countries_not_found) > 0:
+        raise CryoWebImportError(
+            "Not all countries are loaded into database: "
+            "check for '%s' in your dataset" % (countries_not_found)
+        )
 
     # return a status
     return True
@@ -199,9 +224,7 @@ def fill_uid_breeds(submission):
         # get country for breeds. Ideally will be the same of submission,
         # since the Italian cryoweb is supposed to contains italian breeds.
         # however, it could be possible to store data from other contries
-        country = get_or_create_obj(
-            DictCountry,
-            label=v_breed_specie.efabis_country)
+        country = DictCountry.objects.get(label=v_breed_specie.efabis_country)
 
         # create breed obj if necessary
         get_or_create_obj(
