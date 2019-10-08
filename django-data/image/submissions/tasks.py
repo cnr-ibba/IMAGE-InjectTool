@@ -74,7 +74,11 @@ class SubmissionTaskMixin():
         super().on_failure(exc, task_id, args, kwargs, einfo)
 
         # get submission object
-        submission_id = args[0]
+        if 'uid_submission_id' in kwargs:
+            submission_id = kwargs['uid_submission_id']
+
+        else:
+            submission_id = args[0]
         submission_obj = self.get_uid_submission(submission_id)
 
         # mark submission with ERROR and send message

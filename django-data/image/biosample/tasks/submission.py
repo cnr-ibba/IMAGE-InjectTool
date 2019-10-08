@@ -19,10 +19,10 @@ from django.db.models import Count
 from django.utils import timezone
 
 from common.constants import ERROR, READY, SUBMITTED, COMPLETED
-from common.tasks import BaseTask
+from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from image_app.models import Submission, Animal
-from submissions.helpers import send_message
+from image_app.models import Animal
+from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_auth
 from ..models import (
@@ -39,40 +39,6 @@ class SubmissionError(Exception):
     """Exception call for Error with submissions"""
 
     pass
-
-
-# TODO: promote this to become a common mixin for tasks
-class TaskFailureMixin():
-    """Mixin candidate to become the common behaviour of task failure which
-    mark submission with ERROR status and send message to owner"""
-
-    # Ovverride default on failure method
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        """Mark submission with error status, send async message and a
-        mail to the owner or such submission"""
-
-        logger.error('{0!r} failed: {1!r}'.format(task_id, exc))
-
-        # get submission object
-        submission_obj = Submission.objects.get(pk=args[0])
-
-        submission_obj.status = ERROR
-        submission_obj.message = (
-            "Error in biosample submission: %s" % str(exc))
-        submission_obj.save()
-
-        # send async message
-        send_message(submission_obj)
-
-        # send a mail to the user with the stacktrace (einfo)
-        submission_obj.owner.email_user(
-            "Error in biosample submission %s" % (
-                submission_obj.id),
-            ("Something goes wrong with biosample submission. Please report "
-             "this to InjectTool team\n\n %s" % str(einfo)),
-        )
-
-        # TODO: submit mail to admin
 
 
 # HINT: move into helper module?
@@ -319,7 +285,7 @@ class SubmissionHelper():
         self.mark_submission(SUBMITTED, message)
 
 
-class SubmitTask(BaseTask):
+class SubmitTask(NotifyAdminTaskMixin, BaseTask):
     name = "Submit to Biosample"
     description = """Submit to Biosample using USI"""
 
@@ -517,12 +483,13 @@ class SplitSubmissionHelper():
         self.counter += 1
 
 
-class SplitSubmissionTask(TaskFailureMixin, BaseTask):
+class SplitSubmissionTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     """Split submission data in chunks in order to submit data through
     multiple tasks/processes and with smaller submissions"""
 
     name = "Split submission data"
     description = """Split submission data in chunks"""
+    action = "biosample submission"
 
     def run(self, submission_id):
         """Call :py:class:`SplitSubmissionHelper` to split
@@ -534,8 +501,7 @@ class SplitSubmissionTask(TaskFailureMixin, BaseTask):
         logger.info("Starting %s for submission %s" % (
             self.name, submission_id))
 
-        uid_submission = Submission.objects.get(
-            pk=submission_id)
+        uid_submission = self.get_uid_submission(submission_id)
 
         # call an helper class to create database objects
         submission_data_helper = SplitSubmissionHelper(uid_submission)
@@ -568,11 +534,13 @@ class SplitSubmissionTask(TaskFailureMixin, BaseTask):
         return "success"
 
 
-class SubmissionCompleteTask(TaskFailureMixin, BaseTask):
+class SubmissionCompleteTask(
+        SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     """Update submission status after batch submission"""
 
     name = "Complete Submission Process"
     description = """Check submission status and update stuff"""
+    action = "biosample submission"
 
     def run(self, *args, **kwargs):
         """Fetch submission data and then update
@@ -589,8 +557,7 @@ class SubmissionCompleteTask(TaskFailureMixin, BaseTask):
             pk__in=usi_submission_ids)
 
         # get UID submission
-        uid_submission = Submission.objects.get(
-            pk=kwargs['uid_submission_id'])
+        uid_submission = self.get_uid_submission(kwargs['uid_submission_id'])
 
         # annotate biosample submission by statuses
         statuses = {}
@@ -638,9 +605,6 @@ class SubmissionCompleteTask(TaskFailureMixin, BaseTask):
 
             self.update_message(uid_submission, submission_qs, SUBMITTED)
 
-        # send async message
-        send_message(uid_submission)
-
         return "success"
 
     def update_message(self, uid_submission, submission_qs, status):
@@ -653,9 +617,8 @@ class SubmissionCompleteTask(TaskFailureMixin, BaseTask):
         for submission in submission_qs.filter(status=status):
             message.append(submission.message)
 
-        uid_submission.status = status
-        uid_submission.message = "\n".join(set(message))
-        uid_submission.save()
+        self.update_submission_status(
+            uid_submission, status, "\n".join(set(message)))
 
 
 # register explicitly tasks
