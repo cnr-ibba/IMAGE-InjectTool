@@ -9,6 +9,7 @@ Created on Tue Jul  9 16:10:06 2019
 import logging
 
 from common.constants import ERROR
+from common.tasks import NotifyAdminTaskMixin
 from image_app.models import Submission
 
 from .helpers import send_message
@@ -81,10 +82,8 @@ class SubmissionTaskMixin():
 
         self.mail_to_owner(submission_obj, subject, body)
 
-        # TODO: submit mail to admin
 
-
-class ImportGenericTaskMixin(SubmissionTaskMixin):
+class ImportGenericTaskMixin(SubmissionTaskMixin, NotifyAdminTaskMixin):
     """A mixing used to import datasource into UID"""
 
     action = None

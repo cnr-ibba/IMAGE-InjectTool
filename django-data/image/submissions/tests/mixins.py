@@ -56,11 +56,11 @@ class ImportGenericTaskMixinTestCase():
             submission.message,
             "Error in %s: Test" % (self.action))
 
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
+        # test email sent. One mail for admin, une for users
+        self.assertEqual(len(mail.outbox), 2)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
             "Error in %s: %s" % (

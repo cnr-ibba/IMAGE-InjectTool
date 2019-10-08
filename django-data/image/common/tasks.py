@@ -7,6 +7,7 @@ Created on Tue Jan 15 16:42:24 2019
 """
 
 import redis
+import traceback
 
 from contextlib import contextmanager
 from celery.five import monotonic
@@ -20,6 +21,8 @@ from image.celery import app as celery_app
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
 from common.constants import NEED_REVISION, ERROR
+
+from .helpers import send_mail_to_admins
 
 # Lock expires in 10 minutes
 LOCK_EXPIRE = 60 * 10
@@ -51,6 +54,26 @@ class BaseTask(celery_app.Task):
         # this doesn't throw an error when debugging a task called with run()
         if self.request_stack:
             logger.debug('Request: {0!r}'.format(self.request))
+
+
+class NotifyAdminTaskMixin():
+    """A mixin to send error message to admins"""
+
+    action = None
+
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        """Override the default on_failure method"""
+
+        # call base class
+        super().on_failure(exc, task_id, args, kwargs, einfo)
+
+        # get exception info
+        einfo = traceback.format_exc()
+
+        subject = "Error in %s" % (self.action)
+        body = str(einfo)
+
+        send_mail_to_admins(subject, body)
 
 
 # https://stackoverflow.com/a/51429597
