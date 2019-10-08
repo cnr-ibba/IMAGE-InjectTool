@@ -58,21 +58,21 @@ class BatchDeleteAnimalsTest(
         self.assertEqual(self.submission.status, ERROR)
         self.assertEqual(
             self.submission.message,
-            "Error in animal batch delete: Test")
+            "Error in batch delete animals: Test")
 
         # test email sent
         self.assertGreater(len(mail.outbox), 0)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
-            "Error in animal batch delete for submission: 1",
+            "Error in batch delete animals for submission 1",
             email.subject)
 
         self.check_message(
             message='Error',
-            notification_message='Error in animal batch delete: Test')
+            notification_message='Error in batch delete animals: Test')
 
     def test_delete_animal(self):
         # calling task and delete a animal
@@ -170,21 +170,21 @@ class BatchUpdateAnimalsTest(
         self.assertEqual(self.submission.status, ERROR)
         self.assertEqual(
             self.submission.message,
-            "Error in animal batch update: Test")
+            "Error in batch update animals: Test")
 
         # test email sent
         self.assertGreater(len(mail.outbox), 0)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
-            "Error in animal batch update for submission: 1",
+            "Error in batch update animals for submission 1",
             email.subject)
 
         self.check_message(
             message='Error',
-            notification_message='Error in animal batch update: Test')
+            notification_message='Error in batch update animals: Test')
 
     def test_update_animal(self):
         # calling task and update a animal

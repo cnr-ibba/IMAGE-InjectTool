@@ -55,21 +55,21 @@ class BatchDeleteSamplesTest(
         self.assertEqual(self.submission.status, ERROR)
         self.assertEqual(
             self.submission.message,
-            "Error in sample batch delete: Test")
+            "Error in batch delete samples: Test")
 
         # test email sent
         self.assertGreater(len(mail.outbox), 0)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
-            "Error in sample batch delete for submission: 1",
+            "Error in batch delete samples for submission 1",
             email.subject)
 
         self.check_message(
             message='Error',
-            notification_message='Error in sample batch delete: Test')
+            notification_message='Error in batch delete samples: Test')
 
     def test_delete_sample(self):
         # calling task and delete a sample
@@ -158,21 +158,21 @@ class BatchUpdateSamplesTest(
         self.assertEqual(self.submission.status, ERROR)
         self.assertEqual(
             self.submission.message,
-            "Error in sample batch update: Test")
+            "Error in batch update samples: Test")
 
         # test email sent
         self.assertGreater(len(mail.outbox), 0)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
-            "Error in sample batch update for submission: 1",
+            "Error in batch update samples for submission 1",
             email.subject)
 
         self.check_message(
             message='Error',
-            notification_message='Error in sample batch update: Test')
+            notification_message='Error in batch update samples: Test')
 
     def test_update_sample(self):
         # calling task and update a sample

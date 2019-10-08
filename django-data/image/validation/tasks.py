@@ -21,9 +21,7 @@ from common.helpers import send_mail_to_admins
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
 from image_app.models import Sample, Animal
-from submissions.helpers import send_message
 from submissions.tasks import SubmissionTaskMixin
-from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 
 from .models import ValidationResult as ValidationResultModel
@@ -300,21 +298,21 @@ class ValidateTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     # between requests. This can also be useful to cache resources, For
     # example, a base Task class that caches a database connection
 
-    # extract a generic send_message for all modules which need it
-    # override SubmissionTaskMixin send_message
-    def send_message(self, submission_obj):
-        """
-        Update submission.status and submission message using django
-        channels
+    # override SubmissionTaskMixin update_submission_status
+    def update_submission_status(
+            self, submission_obj, status, message, construct_message=True):
+        """Mark submission with status, then send message
 
         Args:
             submission_obj (image_app.models.Submission): an UID submission
             object
+            status (int): a :py:class:`common.constants.STATUSES` value
+            message (str): the message to send
+            construct_message (bool): construct validation message or not
         """
 
-        send_message(
-            submission_obj,
-            validation_message=construct_validation_message(submission_obj))
+        super().update_submission_status(
+            submission_obj, status, message, construct_message)
 
     def __generic_error_report(
             self, submission_obj, status, message, notify_admins=False):

@@ -14,13 +14,11 @@ from celery.five import monotonic
 from celery.utils.log import get_task_logger
 
 from django.conf import settings
-from django.utils import timezone
 from django.core import management
 
 from image.celery import app as celery_app
 from submissions.helpers import send_message
-from validation.helpers import construct_validation_message
-from common.constants import NEED_REVISION, ERROR
+from common.constants import ERROR
 
 from .helpers import send_mail_to_admins
 
@@ -138,38 +136,6 @@ class BatchFailurelMixin():
         )
 
         # TODO: submit mail to admin
-
-
-class BatchUpdateMixin:
-    """Mixin to do batch update of fields to fix validation"""
-
-    item_cls = None
-    submission_cls = None
-
-    def batch_update(self, submission_id, ids, attribute):
-        for id_, value in ids.items():
-            if value == '' or value == 'None':
-                value = None
-
-            item_object = self.item_cls.objects.get(pk=id_)
-
-            if getattr(item_object, attribute) != value:
-                setattr(item_object, attribute, value)
-                item_object.save()
-
-                # update name object
-                item_object.name.last_changed = timezone.now()
-                item_object.name.save()
-
-        # Update submission
-        submission_obj = self.submission_cls.objects.get(pk=submission_id)
-        submission_obj.status = NEED_REVISION
-        submission_obj.message = "Data updated, try to rerun validation"
-        submission_obj.save()
-
-        send_message(
-            submission_obj, construct_validation_message(submission_obj)
-        )
 
 
 @contextmanager

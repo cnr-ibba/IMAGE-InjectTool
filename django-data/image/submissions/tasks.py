@@ -8,9 +8,12 @@ Created on Tue Jul  9 16:10:06 2019
 
 import logging
 
-from common.constants import ERROR
+from django.utils import timezone
+
+from common.constants import ERROR, NEED_REVISION
 from common.tasks import NotifyAdminTaskMixin
 from image_app.models import Submission
+from validation.helpers import construct_validation_message
 
 from .helpers import send_message
 
@@ -38,7 +41,7 @@ class SubmissionTaskMixin():
         return Submission.objects.get(pk=submission_id)
 
     # extract a generic send_message for all modules which need it
-    def send_message(self, submission_obj):
+    def send_message(self, submission_obj, construct_message=False):
         """
         Update submission.status and submission message using django
         channels
@@ -46,19 +49,34 @@ class SubmissionTaskMixin():
         Args:
             submission_obj (image_app.models.Submission): an UID submission
             object
+            construct_message (bool): construct validation message or not
         """
 
-        send_message(submission_obj)
+        if construct_message is True:
+            send_message(
+                submission_obj, construct_validation_message(submission_obj)
+            )
+        else:
+            send_message(submission_obj)
 
-    def update_submission_status(self, submission_obj, status, message):
-        """Mark submission with status, then send message"""
+    def update_submission_status(
+            self, submission_obj, status, message, construct_message=False):
+        """Mark submission with status, then send message
+
+        Args:
+            submission_obj (image_app.models.Submission): an UID submission
+            object
+            status (int): a :py:class:`common.constants.STATUSES` value
+            message (str): the message to send
+            construct_message (bool): construct validation message or not
+        """
 
         submission_obj.status = status
         submission_obj.message = message
         submission_obj.save()
 
         # send async message
-        self.send_message(submission_obj)
+        self.send_message(submission_obj, construct_message)
 
     def mail_to_owner(self, submission_obj, subject, body):
         # truncate message body if necessary
@@ -136,3 +154,35 @@ class ImportGenericTaskMixin(SubmissionTaskMixin, NotifyAdminTaskMixin):
 
             # always return something
             return "success"
+
+
+class BatchUpdateMixin(SubmissionTaskMixin):
+    """Mixin to do batch update of fields to fix validation"""
+
+    item_cls = None
+
+    def batch_update(self, submission_id, ids, attribute):
+        for id_, value in ids.items():
+            if value == '' or value == 'None':
+                value = None
+
+            item_object = self.item_cls.objects.get(pk=id_)
+
+            if getattr(item_object, attribute) != value:
+                setattr(item_object, attribute, value)
+                item_object.save()
+
+                # update name object
+                item_object.name.last_changed = timezone.now()
+                item_object.name.save()
+
+        # get a submission object (from SubmissionTaskMixin)
+        submission_obj = self.get_uid_submission(submission_id)
+
+        # mark submission with NEED_REVISION and send message
+        self.update_submission_status(
+            submission_obj,
+            NEED_REVISION,
+            "Data updated, try to rerun validation",
+            construct_message=True
+        )
