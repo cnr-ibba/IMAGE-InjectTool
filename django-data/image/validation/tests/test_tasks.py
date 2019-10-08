@@ -236,21 +236,21 @@ class ValidateTaskTest(
         self.assertEqual(submission.status, ERROR)
         self.assertEqual(
             submission.message,
-            "Unknown error in validation - Test")
+            "Error in validation: Test")
 
         # test email sent
         self.assertGreater(len(mail.outbox), 1)
 
         # read email
-        email = mail.outbox[0]
+        email = mail.outbox[-1]
 
         self.assertEqual(
-            "Error in IMAGE Validation: Unknown error in validation - Test",
+            "Error in validation for submission 1",
             email.subject)
 
         self.check_message(
             'Error',
-            'Unknown error in validation - Test')
+            'Error in validation: Test')
 
     @patch("validation.tasks.ValidateSubmission.validate_model")
     def test_validate_retry(self, my_validate):

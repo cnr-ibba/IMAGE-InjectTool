@@ -8,8 +8,8 @@ Created on Tue Jul  9 11:50:39 2019
 
 from celery.utils.log import get_task_logger
 
-from image.celery import app as celery_app, MyTask
-from image_app.models import Submission
+from common.tasks import BaseTask
+from image.celery import app as celery_app
 from submissions.tasks import ImportGenericTaskMixin
 
 from .helpers import upload_template
@@ -18,11 +18,10 @@ from .helpers import upload_template
 logger = get_task_logger(__name__)
 
 
-class ImportTemplateTask(ImportGenericTaskMixin, MyTask):
+class ImportTemplateTask(ImportGenericTaskMixin, BaseTask):
     name = "Import Template"
     description = """Import Template data from Excel file"""
-    submission_model = Submission
-    datasource_type = "Template"
+    action = "template import"
 
     def import_data_from_file(self, submission_obj):
         """Call the custom import method"""

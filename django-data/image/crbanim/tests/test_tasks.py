@@ -21,7 +21,7 @@ class ImportCRBAnimTaskTest(
 
     # custom values
     upload_method = "crbanim.tasks.upload_crbanim"
-    datasource_type = "CRBAnim"
+    action = "crbanim import"
 
     def setUp(self):
         # calling my base class setup

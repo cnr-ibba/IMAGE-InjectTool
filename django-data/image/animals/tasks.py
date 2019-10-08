@@ -11,23 +11,20 @@ from celery.utils.log import get_task_logger
 from django.db import transaction
 
 from common.constants import NEED_REVISION
-from common.tasks import BatchUpdateMixin, BatchFailurelMixin
-from image.celery import app as celery_app, MyTask
-from image_app.models import Submission, Animal, Name
-from submissions.helpers import send_message
-from validation.helpers import construct_validation_message
+from common.tasks import BaseTask, NotifyAdminTaskMixin
+from image.celery import app as celery_app
+from image_app.models import Animal, Name
+from submissions.tasks import BatchUpdateMixin, SubmissionTaskMixin
 from validation.models import ValidationSummary
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
 
-class BatchDeleteAnimals(BatchFailurelMixin, MyTask):
+class BatchDeleteAnimals(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     name = "Batch delete animals"
     description = """Batch remove animals and associated samples"""
-    batch_type = "delete"
-    model_type = "animal"
-    submission_cls = Submission
+    action = "batch delete animals"
 
     def run(self, submission_id, animal_ids):
         """Function for batch update attribute in animals
@@ -36,8 +33,8 @@ class BatchDeleteAnimals(BatchFailurelMixin, MyTask):
             animal_ids (list): set with ids to delete
         """
 
-        # get a submisision object
-        submission_obj = Submission.objects.get(pk=submission_id)
+        # get a submission object (from SubmissionTaskMixin)
+        submission_obj = self.get_uid_submission(submission_id)
 
         logger.info("Start batch delete for animals")
         success_ids = list()
@@ -76,19 +73,13 @@ class BatchDeleteAnimals(BatchFailurelMixin, MyTask):
             except Animal.DoesNotExist:
                 failed_ids.append(animal_id)
 
-        # Update submission
-        submission_obj.refresh_from_db()
-        submission_obj.status = NEED_REVISION
-
         if len(failed_ids) != 0:
-            submission_obj.message = f"You've removed {len(success_ids)} " \
+            message = f"You've removed {len(success_ids)} " \
                 f"animals. It wasn't possible to find records with these " \
                 f"ids: {', '.join(failed_ids)}. Rerun validation please!"
         else:
-            submission_obj.message = f"You've removed {len(success_ids)} " \
+            message = f"You've removed {len(success_ids)} " \
                 f"animals. Rerun validation please!"
-
-        submission_obj.save()
 
         summary_obj, created = ValidationSummary.objects.get_or_create(
             submission=submission_obj, type='animal')
@@ -100,28 +91,30 @@ class BatchDeleteAnimals(BatchFailurelMixin, MyTask):
             submission=submission_obj, type='sample')
         summary_obj.reset()
 
+        # mark submission with NEED_REVISION and send message
+        self.update_submission_status(
+            submission_obj,
+            NEED_REVISION,
+            message,
+            construct_message=True
+        )
+
         # TODO: validation summary could be updated relying database, instead
         # doing validation. Define a method in validation.helpers to update
         # summary relying only on database
-
-        send_message(
-            submission_obj, construct_validation_message(submission_obj)
-        )
 
         logger.info("batch delete for animals completed")
 
         return 'success'
 
 
-class BatchUpdateAnimals(BatchFailurelMixin, BatchUpdateMixin, MyTask):
+class BatchUpdateAnimals(BatchUpdateMixin, NotifyAdminTaskMixin, BaseTask):
     name = "Batch update animals"
     description = """Batch update of field in animals"""
-    batch_type = "update"
-    model_type = "animal"
+    action = "batch update animals"
 
     # defined in common.tasks.BatchUpdateMixin
     item_cls = Animal
-    submission_cls = Submission
 
     def run(self, submission_id, animal_ids, attribute):
         """Function for batch update attribute in animals

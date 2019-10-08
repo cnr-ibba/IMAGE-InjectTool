@@ -18,17 +18,16 @@ from django.conf import settings
 from django.db.models import Count
 from django.utils import timezone
 
-from image.celery import app as celery_app, MyTask
+from image.celery import app as celery_app
 from image_app.helpers import parse_image_alias, get_model_object
 from image_app.models import Submission
-from common.tasks import redis_lock
+from common.tasks import BaseTask, ExclusiveTask, NotifyAdminTaskMixin
 from common.constants import (
     ERROR, NEED_REVISION, SUBMITTED, COMPLETED)
-from submissions.helpers import send_message
+from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_manager_auth
 from ..models import Submission as USISubmission
-from .submission import TaskFailureMixin
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -287,7 +286,7 @@ class FetchStatusHelper():
                 self.submission))
 
 
-class FetchStatusTask(MyTask):
+class FetchStatusTask(NotifyAdminTaskMixin, ExclusiveTask):
     name = "Fetch USI status"
     description = """Fetch biosample using USI API"""
     lock_id = "FetchStatusTask"
@@ -304,18 +303,8 @@ class FetchStatusTask(MyTask):
         # debugging instance
         self.debug_task()
 
-        # forcing blocking condition: Wait until a get a lock object
-        with redis_lock(
-                self.lock_id, blocking=False, expire=False) as acquired:
-            if acquired:
-                # do stuff and return something
-                return self.fetch_status()
-
-        message = "%s already running!" % (self.name)
-
-        logger.warning(message)
-
-        return message
+        # do stuff and return something
+        return self.fetch_status()
 
     def fetch_status(self):
         """
@@ -388,18 +377,18 @@ class FetchStatusTask(MyTask):
         logger.info("fetch_queryset completed")
 
 
-class RetrievalCompleteTask(TaskFailureMixin, MyTask):
+class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
     """Update submission status after fetching status"""
 
     name = "Complete Retrieval Process"
     description = """Check submission status after retrieval nd update stuff"""
+    action = "biosample retrieval"
 
     def run(self, *args, **kwargs):
         """Fetch submission data and then update UID submission status"""
 
         # get UID submission
-        uid_submission = Submission.objects.get(
-            pk=kwargs['uid_submission_id'])
+        uid_submission = self.get_uid_submission(kwargs['uid_submission_id'])
 
         # fetch data from database
         submission_qs = USISubmission.objects.filter(
@@ -425,7 +414,7 @@ class RetrievalCompleteTask(TaskFailureMixin, MyTask):
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
 
-            self.__update_message(uid_submission, submission_qs, ERROR)
+            self.update_message(uid_submission, submission_qs, ERROR)
 
             # send a mail to the user
             uid_submission.owner.email_user(
@@ -441,7 +430,7 @@ class RetrievalCompleteTask(TaskFailureMixin, MyTask):
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
 
-            self.__update_message(uid_submission, submission_qs, NEED_REVISION)
+            self.update_message(uid_submission, submission_qs, NEED_REVISION)
 
             # send a mail to the user
             uid_submission.owner.email_user(
@@ -455,14 +444,11 @@ class RetrievalCompleteTask(TaskFailureMixin, MyTask):
             logger.info(
                 "Submission %s completed with success" % uid_submission)
 
-            self.__update_message(uid_submission, submission_qs, COMPLETED)
-
-        # send async message
-        send_message(uid_submission)
+            self.update_message(uid_submission, submission_qs, COMPLETED)
 
         return "success"
 
-    def __update_message(self, uid_submission, submission_qs, status):
+    def update_message(self, uid_submission, submission_qs, status):
         """Read biosample.models.Submission message and set
         image_app.models.Submission message"""
 
@@ -472,9 +458,8 @@ class RetrievalCompleteTask(TaskFailureMixin, MyTask):
         for submission in submission_qs.filter(status=status):
             message.append(submission.message)
 
-        uid_submission.status = status
-        uid_submission.message = "\n".join(set(message))
-        uid_submission.save()
+        self.update_submission_status(
+            uid_submission, status, "\n".join(set(message)))
 
 
 # register explicitly tasks
