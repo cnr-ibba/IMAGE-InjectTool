@@ -1150,12 +1150,22 @@ def missing_terms():
         # get a queryset with missing terms
         missing = dict_class.objects.filter(term=None)
 
-        # ket a key for report dictionary
+        # set a key for report dictionary
         key = "%s_without_ontology" % (
             dict_class._meta.verbose_name_plural.replace(" ", "_"))
 
         # track counts
         report[key] = missing.count()
+
+        # add the total value
+        total = dict_class.objects.count()
+
+        # set a key for report dictionary
+        key = "%s_total" % (
+            dict_class._meta.verbose_name_plural.replace(" ", "_"))
+
+        # track counts
+        report[key] = total
 
     return report
 
