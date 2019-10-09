@@ -19,10 +19,7 @@ InjectTool TODO
   - if needed, should be implemented using [django-rest-framework](https://www.django-rest-framework.org/)
 
 * Regarding data submissions
-  - How I can update an already loaded biosample using a different submission from
-    the first one? Need to refator things in user spaces (no same name for same user)
   - Think about renaming `EditSubmissionView` with a more useful name
-  - mail to admin when there are issues in USI?
   - implement the sameAs key for already submitted biosamples:
     ```
     "sampleRelationships": [
@@ -59,12 +56,7 @@ InjectTool TODO
   - [django-pgcrypto](https://django-pgcrypto-expressions.readthedocs.io/en/latest/)?
 
 * Regarding Data validation:
-  - Can validation start after data load, and after calling zooma? See celery
-    chains
   - reloading submission should invalidate validationresults
-
-* Biosample manager user should do:
-  - ask for user intervention / notify success
 
 * Regarding `EditSubmissionView`
   - search?
@@ -81,12 +73,8 @@ InjectTool TODO
   - test each management command, or at least that it works
 
 * Regarding languages, dictionaries and ontology terms:
-  - Where managing tasks like zooma are called? before validation pages?
-    - breed and species annotation could start after loading data. Check for
-      celery chains
   - breeds and countries need to be validated against dictionary tables
   - browse by languages, see all synonym in every language (add navigation links)
-  - update ontology urls (see Jun's code)
   - add a custom synonym manually
   - organism parts shold be modelled in dictionary tables (ex Hair (Peli) -> strand of hair (UBERON_0001037))
 
@@ -96,7 +84,7 @@ InjectTool TODO
   - Add breadcrumb for pages
   - Navbar for tools (zooma, dictionary tables, etc)?
   - serving all 3rd party modules using CDN when possible
-  - replace text placeholder (Lorem ipsum...)
+  - replace text placeholder (Lorem ipsum...) in dashboard
   - Pagination: missing jumping to a particular page function
 
 * Issues relative to UID:
@@ -118,13 +106,6 @@ InjectTool TODO
   - [Soft-delete](https://github.com/upgrad/django-deletes) items? can I store
     items with a `deleted` attribute?
 
-* Related to celery
-  - Write celery tasks as classes
-  - consider using `celery-once` to do exclusive tasks
-  - test celery task against these [rules](https://blog.daftcode.pl/working-with-asynchronous-celery-tasks-lessons-learned-32bb7495586b):
-    - idenpotence (select_for_update)
-    - acks late
-
 * Relate to templatetags
   - process and render pagination with get parameters. See:
     - https://simpleisbetterthancomplex.com/snippet/2016/08/22/dealing-with-querystring-parameters.html
@@ -135,10 +116,3 @@ InjectTool TODO
 * Related to CRBanim
   - alternative_id issue (now is a duplicate of sample/animal name)
   - deal with biosample records
-
-* Regarding biosample submission: related items should belong to the same submission:
-  check relationship between objects and try to append related items together:
-  ```sql
-  SELECT t1.id, t3.id as submission_id, t1.alternative_id, t4.name AS father_name, t5.name AS mother_name, t2.name FROM image_app_animal AS t1 INNER JOIN image_app_name AS t2 ON t1.name_id = t2.id INNER JOIN image_app_submission AS t3 ON t2.submission_id = t3.id INNER JOIN image_app_name as t4 ON t1.father_id = t4.id INNER JOIN image_app_name AS t5 on t1.mother_id = t5.id WHERE t3.id = 6 AND t4.name != 'ANIMAL:::
-ID:::unknown_sire' AND t5.name != 'ANIMAL:::ID:::unknown_dam' LIMIT 10;
-  ```
