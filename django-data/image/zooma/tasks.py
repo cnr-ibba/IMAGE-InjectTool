@@ -48,6 +48,7 @@ class AnnotateCountries(AnnotateTaskMixin, ExclusiveTask):
     description = """Annotate countries with ontologies using Zooma tools"""
     model = DictCountry
     annotate_func = staticmethod(annotate_country)
+    lock_id = "AnnotateCountries"
 
 
 class AnnotateBreeds(AnnotateTaskMixin, ExclusiveTask):
@@ -55,6 +56,7 @@ class AnnotateBreeds(AnnotateTaskMixin, ExclusiveTask):
     description = """Annotate breeds with ontologies using Zooma tools"""
     model = DictBreed
     annotate_func = staticmethod(annotate_breed)
+    lock_id = "AnnotateBreeds"
 
 
 class AnnotateSpecies(AnnotateTaskMixin, ExclusiveTask):
@@ -62,6 +64,7 @@ class AnnotateSpecies(AnnotateTaskMixin, ExclusiveTask):
     description = """Annotate species with ontologies using Zooma tools"""
     model = DictSpecie
     annotate_func = staticmethod(annotate_specie)
+    lock_id = "AnnotateSpecies"
 
 
 class AnnotateUberon(AnnotateTaskMixin, ExclusiveTask):
@@ -69,6 +72,7 @@ class AnnotateUberon(AnnotateTaskMixin, ExclusiveTask):
     description = "Annotate organism parts with ontologies using Zooma tools"
     model = DictUberon
     annotate_func = staticmethod(annotate_uberon)
+    lock_id = "AnnotateUberon"
 
 
 class AnnotateDictDevelStage(AnnotateTaskMixin, ExclusiveTask):
@@ -77,6 +81,7 @@ class AnnotateDictDevelStage(AnnotateTaskMixin, ExclusiveTask):
         "Annotate developmental stages with ontologies using Zooma tools")
     model = DictDevelStage
     annotate_func = staticmethod(annotate_dictdevelstage)
+    lock_id = "AnnotateDictDevelStage"
 
 
 class AnnotateDictPhysioStage(AnnotateTaskMixin, ExclusiveTask):
@@ -85,6 +90,7 @@ class AnnotateDictPhysioStage(AnnotateTaskMixin, ExclusiveTask):
         "Annotate physiological stages with ontologies using Zooma tools")
     model = DictPhysioStage
     annotate_func = staticmethod(annotate_dictphysiostage)
+    lock_id = "AnnotateDictPhysioStage"
 
 
 class AnnotateAll(ExclusiveTask):

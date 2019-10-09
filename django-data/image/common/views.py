@@ -11,10 +11,14 @@ import logging
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.utils import timezone
-from django.shortcuts import redirect
+from django.utils.decorators import method_decorator
+from django.shortcuts import redirect, render_to_response
+from django.template import RequestContext
 from django.urls import reverse
+from django.views.generic.base import TemplateView
 
 from .constants import NEED_REVISION
+from .decorators import ajax_required
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -209,3 +213,19 @@ class ListMaterialMixin(OwnerMixin):
             "name",
             "name__validationresult",
             "name__submission")
+
+
+# https://stackoverflow.com/a/13409704/4385116
+class AjaxTemplateView(TemplateView):
+    template_name = None
+
+    def get(self, request):
+        data = {}
+
+        return render_to_response(
+            self.template_name, data,
+            context_instance=RequestContext(request))
+
+    @method_decorator(ajax_required)
+    def dispatch(self, *args, **kwargs):
+        return super(AjaxTemplateView, self).dispatch(*args, **kwargs)

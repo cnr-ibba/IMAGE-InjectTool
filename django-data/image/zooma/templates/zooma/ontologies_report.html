@@ -27,7 +27,7 @@
         <td>{{missing_terms.breeds_total}}</td>
         <td>{{missing_terms.breeds_without_ontology}}</td>
         <td>
-            <a class="btn btn-outline-info btn-sm {% if missing_terms.breeds_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+            <button id="annotate_breeds" type="button" class="btn btn-outline-info btn-sm {% if missing_terms.breeds_without_ontology == 0 %} disabled{% endif %}"><i class="fas fa-search"></i> Annotate</button>
             {% if user.is_staff %}
               <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictbreed_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
             {% else %}
@@ -132,10 +132,44 @@
 {% endblock content %}
 
 {% block custom-js %}
+
+{% include "includes/ajax_stuff.html" %}
+
   <script>
   // Jquery called when document is loaded
   $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();
   });
+
+  $('#annotate_breeds').click(function() {
+    console.log("Calling annotate_breeds");
+
+    // do the ajax call
+    $.post(
+      '{% url "zooma:annotate_breeds" %}',
+      {},
+      function( data ) {
+        console.log(data.status);
+      }
+    );
+
+    $.post(
+      '{% url "zooma:annotate_breeds" %}',
+      {},
+      function( data ) {
+        console.log(data.status);
+      }
+    );
+
+    // disable button after click event https://stackoverflow.com/a/3566864/4385116
+    $(this).addClass("disabled");
+
+    // enable button after a certain period https://stackoverflow.com/a/3328646/4385116
+    setTimeout(function () {
+        $("#annotate_breeds").removeClass("disabled");
+    }, 5000);
+  });
+
   </script>
+
 {% endblock custom-js %}

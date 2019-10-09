@@ -18,4 +18,7 @@ urlpatterns = [
     url(r'^ontologies_report/$',
         views.OntologiesReportView.as_view(),
         name='ontologies_report'),
+    url(r'^annotate_breeds/$',
+        views.AnnotateBreedsView.as_view(),
+        name='annotate_breeds'),
 ]
