@@ -13,10 +13,12 @@
   <table class="table table-hover">
     <thead>
       <tr>
+        {# column fixed size #}
+        {# https://stackoverflow.com/a/18498071/4385116 #}
         <th scope="col">Name</th>
         <th scope="col">Total</th>
         <th scope="col">Unknown</th>
-        <th scope="col">Action</th>
+        <th scope="col" style="width: 20%">Action</th>
       </tr>
     </thead>
     <tbody>
@@ -24,40 +26,95 @@
         <th scope="row">Breeds</th>
         <td>{{missing_terms.breeds_total}}</td>
         <td>{{missing_terms.breeds_without_ontology}}</td>
-        <td><a class="btn btn-outline-warning btn-sm btn-block{% if missing_terms.breeds_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a></td>
+        <td>
+            <a class="btn btn-outline-info btn-sm {% if missing_terms.breeds_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+            {% if user.is_staff %}
+              <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictbreed_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+            {% else %}
+              <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
+                <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
+              </span>
+            {% endif %}
+        </td>
       </tr>
       <tr class="table-secondary">
         <th scope="row">Countries</th>
         <td>{{missing_terms.countries_total}}</td>
         <td>{{missing_terms.countries_without_ontology}}</td>
-        <td><a class="btn btn-outline-warning btn-sm btn-block{% if missing_terms.countries_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a></td>
+        <td>
+          <a class="btn btn-outline-info btn-sm{% if missing_terms.countries_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+          {% if user.is_staff %}
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictcountry_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+          {% else %}
+            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
+              <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
+            </span>
+          {% endif %}
+        </td>
       </tr>
       <tr class="table-primary">
         <th scope="row">Species</th>
         <td>{{missing_terms.species_total}}</td>
         <td>{{missing_terms.species_without_ontology}}</td>
-        <td><a class="btn btn-outline-warning btn-sm btn-block{% if missing_terms.species_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a></td>
+        <td>
+          <a class="btn btn-outline-info btn-sm{% if missing_terms.species_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+          {% if user.is_staff %}
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictspecie_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+          {% else %}
+            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
+              <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
+            </span>
+          {% endif %}
+        </td>
       </tr>
       <tr class="table-secondary">
         <th scope="row">Organism parts</th>
         <td>{{missing_terms.organism_parts_total}}</td>
         <td>{{missing_terms.organism_parts_without_ontology}}</td>
-        <td><a class="btn btn-outline-warning btn-sm btn-block{% if missing_terms.organism_parts_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a></td>
+        <td>
+          <a class="btn btn-outline-info btn-sm{% if missing_terms.organism_parts_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+          {% if user.is_staff %}
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictuberon_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+          {% else %}
+            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
+              <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
+            </span>
+          {% endif %}
+        </td>
       </tr>
       <tr class="table-primary">
         <th scope="row">Developmental stages</th>
         <td>{{missing_terms.developmental_stages_total}}</td>
         <td>{{missing_terms.developmental_stages_without_ontology}}</td>
-        <td><a class="btn btn-outline-warning btn-sm btn-block{% if missing_terms.developmental_stages_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a></td>
+        <td>
+          <a class="btn btn-outline-info btn-sm{% if missing_terms.developmental_stages_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+          {% if user.is_staff %}
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictdevelstage_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+          {% else %}
+            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
+              <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
+            </span>
+          {% endif %}
+        </td>
       </tr>
       <tr class="table-secondary">
         <th scope="row">Physiological stages</th>
         <td>{{missing_terms.physiological_stages_total}}</td>
         <td>{{missing_terms.physiological_stages_without_ontology}}</td>
         <td>
+          <!--
           <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
           </div>
+          -->
+          <a class="btn btn-outline-info btn-sm{% if missing_terms.physiological_stages_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+          {% if user.is_staff %}
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictphysiostage_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+          {% else %}
+            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
+              <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
+            </span>
+          {% endif %}
         </td>
       </tr>
     </tbody>
@@ -73,3 +130,12 @@
   </p>
 
 {% endblock content %}
+
+{% block custom-js %}
+  <script>
+  // Jquery called when document is loaded
+  $(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+  </script>
+{% endblock custom-js %}
