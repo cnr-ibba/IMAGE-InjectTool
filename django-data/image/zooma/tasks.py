@@ -6,13 +6,10 @@ Created on Thu Oct 25 11:27:52 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import time
-
 from celery import group
-from celery.result import allow_join_result
 from celery.utils.log import get_task_logger
 
-from common.tasks import BaseTask, redis_lock
+from common.tasks import ExclusiveTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
 from image_app.models import (
     DictCountry, DictBreed, DictSpecie, DictUberon, DictDevelStage,
@@ -26,7 +23,7 @@ from .helpers import (
 logger = get_task_logger(__name__)
 
 
-class AnnotateTaskMixin():
+class AnnotateTaskMixin(NotifyAdminTaskMixin):
     name = None
     descripttion = None
     model = None
@@ -46,35 +43,35 @@ class AnnotateTaskMixin():
         return "success"
 
 
-class AnnotateCountries(AnnotateTaskMixin, BaseTask):
+class AnnotateCountries(AnnotateTaskMixin, ExclusiveTask):
     name = "Annotate Countries"
     description = """Annotate countries with ontologies using Zooma tools"""
     model = DictCountry
     annotate_func = staticmethod(annotate_country)
 
 
-class AnnotateBreeds(AnnotateTaskMixin, BaseTask):
+class AnnotateBreeds(AnnotateTaskMixin, ExclusiveTask):
     name = "Annotate Breeds"
     description = """Annotate breeds with ontologies using Zooma tools"""
     model = DictBreed
     annotate_func = staticmethod(annotate_breed)
 
 
-class AnnotateSpecies(AnnotateTaskMixin, BaseTask):
+class AnnotateSpecies(AnnotateTaskMixin, ExclusiveTask):
     name = "Annotate Species"
     description = """Annotate species with ontologies using Zooma tools"""
     model = DictSpecie
     annotate_func = staticmethod(annotate_specie)
 
 
-class AnnotateUberon(AnnotateTaskMixin, BaseTask):
+class AnnotateUberon(AnnotateTaskMixin, ExclusiveTask):
     name = "Annotate Uberon"
     description = "Annotate organism parts with ontologies using Zooma tools"
     model = DictUberon
     annotate_func = staticmethod(annotate_uberon)
 
 
-class AnnotateDictDevelStage(AnnotateTaskMixin, BaseTask):
+class AnnotateDictDevelStage(AnnotateTaskMixin, ExclusiveTask):
     name = "Annotate DictDevelStage"
     description = (
         "Annotate developmental stages with ontologies using Zooma tools")
@@ -82,7 +79,7 @@ class AnnotateDictDevelStage(AnnotateTaskMixin, BaseTask):
     annotate_func = staticmethod(annotate_dictdevelstage)
 
 
-class AnnotateDictPhysioStage(AnnotateTaskMixin, BaseTask):
+class AnnotateDictPhysioStage(AnnotateTaskMixin, ExclusiveTask):
     name = "Annotate DictPhysioStage"
     description = (
         "Annotate physiological stages with ontologies using Zooma tools")
@@ -90,7 +87,7 @@ class AnnotateDictPhysioStage(AnnotateTaskMixin, BaseTask):
     annotate_func = staticmethod(annotate_dictphysiostage)
 
 
-class AnnotateAll(BaseTask):
+class AnnotateAll(ExclusiveTask):
     name = "Annotate All"
     description = """Annotate all dict tables using Zooma"""
     lock_id = "AnnotateAll"
@@ -106,22 +103,6 @@ class AnnotateAll(BaseTask):
 
         # debugging instance
         self.debug_task()
-
-        # blocking condition: get a lock or exit with statement
-        with redis_lock(
-                self.lock_id, blocking=False, expire=False) as acquired:
-            if acquired:
-                # do stuff and return something
-                return self.call_zooma()
-
-        message = "%s already running!" % (self.name)
-
-        logger.warning(message)
-
-        return message
-
-    def call_zooma(self):
-        """Start all task in a group and wait for a reply"""
 
         tasks = [
             AnnotateCountries(), AnnotateBreeds(), AnnotateSpecies(),
@@ -139,18 +120,7 @@ class AnnotateAll(BaseTask):
 
         logger.debug(result)
 
-        # in order to avoid: Never call result.get() within a task!
-        # https://stackoverflow.com/a/39975099/4385116
-        with allow_join_result():
-            while result.waiting() is True:
-                logger.debug("Waiting for zooma tasks to complete")
-                time.sleep(10)
-
-            # get results
-            results = result.join()
-
-        for i, task in enumerate(tasks):
-            logger.debug("%s returned %s" % (task.name, results[i]))
+        # forget about called tasks and exit
 
         return "success"
 

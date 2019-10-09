@@ -213,8 +213,7 @@ class TestAnnotateAll(TestCase):
         # calling base object
         super().tearDown()
 
-    @patch("time.sleep")
-    def test_annotateall(self, my_time):
+    def test_annotateall(self):
         """Test AnnotateAll while a lock is present"""
 
         res = self.my_task.run()
@@ -225,14 +224,13 @@ class TestAnnotateAll(TestCase):
         # assert mock objects called
         self.assertTrue(self.mock_group.called)
         self.assertTrue(self.mock_group.return_value.delay.called)
-        self.assertTrue(my_time.called)
 
     # Test a non blocking instance
     @patch("redis.lock.Lock.acquire", return_value=False)
     def test_annotateall_nb(self, my_lock):
         """Test AnnotateAll while a lock is present"""
 
-        res = self.my_task.run()
+        res = self.my_task.delay()
 
         # assert database is locked
         self.assertEqual(res, "%s already running!" % (self.my_task.name))
