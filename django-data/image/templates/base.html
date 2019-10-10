@@ -64,6 +64,14 @@
               <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                 <a class="nav-link" href="{% url 'image_app:dashboard' %}">Dashboard</a>
               </li>
+              <li class="nav-item dropdown {% if request.resolver_match.url_name in 'species,ontologies_report' %}active{% endif %}">
+                <a class="nav-link dropdown-toggle" href="#" id="toolMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Tools</a>
+                <div class="dropdown-menu" aria-labelledby="toolMenu">
+                  <a class="dropdown-item {% if request.resolver_match.url_name == 'species' %}active{% endif %}" href="{% url 'language:species' %}">Specie synonyms</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item {% if request.resolver_match.url_name == 'ontologies_report' %}active{% endif %}" href="{% url 'zooma:ontologies_report' %}">Ontologies report</a>
+                </div>
+              </li>
             {% endif %}
           </ul>
           {% if user.is_authenticated %}

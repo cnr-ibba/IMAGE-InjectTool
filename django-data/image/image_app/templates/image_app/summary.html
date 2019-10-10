@@ -20,6 +20,9 @@
     <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
     <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
     <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
+    <li>You have {{uid_report.organism_parts_without_ontology}} organims parts without ontologies</li>
+    <li>You have {{uid_report.developmental_stages_without_ontology}} developmental stages without ontologies</li>
+    <li>You have {{uid_report.physiological_stages_without_ontology}} physiological stages without ontologies</li>
   </ul>
 
   {# call a custom templatetag and send result into a variable #}
@@ -28,10 +31,13 @@
   <p class="container mt-3">
     <div class="row">
       <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-primary btn-lg btn-block {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">Submissions List</a>
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'zooma:ontologies_report' %}" role="button">Annotate with Zooma</a>
       </div>
       <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+        <a class="btn btn-secondary btn-lg btn-block {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">Submissions List</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-info btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
       </div>
     </div>
   </p>

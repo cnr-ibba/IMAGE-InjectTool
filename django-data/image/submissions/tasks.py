@@ -14,6 +14,7 @@ from common.constants import ERROR, NEED_REVISION
 from common.tasks import NotifyAdminTaskMixin
 from image_app.models import Submission
 from validation.helpers import construct_validation_message
+from zooma.tasks import AnnotateAll
 
 from .helpers import send_message
 
@@ -151,6 +152,13 @@ class ImportGenericTaskMixin(SubmissionTaskMixin, NotifyAdminTaskMixin):
 
             # debug
             logger.info(message)
+
+            # calling zooma tasks
+            annotate_task = AnnotateAll()
+            res = annotate_task.delay()
+
+            logger.info(
+                "Start zooma annotation with task %s" % res.task_id)
 
             # always return something
             return "success"

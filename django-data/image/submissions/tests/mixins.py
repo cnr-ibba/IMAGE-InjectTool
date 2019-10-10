@@ -24,13 +24,18 @@ class ImportGenericTaskMixinTestCase():
         # calling my base class setup
         super().setUp()
 
-        # setting channels methods
+        # setting upload function
         self.my_upload_patcher = patch(self.upload_method)
         self.my_upload = self.my_upload_patcher.start()
+
+        # mocking annotate with zooma function
+        self.mock_annotateall_patcher = patch('submissions.tasks.AnnotateAll')
+        self.mock_annotateall = self.mock_annotateall_patcher.start()
 
     def tearDown(self):
         # stopping mock objects
         self.my_upload_patcher.stop()
+        self.mock_annotateall_patcher.stop()
 
         # calling base methods
         super().tearDown()
@@ -73,6 +78,9 @@ class ImportGenericTaskMixinTestCase():
 
         self.check_message(message, notification_message)
 
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
+
     def test_import_from_file(self):
         """Testing file import"""
 
@@ -87,6 +95,9 @@ class ImportGenericTaskMixinTestCase():
 
         # assert that method were called
         self.assertTrue(self.my_upload.called)
+
+        # assering zooma called
+        self.assertTrue(self.mock_annotateall.called)
 
     def test_import_from_file_errors(self):
         """Testing file import with errors"""
@@ -103,6 +114,9 @@ class ImportGenericTaskMixinTestCase():
 
         # assert that method were called
         self.assertTrue(self.my_upload.called)
+
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
 
     def test_mail_to_owner(self):
         """Testing a message to owner"""

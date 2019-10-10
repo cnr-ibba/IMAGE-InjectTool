@@ -19,6 +19,7 @@ requests
 requests_cache
 django-betterforms
 django-registration-redux==2.5
+kombu==4.5.0
 tornado>=4.2.0,<6.0.0
 celery==4.2.1
 redis==3.2.0

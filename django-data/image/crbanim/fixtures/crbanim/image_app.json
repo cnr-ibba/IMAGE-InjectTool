@@ -109,8 +109,8 @@
   "fields": {
     "confidence": null,
     "supplied_breed": "White Leghorn",
-    "mapped_breed": null,
-    "mapped_breed_term": null,
+    "label": null,
+    "term": null,
     "country": 3,
     "specie": 2
   }

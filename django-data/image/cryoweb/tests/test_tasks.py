@@ -37,6 +37,17 @@ class ImportCryowebTest(TestCase):
         # change lock_id (useful when running test during cron)
         self.my_task.lock_id = "test-ImportCryowebTask"
 
+        # mocking annotate with zooma function
+        self.mock_annotateall_patcher = patch('submissions.tasks.AnnotateAll')
+        self.mock_annotateall = self.mock_annotateall_patcher.start()
+
+    def tearDown(self):
+        # stopping mock objects
+        self.mock_annotateall_patcher.stop()
+
+        # calling base methods
+        super().tearDown()
+
     # patching upload_cryoweb and truncate database
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import", return_value=True)
@@ -58,6 +69,9 @@ class ImportCryowebTest(TestCase):
 
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
+
+        # assering zooma called
+        self.assertTrue(self.mock_annotateall.called)
 
     @patch('submissions.helpers.send_message_to_websocket')
     @patch('asyncio.get_event_loop')
@@ -95,6 +109,9 @@ class ImportCryowebTest(TestCase):
              'notification_message': 'Error in importing data: '
                                      'Cryoweb has data'}, 1)
 
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
+
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import")
     @patch("cryoweb.tasks.upload_cryoweb", return_value=False)
@@ -113,6 +130,9 @@ class ImportCryowebTest(TestCase):
 
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
+
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
 
     @patch("cryoweb.tasks.truncate_database")
     @patch("cryoweb.tasks.cryoweb_import", return_value=False)
@@ -133,6 +153,9 @@ class ImportCryowebTest(TestCase):
         # ensure that database is truncated
         self.assertTrue(my_truncate.called)
 
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)
+
     # Test a non blocking instance
     @patch("redis.lock.Lock.acquire", return_value=False)
     @patch("cryoweb.helpers.cryoweb_import")
@@ -142,12 +165,9 @@ class ImportCryowebTest(TestCase):
     def test_import_from_cryoweb_nb(
             self, my_truncate, my_has_data, my_upload, my_import, my_lock):
 
-        # setting task as non-blocking to test stuff
-        self.my_task.blocking = False
-
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
-        res = self.my_task.delay(submission_id=1)
+        res = self.my_task.run(submission_id=1)
 
         # assert database is locked
         self.assertEqual(res, "Import Cryoweb already running!")
@@ -157,3 +177,6 @@ class ImportCryowebTest(TestCase):
         self.assertFalse(my_upload.called)
         self.assertFalse(my_import.called)
         self.assertTrue(my_lock.called)
+
+        # assering zooma not called
+        self.assertFalse(self.mock_annotateall.called)

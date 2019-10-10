@@ -258,13 +258,23 @@ class DictBreed(Confidence):
 
     # this was the description field in cryoweb v_breeds_species tables
     supplied_breed = models.CharField(max_length=255, blank=False)
-    mapped_breed = models.CharField(max_length=255, blank=False, null=True)
 
-    mapped_breed_term = models.CharField(
-            max_length=255,
-            blank=False,
-            null=True,
-            help_text="Example: LBO_0000347")
+    # those can't be null like other DictBase classes
+    # HINT: if every breed should have a mapped breed referring a specie
+    # at least, could I inherit from DictBase class?
+    label = models.CharField(
+        max_length=255,
+        blank=False,
+        null=True,
+        verbose_name="mapped breed")
+
+    # old mapped_breed_term
+    term = models.CharField(
+        max_length=255,
+        blank=False,
+        null=True,
+        help_text="Example: LBO_0000347",
+        verbose_name="mapped breed term")
 
     # using a constraint for country.
     country = models.ForeignKey(
@@ -277,7 +287,7 @@ class DictBreed(Confidence):
         on_delete=models.PROTECT)
 
     class Meta:
-        verbose_name = 'Breed'
+        verbose_name = 'breed'
         unique_together = (("supplied_breed", "specie", "country"),)
 
     def __str__(self):
@@ -285,6 +295,30 @@ class DictBreed(Confidence):
             supplied=self.supplied_breed,
             mapped=self.mapped_breed,
             specie=self.specie.label)
+
+    @property
+    def mapped_breed(self):
+        """Alias for label attribute"""
+
+        return self.label
+
+    @mapped_breed.setter
+    def mapped_breed(self, label):
+        """Alias for label attribute"""
+
+        self.label = label
+
+    @property
+    def mapped_breed_term(self):
+        """Alias for term attribute"""
+
+        return self.term
+
+    @mapped_breed_term.setter
+    def mapped_breed_term(self, term):
+        """Alias for label attribute"""
+
+        self.term = term
 
     def format_attribute(self):
         """Format mapped_breed attribute (with its ontology). Return None if
@@ -1093,19 +1127,45 @@ def uid_report(user):
     report['n_of_samples'] = Sample.objects.filter(
         owner=user).count()
 
+    # merging dictionaries: https://stackoverflow.com/a/26853961
     # HINT: have they sense in a per user statistic?
+    report = {**report, **missing_terms()}
 
-    # check breeds without ontologies
-    breed = DictBreed.objects.filter(mapped_breed_term=None)
-    report['breeds_without_ontology'] = breed.count()
+    return report
 
-    # check countries without ontology
-    country = DictCountry.objects.filter(term=None)
-    report['countries_without_ontology'] = country.count()
 
-    # check species without ontology
-    species = DictSpecie.objects.filter(term=None)
-    report['species_without_ontology'] = species.count()
+def missing_terms():
+    """Get informations about dictionary terms without ontologies"""
+
+    # a list with all dictionary classes
+    dict_classes = [
+        DictBreed, DictCountry, DictSpecie, DictUberon, DictDevelStage,
+        DictPhysioStage
+    ]
+
+    # get a dictionary to report data
+    report = {}
+
+    for dict_class in dict_classes:
+        # get a queryset with missing terms
+        missing = dict_class.objects.filter(term=None)
+
+        # set a key for report dictionary
+        key = "%s_without_ontology" % (
+            dict_class._meta.verbose_name_plural.replace(" ", "_"))
+
+        # track counts
+        report[key] = missing.count()
+
+        # add the total value
+        total = dict_class.objects.count()
+
+        # set a key for report dictionary
+        key = "%s_total" % (
+            dict_class._meta.verbose_name_plural.replace(" ", "_"))
+
+        # track counts
+        report[key] = total
 
     return report
 

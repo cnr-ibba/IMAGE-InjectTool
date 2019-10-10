@@ -395,7 +395,11 @@ CELERY_BEAT_SCHEDULE = {
     'fetch_biosample_status': {
         'task': "Fetch USI status",
         'schedule': crontab(hour="*", minute='*/15'),
-    }
+    },
+    'call_zooma': {
+        'task': "Annotate All",
+        'schedule': crontab(minute=0, hour=0, day_of_week='sunday'),
+    },
 }
 
 # Channels

@@ -586,9 +586,18 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         reference = {
                 'n_of_animals': 3,
                 'n_of_samples': 1,
+                'breeds_total': 1,
                 'breeds_without_ontology': 0,
+                'countries_total': 3,
                 'countries_without_ontology': 0,
+                'species_total': 1,
                 'species_without_ontology': 0,
+                'developmental_stages_total': 1,
+                'developmental_stages_without_ontology': 0,
+                'organism_parts_total': 1,
+                'organism_parts_without_ontology': 0,
+                'physiological_stages_total': 1,
+                'physiological_stages_without_ontology': 0,
                 }
 
         user = User.objects.get(pk=1)

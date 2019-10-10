@@ -10,9 +10,12 @@ import logging
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.http import HttpResponseBadRequest
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.views.generic.base import TemplateView
 
 from .constants import NEED_REVISION
 
@@ -209,3 +212,23 @@ class ListMaterialMixin(OwnerMixin):
             "name",
             "name__validationresult",
             "name__submission")
+
+
+def ajax_required(f):
+    def wrap(request, *args, **kwargs):
+        if not request.is_ajax():
+            return HttpResponseBadRequest()
+
+        return f(request, *args, **kwargs)
+
+    wrap.__doc__ = f.__doc__
+    wrap.__name__ = f.__name__
+
+    return wrap
+
+
+# https://stackoverflow.com/a/13409704/4385116
+class AjaxTemplateView(TemplateView):
+    @method_decorator(ajax_required)
+    def dispatch(self, *args, **kwargs):
+        return super(AjaxTemplateView, self).dispatch(*args, **kwargs)

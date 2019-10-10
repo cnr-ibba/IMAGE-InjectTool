@@ -100,8 +100,8 @@
   "fields": {
     "confidence": null,
     "supplied_breed": "Cinta Senese",
-    "mapped_breed": null,
-    "mapped_breed_term": null,
+    "label": null,
+    "term": null,
     "country": 2,
     "specie": 1
   }
@@ -112,8 +112,8 @@
   "fields": {
     "confidence": null,
     "supplied_breed": "Verzaschese",
-    "mapped_breed": null,
-    "mapped_breed_term": null,
+    "label": null,
+    "term": null,
     "country": 2,
     "specie": 2
   }

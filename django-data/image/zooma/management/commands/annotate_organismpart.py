@@ -10,7 +10,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 from image_app.models import DictUberon
-from zooma.helpers import annotate_uberon
+from zooma.helpers import annotate_organismpart
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -22,4 +22,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # get all species without a term
         for part in DictUberon.objects.filter(term__isnull=True):
-            annotate_uberon(part)
+            annotate_organismpart(part)

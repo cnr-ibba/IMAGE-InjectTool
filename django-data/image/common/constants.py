@@ -165,7 +165,10 @@ TEMPLATE_TYPE = DATA_TYPES.get_value('template')
 CRB_ANIM_TYPE = DATA_TYPES.get_value('crb_anim')
 
 # get different confidence statuses
+HIGH = CONFIDENCES.get_value('high')
 GOOD = CONFIDENCES.get_value('good')
+MEDIUM = CONFIDENCES.get_value('medium')
+LOW = CONFIDENCES.get_value('low')
 CURATED = CONFIDENCES.get_value('curated')
 
 # get time units
