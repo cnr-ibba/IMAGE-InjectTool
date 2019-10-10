@@ -73,35 +73,35 @@ class CommandsTestCase(TestCase):
 
         self.assertTrue(my_func.called)
 
-    @patch('zooma.helpers.annotate_uberon')
+    @patch('zooma.helpers.annotate_organismpart')
     def test_annotate_uberon(self, my_func):
-        "Test annotate_uberon command"
+        "Test annotate_organismpart command"
 
         # mocking objects
         args = []
         opts = {}
-        call_command('annotate_uberon', *args, **opts)
+        call_command('annotate_organismpart', *args, **opts)
 
         self.assertTrue(my_func.called)
 
-    @patch('zooma.helpers.annotate_dictdevelstage')
+    @patch('zooma.helpers.annotate_develstage')
     def test_annotate_dictdevelstage(self, my_func):
-        "Test annotate_dictdevelstage command"
+        "Test annotate_develstage command"
 
         # mocking objects
         args = []
         opts = {}
-        call_command('annotate_dictdevelstage', *args, **opts)
+        call_command('annotate_develstage', *args, **opts)
 
         self.assertTrue(my_func.called)
 
-    @patch('zooma.helpers.annotate_dictphysiostage')
-    def test_annotate_dictphysiostage(self, my_func):
-        "Test annotate_dictphysiostage command"
+    @patch('zooma.helpers.annotate_physiostage')
+    def test_annotate_physiostage(self, my_func):
+        "Test annotate_physiostage command"
 
         # mocking objects
         args = []
         opts = {}
-        call_command('annotate_dictphysiostage', *args, **opts)
+        call_command('annotate_physiostage', *args, **opts)
 
         self.assertTrue(my_func.called)

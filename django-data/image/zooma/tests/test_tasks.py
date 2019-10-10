@@ -15,8 +15,8 @@ from image_app.models import (
     DictPhysioStage)
 
 from ..tasks import (
-    AnnotateBreeds, AnnotateCountries, AnnotateSpecies, AnnotateUberon,
-    AnnotateDictDevelStage, AnnotateDictPhysioStage, AnnotateAll)
+    AnnotateBreeds, AnnotateCountries, AnnotateSpecies, AnnotateOrganismPart,
+    AnnotateDevelStage, AnnotatePhysioStage, AnnotateAll)
 
 
 class TestAnnotateBreeds(TestCase):
@@ -111,7 +111,7 @@ class TestAnnotateUberon(TestCase):
     ]
 
     def setUp(self):
-        self.my_task = AnnotateUberon()
+        self.my_task = AnnotateOrganismPart()
 
         # get a specie object
         part = DictUberon.objects.get(pk=1)
@@ -121,7 +121,7 @@ class TestAnnotateUberon(TestCase):
         part.confidence = None
         part.save()
 
-    @patch("zooma.tasks.AnnotateUberon.annotate_func")
+    @patch("zooma.tasks.AnnotateOrganismPart.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 
@@ -138,7 +138,7 @@ class TestAnnotateDictDevelStage(TestCase):
     ]
 
     def setUp(self):
-        self.my_task = AnnotateDictDevelStage()
+        self.my_task = AnnotateDevelStage()
 
         # get a specie object
         stage = DictDevelStage.objects.get(pk=1)
@@ -148,7 +148,7 @@ class TestAnnotateDictDevelStage(TestCase):
         stage.confidence = None
         stage.save()
 
-    @patch("zooma.tasks.AnnotateDictDevelStage.annotate_func")
+    @patch("zooma.tasks.AnnotateDevelStage.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 
@@ -165,7 +165,7 @@ class TestAnnotateDictPhysioStage(TestCase):
     ]
 
     def setUp(self):
-        self.my_task = AnnotateDictPhysioStage()
+        self.my_task = AnnotatePhysioStage()
 
         # get a specie object
         stage = DictPhysioStage.objects.get(pk=1)
@@ -175,7 +175,7 @@ class TestAnnotateDictPhysioStage(TestCase):
         stage.confidence = None
         stage.save()
 
-    @patch("zooma.tasks.AnnotateDictPhysioStage.annotate_func")
+    @patch("zooma.tasks.AnnotatePhysioStage.annotate_func")
     def test_task(self, my_func):
         res = self.my_task.run()
 

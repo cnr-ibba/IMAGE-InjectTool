@@ -19,9 +19,9 @@ from .tasks import (
     AnnotateBreeds as AnnotateBreedsTask,
     AnnotateCountries as AnnotateCountriesTask,
     AnnotateSpecies as AnnotateSpeciesTask,
-    AnnotateUberon as AnnotateUberonTask,
-    AnnotateDictDevelStage as AnnotateDictDevelStageTask,
-    AnnotateDictPhysioStage as AnnotateDictPhysioStageTask
+    AnnotateOrganismPart as AnnotateOrganismPartTask,
+    AnnotateDevelStage as AnnotateDevelStageTask,
+    AnnotatePhysioStage as AnnotatePhysioStageTask
 )
 
 # Get an instance of a logger
@@ -81,22 +81,22 @@ class AnnotateSpeciesView(
     task_name = "AnnotateSpecies"
 
 
-class AnnotateUberonView(
+class AnnotateOrganismPartView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
-    task_class = AnnotateUberonTask
+    task_class = AnnotateOrganismPartTask
     task_name = "AnnotateUberon"
 
 
-class AnnotateDictDevelStageView(
+class AnnotateDevelStageView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
-    task_class = AnnotateDictDevelStageTask
-    task_name = "AnnotateDictDevelStage"
+    task_class = AnnotateDevelStageTask
+    task_name = "AnnotateDevelStage"
 
 
-class AnnotateDictPhysioStageView(
+class AnnotatePhysioStageView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
-    task_class = AnnotateDictPhysioStageTask
-    task_name = "AnnotateDictPhysioStage"
+    task_class = AnnotatePhysioStageTask
+    task_name = "AnnotatePhysioStage"

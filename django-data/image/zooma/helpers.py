@@ -93,19 +93,19 @@ def annotate_specie(specie_obj):
     annotate_generic(specie_obj, "species")
 
 
-def annotate_uberon(uberon_obj):
+def annotate_organismpart(uberon_obj):
     """Annotate an organism part object using Zooma"""
 
     annotate_generic(uberon_obj, "organism part")
 
 
-def annotate_dictdevelstage(dictdevelstage_obj):
+def annotate_develstage(dictdevelstage_obj):
     """Annotate an developmental stage part object using Zooma"""
 
     annotate_generic(dictdevelstage_obj, "developmental stage")
 
 
-def annotate_dictphysiostage(dictphysiostage_obj):
+def annotate_physiostage(dictphysiostage_obj):
     """Annotate an physiological stage object using Zooma"""
 
     annotate_generic(dictphysiostage_obj, "physiological stage")

@@ -32,14 +32,14 @@ urlpatterns = [
         name='annotate_species'),
 
     url(r'^annotate_organismparts/$',
-        views.AnnotateUberonView.as_view(),
+        views.AnnotateOrganismPartView.as_view(),
         name='annotate_organismparts'),
 
     url(r'^annotate_develstages/$',
-        views.AnnotateDictDevelStageView.as_view(),
+        views.AnnotateDevelStageView.as_view(),
         name='annotate_develstages'),
 
     url(r'^annotate_physiostages/$',
-        views.AnnotateDictPhysioStageView.as_view(),
+        views.AnnotatePhysioStageView.as_view(),
         name='annotate_physiostages'),
 ]

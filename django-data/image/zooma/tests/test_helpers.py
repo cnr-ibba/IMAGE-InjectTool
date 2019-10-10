@@ -16,8 +16,8 @@ from image_app.models import (
 from common.constants import OBO_URL, GOOD, HIGH
 
 from ..helpers import (
-    annotate_breed, annotate_specie, annotate_country, annotate_uberon,
-    annotate_dictdevelstage, annotate_dictphysiostage)
+    annotate_breed, annotate_specie, annotate_country, annotate_organismpart,
+    annotate_develstage, annotate_physiostage)
 
 
 class TestAnnotateBreed(TestCase):
@@ -170,7 +170,7 @@ class TestAnnotateUberon(TestCase):
         }
 
         # call my method
-        annotate_uberon(self.part)
+        annotate_organismpart(self.part)
 
         self.assertTrue(my_zooma.called)
 
@@ -210,7 +210,7 @@ class TestAnnotateDevelStage(TestCase):
         }
 
         # call my method
-        annotate_dictdevelstage(self.stage)
+        annotate_develstage(self.stage)
 
         self.assertTrue(my_zooma.called)
 
@@ -250,7 +250,7 @@ class TestAnnotatePhysioStage(TestCase):
         }
 
         # call my method
-        annotate_dictphysiostage(self.stage)
+        annotate_physiostage(self.stage)
 
         self.assertTrue(my_zooma.called)
 

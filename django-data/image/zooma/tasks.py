@@ -16,8 +16,8 @@ from image_app.models import (
     DictPhysioStage)
 
 from .helpers import (
-    annotate_country, annotate_breed, annotate_specie, annotate_uberon,
-    annotate_dictdevelstage, annotate_dictphysiostage)
+    annotate_country, annotate_breed, annotate_specie, annotate_organismpart,
+    annotate_develstage, annotate_physiostage)
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -77,42 +77,42 @@ class AnnotateSpecies(AnnotateTaskMixin, BaseTask):
         return super().run()
 
 
-class AnnotateUberon(AnnotateTaskMixin, BaseTask):
-    name = "Annotate Uberon"
+class AnnotateOrganismPart(AnnotateTaskMixin, BaseTask):
+    name = "Annotate OrganismPart"
     description = "Annotate organism parts with ontologies using Zooma tools"
     model = DictUberon
-    annotate_func = staticmethod(annotate_uberon)
-    lock_id = "AnnotateUberon"
+    annotate_func = staticmethod(annotate_organismpart)
+    lock_id = "AnnotateOrganismPart"
 
     @exclusive_task(task_name="Annotate Uberon", lock_id="AnnotateUberon")
     def run(self):
         return super().run()
 
 
-class AnnotateDictDevelStage(AnnotateTaskMixin, BaseTask):
-    name = "Annotate DictDevelStage"
+class AnnotateDevelStage(AnnotateTaskMixin, BaseTask):
+    name = "Annotate DevelStage"
     description = (
         "Annotate developmental stages with ontologies using Zooma tools")
     model = DictDevelStage
-    annotate_func = staticmethod(annotate_dictdevelstage)
+    annotate_func = staticmethod(annotate_develstage)
 
     @exclusive_task(
-            task_name="Annotate DictDevelStage",
-            lock_id="AnnotateDictDevelStage")
+            task_name="Annotate DevelStage",
+            lock_id="AnnotateDevelStage")
     def run(self):
         return super().run()
 
 
-class AnnotateDictPhysioStage(AnnotateTaskMixin, BaseTask):
-    name = "Annotate DictPhysioStage"
+class AnnotatePhysioStage(AnnotateTaskMixin, BaseTask):
+    name = "Annotate PhysioStage"
     description = (
         "Annotate physiological stages with ontologies using Zooma tools")
     model = DictPhysioStage
-    annotate_func = staticmethod(annotate_dictphysiostage)
+    annotate_func = staticmethod(annotate_physiostage)
 
     @exclusive_task(
-            task_name="Annotate DictPhysioStage",
-            lock_id="AnnotateDictPhysioStage")
+            task_name="Annotate PhysioStage",
+            lock_id="AnnotatePhysioStage")
     def run(self):
         return super().run()
 
@@ -136,8 +136,8 @@ class AnnotateAll(BaseTask):
 
         tasks = [
             AnnotateCountries(), AnnotateBreeds(), AnnotateSpecies(),
-            AnnotateUberon(), AnnotateDictDevelStage(),
-            AnnotateDictPhysioStage()
+            AnnotateOrganismPart(), AnnotateDevelStage(),
+            AnnotatePhysioStage()
         ]
 
         # instantiate the group
@@ -163,7 +163,7 @@ class AnnotateAll(BaseTask):
 celery_app.tasks.register(AnnotateCountries)
 celery_app.tasks.register(AnnotateBreeds)
 celery_app.tasks.register(AnnotateSpecies)
-celery_app.tasks.register(AnnotateUberon)
-celery_app.tasks.register(AnnotateDictDevelStage)
-celery_app.tasks.register(AnnotateDictPhysioStage)
+celery_app.tasks.register(AnnotateOrganismPart)
+celery_app.tasks.register(AnnotateDevelStage)
+celery_app.tasks.register(AnnotatePhysioStage)
 celery_app.tasks.register(AnnotateAll)
