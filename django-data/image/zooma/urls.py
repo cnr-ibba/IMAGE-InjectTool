@@ -18,7 +18,28 @@ urlpatterns = [
     url(r'^ontologies_report/$',
         views.OntologiesReportView.as_view(),
         name='ontologies_report'),
+
     url(r'^annotate_breeds/$',
         views.AnnotateBreedsView.as_view(),
         name='annotate_breeds'),
+
+    url(r'^annotate_countries/$',
+        views.AnnotateCountriesView.as_view(),
+        name='annotate_countries'),
+
+    url(r'^annotate_species/$',
+        views.AnnotateSpeciesView.as_view(),
+        name='annotate_species'),
+
+    url(r'^annotate_organismparts/$',
+        views.AnnotateUberonView.as_view(),
+        name='annotate_organismparts'),
+
+    url(r'^annotate_develstages/$',
+        views.AnnotateDictDevelStageView.as_view(),
+        name='annotate_develstages'),
+
+    url(r'^annotate_physiostages/$',
+        views.AnnotateDictPhysioStageView.as_view(),
+        name='annotate_physiostages'),
 ]
