@@ -13,7 +13,7 @@ http://docs.celeryproject.org/en/latest/tutorials/task-cookbook.html
 
 from celery.utils.log import get_task_logger
 
-from common.tasks import ExclusiveTask
+from common.tasks import BaseTask, exclusive_task
 from image.celery import app as celery_app
 from submissions.tasks import ImportGenericTaskMixin
 
@@ -44,7 +44,7 @@ def clean_cryoweb_database(f):
     return wrap
 
 
-class ImportCryowebTask(ImportGenericTaskMixin, ExclusiveTask):
+class ImportCryowebTask(ImportGenericTaskMixin, BaseTask):
     """
     An exclusive task wich upload a *data-only* cryoweb dump in cryoweb
     database and then fill up :ref:`UID <The Unified Internal Database>`
@@ -68,11 +68,14 @@ class ImportCryowebTask(ImportGenericTaskMixin, ExclusiveTask):
     description = """Import Cryoweb data from Cryoweb dump"""
     action = "cryoweb import"
 
-    # ExclusiveTask attributes
-    lock_id = 'ImportFromCryoWeb'
-    blocking = True
-
     # decorate function in order to cleanup cryoweb database after data import
+    @exclusive_task(
+            task_name="Import Cryoweb",
+            lock_id="ImportFromCryoWeb",
+            blocking=True)
+    def run(self, submission_id):
+        return super().run(submission_id)
+
     @clean_cryoweb_database
     def import_data_from_file(self, submission_obj):
         """Call the custom import method"""

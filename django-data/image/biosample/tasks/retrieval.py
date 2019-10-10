@@ -21,7 +21,7 @@ from django.utils import timezone
 from image.celery import app as celery_app
 from image_app.helpers import parse_image_alias, get_model_object
 from image_app.models import Submission
-from common.tasks import BaseTask, ExclusiveTask, NotifyAdminTaskMixin
+from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from common.constants import (
     ERROR, NEED_REVISION, SUBMITTED, COMPLETED)
 from submissions.tasks import SubmissionTaskMixin
@@ -286,11 +286,11 @@ class FetchStatusHelper():
                 self.submission))
 
 
-class FetchStatusTask(NotifyAdminTaskMixin, ExclusiveTask):
+class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
     name = "Fetch USI status"
     description = """Fetch biosample using USI API"""
-    lock_id = "FetchStatusTask"
 
+    @exclusive_task(task_name="Fetch USI status", lock_id="FetchStatusTask")
     def run(self):
         """
         This function is called when delay is called. It will acquire a lock

@@ -145,55 +145,60 @@ def redis_lock(lock_id, blocking=False, expire=True):
             lock.release()
 
 
-class ExclusiveTask(BaseTask):
-    """A class to execute an exclusive task (run this task once, others
+class exclusive_task(object):
+    """A class decorator to execute an exclusive task by decorating
+    celery.tasks.Task.run (run this task once, others
     task calls will return already running message without calling task or
     will wait until other tasks of this type are completed)
 
     Args:
+        task_name (str): task name used for debug
+        lock_id (str): the task lock id
         blocking (bool): set task as blocking (wait until no other tasks
             are running. def. False)
         lock_expire (bool): define if lock will expire or not after a
             certain time (def. False)
     """
 
-    lock_id = None
-    blocking = False
-    lock_expire = False
+    def __init__(self, task_name, lock_id, blocking=False, block_expire=False):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if self.lock_id is None:
-            # add a lock id as a name
-            self.lock_id = self.name
-
-    def delay(self, *args, **kwargs):
-        """Star argument version of :meth:`apply_async`.
-
-        Does not support the extra options enabled by :meth:`apply_async`.
-
-        Arguments:
-            *args (Any): Positional arguments passed on to the task.
-            **kwargs (Any): Keyword arguments passed on to the task.
-
-        Returns:
-            celery.result.AsyncResult: Future promise.
         """
+        If there are decorator arguments, the function
+        to be decorated is not passed to the constructor!
+        """
+        logger.debug("Setting up ExclusiveTaskDecorator")
 
-        # forcing blocking condition: Wait until a get a lock object
-        with redis_lock(
-                self.lock_id,
-                blocking=self.blocking,
-                expire=self.lock_expire) as acquired:
+        self.task_name = task_name
+        self.lock_id = lock_id
+        self.blocking = blocking
+        self.block_expire = block_expire
 
-            if acquired:
-                # do stuff and return something
-                return self.apply_async(args, kwargs)
+    def __call__(self, f):
+        """
+        If there are decorator arguments, __call__() is only called
+        once, as part of the decoration process! You can only give
+        it a single argument, which is the function object.
+        """
+        logger.debug("Decorating function")
 
-            else:
-                # warn user and return a default message
-                message = "%s already running!" % (self.name)
-                logger.warning(message)
+        def wrapped_f(*args, **kwargs):
+            with redis_lock(
+                    self.lock_id,
+                    self.blocking,
+                    self.block_expire) as acquired:
+                if acquired:
+                    logger.debug("lock %s aquired")
 
-                return message
+                    # do stuff and return something
+                    result = f(*args, **kwargs)
+
+                    logger.debug("lock %s released")
+
+                else:
+                    # warn user and return a default message
+                    result = "%s already running!" % (self.task_name)
+                    logger.warning(result)
+
+            return result
+
+        return wrapped_f

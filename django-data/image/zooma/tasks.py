@@ -9,7 +9,7 @@ Created on Thu Oct 25 11:27:52 2018
 from celery import group
 from celery.utils.log import get_task_logger
 
-from common.tasks import ExclusiveTask, NotifyAdminTaskMixin
+from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from image.celery import app as celery_app
 from image_app.models import (
     DictCountry, DictBreed, DictSpecie, DictUberon, DictDevelStage,
@@ -43,61 +43,85 @@ class AnnotateTaskMixin(NotifyAdminTaskMixin):
         return "success"
 
 
-class AnnotateCountries(AnnotateTaskMixin, ExclusiveTask):
+class AnnotateCountries(AnnotateTaskMixin, BaseTask):
     name = "Annotate Countries"
     description = """Annotate countries with ontologies using Zooma tools"""
     model = DictCountry
     annotate_func = staticmethod(annotate_country)
-    lock_id = "AnnotateCountries"
+
+    @exclusive_task(
+            task_name="Annotate Countries", lock_id="AnnotateCountries")
+    def run(self):
+        return super().run()
 
 
-class AnnotateBreeds(AnnotateTaskMixin, ExclusiveTask):
+class AnnotateBreeds(AnnotateTaskMixin, BaseTask):
     name = "Annotate Breeds"
     description = """Annotate breeds with ontologies using Zooma tools"""
     model = DictBreed
     annotate_func = staticmethod(annotate_breed)
-    lock_id = "AnnotateBreeds"
+
+    @exclusive_task(task_name="Annotate Breeds", lock_id="AnnotateBreeds")
+    def run(self):
+        return super().run()
 
 
-class AnnotateSpecies(AnnotateTaskMixin, ExclusiveTask):
+class AnnotateSpecies(AnnotateTaskMixin, BaseTask):
     name = "Annotate Species"
     description = """Annotate species with ontologies using Zooma tools"""
     model = DictSpecie
     annotate_func = staticmethod(annotate_specie)
-    lock_id = "AnnotateSpecies"
+
+    @exclusive_task(task_name="Annotate Species", lock_id="AnnotateSpecies")
+    def run(self):
+        return super().run()
 
 
-class AnnotateUberon(AnnotateTaskMixin, ExclusiveTask):
+class AnnotateUberon(AnnotateTaskMixin, BaseTask):
     name = "Annotate Uberon"
     description = "Annotate organism parts with ontologies using Zooma tools"
     model = DictUberon
     annotate_func = staticmethod(annotate_uberon)
     lock_id = "AnnotateUberon"
 
+    @exclusive_task(task_name="Annotate Uberon", lock_id="AnnotateUberon")
+    def run(self):
+        return super().run()
 
-class AnnotateDictDevelStage(AnnotateTaskMixin, ExclusiveTask):
+
+class AnnotateDictDevelStage(AnnotateTaskMixin, BaseTask):
     name = "Annotate DictDevelStage"
     description = (
         "Annotate developmental stages with ontologies using Zooma tools")
     model = DictDevelStage
     annotate_func = staticmethod(annotate_dictdevelstage)
-    lock_id = "AnnotateDictDevelStage"
+
+    @exclusive_task(
+            task_name="Annotate DictDevelStage",
+            lock_id="AnnotateDictDevelStage")
+    def run(self):
+        return super().run()
 
 
-class AnnotateDictPhysioStage(AnnotateTaskMixin, ExclusiveTask):
+class AnnotateDictPhysioStage(AnnotateTaskMixin, BaseTask):
     name = "Annotate DictPhysioStage"
     description = (
         "Annotate physiological stages with ontologies using Zooma tools")
     model = DictPhysioStage
     annotate_func = staticmethod(annotate_dictphysiostage)
-    lock_id = "AnnotateDictPhysioStage"
+
+    @exclusive_task(
+            task_name="Annotate DictPhysioStage",
+            lock_id="AnnotateDictPhysioStage")
+    def run(self):
+        return super().run()
 
 
-class AnnotateAll(ExclusiveTask):
+class AnnotateAll(BaseTask):
     name = "Annotate All"
     description = """Annotate all dict tables using Zooma"""
-    lock_id = "AnnotateAll"
 
+    @exclusive_task(task_name="Annotate All", lock_id="AnnotateAll")
     def run(self):
         """
         This function is called when delay is called. It will acquire a lock

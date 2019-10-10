@@ -165,12 +165,9 @@ class ImportCryowebTest(TestCase):
     def test_import_from_cryoweb_nb(
             self, my_truncate, my_has_data, my_upload, my_import, my_lock):
 
-        # setting task as non-blocking to test stuff
-        self.my_task.blocking = False
-
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
-        res = self.my_task.delay(submission_id=1)
+        res = self.my_task.run(submission_id=1)
 
         # assert database is locked
         self.assertEqual(res, "Import Cryoweb already running!")

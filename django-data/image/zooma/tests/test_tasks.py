@@ -230,7 +230,7 @@ class TestAnnotateAll(TestCase):
     def test_annotateall_nb(self, my_lock):
         """Test AnnotateAll while a lock is present"""
 
-        res = self.my_task.delay()
+        res = self.my_task.run()
 
         # assert database is locked
         self.assertEqual(res, "%s already running!" % (self.my_task.name))
