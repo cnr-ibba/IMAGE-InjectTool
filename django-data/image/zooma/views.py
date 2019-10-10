@@ -13,7 +13,9 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from common.views import AjaxTemplateView
-from image_app.models import missing_terms
+from image_app.models import (
+    missing_terms, DictBreed, DictCountry, DictSpecie, DictUberon,
+    DictDevelStage, DictPhysioStage)
 
 from .tasks import (
     AnnotateBreeds as AnnotateBreedsTask,
@@ -44,9 +46,20 @@ class OntologiesReportView(LoginRequiredMixin, TemplateView):
 class AnnotateViewMixin():
     # forcing POST methods only
     # https://stackoverflow.com/a/36865283/4385116
-    http_method_names = ['post']
+    http_method_names = ['post', 'get']
     task_class = None
     task_name = None
+    dict_class = None
+
+    def get(self, request):
+        missing = self.dict_class.objects.filter(term=None).count()
+        total = self.dict_class.objects.count()
+
+        return JsonResponse(
+            {'status': 'OK',
+             'dict_type': self.dict_class._meta.verbose_name_plural,
+             'missing': missing,
+             'total': total})
 
     def post(self, request):
         task = self.task_class()
@@ -65,6 +78,7 @@ class AnnotateBreedsView(
 
     task_class = AnnotateBreedsTask
     task_name = "AnnotateBreeds"
+    dict_class = DictBreed
 
 
 class AnnotateCountriesView(
@@ -72,6 +86,7 @@ class AnnotateCountriesView(
 
     task_class = AnnotateCountriesTask
     task_name = "AnnotateCountries"
+    dict_class = DictCountry
 
 
 class AnnotateSpeciesView(
@@ -79,13 +94,15 @@ class AnnotateSpeciesView(
 
     task_class = AnnotateSpeciesTask
     task_name = "AnnotateSpecies"
+    dict_class = DictSpecie
 
 
 class AnnotateOrganismPartView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
     task_class = AnnotateOrganismPartTask
-    task_name = "AnnotateUberon"
+    task_name = "AnnotateOrganismPart"
+    dict_class = DictUberon
 
 
 class AnnotateDevelStageView(
@@ -93,6 +110,7 @@ class AnnotateDevelStageView(
 
     task_class = AnnotateDevelStageTask
     task_name = "AnnotateDevelStage"
+    dict_class = DictDevelStage
 
 
 class AnnotatePhysioStageView(
@@ -100,3 +118,4 @@ class AnnotatePhysioStageView(
 
     task_class = AnnotatePhysioStageTask
     task_name = "AnnotatePhysioStage"
+    dict_class = DictPhysioStage
