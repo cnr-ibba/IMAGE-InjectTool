@@ -107,7 +107,7 @@
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
           </div>
           -->
-          <button id="annotate_physiostages" type="button" class="btn btn-outline-info btn-sm{% if missing_terms.physiological_stages_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</a>
+          <button id="annotate_physiostages" type="button" class="btn btn-outline-info btn-sm{% if missing_terms.physiological_stages_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</button>
           {% if user.is_staff %}
             <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictphysiostage_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
           {% else %}
@@ -141,46 +141,37 @@
     $('[data-toggle="tooltip"]').tooltip();
   });
 
-  $('#annotate_breeds').click(function() {
-    console.log("Calling annotate_breeds");
-
-    // do the ajax call
-    $.post(
-      '{% url "zooma:annotate_breeds" %}',
-      {},
-      function( data ) {
-        console.log(data.status);
+  function annotate_this(selector) {
+    $(`#${selector}`).click(function() {
+      // if disabled don't do anything
+      if ($(this).hasClass("disabled")) {
+        return;
       }
-    );
 
-    // disable button after click event https://stackoverflow.com/a/3566864/4385116
-    $(this).addClass("disabled");
+      console.log(`Calling ${selector}`);
 
-    // enable button after a certain period https://stackoverflow.com/a/3328646/4385116
-    setTimeout(function () {
-        $("#annotate_breeds").removeClass("disabled");
-    }, 60*1000);
-  });
+      // do the ajax call
+      $.post(
+        `../${selector}/`,
+        {},
+        function( data ) {
+          console.log(data.status);
+        }
+      );
 
-  $('#annotate_countries').click(function() {
-    console.log("Calling annotate_countries");
+      // disable button after click event https://stackoverflow.com/a/3566864/4385116
+      $(`#${selector}`).addClass("disabled");
 
-    // do the ajax call
-    $.post(
-      '{% url "zooma:annotate_countries" %}',
-      {},
-      function( data ) {
-        console.log(data.status);
-      }
-    );
+      // enable button after a certain period https://stackoverflow.com/a/3328646/4385116
+      setTimeout(function () {
+          $(`#${selector}`).removeClass("disabled");
+          console.log(`Resetting ${selector}`);
+      }, 60*1000);
+    });
+  };
 
-    // disable button after click event https://stackoverflow.com/a/3566864/4385116
-    $(this).addClass("disabled");
-
-    // enable button after a certain period https://stackoverflow.com/a/3328646/4385116
-    setTimeout(function () {
-        $("#annotate_countries").removeClass("disabled");
-    }, 60*1000);
+  $.each([ "annotate_breeds", "annotate_countries", "annotate_species", "annotate_organismparts", "annotate_develstages", "annotate_physiostages" ], function( index, value ) {
+    annotate_this(value);
   });
 
   </script>
