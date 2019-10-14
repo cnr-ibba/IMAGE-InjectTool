@@ -232,3 +232,13 @@ class AjaxTemplateView(TemplateView):
     @method_decorator(ajax_required)
     def dispatch(self, *args, **kwargs):
         return super(AjaxTemplateView, self).dispatch(*args, **kwargs)
+
+
+class FormInvalidMixin():
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            message="Please correct the errors below",
+            extra_tags="alert alert-dismissible alert-danger")
+
+        return super(FormInvalidMixin, self).form_invalid(form)
