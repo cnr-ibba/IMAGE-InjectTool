@@ -35,6 +35,10 @@ urlpatterns = [
         views.DeleteSubmissionView.as_view(),
         name='delete'),
 
+    url(r'^(?P<pk>[-\w]+)/update/$',
+        views.UpdateSubmissionView.as_view(),
+        name='update'),
+
     url(r'^(?P<pk>[-\w]+)/delete_animals/$',
         views.DeleteAnimalsView.as_view(),
         name='delete_animals'),

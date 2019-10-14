@@ -39,7 +39,7 @@ from validation.models import ValidationSummary
 from animals.tasks import BatchDeleteAnimals, BatchUpdateAnimals
 from samples.tasks import BatchDeleteSamples, BatchUpdateSamples
 
-from .forms import SubmissionForm, ReloadForm
+from .forms import SubmissionForm, ReloadForm, UpdateSubmissionForm
 from .helpers import is_target_in_message
 
 # Get an instance of a logger
@@ -519,6 +519,12 @@ class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
             extra_tags="alert alert-dismissible alert-info")
 
         return httpresponseredirect
+
+
+class UpdateSubmissionView(OwnerMixin, FormInvalidMixin, UpdateView):
+    form_class = UpdateSubmissionForm
+    model = Submission
+    template_name = 'submissions/submission_update.html'
 
 
 class FixValidation(OwnerMixin, BaseUpdateView):
