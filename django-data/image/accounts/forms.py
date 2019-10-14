@@ -21,6 +21,8 @@ from django.utils.text import format_lazy
 from django.urls import reverse_lazy
 
 from betterforms.multiform import MultiModelForm
+from common.forms import RequestFormMixin
+from common.helpers import get_admin_emails
 from image_app.models import Person
 
 
@@ -78,19 +80,20 @@ class SignUpPersonForm(forms.ModelForm):
             )
         )
 
+        self.fields['affiliation'].help_text = mark_safe(
+            format_lazy(
+                """The institution you belong to. Not listed? please """
+                """<a href="mailto:{0}?subject=please add my organization">"""
+                """contact us</a>""", get_admin_emails()[0]
+            )
+        )
 
-class SignUpForm(MultiModelForm):
+
+class SignUpForm(RequestFormMixin, MultiModelForm):
     form_classes = {
         'user': SignUpUserForm,
         'person': SignUpPersonForm,
     }
-
-    # the request is now available, add it to the instance data
-    def __init__(self, *args, **kwargs):
-        if 'request' in kwargs:
-            self.request = kwargs.pop('request')
-
-        super(SignUpForm, self).__init__(*args, **kwargs)
 
 
 class UserForm(forms.ModelForm):
@@ -115,15 +118,8 @@ class PersonForm(forms.ModelForm):
         fields = ('initials', 'affiliation', 'role')
 
 
-class MyAccountForm(MultiModelForm):
+class MyAccountForm(RequestFormMixin, MultiModelForm):
     form_classes = {
         'user': UserForm,
         'person': PersonForm,
     }
-
-    # the request is now available, add it to the instance data
-    def __init__(self, *args, **kwargs):
-        if 'request' in kwargs:
-            self.request = kwargs.pop('request')
-
-        super(MyAccountForm, self).__init__(*args, **kwargs)

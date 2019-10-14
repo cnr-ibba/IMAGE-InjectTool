@@ -27,7 +27,7 @@ from common.constants import (
     SAMPLE_STORAGE_PROCESSING, ACCURACIES, UNITS_VALIDATION_MESSAGES,
     VALUES_VALIDATION_MESSAGES)
 from common.helpers import uid2biosample
-from common.views import OwnerMixin
+from common.views import OwnerMixin, FormInvalidMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import ImportCryowebTask
 
@@ -39,14 +39,14 @@ from validation.models import ValidationSummary
 from animals.tasks import BatchDeleteAnimals, BatchUpdateAnimals
 from samples.tasks import BatchDeleteSamples, BatchUpdateSamples
 
-from .forms import SubmissionForm, ReloadForm
+from .forms import SubmissionForm, ReloadForm, UpdateSubmissionForm
 from .helpers import is_target_in_message
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
 
-class CreateSubmissionView(LoginRequiredMixin, CreateView):
+class CreateSubmissionView(LoginRequiredMixin, FormInvalidMixin, CreateView):
     form_class = SubmissionForm
     model = Submission
 
@@ -54,14 +54,6 @@ class CreateSubmissionView(LoginRequiredMixin, CreateView):
     # in this case, ir will be 'image_app/submission_form.html' so
     # i need to clearly specify it
     template_name = "submissions/submission_form.html"
-
-    def form_invalid(self, form):
-        messages.error(
-            self.request,
-            message="Please correct the errors below",
-            extra_tags="alert alert-dismissible alert-danger")
-
-        return super(CreateSubmissionView, self).form_invalid(form)
 
     # add user to this object
     def form_valid(self, form):
@@ -349,18 +341,10 @@ class ListSubmissionsView(OwnerMixin, ListView):
     paginate_by = 10
 
 
-class ReloadSubmissionView(OwnerMixin, UpdateView):
+class ReloadSubmissionView(OwnerMixin, FormInvalidMixin, UpdateView):
     form_class = ReloadForm
     model = Submission
     template_name = 'submissions/submission_reload.html'
-
-    def form_invalid(self, form):
-        messages.error(
-            self.request,
-            message="Please correct the errors below",
-            extra_tags="alert alert-dismissible alert-danger")
-
-        return super(ReloadSubmissionView, self).form_invalid(form)
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -535,6 +519,12 @@ class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
             extra_tags="alert alert-dismissible alert-info")
 
         return httpresponseredirect
+
+
+class UpdateSubmissionView(OwnerMixin, FormInvalidMixin, UpdateView):
+    form_class = UpdateSubmissionForm
+    model = Submission
+    template_name = 'submissions/submission_update.html'
 
 
 class FixValidation(OwnerMixin, BaseUpdateView):

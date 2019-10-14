@@ -11,8 +11,9 @@ import tempfile
 
 from django import forms
 
-from common.forms import RequestFormMixin
 from common.constants import CRB_ANIM_TYPE, TEMPLATE_TYPE
+from common.forms import RequestFormMixin
+from common.helpers import get_admin_emails
 from image_app.models import Submission
 from crbanim.helpers import CRBAnimReader
 from excel.helpers import ExcelTemplateReader
@@ -133,6 +134,11 @@ class SubmissionForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
 
         help_texts = {
             'uploaded_file': 'Need to be in UTF-8 or ASCII format',
+            'organization': (
+                """Who owns the data. Not listed? please """
+                """<a href="mailto:{0}?subject=please add my organization">"""
+                """contact us</a>""".format(get_admin_emails()[0])
+            )
         }
 
 
@@ -154,4 +160,24 @@ class ReloadForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
 
         help_texts = {
             'uploaded_file': 'Need to be in UTF-8 or ASCII format',
+        }
+
+
+class UpdateSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = Submission
+        fields = (
+            'title',
+            'description',
+            'gene_bank_name',
+            'gene_bank_country',
+            'organization',
+        )
+
+        help_texts = {
+            'organization': (
+                """Who owns the data. Not listed? please """
+                """<a href="mailto:{0}?subject=please add my organization">"""
+                """contact us</a>""".format(get_admin_emails()[0])
+            )
         }

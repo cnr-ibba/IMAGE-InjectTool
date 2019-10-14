@@ -12,8 +12,7 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 from django.utils import timezone
 
-from common.tests import (
-    FormMixinTestCase, InvalidFormMixinTestCase, MessageMixinTestCase)
+from common.tests import FormMixinTestCase, MessageMixinTestCase
 from image_app.models import Animal, Submission, ACCURACIES
 
 from ..views import UpdateAnimalView

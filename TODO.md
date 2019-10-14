@@ -76,13 +76,11 @@ InjectTool TODO
   - breeds and countries need to be validated against dictionary tables
   - browse by languages, see all synonym in every language (add navigation links)
   - add a custom synonym manually
-  - organism parts shold be modelled in dictionary tables (ex Hair (Peli) -> strand of hair (UBERON_0001037))
 
 * Regarding site visualization
   - Token generation could be requested using modals when submitting to biosample,
     there's no difference from a web page, however, is only aesthetic
   - Add breadcrumb for pages
-  - Navbar for tools (zooma, dictionary tables, etc)?
   - serving all 3rd party modules using CDN when possible
   - replace text placeholder (Lorem ipsum...) in dashboard
   - Pagination: missing jumping to a particular page function
@@ -103,8 +101,6 @@ InjectTool TODO
       duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"
         DETAIL:  Key (gene_bank_name, gene_bank_country_id, datasource_type, datasource_version, owner_id)=(Cryoweb DE, 7, 0, test, 2) already exists.
   - `Submission.message` as `ArrayField` (to store more messages?)
-  - [Soft-delete](https://github.com/upgrad/django-deletes) items? can I store
-    items with a `deleted` attribute?
 
 * Relate to templatetags
   - process and render pagination with get parameters. See:

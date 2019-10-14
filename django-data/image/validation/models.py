@@ -50,13 +50,25 @@ class ValidationSummary(models.Model):
     warning_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)
 
-    # TODO: should this be a ENUM object?
+    # HINT: even if it's like a ENUM object, changing this at this moment means
+    # changing a lot of things. This will remain a char field, for the moment
     type = models.CharField(max_length=6, blank=True, null=True)
 
     messages = ArrayField(
         models.TextField(max_length=255, blank=True),
         default=list
     )
+
+    class Meta:
+        unique_together = (("submission", "type"),)
+        verbose_name_plural = "validation summaries"
+
+    def __str__(self):
+        return "submission %s, type: %s, all:%s, pass:%s" % (
+            self.submission,
+            self.type,
+            self.all_count,
+            self.pass_count)
 
     def get_unknown_count(self):
         """Returns number of samples or animals with unknown validation"""

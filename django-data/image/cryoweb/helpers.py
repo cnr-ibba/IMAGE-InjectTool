@@ -318,6 +318,9 @@ def fill_uid_animals(submission):
         # checking accuracy
         accuracy = MISSING
 
+        # HINT: this will is not sufficent for validation, since we need also
+        # birth location as a Text to have valid birth location. Cryoweb
+        # with coordinates will always fail validation
         if v_animal.latitude and v_animal.longitude:
             accuracy = UNKNOWN
 

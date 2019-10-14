@@ -19,8 +19,9 @@ import os
 from django.core.management import BaseCommand
 
 from common.constants import OBO_URL, CURATED
-from image_app.models import (DictCountry, DictRole, DictSex, DictSpecie,
-                              Ontology, Organization)
+from image_app.models import (
+    DictCountry, DictRole, DictSex, DictSpecie, Ontology, Organization,
+    DictUberon)
 from language.models import SpecieSynonym
 
 # Get an instance of a logger
@@ -156,6 +157,22 @@ def fill_Countries():
     return united_kingdom
 
 
+def fill_OrganismParts():
+    """Fill organism parts with manually curated terms"""
+
+    data = {'strand of hair': "UBERON_0001037"}
+
+    for label, term in data.items():
+        dictorganism, created = DictUberon.objects.get_or_create(
+            label=label,
+            term=term,
+            confidence=CURATED
+        )
+
+        if created is True:
+            logger.info("Created: %s" % (dictorganism))
+
+
 def standardize_institute_name(original):
     special = {
         'de': 1,
@@ -244,3 +261,6 @@ class Command(BaseCommand):
 
         # import organizations
         fill_Organization()
+
+        # import organisms
+        fill_OrganismParts()
