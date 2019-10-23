@@ -7,26 +7,33 @@ Created on Mon Jan 21 12:13:16 2019
 """
 
 import os
+import logging
 
 from decouple import AutoConfig
 
-from pyUSIrest.auth import Auth
+import pyUSIrest.auth
+import pyUSIrest.client
 
 from django.conf import settings
 
+from common.constants import EBI_AAP_API_AUTH, BIOSAMPLE_API_ROOT
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
 
-# read biosample URLs from configuration file
-EBI_AUTH_URL = config(
-    'EBI_AUTH_URL', default="https://explore.api.aai.ebi.ac.uk/auth")
-BIOSAMPLE_API_ROOT = config(
-    'BIOSAMPLE_API_ROOT', default="https://submission-test.ebi.ac.uk/api/")
+logger.warning("Setting AAP API URL to: %s" % EBI_AAP_API_AUTH)
 
 # Ovveride Auth.auth_url
-Auth.auth_url = EBI_AUTH_URL
+pyUSIrest.auth.Auth.auth_url = EBI_AAP_API_AUTH
+
+logger.warning("Setting BIOSAMPLE API ROOT to: %s" % BIOSAMPLE_API_ROOT)
+
+# Override Root api_root
+pyUSIrest.client.Root.api_root = BIOSAMPLE_API_ROOT
 
 
 def get_auth(user=None, password=None, token=None):
@@ -34,9 +41,9 @@ def get_auth(user=None, password=None, token=None):
 
     # instantiate an Auth object if a token is provieded
     if token:
-        return Auth(token=token)
+        return pyUSIrest.auth.Auth(token=token)
 
-    return Auth(user, password)
+    return pyUSIrest.auth.Auth(user, password)
 
 
 def get_manager_auth():

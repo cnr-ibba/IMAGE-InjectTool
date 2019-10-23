@@ -9,12 +9,13 @@ Created on Mon Jan 21 14:30:04 2019
 import io
 import json
 
+from pyUSIrest.auth import Auth
+
 from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TestCase
 
-from ..helpers import Auth
 from ..models import ManagedTeam
 
 from .common import BaseMixin, generate_token

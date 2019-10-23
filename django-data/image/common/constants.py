@@ -20,6 +20,13 @@ OBO_URL = "http://purl.obolibrary.org/obo"
 BIOSAMPLE_URL = config(
     'BIOSAMPLE_URL', default="https://wwwdev.ebi.ac.uk/biosamples/samples")
 
+# read biosample URLs from configuration file
+EBI_AAP_API_AUTH = config(
+    'EBI_AAP_API_AUTH', default="https://explore.api.aai.ebi.ac.uk/auth")
+
+BIOSAMPLE_API_ROOT = config(
+    'BIOSAMPLE_API_ROOT', default="https://submission-test.ebi.ac.uk/api/")
+
 
 class EnumMixin():
     """Common methods for my Enum classes"""
