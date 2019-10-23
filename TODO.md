@@ -73,7 +73,6 @@ InjectTool TODO
   - test each management command, or at least that it works
 
 * Regarding languages, dictionaries and ontology terms:
-  - breeds and countries need to be validated against dictionary tables
   - browse by languages, see all synonym in every language (add navigation links)
   - add a custom synonym manually
 
