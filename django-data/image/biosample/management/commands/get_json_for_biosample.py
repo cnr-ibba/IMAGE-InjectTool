@@ -34,7 +34,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # call commands and fill tables.
-        logger.info("Called %s" % (sys.argv[1]))
+        logger.info("Called get_json_for_biosample")
 
         # get a submission from submission id
         submission_id = options['submission']
@@ -65,4 +65,4 @@ class Command(BaseCommand):
         json.dump(biosamples, handle, indent=2)
 
         # end the script
-        logger.info("%s ended" % (sys.argv[1]))
+        logger.info("get_json_for_biosample ended")

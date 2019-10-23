@@ -17,7 +17,7 @@ from ..forms import GenerateTokenForm
 from ..models import Account, ManagedTeam
 from ..views import GenerateTokenView
 from .session_enabled_test_case import SessionEnabledTestCase
-from .test_token import generate_token
+from .common import generate_token
 
 
 class BaseTest(SessionEnabledTestCase):
