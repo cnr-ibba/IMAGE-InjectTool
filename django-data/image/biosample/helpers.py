@@ -19,6 +19,15 @@ from django.conf import settings
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
 config = AutoConfig(search_path=settings_dir)
 
+# read biosample URLs from configuration file
+EBI_AUTH_URL = config(
+    'EBI_AUTH_URL', default="https://explore.api.aai.ebi.ac.uk/auth")
+BIOSAMPLE_API_ROOT = config(
+    'BIOSAMPLE_API_ROOT', default="https://submission-test.ebi.ac.uk/api/")
+
+# Ovveride Auth.auth_url
+Auth.auth_url = EBI_AUTH_URL
+
 
 def get_auth(user=None, password=None, token=None):
     """Returns an Auth instance"""

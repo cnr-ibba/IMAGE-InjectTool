@@ -6,13 +6,19 @@ Created on Mon Jun 11 16:05:18 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+from decouple import AutoConfig
+
 from enum import Enum
+
+# get the decouple as config object (settings are defined in ENV variables)
+config = AutoConfig()
 
 # a constant for this module
 OBO_URL = "http://purl.obolibrary.org/obo"
 
 # the biosample base url (set to definitive url)
-BIOSAMPLE_URL = "https://wwwdev.ebi.ac.uk/biosamples/samples"
+BIOSAMPLE_URL = config(
+    'BIOSAMPLE_URL', default="https://wwwdev.ebi.ac.uk/biosamples/samples")
 
 
 class EnumMixin():

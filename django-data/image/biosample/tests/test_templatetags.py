@@ -9,6 +9,8 @@ Created on Thu Mar 28 17:24:03 2019
 from django.test import TestCase
 from django.template import Template, Context
 
+from common.constants import BIOSAMPLE_URL
+
 
 class GetBiosampleLink(TestCase):
     TEMPLATE = Template(
@@ -29,5 +31,5 @@ class GetBiosampleLink(TestCase):
             Context({'biosample_id': "FAKEA0123456"}))
 
         self.assertIn(
-            'href="https://wwwdev.ebi.ac.uk/biosamples/samples/FAKEA0123456',
+            '%s/FAKEA0123456' % (BIOSAMPLE_URL),
             rendered)
