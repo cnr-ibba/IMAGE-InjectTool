@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load image_app_tags %}
+{% load biosample_tags %}
 
 {% block title %}About IMAGE-InjectTool{% endblock title %}
 
@@ -180,27 +181,29 @@
     </p>
   </section>
 
-  <section id="injecttool_test_site">
-    <h2>InjectTool test site</h2>
+  {# I need to call my function in a variable or I couldn't evaluate an if condition #}
+  {% is_biosample_test_env as test_environment %}
 
-    <p>
-      InjectTool is currently in testing stage. We currently submit data to
-      <a href="https://wwwdev.ebi.ac.uk/biosamples/">BioSamples test server</a>, which synchronize the data with
-      production server weekly. Therefore data submitted through InjectTool will be lost as planned.
-      We are doing our best to shorten the test period
-      while making the system as reliable as possible. We welcome any
-      feedback/comment/suggestion which can be submitted by
-      <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
-      to make InjectTool better.
-    </p>
+  {% if test_environment %}
+    <section id="injecttool_test_site">
+      <h2>InjectTool test site</h2>
 
-  </section>
-
+      <p>
+        InjectTool is currently in testing stage. We currently submit data to
+        <a href="https://wwwdev.ebi.ac.uk/biosamples/">BioSamples test server</a>, which synchronize the data with
+        production server weekly. Therefore data submitted through InjectTool will be lost as planned.
+        We are doing our best to shorten the test period
+        while making the system as reliable as possible. We welcome any
+        feedback/comment/suggestion which can be submitted by
+        <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
+        to make InjectTool better.
+      </p>
+    </section>
+  {% endif %}
 
   <div class="row justify-content-around">
     <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
     <a class="btn btn-primary btn-lg" href="{% url 'about-uploading' %}" role="button">Submitting data to BioSamples</a>
   </div>
-
 
 {% endblock content %}

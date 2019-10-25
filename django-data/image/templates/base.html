@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load django_simple_cookie_consent_tags %}
 {% load image_app_tags %}
+{% load biosample_tags %}
 <html lang="en">
   <head>
     <!-- Required meta tags -->
@@ -106,11 +107,19 @@
 
     {# padding top https://stackoverflow.com/a/26868098 #}
     <div class="container pt-5">
-      <div class="alert alert-dismissible alert-warning">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <h4 class="alert-heading">Beta version</h4>
-        <p class="mb-0">This site is currently in the testing stage of development. Your data will be submitted to a BioSamples test server. More info in our <a href="{% url 'about' %}#injecttool_test_site" class="alert-link">about section</a>.</p>
-      </div>
+
+      {# block testing site #}
+
+      {# I need to call my function in a variable or I couldn't evaluate an if condition #}
+      {% is_biosample_test_env as test_environment %}
+      
+      {% if test_environment %}
+        <div class="alert alert-dismissible alert-warning">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <h4 class="alert-heading">Beta version</h4>
+          <p class="mb-0">This site is currently in the testing stage of development. Your data will be submitted to a BioSamples test server. More info in our <a href="{% url 'about' %}#injecttool_test_site" class="alert-link">about section</a>.</p>
+        </div>
+      {% endif %}
 
       {# https://docs.djangoproject.com/en/1.11/ref/contrib/messages/#displaying-messages #}
       {% block messages %}
