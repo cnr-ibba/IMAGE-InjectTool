@@ -33,6 +33,8 @@ from .tasks import SplitSubmissionTask
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+# while near
+TOKEN_DURATION_THRESHOLD = 3600
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
@@ -597,7 +599,8 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
             return self.form_invalid(form)
 
         # check tocken expiration
-        if auth.is_expired() or auth.get_duration().seconds < 3600:
+        if (auth.is_expired() or
+                auth.get_duration().seconds <= TOKEN_DURATION_THRESHOLD):
             logger.warning(
                 "Token is expired or near to expire")
 

@@ -22,10 +22,10 @@ from common.tests import (
         FormMixinTestCase, MessageMixinTestCase, InvalidFormMixinTestCase)
 
 from ..forms import SubmitForm
-from ..views import SubmitView
+from ..views import SubmitView, TOKEN_DURATION_THRESHOLD
 
 from .session_enabled_test_case import SessionEnabledTestCase
-from .test_token import generate_token
+from .common import generate_token, TOKEN_DURATION
 
 
 class TestMixin(object):
@@ -206,7 +206,8 @@ class ExpiredTokenViewTest(SubmitMixin):
 
         session = self.get_session()
         now = int(timezone.now().timestamp())
-        session['token'] = generate_token(now-10000)
+        session['token'] = generate_token(
+            now - (TOKEN_DURATION-TOKEN_DURATION_THRESHOLD))
         session.save()
         self.set_session_cookies(session)
 

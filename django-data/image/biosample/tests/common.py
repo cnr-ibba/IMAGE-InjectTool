@@ -22,6 +22,10 @@ from common.tests import PersonMixinTestCase, WebSocketMixin
 from image_app.models import Submission, Person, Name
 
 
+# the token will last for 24h (in seconds)
+TOKEN_DURATION = (24*60*60)
+
+
 def generate_token(now=None, domains=['subs.test-team-1']):
     """A function to generate a 'fake' token"""
 
@@ -31,7 +35,7 @@ def generate_token(now=None, domains=['subs.test-team-1']):
     claims = {
         'iss': 'https://explore.aai.ebi.ac.uk/sp',
         'iat': now,
-        'exp': now+3600,
+        'exp': now + TOKEN_DURATION,
         'sub': 'usr-f1801430-51e1-4718-8fca-778887087bad',
         'email': 'foo.bar@email.com',
         'nickname': 'foo',
