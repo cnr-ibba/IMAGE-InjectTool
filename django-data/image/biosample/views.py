@@ -597,7 +597,7 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
             return self.form_invalid(form)
 
         # check tocken expiration
-        if auth.is_expired() or auth.get_duration().seconds < 1800:
+        if auth.is_expired() or auth.get_duration().seconds < 3600:
             logger.warning(
                 "Token is expired or near to expire")
 

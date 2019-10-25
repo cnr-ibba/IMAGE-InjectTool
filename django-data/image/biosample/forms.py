@@ -16,21 +16,22 @@ from .models import Account
 
 class GenerateTokenForm(RequestFormMixin, forms.Form):
     name = forms.CharField(
-        help_text="Your AAP User id",
-        disabled=True)
+        help_text="Your BioSamples User id",
+        disabled=True,
+        widget=forms.HiddenInput)
 
     password = forms.CharField(
         widget=forms.PasswordInput(),
-        help_text="Your AAP User password")
+        help_text="Your BioSamples User password")
 
 
 class RegisterUserForm(RequestFormMixin, forms.ModelForm):
     name = forms.SlugField(
-        help_text="Your AAP User id")
+        help_text="Your BioSamples User id")
 
     password = forms.CharField(
         widget=forms.PasswordInput(),
-        help_text="Your AAP User password")
+        help_text="Your BioSamples User password")
 
     class Meta:
         model = Account
@@ -91,9 +92,10 @@ class SubmitForm(RequestFormMixin, forms.Form):
     name = forms.CharField(
         help_text="Your AAP User id",
         disabled=True,
-        required=False)
+        required=False,
+        widget=forms.HiddenInput)
 
     password = forms.CharField(
         widget=forms.PasswordInput(),
         required=False,
-        help_text="Your AAP User password")
+        help_text="Your BioSamples User password")
