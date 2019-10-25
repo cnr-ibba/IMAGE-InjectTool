@@ -69,6 +69,18 @@ common.constants module contents
    :undoc-members:
 
 
+common.tasks
+------------
+
+common.tasks module contents
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: common.tasks
+  :members:
+  :show-inheritance:
+  :undoc-members:
+
+
 common.views
 ------------
 
