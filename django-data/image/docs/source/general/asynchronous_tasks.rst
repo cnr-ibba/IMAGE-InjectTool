@@ -76,6 +76,29 @@ not be able to call a task::
   # https://github.com/celery/celery/issues/3744#issuecomment-271366923
   app.tasks.register(FetchStatusTask)
 
+Exclusive Tasks
+^^^^^^^^^^^^^^^
+
+In order to execute mutually exclusive task, you need to decorate the run function
+like this::
+
+    from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
+
+    class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
+        name = "Fetch USI status"
+        description = """Fetch biosample using USI API"""
+
+        @exclusive_task(task_name="Fetch USI status", lock_id="FetchStatusTask")
+        def run(self):
+
+            """This function is called when delay is called"""
+
+            # do stuff
+
+``task_name`` and ``lock_id`` parameters are required for logging and to define
+a lock into ``REDIS`` database in order to ensure that this task will be executed
+once in the same time (other task will success with *already running* message)
+
 Calling Tasks
 -------------
 

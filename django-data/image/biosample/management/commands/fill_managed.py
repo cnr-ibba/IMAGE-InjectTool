@@ -7,16 +7,14 @@ Created on Tue Jul 10 11:59:47 2018
 """
 
 import os
-import sys
 import logging
 
 from decouple import AutoConfig
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from pyUSIrest.auth import Auth
-
 from biosample.models import ManagedTeam
+from biosample.helpers import get_manager_auth
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -35,19 +33,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # call commands and fill tables.
-        logger.info("Called %s" % (sys.argv[1]))
+        logger.info("Called fill_managed to fill biosamples managed teams")
 
         # create a new auth object
-        auth = Auth(
-            user=config('USI_MANAGER'),
-            password=config('USI_MANAGER_PASSWORD'))
+        auth = get_manager_auth()
 
         for domain in auth.claims['domains']:
             managed, created = ManagedTeam.objects.get_or_create(
-                team_name=domain)
+                name=domain)
 
             if created is True:
                 logger.info("Created: %s" % (managed))
 
         # completed
-        logger.info("%s ended" % (sys.argv[1]))
+        logger.info("fill_managed ended")

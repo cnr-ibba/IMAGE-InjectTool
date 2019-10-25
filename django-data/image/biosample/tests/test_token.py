@@ -13,10 +13,10 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 
 from ..models import Account, ManagedTeam
-from ..views import TokenView
+from ..views import TokenView, TOKEN_DURATION_THRESHOLD
 
 from .session_enabled_test_case import SessionEnabledTestCase
-from .common import generate_token
+from .common import generate_token, TOKEN_DURATION
 
 
 class TestTokenView(SessionEnabledTestCase):
@@ -108,7 +108,8 @@ class TestTokenView(SessionEnabledTestCase):
     def test_expired_token(self):
         session = self.get_session()
         now = int(timezone.now().timestamp())
-        session['token'] = generate_token(now-10000)
+        session['token'] = generate_token(
+            now - (TOKEN_DURATION+TOKEN_DURATION_THRESHOLD))
         session.save()
         self.set_session_cookies(session)
 

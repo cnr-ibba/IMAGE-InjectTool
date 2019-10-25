@@ -9,7 +9,8 @@ Created on Thu Mar 28 17:16:13 2019
 from django import template
 from django.utils.safestring import mark_safe
 
-from common.constants import BIOSAMPLE_URL
+from common.constants import (
+    BIOSAMPLE_URL, EBI_AAP_API_AUTH, BIOSAMPLE_API_ROOT)
 
 register = template.Library()
 
@@ -27,3 +28,17 @@ def get_biosample_link(biosample_id):
 
     # Explicitly mark a string as safe for (HTML) output purposes
     return mark_safe(link)
+
+
+@register.simple_tag(name="is_biosample_test_env")
+def is_biosample_test_env():
+    """A function to assert if I'm using biosample production environment
+    or not"""
+
+    if (BIOSAMPLE_URL == "https://wwwdev.ebi.ac.uk/biosamples/samples" and
+            EBI_AAP_API_AUTH == "https://explore.api.aai.ebi.ac.uk/auth" and
+            BIOSAMPLE_API_ROOT == "https://submission-test.ebi.ac.uk/api/"):
+        return True
+
+    else:
+        return False

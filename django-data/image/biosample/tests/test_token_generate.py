@@ -17,7 +17,7 @@ from ..forms import GenerateTokenForm
 from ..models import Account, ManagedTeam
 from ..views import GenerateTokenView
 from .session_enabled_test_case import SessionEnabledTestCase
-from .test_token import generate_token
+from .common import generate_token
 
 
 class BaseTest(SessionEnabledTestCase):
@@ -223,7 +223,7 @@ class SuccessFullCreateAuthViewTest(BaseTest):
 
         self.assertRedirects(response, next_url)
 
-    @patch("biosample.helpers.Auth", side_effect=ConnectionError("test"))
+    @patch("pyUSIrest.auth.Auth", side_effect=ConnectionError("test"))
     def test_error_with_biosample(self, my_auth):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 200)
