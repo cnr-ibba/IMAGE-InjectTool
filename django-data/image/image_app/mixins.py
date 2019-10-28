@@ -125,7 +125,7 @@ class BioSampleMixin(BaseMixin):
         if self.name.same_as and self.name.same_as != '':
             return {
                 "relationshipNature": "same as",
-                "alias": self.name.same_as
+                "accession": self.name.same_as
             }
 
         return None
