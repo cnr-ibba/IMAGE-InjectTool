@@ -34,11 +34,11 @@ class NameAdmin(admin.ModelAdmin):
         'name', 'submission', 'biosample_id', 'owner', 'status',
         'last_changed', 'last_submitted')
 
-    list_filter = ('owner', 'submission')
+    list_filter = ('owner', 'status')
 
     # join immediately name with DataSouce, in order to speed up name rendering
     list_select_related = (
-        'submission',
+        'submission', 'submission__gene_bank_country', 'owner'
     )
 
 
@@ -120,7 +120,7 @@ class SampleAdmin(admin.ModelAdmin):
 
     # To tell Django we want to perform a join instead of fetching the names of
     # the categories one by one
-    list_select_related = ('name', 'animal__name')
+    list_select_related = ('name', 'animal__name', 'owner', 'organism_part')
 
     list_filter = ('owner', 'name__submission')
 
@@ -169,7 +169,8 @@ class AnimalAdmin(admin.ModelAdmin):
     raw_id_fields = ("name", "father", "mother", "breed")
 
     # https://medium.com/@hakibenita/things-you-must-know-about-django-admin-as-your-app-gets-bigger-6be0b0ee9614
-    list_select_related = ('name', 'breed', 'sex', 'father', 'mother')
+    list_select_related = (
+        'name', 'breed', 'breed__specie', 'sex', 'father', 'mother', 'owner')
 
     inlines = [SampleInline]
 
