@@ -187,5 +187,10 @@
       }
     ]
   },
-  "sampleRelationships": []
+  "sampleRelationships": [
+    {
+      "relationshipNature": "same as",
+      "alias": "SAMEA4450079"
+    }
+  ]
 }

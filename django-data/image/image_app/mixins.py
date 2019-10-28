@@ -119,6 +119,17 @@ class BioSampleMixin(BaseMixin):
 
         return self.name.biosample_id
 
+    def get_same_as_relationship(self):
+        """Format the same as attribute (if exists)"""
+
+        if self.name.same_as and self.name.same_as != '':
+            return {
+                "relationshipNature": "same as",
+                "alias": self.name.same_as
+            }
+
+        return None
+
     def get_attributes(self):
         """Common attribute definition required from Animal and samples. Need
         to be called inside Animal/sample get_atribute method. Keys
@@ -243,6 +254,15 @@ class BioSampleMixin(BaseMixin):
 
         # define attributes that will be customized in Animal and sample
         result['attributes'] = self.get_attributes()
+
+        # define an empty relationship array
+        result['sampleRelationships'] = []
+
+        # test for a same as relationship
+        same_as_relationship = self.get_same_as_relationship()
+
+        if same_as_relationship:
+            result['sampleRelationships'].append(same_as_relationship)
 
         return result
 

@@ -20,15 +20,6 @@ InjectTool TODO
 
 * Regarding data submissions
   - Think about renaming `EditSubmissionView` with a more useful name
-  - implement the sameAs key for already submitted biosamples:
-    ```
-    "sampleRelationships": [
-      {
-        "relationshipNature": "same as",
-        "alias": "502-W-133-4FE274B"
-      }
-    ]
-    ```
   - Supposing a submission has issues in USI validation. Shuold I track it in
     validation tables? should I have tables for USI errors, since if the
     data is validated using `image_validation` is not a user error?
