@@ -3,6 +3,8 @@ import logging
 import os
 import shlex
 
+from image_validation.use_ontology import get_general_breed_by_species
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Func, Value, F
@@ -298,9 +300,20 @@ class DictBreed(Confidence):
 
     @property
     def mapped_breed(self):
-        """Alias for label attribute"""
+        """Alias for label attribute. Return general label if no term is
+        found"""
 
-        return self.label
+        if self.label and self.label != '':
+            return self.label
+
+        else:
+            result = get_general_breed_by_species(self.specie.label)
+
+            if result != {}:
+                return result['text']
+
+            else:
+                return None
 
     @mapped_breed.setter
     def mapped_breed(self, label):
@@ -310,9 +323,20 @@ class DictBreed(Confidence):
 
     @property
     def mapped_breed_term(self):
-        """Alias for term attribute"""
+        """Alias for term attribute. Return general term if no term is found"""
 
-        return self.term
+        if self.term and self.term != '':
+            return self.term
+
+        else:
+            result = get_general_breed_by_species(self.specie.label)
+
+            if result != {}:
+                # slit the full part and get the last piece
+                return result['ontologyTerms'].split("/")[-1]
+
+            else:
+                return None
 
     @mapped_breed_term.setter
     def mapped_breed_term(self, term):

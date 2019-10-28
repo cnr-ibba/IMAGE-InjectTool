@@ -185,8 +185,22 @@ class DictBreedTestCase(TestCase):
 
         # unset mapped_breed
         breed.mapped_breed = None
+        breed.mapped_breed_term = None
         self.assertEqual(
-            str(breed), "Bunte Bentheimer (None, Sus scrofa)")
+            str(breed), "Bunte Bentheimer (pig breed, Sus scrofa)")
+
+    def test_default_mapped_breed(self):
+        """Test mapped breed returns specie.label if no mapping occours"""
+
+        breed = DictBreed.objects.get(pk=1)
+        self.assertEqual(breed.mapped_breed, "Bentheim Black Pied")
+        self.assertEqual(breed.mapped_breed_term, "LBO_0000347")
+
+        # unset mapped_breed
+        breed.mapped_breed = None
+        breed.mapped_breed_term = None
+        self.assertEqual(breed.mapped_breed, "pig breed")
+        self.assertEqual(breed.mapped_breed_term, "LBO_0000003")
 
 
 class SubmissionTestCase(TestCase):
