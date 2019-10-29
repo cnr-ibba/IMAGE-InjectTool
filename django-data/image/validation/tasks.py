@@ -116,6 +116,10 @@ class ValidateSubmission(object):
         # get data in biosample format
         data = model.to_biosample()
 
+        # TODO: remove this when IMAGE-metadata rules will support
+        # IMAGE submission id
+        del(data['attributes']['IMAGE submission id'])
+
         # input is a list object
         usi_result = self.ruleset.check_usi_structure([data])
 
