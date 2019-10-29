@@ -16,6 +16,8 @@ import io
 import logging
 import os
 
+from image_validation.use_ontology import get_general_breed_by_species
+
 from django.core.management import BaseCommand
 
 from common.constants import OBO_URL, CURATED
@@ -122,6 +124,20 @@ def fill_Species():
 
         if created is True:
             logger.info("Created: %s" % (specie))
+
+        # update with general specie
+        result = get_general_breed_by_species(specie)
+
+        if result != {}:
+            general_breed_label = result['text']
+            # split the full part and get the last piece
+            general_breed_term = result['ontologyTerms'].split("/")[-1]
+
+            if dictspecie.general_breed_label != general_breed_label:
+                logger.info("Added general breed: %s" % (general_breed_label))
+                dictspecie.general_breed_label = general_breed_label
+                dictspecie.general_breed_term = general_breed_term
+                dictspecie.save()
 
         synonym, created = SpecieSynonym.objects.get_or_create(
             dictspecie=dictspecie,

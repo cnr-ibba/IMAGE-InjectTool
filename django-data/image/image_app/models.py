@@ -193,6 +193,21 @@ class DictSpecie(DictBase, Confidence):
 
     library_name = "NCBITaxon"
 
+    # set general breed to dictspecie objects
+    general_breed_label = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Example: cattle breed",
+        verbose_name="general breed label")
+
+    general_breed_term = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Example: LBO_0000001",
+        verbose_name="general breed term")
+
     @property
     def taxon_id(self):
         if not self.term or self.term == '':
@@ -298,9 +313,18 @@ class DictBreed(Confidence):
 
     @property
     def mapped_breed(self):
-        """Alias for label attribute"""
+        """Alias for label attribute. Return general label if no term is
+        found"""
 
-        return self.label
+        if self.label and self.label != '':
+            return self.label
+
+        elif (self.specie.general_breed_label and
+              self.specie.general_breed_label != ''):
+            return self.specie.general_breed_label
+
+        else:
+            return None
 
     @mapped_breed.setter
     def mapped_breed(self, label):
@@ -310,9 +334,17 @@ class DictBreed(Confidence):
 
     @property
     def mapped_breed_term(self):
-        """Alias for term attribute"""
+        """Alias for term attribute. Return general term if no term is found"""
 
-        return self.term
+        if self.term and self.term != '':
+            return self.term
+
+        elif (self.specie.general_breed_term and
+              self.specie.general_breed_term != ''):
+            return self.specie.general_breed_term
+
+        else:
+            return None
 
     @mapped_breed_term.setter
     def mapped_breed_term(self, term):

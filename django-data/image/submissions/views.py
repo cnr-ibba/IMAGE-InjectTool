@@ -318,6 +318,7 @@ class EditSubmissionView(
         # data in animal table nor sample
         return Name.objects.select_related(
                 "validationresult",
+                "submission",
                 "animal",
                 "sample").filter(
             Q(submission=self.submission) & (

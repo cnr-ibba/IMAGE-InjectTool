@@ -61,6 +61,22 @@ class DictSexTestCase(TestCase):
 
         self.assertEqual(reference, test)
 
+    def test_format_attribute_default(self):
+        """Testing format attribute with no library_uri"""
+
+        reference = [{
+            "value": "male",
+            "terms": [{
+                "url": "%s/PATO_0000384" % (OBO_URL)
+             }]
+        }]
+
+        male = DictSex.objects.get(label=self.label)
+        male.library_name = None
+        test = male.format_attribute()
+
+        self.assertEqual(reference, test)
+
 
 class DictSpecieTestCase(TestCase):
     """Testing DictSpecie class"""
@@ -86,6 +102,13 @@ class DictSpecieTestCase(TestCase):
                 "{label} ({term})".format(
                         label=self.label,
                         term=self.term))
+
+    def test_missing_taxon(self):
+        """test no term returns no taxon"""
+
+        sus = DictSpecie.objects.get(label=self.label)
+        sus.term = None
+        self.assertIsNone(sus.taxon_id)
 
     def test_get_specie_by_synonym(self):
         """Getting specie using synonym"""
@@ -185,8 +208,32 @@ class DictBreedTestCase(TestCase):
 
         # unset mapped_breed
         breed.mapped_breed = None
+        breed.mapped_breed_term = None
         self.assertEqual(
-            str(breed), "Bunte Bentheimer (None, Sus scrofa)")
+            str(breed), "Bunte Bentheimer (pig breed, Sus scrofa)")
+
+    def test_default_mapped_breed(self):
+        """Test mapped breed returns specie.label if no mapping occours"""
+
+        breed = DictBreed.objects.get(pk=1)
+        self.assertEqual(breed.mapped_breed, "Bentheim Black Pied")
+        self.assertEqual(breed.mapped_breed_term, "LBO_0000347")
+
+        # unset mapped_breed
+        breed.mapped_breed = None
+        breed.mapped_breed_term = None
+        self.assertEqual(breed.mapped_breed, "pig breed")
+        self.assertEqual(breed.mapped_breed_term, "LBO_0000003")
+
+    def test_get_no_mapped_breed(self):
+        """Test with a specie not defined in get_general_breed_by_species"""
+
+        specie = DictSpecie(label='Anser anser', term="NCBITaxon_8843")
+        breed = DictBreed(specie=specie, supplied_breed='Anser anser')
+
+        self.assertIsNone(breed.mapped_breed)
+        self.assertIsNone(breed.mapped_breed_term)
+        self.assertIsNone(breed.format_attribute())
 
 
 class SubmissionTestCase(TestCase):
@@ -687,3 +734,28 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         # test my helper methods
         self.assertTrue(self.sample.can_delete())
         self.assertTrue(self.sample.can_edit())
+
+
+class PersonTestCase(PersonMixinTestCase, TestCase):
+    """Testing Person Class"""
+
+    # an attribute for PersonMixinTestCase
+    person = Person
+
+    fixtures = [
+        'image_app/dictcountry',
+        'image_app/dictrole',
+        'image_app/organization',
+        'image_app/user'
+    ]
+
+    def setUp(self):
+        # get a person
+        self.person = Person.objects.get(user__id=1)
+
+    def test_str(self):
+        """test a repr method"""
+
+        test = str(self.person)
+        self.assertEqual(
+            test, "Foo Bar (Test organization (United Kingdom))")

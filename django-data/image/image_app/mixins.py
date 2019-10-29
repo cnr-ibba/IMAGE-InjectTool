@@ -144,6 +144,10 @@ class BioSampleMixin(BaseMixin):
         attributes["Project"] = format_attribute(
             value="IMAGE")
 
+        # to retrieve where this sample belongs
+        attributes["IMAGE submission id"] = format_attribute(
+            value=self.submission.id)
+
         attributes['Submission title'] = format_attribute(
             value=self.submission.title)
 
