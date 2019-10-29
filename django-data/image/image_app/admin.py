@@ -267,7 +267,9 @@ class DictCountryAdmin(admin.ModelAdmin):
 
 class DictSpecieAdmin(admin.ModelAdmin):
     list_per_page = 25
-    list_display = ('label', 'taxon_id', 'term', 'confidence')
+    list_display = (
+        'label', 'term', 'confidence', 'general_breed_label',
+        'general_breed_term')
 
 
 # --- registering applications
