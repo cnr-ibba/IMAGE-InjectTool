@@ -19,10 +19,19 @@ from .models import (Animal, DictBreed, DictCountry, DictRole, DictSpecie,
 
 class DictBreedAdmin(admin.ModelAdmin):
     search_fields = ['supplied_breed']
-    list_per_page = 9
+    list_per_page = 25
     list_display = (
-        'supplied_breed', 'mapped_breed', 'mapped_breed_term', 'confidence',
-        'country', 'specie')
+        'supplied_breed', 'get_label', 'get_term', 'mapped_breed',
+        'mapped_breed_term', 'confidence', 'country', 'specie')
+
+    # override label and term verbose names
+    def get_label(self, instance):
+        return instance.label
+    get_label.short_description = "label"
+
+    def get_term(self, instance):
+        return instance.term
+    get_term.short_description = "term"
 
     list_filter = ('country', 'specie')
 
@@ -30,6 +39,9 @@ class DictBreedAdmin(admin.ModelAdmin):
 class NameAdmin(admin.ModelAdmin):
     """A class to deal with animal names"""
 
+    search_fields = ['name', 'biosample_id']
+
+    list_per_page = 25
     list_display = (
         'name', 'submission', 'biosample_id', 'owner', 'status',
         'last_changed', 'last_submitted')
@@ -106,7 +118,7 @@ class SampleAdmin(admin.ModelAdmin):
     # exclude = ('author',)
     # prepopulated_fields = {'name': ['description']}
     search_fields = ['name__name']
-    list_per_page = 9
+    list_per_page = 25
     list_display = (
         'name', 'alternative_id', 'animal',
         'protocol', 'collection_date', 'collection_place_latitude',
@@ -122,7 +134,7 @@ class SampleAdmin(admin.ModelAdmin):
     # the categories one by one
     list_select_related = ('name', 'animal__name', 'owner', 'organism_part')
 
-    list_filter = ('owner', 'name__submission')
+    list_filter = ('owner', 'name__status')
 
     fields = (
         ('name', 'alternative_id', 'description', 'owner'),
@@ -144,15 +156,14 @@ class SampleAdmin(admin.ModelAdmin):
 class AnimalAdmin(admin.ModelAdmin):
     search_fields = ['name__name']
 
-    list_per_page = 9
-
+    list_per_page = 25
     list_display = (
         'name', 'alternative_id', 'breed', 'sex',
         'father', 'mother', 'birth_location', 'birth_location_latitude',
         'birth_location_longitude', 'description', 'owner'
         )
 
-    list_filter = ('owner', 'name__submission')
+    list_filter = ('owner', 'name__status')
 
     fields = (
         'name', 'alternative_id', 'breed', 'sex', 'father',
@@ -176,6 +187,7 @@ class AnimalAdmin(admin.ModelAdmin):
 
 
 class SubmissionAdmin(admin.ModelAdmin):
+    list_per_page = 25
     list_display = (
         'title', 'description', 'gene_bank_name', 'gene_bank_country',
         'datasource_type', 'datasource_version', 'organization', 'created_at',
@@ -189,6 +201,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 
 class PersonAdmin(admin.ModelAdmin):
+    list_per_page = 25
     list_display = (
         'user_name', 'full_name', 'initials', 'affiliation', 'role',
     )
@@ -232,6 +245,7 @@ class UserAdmin(BaseUserAdmin):
 
 
 class OrganizationAdmin(admin.ModelAdmin):
+    list_per_page = 25
     search_fields = ['name']
     list_display = (
         'name', 'address', 'country', 'URI', 'role',
@@ -239,6 +253,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 class OntologyAdmin(admin.ModelAdmin):
+    list_per_page = 25
     search_fields = ['library_name']
     list_display = (
         'library_name', 'library_uri', 'comment',
@@ -246,10 +261,12 @@ class OntologyAdmin(admin.ModelAdmin):
 
 
 class DictCountryAdmin(admin.ModelAdmin):
+    list_per_page = 25
     list_display = ('label', 'term', 'confidence')
 
 
 class DictSpecieAdmin(admin.ModelAdmin):
+    list_per_page = 25
     list_display = ('label', 'taxon_id', 'term', 'confidence')
 
 
@@ -275,6 +292,6 @@ admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(Publication, admin.ModelAdmin)
 admin.site.register(Ontology, OntologyAdmin)
 
-# Re-register UserAdmin
+# Re-register UserAdmin (to see related person data)
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
