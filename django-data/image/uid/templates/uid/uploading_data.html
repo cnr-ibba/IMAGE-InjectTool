@@ -4,7 +4,7 @@
 {% load static %}
 {% load staticfiles %}
 
-{% load image_app_tags %}
+{% load uid_tags %}
 
 {% block custom-css %}
   <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}" />
@@ -179,7 +179,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
   <section>
     <h2 class="mt-3">Starting a new submission</h2>
     <p>
-      From the <a href="{% url 'image_app:dashboard' %}">Dashboard</a> page, click
+      From the <a href="{% url 'uid:dashboard' %}">Dashboard</a> page, click
       on <a href="{% url 'submissions:create' %}">Create</a> submission button,
       and then fill the form properly: each filled value will be used as part of metadata in BioSamples
       submission. The <em>Gene bank country</em> field is important since it
@@ -230,7 +230,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
   <div class="row justify-content-around">
     <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'image_app:dashboard' %}" role="button">Dashboard</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'uid:dashboard' %}" role="button">Dashboard</a>
   </div>
 
 {% endblock content %}

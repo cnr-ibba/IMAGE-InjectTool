@@ -85,7 +85,6 @@ InjectTool TODO
   - Pagination: missing jumping to a particular page function
 
 * Issues relative to UID:
-  - rename `image_app` application into `uid`?
   - `contenttypes` framework for `Name` relations?
   - `contenttypes` framework to model errors?
   - display the real name of file for the uploaded file
