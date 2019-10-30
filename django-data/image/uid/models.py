@@ -126,7 +126,6 @@ class Name(BaseMixin, models.Model):
 
     submission = models.ForeignKey(
         'Submission',
-        db_index=True,
         related_name='%(class)s_set',
         on_delete=models.CASCADE)
 
@@ -456,7 +455,7 @@ class Animal(BioSampleMixin, Name):
         animal = Animal.objects.get(pk=1)
 
         # get animal name
-        data_source_id = animal.name.name
+        data_source_id = animal.name
 
         # get animal's parents
         mother = animal.mother
@@ -469,17 +468,6 @@ class Animal(BioSampleMixin, Name):
         # get all samples (specimen) for this animals
         samples = animal.sample_set.all()
     """
-
-    # alternative id will store the internal id in data source
-    alternative_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True)
-
-    description = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True)
 
     material = models.CharField(
         max_length=255,
@@ -617,13 +605,7 @@ class Animal(BioSampleMixin, Name):
         if self.father is None:
             return None
 
-        # cryoweb could have unkwown animals. They are Names without
-        # relationships with Animal table
-        if not hasattr(self.father, "animal"):
-            return None
-
-        else:
-            return self.father.animal.get_relationship()
+        return self.father.get_relationship()
 
     def get_mother_relationship(self):
         """Get a relationship with mother if possible"""
@@ -632,13 +614,7 @@ class Animal(BioSampleMixin, Name):
         if self.mother is None:
             return None
 
-        # cryoweb could have unkwown animals. They are Names without
-        # relationships with Animal table
-        if not hasattr(self.mother, "animal"):
-            return None
-
-        else:
-            return self.mother.animal.get_relationship()
+        return self.mother.get_relationship()
 
     def to_biosample(self, release_date=None):
         """get a json from animal for biosample submission"""
@@ -784,7 +760,7 @@ class Sample(BioSampleMixin, Name):
         # The data source id or alternative id of the animal from which
         # the sample was collected (see Animal.to_biosample())
         attributes['Derived from'] = format_attribute(
-            value=self.animal.name.name)
+            value=self.animal.name)
 
         attributes["Specimen collection protocol"] = format_attribute(
             value=self.protocol)
@@ -1125,7 +1101,6 @@ def truncate_database():
     DictUberon.truncate()
     DictDevelStage.truncate()
     DictPhysioStage.truncate()
-    Name.truncate()
     Ontology.truncate()
     Organization.truncate()
     Person.truncate()
@@ -1143,7 +1118,6 @@ def truncate_filled_tables():
 
     # call each class and truncate its table by calling truncate method
     Animal.truncate()
-    Name.truncate()
     Publication.truncate()
     Sample.truncate()
     Submission.truncate()
@@ -1211,8 +1185,7 @@ def missing_terms():
 # A method to discover is image database has data or not
 def db_has_data():
     # Test only tables I read data to fill UID
-    if (Animal.objects.exists() or Sample.objects.exists() or
-            Name.objects.exists()):
+    if Submission.objects.exists():
         return True
 
     else:

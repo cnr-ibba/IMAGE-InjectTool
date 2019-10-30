@@ -46,7 +46,6 @@ class ValidateSubmissionMixin(
         'uid/dictspecie',
         'uid/dictstage',
         'uid/dictuberon',
-        'uid/name',
         'uid/ontology',
         'uid/organization',
         'uid/publication',

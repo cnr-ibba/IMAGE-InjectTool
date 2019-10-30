@@ -18,9 +18,9 @@ from common.tests import PersonMixinTestCase
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
-from uid.models import (Animal, Submission, DictBreed, DictCountry,
-                              DictSex, DictSpecie, Sample, uid_report,
-                              Person, User, db_has_data)
+from uid.models import (
+    Animal, Submission, DictBreed, DictCountry,
+    DictSex, DictSpecie, Sample, uid_report, Person, User, db_has_data)
 
 
 class DictSexTestCase(TestCase):
@@ -348,7 +348,6 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
         'uid/dictrole',
         'uid/dictsex',
         'uid/dictspecie',
-        'uid/name',
         'uid/ontology',
         'uid/organization',
         'uid/publication',
@@ -383,8 +382,8 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
 
         # assign a different biosample id
         reference = "SAMEA4450079"
-        self.animal.name.biosample_id = reference
-        self.animal.name.save()
+        self.animal.biosample_id = reference
+        self.animal.save()
 
         test = self.animal.to_biosample()
 
@@ -529,7 +528,6 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         'uid/dictspecie',
         'uid/dictstage',
         'uid/dictuberon',
-        'uid/name',
         'uid/ontology',
         'uid/organization',
         'uid/publication',
@@ -570,12 +568,12 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
 
         # assign a different biosample id
         animal_reference = "SAMEA4450079"
-        self.animal.name.biosample_id = animal_reference
-        self.animal.name.save()
+        self.animal.biosample_id = animal_reference
+        self.animal.save()
 
         sample_reference = "SAMEA4450075"
-        self.sample.name.biosample_id = sample_reference
-        self.sample.name.save()
+        self.sample.biosample_id = sample_reference
+        self.sample.save()
 
         test = self.sample.to_biosample()
 
@@ -625,7 +623,7 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         deletable_objects, model_count, protected = get_deleted_objects(
             [self.animal])
 
-        self.assertEqual(model_count, {'animals': 1, 'samples': 1})
+        self.assertEqual(model_count, {'animals': 2, 'samples': 1})
 
     def test_uid_report(self):
         """testing uid report after a Sample and Animal insert"""

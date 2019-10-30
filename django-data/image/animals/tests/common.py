@@ -22,7 +22,6 @@ class AnimalFeaturesMixin(object):
         'uid/dictspecie',
         'uid/dictstage',
         'uid/dictuberon',
-        'uid/name',
         'uid/organization',
         'uid/publication',
         'uid/sample',

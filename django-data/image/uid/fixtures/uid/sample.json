@@ -3,7 +3,9 @@
   "model": "uid.sample",
   "pk": 1,
   "fields": {
-    "name": 4,
+    "name": "Siems_0722_393449",
+    "submission": 1,
+    "biosample_id": null,
     "alternative_id": "Siems_0722_393449",
     "description": "semen collected when the animal turns to 4",
     "material": "Specimen from Organism",

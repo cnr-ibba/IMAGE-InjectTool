@@ -21,7 +21,6 @@ class GetBadgeTest(TestCase):
         "uid/dictrole",
         "uid/organization",
         "uid/submission",
-        "uid/name",
         'uid/publication',
         "validation/validationresult"
     ]

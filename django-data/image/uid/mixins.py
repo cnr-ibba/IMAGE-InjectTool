@@ -79,45 +79,31 @@ class BioSampleMixin(BaseMixin):
         """Return :py:class:`Organization` relationship from related
         :py:class:`Submission` object"""
 
-        return self.name.submission.organization
+        return self.submission.organization
 
     @property
     def gene_bank_country(self):
         """Return :py:class:`DictCountry` relationship from related
         :py:class:`Submission` object"""
 
-        return self.name.submission.gene_bank_country
+        return self.submission.gene_bank_country
 
     @property
     def gene_bank_name(self):
         """Return gene bank name from related :py:class:`Submission` object"""
 
-        return self.name.submission.gene_bank_name
+        return self.submission.gene_bank_name
 
     @property
     def data_source_id(self):
-        """Get Data source id (original animal/sample name) from related
-        :py:class:`Name` object"""
+        """Get Data source id (original animal/sample name)"""
 
-        return self.name.name
-
-    @property
-    def submission(self):
-        """Get related :py:class:`Submission` object throgh :py:class:`Name`
-        """
-        return self.name.submission
+        return self.name
 
     @property
     def specie(self):
         raise NotImplementedError(
             "You need to define this method in your class")
-
-    @property
-    def biosample_id(self):
-        """Get the biosample_id of an object (need to be submitted and
-        retrieved sing USI)"""
-
-        return self.name.biosample_id
 
     def get_attributes(self):
         """Common attribute definition required from Animal and samples. Need
@@ -187,9 +173,9 @@ class BioSampleMixin(BaseMixin):
             'Organization role'] = self.organization.role.format_attribute()
 
         # this could be present or not
-        if self.name.publication:
+        if self.publication:
             attributes['Publication DOI'] = format_attribute(
-                value=self.name.publication.doi)
+                value=self.publication.doi)
 
         attributes['Gene bank name'] = format_attribute(
             value=self.gene_bank_name)
@@ -224,7 +210,7 @@ class BioSampleMixin(BaseMixin):
 
         # define mandatory fields
         result['alias'] = self.biosample_alias
-        result['title'] = self.name.name
+        result['title'] = self.name
 
         # in case of update, I need to provide the old accession in payload
         if self.biosample_id and self.biosample_id != '':
@@ -250,18 +236,18 @@ class BioSampleMixin(BaseMixin):
 
         return result
 
-    def __can_I(self, names):
+    def __can_I(self, statuses):
         """
         Return True id self.status in statuses
 
         Args:
-            names (list): a list of :py:class:`common.constants.STATUSES`
+            statuses (list): a list of :py:class:`common.constants.STATUSES`
 
         Returns:
             bool
         """
 
-        statuses = [x.value[0] for x in STATUSES if x.name in names]
+        statuses = [x.value[0] for x in STATUSES if x.name in statuses]
 
         if self.submission.status not in statuses:
             return True
@@ -277,9 +263,9 @@ class BioSampleMixin(BaseMixin):
             bool
         """
 
-        names = ['waiting', 'submitted']
+        statuses = ['waiting', 'submitted']
 
-        return self.__can_I(names)
+        return self.__can_I(statuses)
 
     def can_delete(self):
         """Returns True if I can delete a sample/animal according to submission
@@ -289,6 +275,6 @@ class BioSampleMixin(BaseMixin):
             bool
         """
 
-        names = ['waiting', 'submitted']
+        statuses = ['waiting', 'submitted']
 
-        return self.__can_I(names)
+        return self.__can_I(statuses)
