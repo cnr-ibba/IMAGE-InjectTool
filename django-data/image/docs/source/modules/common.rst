@@ -22,7 +22,7 @@ in the :ref:`The Unified Internal Database`
 Common statuses
 ^^^^^^^^^^^^^^^
 
-Statuses are applied for a :py:class:`image_app.models.Submission` and :py:class:`image_app.models.Name`
+Statuses are applied for a :py:class:`uid.models.Submission` and :py:class:`uid.models.Name`
 objects, and reflects the entiere submission status and the Object (Animal/Sample) statuses
 rispectively. Here are the main statuses:
 

@@ -1,32 +1,32 @@
-Image_app App
-=============
+Uid App
+=======
 
-.. _image_app-app:
+.. _uid-app:
 
 All stuff related with image :ref:`The Unified Internal Database` and site pages like index and about
 are defined in this module.
 
-image_app.models
+uid.models
 ----------------
 
 Submission and user data
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Inside model library, you can manage :ref:`The Unified Internal Database` objects.
-The main object is :py:class:`image_app.models.Submission` which is the object that
+The main object is :py:class:`uid.models.Submission` which is the object that
 a registered user create when starts creating a new submission. Animals and Samples
-data loaded by user are manged by the :py:class:`image_app.models.Animal` and
-:py:class:`image_app.models.Sample` class. The original name of such objects (defined
-as ``Data source id`` from the IMAGE metadata rules) is managed by :py:class:`image_app.models.Name`
+data loaded by user are manged by the :py:class:`uid.models.Animal` and
+:py:class:`uid.models.Sample` class. The original name of such objects (defined
+as ``Data source id`` from the IMAGE metadata rules) is managed by :py:class:`uid.models.Name`
 class, which track also the ``biosample_id`` of such objects and its :ref:`Common statuses`.
 Here are presented the relations between ``Names`` objects:
 
-.. image:: ../_static/image_app_name.1degree.png
+.. image:: ../_static/uid_name.1degree.png
 
 Through name relationship, you could rerieve all animal belonging to a submission,
 for example::
 
-  from image_app.models import Submission, Animal
+  from uid.models import Submission, Animal
 
   submission = Submission.objects.get(pk=1)
   animals = Animal.objects.filter(name__submission=submission)
@@ -42,7 +42,7 @@ Submission data (Animals, Samples) are considered private to the user when they 
 has an ``owner`` column in which a relation to :py:class:`django.contrib.auth.models.User`
 is defined. In such way, is possible to get all objects belonging to such user::
 
-  from image_app.models import User
+  from uid.models import User
 
   user = User.objects.get(username="test")
   user_animals = Animal.objects.filter(owner=user)
@@ -61,7 +61,7 @@ order to filter objects relying on django authenticated sessions::
 
   from django.views.generic import DetailView, ListView
 
-  from image_app.models import Submission
+  from uid.models import Submission
   from common.views import OwnerMixin
 
   class DetailSubmissionView(OwnerMixin, DetailView):
@@ -79,21 +79,21 @@ since :py:class:`common.views.OwnerMixin` inherits from
 sessions is required to access to derived views. The login redirect will be managed
 if the session is anonymous
 
-image_app.models module contents
+uid.models module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: image_app.models
+.. automodule:: uid.models
    :members:
    :show-inheritance:
 
 
-image_app.mixins
+uid.mixins
 ----------------
 
-image_app.mixins module contents
+uid.mixins module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: image_app.mixins
+.. automodule:: uid.mixins
   :members:
   :show-inheritance:
   :undoc-members:
