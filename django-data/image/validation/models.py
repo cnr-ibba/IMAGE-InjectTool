@@ -8,14 +8,31 @@ Created on Mon Jan 28 11:09:02 2019
 
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
-from uid.models import Name, Animal, Sample, Submission
+from uid.models import Animal, Sample, Submission
 
 
 class ValidationResult(models.Model):
-    name = models.OneToOneField(
-        Name,
+    submission = models.ForeignKey(
+        Submission,
         on_delete=models.CASCADE)
+
+    # limit choices for contenttypes
+    # https://axiacore.com/blog/how-use-genericforeignkey-django-531/
+    name_limit = models.Q(app_label='uid', model='animal') | \
+        models.Q(app_label='uid', model='sample')
+
+    # Below the mandatory fields for generic relation
+    # https://simpleisbetterthancomplex.com/tutorial/2016/10/13/how-to-use-generic-relations.html
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        limit_choices_to=name_limit)
+
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     status = models.CharField(
             max_length=255,
