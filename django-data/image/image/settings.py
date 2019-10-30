@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'djcelery_email',
     'django_simple_cookie_consent',
+    'uid',
     'image_app',
     'cryoweb',
     'zooma',
