@@ -55,7 +55,7 @@ class ListSampleViewTest(SampleViewTestMixin, TestCase):
 
     def test_contains_navigation_links(self):
         submission_url = reverse('submissions:list')
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertContains(self.response, 'href="{0}"'.format(submission_url))
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))

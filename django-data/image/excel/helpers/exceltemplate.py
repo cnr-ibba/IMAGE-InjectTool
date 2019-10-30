@@ -13,8 +13,8 @@ import datetime
 from collections import defaultdict, namedtuple
 
 from common.constants import ACCURACIES
-from image_app.helpers import FileDataSourceMixin
-from image_app.models import DictSex, DictCountry
+from uid.helpers import FileDataSourceMixin
+from uid.models import DictSex, DictCountry
 
 from .exceptions import ExcelImportError
 

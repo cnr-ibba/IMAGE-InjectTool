@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     'djcelery_email',
     'django_simple_cookie_consent',
     'uid',
-    'image_app',
     'cryoweb',
     'zooma',
     'language',
@@ -212,7 +211,7 @@ LOGGING = {
             'handlers': ['console'],
         },
         # HINT: sort applications by name?
-        'image_app': {
+        'uid': {
             'level': 'DEBUG',
             'handlers': ['console'],
         },
@@ -307,7 +306,7 @@ USE_TZ = True
 LOGIN_URL = 'login'
 
 # https://docs.djangoproject.com/en/1.11/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = 'image_app:dashboard'
+LOGIN_REDIRECT_URL = 'uid:dashboard'
 
 # Static files (CSS, JavaScript, Images) and users' media
 # https://docs.djangoproject.com/en/1.8/howto/static-files/

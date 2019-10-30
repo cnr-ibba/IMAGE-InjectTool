@@ -9,20 +9,20 @@ Created on Wed Jan 30 11:14:02 2019
 from django.test import TestCase
 from django.template import Template, Context
 
-from image_app.models import Name
+from uid.models import Name
 
 
 class GetBadgeTest(TestCase):
     """Test get_badges filter function"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
-        "image_app/name",
-        'image_app/publication',
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission",
+        "uid/name",
+        'uid/publication',
         "validation/validationresult"
     ]
 

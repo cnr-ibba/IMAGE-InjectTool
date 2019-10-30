@@ -102,7 +102,7 @@ class CreateAuthViewTest(BaseTest):
         self.assertContains(self.response, 'type="password"', 1)
 
     def test_contains_navigation_links(self):
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))
         self.assertContains(self.response, '<button type="submit"')
@@ -201,7 +201,7 @@ class SuccessFullCreateAuthViewTest(BaseTest):
         }
 
         self.response = self.client.post(self.url, self.data)
-        self.dashboard_url = reverse('image_app:dashboard')
+        self.dashboard_url = reverse('uid:dashboard')
 
     def test_redirection(self):
         '''

@@ -9,7 +9,7 @@ Created on Wed May  9 11:21:45 2018
 import logging
 
 from django.core.management.base import BaseCommand
-from image_app.models import DictCountry
+from uid.models import DictCountry
 from zooma.helpers import annotate_country
 
 # Get an instance of a logger

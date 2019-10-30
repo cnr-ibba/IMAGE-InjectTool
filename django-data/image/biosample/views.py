@@ -21,7 +21,7 @@ from pyUSIrest.client import User
 
 from common.constants import WAITING
 from common.helpers import send_mail_to_admins
-from image_app.models import Submission
+from uid.models import Submission
 
 from .forms import (
     GenerateTokenForm, RegisterUserForm, CreateUserForm, SubmitForm)
@@ -112,14 +112,14 @@ class RegisterMixin(AccountMixin):
             message='Your AAP profile is already registered',
             extra_tags="alert alert-dismissible alert-warning")
 
-        return redirect('image_app:dashboard')
+        return redirect('uid:dashboard')
 
 
 class MyFormMixin(object):
     """Common stuff for token generation"""
 
     success_url_message = "Please set this variable"
-    success_url = reverse_lazy("image_app:dashboard")
+    success_url = reverse_lazy("uid:dashboard")
 
     # add the request to the kwargs
     # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/

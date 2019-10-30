@@ -19,8 +19,8 @@ from django.conf import settings
 
 from common.constants import LOADED, ERROR, MISSING, UNKNOWN
 from common.helpers import image_timedelta
-from image_app.helpers import get_or_create_obj, update_or_create_obj
-from image_app.models import (
+from uid.helpers import get_or_create_obj, update_or_create_obj
+from uid.models import (
     Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
     Submission, DictUberon)
 from language.helpers import check_species_synonyms
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 def check_species(country):
     """Check all cryoweb species for a synonym in a supplied language or
     the default one, ie: check_species(country). country is an
-    image_app.models.DictCountry.label"""
+    uid.models.DictCountry.label"""
 
     # get all species using view
     words = VBreedsSpecies.get_all_species()
@@ -120,7 +120,7 @@ def upload_cryoweb(submission_id):
 
     This function uses the container's installation of psql to import a backup
     file into the "cryoweb" database. The imported backup file is
-    the last inserted into the image's table image_app_submission.
+    the last inserted into the image's table uid_submission.
 
     :submission_id: the submission primary key
     """

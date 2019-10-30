@@ -9,7 +9,7 @@ Created on Thu Feb 14 16:00:29 2019
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
-from image_app.models import Animal, Sample, Name
+from uid.models import Animal, Sample, Name
 from validation.models import ValidationResult
 from common.tests import MessageMixinTestCase
 
@@ -152,7 +152,7 @@ class SuccessfulDeleteAnimalViewTest(
         """Deleting an animal will delete its samples, names and
         validationresults. Its child will be present"""
 
-        # three animals present (see image_app fixtures)
+        # three animals present (see uid fixtures)
         n_animals = Animal.objects.count()
         self.assertEqual(n_animals, self.n_of_animals-1)
 

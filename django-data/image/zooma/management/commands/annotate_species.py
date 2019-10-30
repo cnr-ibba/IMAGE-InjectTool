@@ -9,7 +9,7 @@ Created on Tue May  8 12:34:00 2018
 import logging
 
 from django.core.management.base import BaseCommand
-from image_app.models import DictSpecie
+from uid.models import DictSpecie
 from zooma.helpers import annotate_specie
 
 # Get an instance of a logger

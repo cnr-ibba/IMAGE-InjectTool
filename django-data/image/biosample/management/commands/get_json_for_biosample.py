@@ -12,7 +12,7 @@ import sys
 
 from django.core.management import BaseCommand
 
-from image_app.models import Submission, Animal
+from uid.models import Submission, Animal
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

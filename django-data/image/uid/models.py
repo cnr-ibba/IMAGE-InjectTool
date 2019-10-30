@@ -450,7 +450,7 @@ class Animal(BioSampleMixin, Name):
     table to model info on species and breed. Linked to
     :py:class:`Sample` to model Samples (Specimen from organims)::
 
-        from image_app.models import Animal
+        from uid.models import Animal
 
         # get animal using primary key
         animal = Animal.objects.get(pk=1)

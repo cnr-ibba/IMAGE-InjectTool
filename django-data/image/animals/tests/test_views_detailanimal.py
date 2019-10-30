@@ -10,7 +10,7 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
 from common.tests import MessageMixinTestCase
-from image_app.models import Animal
+from uid.models import Animal
 
 from ..views import DetailAnimalView
 from .common import AnimalFeaturesMixin, AnimalViewTestMixin

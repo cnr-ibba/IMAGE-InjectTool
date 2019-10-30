@@ -13,7 +13,7 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 
 from common.tests import FormMixinTestCase, MessageMixinTestCase
-from image_app.models import Animal, Submission, ACCURACIES
+from uid.models import Animal, Submission, ACCURACIES
 
 from ..views import UpdateAnimalView
 from ..forms import UpdateAnimalForm

@@ -15,7 +15,7 @@ from django.utils import timezone
 from common.tests import FormMixinTestCase, MessageMixinTestCase
 from common.constants import (
     PRECISE, MISSING, UNKNOWN, READY, NEED_REVISION, LOADED)
-from image_app.models import Sample, Submission
+from uid.models import Sample, Submission
 
 from ..views import UpdateSampleView
 from ..forms import UpdateSampleForm

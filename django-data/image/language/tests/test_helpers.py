@@ -8,7 +8,7 @@ Created on Fri Mar 22 15:47:23 2019
 
 from django.test import TestCase
 
-from image_app.models import DictCountry, DictSpecie
+from uid.models import DictCountry, DictSpecie
 
 from ..helpers import check_species_synonyms
 from ..models import SpecieSynonym
@@ -16,7 +16,7 @@ from ..models import SpecieSynonym
 
 class CheckSpecie(TestCase):
     fixtures = [
-        'image_app/dictcountry',
+        'uid/dictcountry',
         'language/dictspecie',
         'language/speciesynonym'
     ]

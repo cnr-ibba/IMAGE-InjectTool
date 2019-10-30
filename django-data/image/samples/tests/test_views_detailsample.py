@@ -10,7 +10,7 @@ from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
 from common.tests import MessageMixinTestCase
-from image_app.models import Sample
+from uid.models import Sample
 from validation.models import ValidationResult
 
 from ..views import DetailSampleView

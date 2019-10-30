@@ -21,7 +21,7 @@ from django.utils import timezone
 from common.constants import ERROR, READY, SUBMITTED, COMPLETED
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from image_app.models import Animal
+from uid.models import Animal
 from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_auth
@@ -220,7 +220,7 @@ class SubmissionHelper():
         animal or sample
 
         Args:
-            model (:py:class:`image_app.mixins.BioSampleMixin`): An animal or
+            model (:py:class:`uid.mixins.BioSampleMixin`): An animal or
                 sample object"""
 
         # alias is used to reference the same objects
@@ -340,7 +340,7 @@ class SubmitTask(NotifyAdminTaskMixin, BaseTask):
 # HINT: move into helper module?
 class SplitSubmissionHelper():
     """
-    helper class to split py:class`image_app.models.Submission` data in
+    helper class to split py:class`uid.models.Submission` data in
     bacthes limited in sizes"""
 
     def __init__(self, uid_submission):
@@ -395,7 +395,7 @@ class SplitSubmissionHelper():
 
     def model_in_submission(self, model):
         """
-        Check if :py:class:`image_app.mixins.BioSampleMixin` is already in an
+        Check if :py:class:`uid.mixins.BioSampleMixin` is already in an
         opened submission"""
 
         logger.debug("Searching %s %s in submissions" % (
@@ -446,7 +446,7 @@ class SplitSubmissionHelper():
             return False
 
     def add_to_submission_data(self, model):
-        """Add a :py:class:`image_app.mixins.BioSampleMixin` to a
+        """Add a :py:class:`uid.mixins.BioSampleMixin` to a
         :py:class:`biosample.models.Submission` object, or create a new
         one if there are more samples than required"""
 
@@ -493,7 +493,7 @@ class SplitSubmissionTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
 
     def run(self, submission_id):
         """Call :py:class:`SplitSubmissionHelper` to split
-        :py:class:`image_app.models.Submission` data.
+        :py:class:`uid.models.Submission` data.
         Call :py:class:`SubmitTask` for each
         batch of data and then call :py:class:`SubmissionCompleteTask` after
         all data were submitted"""
@@ -544,7 +544,7 @@ class SubmissionCompleteTask(
 
     def run(self, *args, **kwargs):
         """Fetch submission data and then update
-        :py:class:`image_app.models.Submission` status"""
+        :py:class:`uid.models.Submission` status"""
 
         submission_statuses = args[0]
 
@@ -609,7 +609,7 @@ class SubmissionCompleteTask(
 
     def update_message(self, uid_submission, submission_qs, status):
         """Read :py:class:`biosample.models.Submission` message and set
-        :py:class:`image_app.models.Submission` message"""
+        :py:class:`uid.models.Submission` message"""
 
         # get error messages for submission
         message = []

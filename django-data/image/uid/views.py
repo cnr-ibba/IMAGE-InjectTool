@@ -30,33 +30,33 @@ logger = logging.getLogger(__name__)
 class IndexView(TemplateView):
     # Just set this Class Object Attribute to the template page.
     # template_name = 'app_name/site.html'
-    template_name = 'image_app/index.html'
+    template_name = 'uid/index.html'
 
 
 class AboutView(TemplateView):
     # Just set this Class Object Attribute to the template page.
     # template_name = 'app_name/site.html'
-    template_name = 'image_app/about.html'
+    template_name = 'uid/about.html'
 
 
 class PrivacyView(TemplateView):
-    template_name = "image_app/privacy_policy.html"
+    template_name = "uid/privacy_policy.html"
 
 
 class TermsView(TemplateView):
-    template_name = "image_app/terms_and_conditions.html"
+    template_name = "uid/terms_and_conditions.html"
 
 
 class AboutUploadingView(TemplateView):
-    template_name = "image_app/uploading_data.html"
+    template_name = "uid/uploading_data.html"
 
 
 class DashBoardView(LoginRequiredMixin, TemplateView):
-    template_name = "image_app/dashboard.html"
+    template_name = "uid/dashboard.html"
 
 
 class SummaryView(LoginRequiredMixin, TemplateView):
-    template_name = "image_app/summary.html"
+    template_name = "uid/summary.html"
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context

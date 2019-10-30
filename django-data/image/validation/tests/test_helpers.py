@@ -18,7 +18,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 from django.conf import settings
 
-from image_app.models import Animal, Sample, Submission, Person, Name
+from uid.models import Animal, Sample, Submission, Person, Name
 
 from common.tests import PersonMixinTestCase
 
@@ -139,21 +139,21 @@ class SubmissionMixin(PersonMixinTestCase):
     person = Person
 
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/name',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     @classmethod
@@ -440,20 +440,20 @@ class RulesTestCase(TestCase):
 
 class ValidationSummaryTestCase(TestCase):
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/submission',
-        'image_app/user',
-        'image_app/sample',
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/name',
+        'uid/organization',
+        'uid/publication',
+        'uid/submission',
+        'uid/user',
+        'uid/sample',
         'validation/validationresult',
         'validation/validationsummary'
     ]

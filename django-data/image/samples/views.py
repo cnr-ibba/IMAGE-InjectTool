@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 from django.http import HttpResponseRedirect
 
-from image_app.models import Sample
+from uid.models import Sample
 from common.views import (
     DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
     ListMaterialMixin)

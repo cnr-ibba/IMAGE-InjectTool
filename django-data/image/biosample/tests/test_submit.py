@@ -15,7 +15,7 @@ from django.urls import resolve, reverse
 from django.conf import settings
 from django.utils import timezone
 
-from image_app.models import Submission
+from uid.models import Submission
 from common.constants import (
     WAITING, ERROR, READY, SUBMITTED, COMPLETED)
 from common.tests import (
@@ -32,11 +32,11 @@ class TestMixin(object):
     """Base class for validation tests"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission",
         "biosample/account",
         "biosample/managedteam",
     ]

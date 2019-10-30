@@ -11,8 +11,8 @@ import logging
 from common.constants import (
     ERROR, LOADED, ACCURACIES, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
 from common.helpers import image_timedelta, parse_image_timedelta
-from image_app.helpers import get_or_create_obj, update_or_create_obj
-from image_app.models import (
+from uid.helpers import get_or_create_obj, update_or_create_obj
+from uid.models import (
     DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Name, Animal,
     Sample, DictDevelStage, DictPhysioStage)
 from submissions.helpers import send_message

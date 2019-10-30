@@ -20,7 +20,7 @@ from common.constants import (
 from common.helpers import send_mail_to_admins
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from image_app.models import Sample, Animal
+from uid.models import Sample, Animal
 from submissions.tasks import SubmissionTaskMixin
 from validation.models import ValidationSummary
 
@@ -308,7 +308,7 @@ class ValidateTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
         """Mark submission with status, then send message
 
         Args:
-            submission_obj (image_app.models.Submission): an UID submission
+            submission_obj (uid.models.Submission): an UID submission
             object
             status (int): a :py:class:`common.constants.STATUSES` value
             message (str): the message to send
@@ -325,7 +325,7 @@ class ValidateTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
         an exception is called
 
         Args:
-            submission_obj (image_app.models.Submission): an UID submission
+            submission_obj (uid.models.Submission): an UID submission
             object
             status (int): a :py:class:`common.constants.STATUSES` object
             message (str): a text object
@@ -365,7 +365,7 @@ class ValidateTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
 
         Args:
             exc (Exception): an py:exc`Exception` object
-            submission_obj (image_app.models.Submission): an UID submission
+            submission_obj (uid.models.Submission): an UID submission
             object
 
         Return
@@ -390,7 +390,7 @@ class ValidateTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
 
         Args:
             exc (Exception): an py:exc`Exception` object
-            submission_obj (image_app.models.Submission): an UID submission
+            submission_obj (uid.models.Submission): an UID submission
             object
 
         Return

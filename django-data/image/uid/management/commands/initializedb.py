@@ -21,7 +21,7 @@ from image_validation.use_ontology import get_general_breed_by_species
 from django.core.management import BaseCommand
 
 from common.constants import OBO_URL, CURATED
-from image_app.models import (
+from uid.models import (
     DictCountry, DictRole, DictSex, DictSpecie, Ontology, Organization,
     DictUberon)
 from language.models import SpecieSynonym

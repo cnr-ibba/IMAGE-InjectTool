@@ -12,7 +12,7 @@ from django.utils.http import urlquote
 
 from common.constants import NEED_REVISION
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
-from image_app.models import Submission
+from uid.models import Submission
 
 from ..views import EditSubmissionView
 from .common import SubmissionStatusMixin
@@ -22,20 +22,20 @@ class EditSubmissionViewTest(
         GeneralMixinTestCase, OwnerMixinTestCase, TestCase):
 
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/name',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):
@@ -71,7 +71,7 @@ class EditSubmissionViewTest(
 
         detail_url = reverse('submissions:detail', kwargs={'pk': 1})
         list_url = reverse('submissions:list')
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertContains(self.response, 'href="{0}"'.format(detail_url))
         self.assertContains(self.response, 'href="{0}"'.format(list_url))
@@ -113,11 +113,11 @@ class EditSubmissionViewTest(
 
 class EditSubmissionViewStatusesTest(SubmissionStatusMixin, TestCase):
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission"
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission"
     ]
 
     def setUp(self):

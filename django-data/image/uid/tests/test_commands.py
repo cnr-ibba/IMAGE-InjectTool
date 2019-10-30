@@ -23,14 +23,14 @@ class CommandsTestCase(TestCase):
         opts = {}
         call_command('initializedb', *args, **opts)
 
-    def test_truncate_image_app(self):
+    def test_truncate_uid(self):
         " Test initializedb command."
 
         args = []
         opts = {}
         call_command('truncate_image_tables', *args, **opts)
 
-    def test_truncate_image_app_all(self):
+    def test_truncate_uid_all(self):
         " Test initializedb command."
 
         args = ["--all"]

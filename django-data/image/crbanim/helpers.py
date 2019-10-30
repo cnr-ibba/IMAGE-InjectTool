@@ -18,9 +18,9 @@ from django.utils.dateparse import parse_date
 
 from common.constants import LOADED, ERROR, MISSING, SAMPLE_STORAGE
 from common.helpers import image_timedelta
-from image_app.helpers import (
+from uid.helpers import (
     FileDataSourceMixin, get_or_create_obj, update_or_create_obj)
-from image_app.models import (
+from uid.models import (
     DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
     DictUberon, Publication)
 from submissions.helpers import send_message

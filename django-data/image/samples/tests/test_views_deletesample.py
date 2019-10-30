@@ -9,7 +9,7 @@ Created on Thu Feb 14 16:00:29 2019
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
-from image_app.models import Animal, Sample, Name
+from uid.models import Animal, Sample, Name
 from validation.models import ValidationResult
 from common.tests import MessageMixinTestCase
 

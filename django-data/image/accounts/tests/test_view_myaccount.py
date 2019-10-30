@@ -10,7 +10,7 @@ from django.contrib.messages import get_messages
 from django.test import Client, TestCase
 from django.urls import reverse, resolve
 
-from image_app.models import User
+from uid.models import User
 
 from ..forms import MyAccountForm
 from ..views import MyAccountView
@@ -88,8 +88,8 @@ class MyAccountViewTest(Basetest):
 
 class SuccessfulMyAccountViewTests(Basetest):
     fixtures = [
-        "image_app/dictcountry.json",
-        "image_app/dictrole.json",
+        "uid/dictcountry.json",
+        "uid/dictrole.json",
         "accounts/organization.json"
     ]
 
@@ -108,7 +108,7 @@ class SuccessfulMyAccountViewTests(Basetest):
         }
 
         self.response = self.client.post(self.url, self.data)
-        self.dashboard_url = reverse('image_app:dashboard')
+        self.dashboard_url = reverse('uid:dashboard')
 
     def test_redirection(self):
         '''

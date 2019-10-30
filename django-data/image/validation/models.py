@@ -9,7 +9,7 @@ Created on Mon Jan 28 11:09:02 2019
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
-from image_app.models import Name, Animal, Sample, Submission
+from uid.models import Name, Animal, Sample, Submission
 
 
 class ValidationResult(models.Model):

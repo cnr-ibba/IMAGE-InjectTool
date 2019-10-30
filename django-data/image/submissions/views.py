@@ -31,7 +31,7 @@ from common.views import OwnerMixin, FormInvalidMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import ImportCryowebTask
 
-from image_app.models import Submission, Name, Animal, Sample
+from uid.models import Submission, Name, Animal, Sample
 from excel.tasks import ImportTemplateTask
 
 from validation.helpers import construct_validation_message
@@ -51,7 +51,7 @@ class CreateSubmissionView(LoginRequiredMixin, FormInvalidMixin, CreateView):
     model = Submission
 
     # template name is derived from model position and views type.
-    # in this case, ir will be 'image_app/submission_form.html' so
+    # in this case, ir will be 'uid/submission_form.html' so
     # i need to clearly specify it
     template_name = "submissions/submission_form.html"
 
@@ -479,7 +479,7 @@ class DeleteSamplesView(BatchDeleteMixin, DetailView):
 class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
     model = Submission
     template_name = "submissions/submission_confirm_delete.html"
-    success_url = reverse_lazy('image_app:dashboard')
+    success_url = reverse_lazy('uid:dashboard')
 
     # https://stackoverflow.com/a/39533619/4385116
     def get_context_data(self, **kwargs):

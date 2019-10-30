@@ -13,8 +13,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from common.tests import WebSocketMixin
-from image_app.models import DictCountry
-from image_app.tests.mixins import (
+from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
 from ..helpers import (
@@ -368,7 +367,7 @@ class ReloadTemplateTestCase(ExcelMixin, TestCase):
     fixtures = [
         'crbanim/auth',
         'excel/dictspecie',
-        'excel/image_app',
+        'excel/uid',
         'excel/submission',
         'excel/speciesynonym'
     ]

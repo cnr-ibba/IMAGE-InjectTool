@@ -16,10 +16,10 @@ from django.test import TestCase
 from common.constants import ERROR
 from common.tests import WebSocketMixin
 from language.models import SpecieSynonym
-from image_app.models import (
+from uid.models import (
     Submission, DictBreed, Name, Animal, Sample, DictSex,
     DictCountry, DictSpecie)
-from image_app.tests import DataSourceMixinTestCase
+from uid.tests import DataSourceMixinTestCase
 
 from ..helpers import (
     upload_cryoweb, check_species, CryoWebImportError, cryoweb_import,
@@ -31,12 +31,12 @@ class BaseMixin():
     # import this file and populate database once
     fixtures = [
         'cryoweb/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/organization',
-        'image_app/submission',
-        'image_app/user',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/organization',
+        'uid/submission',
+        'uid/user',
         'language/dictspecie',
         'language/speciesynonym'
     ]
@@ -177,14 +177,14 @@ class CheckCountry(CryoWebMixin, BaseMixin, TestCase):
 class CheckBreed(TestCase):
     # import this file and populate database once
     fixtures = [
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/organization',
-        'image_app/submission',
-        'image_app/user',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/organization',
+        'uid/submission',
+        'uid/user',
     ]
 
     def test_add_breed(self):
@@ -366,7 +366,7 @@ class CryowebReload(ImportMixin, BaseMixin, TestCase):
     fixtures = [
         'cryoweb/auth',
         'cryoweb/dictbreed',
-        'cryoweb/image_app',
+        'cryoweb/uid',
         'language/dictspecie',
         'language/speciesynonym'
     ]

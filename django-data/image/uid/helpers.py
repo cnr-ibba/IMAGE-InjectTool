@@ -5,7 +5,7 @@ Created on Tue Feb  6 12:41:05 2018
 
 @author: Paolo Cozzi <paolo.cozzi@ptp.it>
 
-Common functions in image_app
+Common functions in uid
 
 """
 

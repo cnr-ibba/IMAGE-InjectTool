@@ -12,7 +12,7 @@ from django.urls import resolve, reverse
 from common.constants import READY
 from common.tests.mixins import (
     GeneralMixinTestCase, OwnerMixinTestCase, MessageMixinTestCase)
-from image_app.models import Submission, Animal, Sample, Name
+from uid.models import Submission, Animal, Sample, Name
 
 from ..views import DeleteSubmissionView
 from .common import SubmissionStatusMixin, SubmissionDataMixin
@@ -104,7 +104,7 @@ class SuccessfulDeleteSubmissionViewTest(
         )
 
     def test_redirect(self):
-        url = reverse('image_app:dashboard')
+        url = reverse('uid:dashboard')
         self.assertRedirects(self.response, url)
 
     def test_delete(self):

@@ -15,10 +15,10 @@ from collections import namedtuple
 from django.test import TestCase
 
 from common.tests import WebSocketMixin
-from image_app.models import (
+from uid.models import (
     DictSex, DictBreed, Name, Animal,
     Sample, DictUberon, DictCountry)
-from image_app.tests.mixins import (
+from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
 from ..helpers import (
@@ -376,7 +376,7 @@ class ReloadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
     fixtures = [
         'crbanim/auth',
         'crbanim/dictspecie',
-        'crbanim/image_app',
+        'crbanim/uid',
         'crbanim/submission',
         'language/speciesynonym'
     ]

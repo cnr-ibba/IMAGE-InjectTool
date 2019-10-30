@@ -15,7 +15,7 @@ from django.core.management import BaseCommand
 from django.utils import timezone
 
 from common.constants import LOADED
-from image_app.models import Submission, Name
+from uid.models import Submission, Name
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)

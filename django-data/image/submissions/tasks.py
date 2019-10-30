@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from common.constants import ERROR, NEED_REVISION
 from common.tasks import NotifyAdminTaskMixin
-from image_app.models import Submission
+from uid.models import Submission
 from validation.helpers import construct_validation_message
 from zooma.tasks import AnnotateAll
 
@@ -22,7 +22,7 @@ from .helpers import send_message
 logger = logging.getLogger(__name__)
 
 
-# HINT: should I move all this stuff into image_app module?
+# HINT: should I move all this stuff into uid module?
 class SubmissionTaskMixin():
     """A mixin to extend Task to support UID Submission objects"""
 
@@ -48,7 +48,7 @@ class SubmissionTaskMixin():
         channels
 
         Args:
-            submission_obj (image_app.models.Submission): an UID submission
+            submission_obj (uid.models.Submission): an UID submission
             object
             construct_message (bool): construct validation message or not
         """
@@ -65,7 +65,7 @@ class SubmissionTaskMixin():
         """Mark submission with status, then send message
 
         Args:
-            submission_obj (image_app.models.Submission): an UID submission
+            submission_obj (uid.models.Submission): an UID submission
             object
             status (int): a :py:class:`common.constants.STATUSES` value
             message (str): the message to send

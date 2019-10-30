@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from django.core.management import BaseCommand, call_command
 
-from image_app.models import Submission
+from uid.models import Submission
 
 
 class Command(BaseCommand):

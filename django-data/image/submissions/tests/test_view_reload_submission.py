@@ -18,8 +18,8 @@ from common.tests import (
     StatusMixinTestCase)
 from common.constants import (
     CRB_ANIM_TYPE, CRYOWEB_TYPE, TEMPLATE_TYPE, WAITING)
-from image_app.models import Submission
-from image_app.tests import DataSourceMixinTestCase
+from uid.models import Submission
+from uid.tests import DataSourceMixinTestCase
 
 from .common import SubmissionFormMixin
 from ..views import ReloadSubmissionView
@@ -28,11 +28,11 @@ from ..forms import ReloadForm
 
 class TestBase(SubmissionFormMixin, DataSourceMixinTestCase, TestCase):
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission"
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission"
     ]
 
     def setUp(self):

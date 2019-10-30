@@ -8,7 +8,7 @@ Created on Fri Feb  8 13:55:39 2019
 
 from django.test import TestCase
 
-from image_app.models import Animal
+from uid.models import Animal
 
 from ..forms import UpdateAnimalForm
 from .common import AnimalFeaturesMixin

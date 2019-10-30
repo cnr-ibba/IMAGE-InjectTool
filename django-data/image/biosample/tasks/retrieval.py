@@ -19,8 +19,8 @@ from django.db.models import Count
 from django.utils import timezone
 
 from image.celery import app as celery_app
-from image_app.helpers import parse_image_alias, get_model_object
-from image_app.models import Submission
+from uid.helpers import parse_image_alias, get_model_object
+from uid.models import Submission
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from common.constants import (
     ERROR, NEED_REVISION, SUBMITTED, COMPLETED)
@@ -310,7 +310,7 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
         """
         Fetch status from pending submissions. Called from
         :py:meth:`run`, handles exceptions from USI, select
-        all :py:class:`Submission <image_app.models.Submission>` objects
+        all :py:class:`Submission <uid.models.Submission>` objects
         with :py:const:`SUBMITTED <common.constants.SUBMITTED>` status
         from :ref:`UID <The Unified Internal Database>` and call
         :py:meth:`fetch_queryset` with this data
@@ -346,7 +346,7 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
     def fetch_queryset(self, queryset):
         """Fetch biosample against a queryset (a list of
         :py:const:`SUBMITTED <common.constants.SUBMITTED>`
-        :py:class:`Submission <image_app.models.Submission>` objects). Iterate
+        :py:class:`Submission <uid.models.Submission>` objects). Iterate
         through submission to get USI info. Calls
         :py:class:`FetchStatusHelper`
         """
@@ -450,7 +450,7 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
 
     def update_message(self, uid_submission, submission_qs, status):
         """Read biosample.models.Submission message and set
-        image_app.models.Submission message"""
+        uid.models.Submission message"""
 
         # get error messages for submission
         message = []

@@ -8,7 +8,7 @@ Created on Thu Feb  7 15:38:46 2019
 
 from django import forms
 
-from image_app.models import Sample
+from uid.models import Sample
 from common.forms import RequestFormMixin
 from common.constants import MISSING
 

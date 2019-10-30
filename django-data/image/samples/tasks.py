@@ -13,7 +13,7 @@ from django.db import transaction
 from common.constants import NEED_REVISION
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from image_app.models import Sample, Name
+from uid.models import Sample, Name
 from submissions.tasks import BatchUpdateMixin, SubmissionTaskMixin
 from validation.models import ValidationSummary
 

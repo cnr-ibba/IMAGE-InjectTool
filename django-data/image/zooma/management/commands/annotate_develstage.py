@@ -9,7 +9,7 @@ Created on Wed Sep 25 12:44:23 2019
 import logging
 
 from django.core.management.base import BaseCommand
-from image_app.models import DictDevelStage
+from uid.models import DictDevelStage
 from zooma.helpers import annotate_develstage
 
 # Get an instance of a logger

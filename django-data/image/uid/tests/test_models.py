@@ -18,7 +18,7 @@ from common.tests import PersonMixinTestCase
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
-from image_app.models import (Animal, Submission, DictBreed, DictCountry,
+from uid.models import (Animal, Submission, DictBreed, DictCountry,
                               DictSex, DictSpecie, Sample, uid_report,
                               Person, User, db_has_data)
 
@@ -27,8 +27,8 @@ class DictSexTestCase(TestCase):
     """Testing DictSex class"""
 
     fixtures = [
-        "image_app/dictsex",
-        "image_app/ontology"
+        "uid/dictsex",
+        "uid/ontology"
     ]
 
     def setUp(self):
@@ -82,10 +82,10 @@ class DictSpecieTestCase(TestCase):
     """Testing DictSpecie class"""
 
     fixtures = [
-        'image_app/dictcountry',
-        'image_app/dictspecie',
-        'image_app/ontology',
-        'image_app/speciesynonym'
+        'uid/dictcountry',
+        'uid/dictspecie',
+        'uid/ontology',
+        'uid/speciesynonym'
     ]
 
     def setUp(self):
@@ -168,8 +168,8 @@ class DictCountryTestCase(TestCase):
     """Testing DictCountry class"""
 
     fixtures = [
-        "image_app/dictcountry",
-        "image_app/ontology"
+        "uid/dictcountry",
+        "uid/ontology"
     ]
 
     def setUp(self):
@@ -192,10 +192,10 @@ class DictBreedTestCase(TestCase):
     """Testing DictBreed class"""
 
     fixtures = [
-        "image_app/dictbreed",
-        "image_app/dictcountry",
-        "image_app/dictspecie",
-        "image_app/ontology"
+        "uid/dictbreed",
+        "uid/dictcountry",
+        "uid/dictspecie",
+        "uid/ontology"
     ]
 
     def test_str(self):
@@ -240,12 +240,12 @@ class SubmissionTestCase(TestCase):
     """Testing Submission class"""
 
     fixtures = [
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/submission',
-        'image_app/user'
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/ontology',
+        'uid/organization',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):
@@ -342,18 +342,18 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
     person = Person
 
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/name',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):
@@ -521,21 +521,21 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
     person = Person
 
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/name',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):
@@ -654,7 +654,7 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         self.assertEqual(reference, test)
 
     def test_uid_has_data(self):
-        """testing db_has_data for image_app"""
+        """testing db_has_data for uid"""
 
         self.assertTrue(db_has_data())
 
@@ -743,10 +743,10 @@ class PersonTestCase(PersonMixinTestCase, TestCase):
     person = Person
 
     fixtures = [
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/organization',
-        'image_app/user'
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/organization',
+        'uid/user'
     ]
 
     def setUp(self):

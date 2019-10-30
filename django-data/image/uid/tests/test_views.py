@@ -24,7 +24,7 @@ class Initialize(TestCase):
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "image_app/user"
+        "uid/user"
     ]
 
     def setUp(self):
@@ -52,18 +52,18 @@ class DashBoardViewTest(GeneralMixinTestCase, Initialize):
         super().setUp()
 
         # get the url for dashboard
-        self.url = reverse('image_app:dashboard')
+        self.url = reverse('uid:dashboard')
 
         # get a response
         self.response = self.client.get(self.url)
 
     def test_url_resolves_view(self):
-        view = resolve('/image_app/dashboard/')
+        view = resolve('/uid/dashboard/')
         self.assertIsInstance(view.func.view_class(), DashBoardView)
 
     def test_contains_navigation_links(self):
         create_url = reverse('submissions:create')
-        summary_url = reverse('image_app:summary')
+        summary_url = reverse('uid:summary')
 
         self.assertContains(self.response, 'href="{0}"'.format(create_url))
         self.assertContains(self.response, 'href="{0}"'.format(summary_url))
@@ -135,13 +135,13 @@ class SummaryViewTest(GeneralMixinTestCase, Initialize):
         super().setUp()
 
         # get the url for dashboard
-        self.url = reverse('image_app:summary')
+        self.url = reverse('uid:summary')
 
         # get a response
         self.response = self.client.get(self.url)
 
     def test_url_resolves_view(self):
-        view = resolve('/image_app/summary/')
+        view = resolve('/uid/summary/')
         self.assertIsInstance(view.func.view_class(), SummaryView)
 
     # TODO: test summary after data load
@@ -152,11 +152,11 @@ class ProtectedViewTest(DataSourceMixinTestCase, OwnerMixinTestCase,
     """A class to test protected view"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission"
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission"
     ]
 
     def setUp(self):

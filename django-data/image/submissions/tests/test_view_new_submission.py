@@ -14,7 +14,7 @@ from django.urls import resolve, reverse
 
 from common.constants import (
     CRYOWEB_TYPE, CRB_ANIM_TYPE, TEMPLATE_TYPE, WAITING)
-from image_app.models import DictCountry, Organization, Submission
+from uid.models import DictCountry, Organization, Submission
 from common.tests import FormMixinTestCase, InvalidFormMixinTestCase
 
 from .common import SubmissionFormMixin
@@ -26,10 +26,10 @@ class Initialize(SubmissionFormMixin, TestCase):
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictrole",
-        "image_app/dictcountry",
-        "image_app/organization",
+        "uid/user",
+        "uid/dictrole",
+        "uid/dictcountry",
+        "uid/organization",
     ]
 
     def setUp(self):

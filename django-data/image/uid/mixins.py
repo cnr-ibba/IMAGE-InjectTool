@@ -5,7 +5,7 @@ Created on Fri Jun 28 14:46:39 2019
 
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 
-Define mixins classes for image_app.models
+Define mixins classes for uid.models
 
 """
 
@@ -27,7 +27,7 @@ class BaseMixin(object):
     """Base class for UID tables. It implement common stuff for all UID
     tables::
 
-        from image_app.models import BaseMixin
+        from uid.models import BaseMixin
 
         class Submission(BaseMixin):
             pass
@@ -39,7 +39,7 @@ class BaseMixin(object):
         """
         Truncate table data and restart indexes from 0::
 
-            from image_app.models import Submission
+            from uid.models import Submission
 
             Submission.truncate()
         """
@@ -58,7 +58,7 @@ class BioSampleMixin(BaseMixin):
     Common methods for animal and samples useful in biosample generation
     Need to called with data into biosample or animals::
 
-        from image_app.models import Animal
+        from uid.models import Animal
 
         animal = Animal.objects.get(pk=1)
         biosample_data = animal.to_biosample()

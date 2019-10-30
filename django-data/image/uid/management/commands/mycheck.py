@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.management import BaseCommand
 
 from cryoweb.models import db_has_data as cryoweb_has_data
-from image_app.models import Submission, db_has_data as image_has_data
+from uid.models import Submission, db_has_data as image_has_data
 
 
 class Command(BaseCommand):
