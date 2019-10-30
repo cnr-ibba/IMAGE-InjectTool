@@ -97,11 +97,11 @@ class ValidationSummary(models.Model):
 
         if self.type == "animal":
             self.all_count = Animal.objects.filter(
-                name__submission=self.submission).count()
+                submission=self.submission).count()
 
         elif self.type == "sample":
             self.all_count = Sample.objects.filter(
-                name__submission=self.submission).count()
+                submission=self.submission).count()
 
         else:
             raise Exception("Unknown type '%s'" % (self.type))

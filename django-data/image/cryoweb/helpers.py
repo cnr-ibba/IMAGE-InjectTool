@@ -21,7 +21,7 @@ from common.constants import LOADED, ERROR, MISSING, UNKNOWN
 from common.helpers import image_timedelta
 from uid.helpers import get_or_create_obj, update_or_create_obj
 from uid.models import (
-    Animal, DictBreed, DictCountry, DictSex, DictSpecie, Name, Sample,
+    Animal, DictBreed, DictCountry, DictSex, DictSpecie, Sample,
     Submission, DictUberon)
 from language.helpers import check_species_synonyms
 from submissions.helpers import send_message
@@ -29,7 +29,7 @@ from validation.helpers import construct_validation_message
 from validation.models import ValidationSummary
 
 from .models import db_has_data as cryoweb_has_data
-from .models import VAnimal, VBreedsSpecies, VTransfer, VVessels
+from .models import VAnimal, VBreedsSpecies, VVessels
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -236,24 +236,30 @@ def fill_uid_breeds(submission):
     logger.info("fill_uid_breeds() completed")
 
 
-def fill_uid_names(submission):
-    """Read VTransfer Views and fill name table"""
+def get_animal_specie_and_breed(v_animal, language):
+    # get specie translated by dictionary
+    specie = DictSpecie.get_by_synonym(
+        synonym=v_animal.ext_species,
+        language=language)
 
-    # debug
-    logger.info("called fill_uid_names()")
+    logger.debug("Selected specie is %s" % (specie))
 
-    # get all Vtransfer object
-    for v_tranfer in VTransfer.objects.all():
-        # no name manipulation. If two objects are indentical, there's no
-        # duplicates.
-        # HINT: The ramon example will be a issue in validation step
-        get_or_create_obj(
-            Name,
-            name=v_tranfer.get_fullname(),
-            submission=submission,
-            owner=submission.owner)
+    # get breed name and country through VBreedsSpecies model
+    efabis_mcname = v_animal.efabis_mcname
+    efabis_country = v_animal.efabis_country
 
-    logger.info("fill_uid_names() completed")
+    # get a country object
+    country = DictCountry.objects.get(label=efabis_country)
+
+    # a breed could be specie/country specific
+    breed = DictBreed.objects.get(
+        supplied_breed=efabis_mcname,
+        specie=specie,
+        country=country)
+
+    logger.debug("Selected breed is %s" % (breed))
+
+    return specie, breed
 
 
 def fill_uid_animals(submission):
@@ -271,38 +277,28 @@ def fill_uid_animals(submission):
 
     # cycle over animals
     for v_animal in VAnimal.objects.all():
-        # get specie translated by dictionary
-        specie = DictSpecie.get_by_synonym(
-            synonym=v_animal.ext_species,
-            language=language)
-
-        # get breed name and country through VBreedsSpecies model
-        efabis_mcname = v_animal.efabis_mcname
-        efabis_country = v_animal.efabis_country
-
-        # get a country object
-        country = DictCountry.objects.get(label=efabis_country)
-
-        # a breed could be specie/country specific
-        breed = DictBreed.objects.get(
-            supplied_breed=efabis_mcname,
-            specie=specie,
-            country=country)
-
-        logger.debug("Selected breed is %s" % (breed))
+        # getting specie and breed
+        specie, breed = get_animal_specie_and_breed(v_animal, language)
 
         # get name for this animal and for mother and father
         logger.debug("Getting %s as my name" % (v_animal.ext_animal))
-        name = Name.objects.get(
-            name=v_animal.ext_animal, submission=submission)
+        name = v_animal.ext_animal
 
         logger.debug("Getting %s as father" % (v_animal.ext_sire))
-        father = Name.objects.get(
-            name=v_animal.ext_sire, submission=submission)
+
+        # get father or None
+        father = Animal.objects.filter(
+            name=v_animal.ext_sire,
+            breed=breed,
+            owner=submission.owner).first()
 
         logger.debug("Getting %s as mother" % (v_animal.ext_dam))
-        mother = Name.objects.get(
-            name=v_animal.ext_dam, submission=submission)
+
+        # get mother or None
+        mother = Animal.objects.filter(
+            name=v_animal.ext_dam,
+            breed=breed,
+            owner=submission.owner).first()
 
         # determine sex. Check for values
         if v_animal.ext_sex == 'm':
@@ -337,7 +333,8 @@ def fill_uid_animals(submission):
             'birth_location_longitude': v_animal.longitude,
             'birth_location_accuracy': accuracy,
             'description': v_animal.comment,
-            'owner': submission.owner
+            'owner': submission.owner,
+            'submission': submission,
         }
 
         # Upate or create animal obj
@@ -365,27 +362,30 @@ def fill_uid_samples(submission):
     # debug
     logger.info("called fill_uid_samples()")
 
+    # get submission language
+    language = submission.gene_bank_country.label
+
     for v_vessel in VVessels.objects.all():
-        # get name for this sample. Need to insert it
-        name = get_or_create_obj(
-            Name,
-            name=v_vessel.ext_vessel,
-            submission=submission,
-            owner=submission.owner)
+        # get name for this sample
+        name = v_vessel.ext_vessel
+
+        # get the animal of this sample
+        v_animal = v_vessel.get_animal()
+
+        # getting specie and breed
+        specie, breed = get_animal_specie_and_breed(v_animal, language)
 
         # get animal object using name
         animal = Animal.objects.get(
-            name__name=v_vessel.ext_animal,
-            name__submission=submission)
+            name=v_animal.ext_animal,
+            breed=breed,
+            owner=submission.owner)
 
         # get a organism part. Organism parts need to be in lowercases
         organism_part = get_or_create_obj(
             DictUberon,
             label=v_vessel.get_organism_part().lower()
         )
-
-        # get a v_animal instance to get access to animal birth date
-        v_animal = VAnimal.objects.get(db_animal=v_vessel.db_animal)
 
         # derive animal age at collection. THis function deals with NULL valies
         animal_age_at_collection, time_units = image_timedelta(
@@ -404,6 +404,7 @@ def fill_uid_samples(submission):
             'animal_age_at_collection': animal_age_at_collection,
             'animal_age_at_collection_units': time_units,
             # 'storage': v_vessel.ext_vessel_type,
+            'submission': submission,
         }
 
         update_or_create_obj(
@@ -439,9 +440,6 @@ def cryoweb_import(submission):
 
         # BREEDS
         fill_uid_breeds(submission)
-
-        # NAME
-        fill_uid_names(submission)
 
         # ANIMALS
         fill_uid_animals(submission)

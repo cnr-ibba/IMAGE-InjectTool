@@ -134,36 +134,8 @@
   }
 },
 {
-  "model": "uid.name",
+  "model": "uid.animal",
   "pk": 1,
-  "fields": {
-    "name": "ANIMAL:::ID:::unknown_sire",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-06-18T17:08:50.666Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 2,
-  "fields": {
-    "name": "ANIMAL:::ID:::unknown_dam",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-06-18T17:08:50.668Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 3,
   "fields": {
     "name": "ANIMAL:::ID:::WF60/B0811",
     "submission": 1,
@@ -172,12 +144,24 @@
     "status": 1,
     "last_changed": "2019-06-18T17:08:50.670Z",
     "last_submitted": null,
-    "publication": null
+    "publication": null,
+    "alternative_id": "438",
+    "description": null,
+    "material": "Organism",
+    "breed": 4,
+    "sex": 1,
+    "father": null,
+    "mother": null,
+    "birth_date": null,
+    "birth_location": null,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
+    "birth_location_accuracy": 0
   }
 },
 {
-  "model": "uid.name",
-  "pk": 4,
+  "model": "uid.animal",
+  "pk": 2,
   "fields": {
     "name": "ANIMAL:::ID:::WF60/6532",
     "submission": 1,
@@ -186,12 +170,24 @@
     "status": 1,
     "last_changed": "2019-06-18T17:08:50.672Z",
     "last_submitted": null,
-    "publication": null
+    "publication": null,
+    "alternative_id": "439",
+    "description": null,
+    "material": "Organism",
+    "breed": 4,
+    "sex": 2,
+    "father": null,
+    "mother": null,
+    "birth_date": null,
+    "birth_location": null,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
+    "birth_location_accuracy": 0
   }
 },
 {
-  "model": "uid.name",
-  "pk": 5,
+  "model": "uid.animal",
+  "pk": 3,
   "fields": {
     "name": "ANIMAL:::ID:::WF001265",
     "submission": 1,
@@ -200,12 +196,24 @@
     "status": 1,
     "last_changed": "2019-06-18T17:08:50.674Z",
     "last_submitted": null,
-    "publication": null
+    "publication": null,
+    "alternative_id": "440",
+    "description": null,
+    "material": "Organism",
+    "breed": 4,
+    "sex": 1,
+    "father": 1,
+    "mother": 2,
+    "birth_date": "2003-01-16",
+    "birth_location": null,
+    "birth_location_latitude": 52.034505,
+    "birth_location_longitude": 8.939664,
+    "birth_location_accuracy": 4
   }
 },
 {
-  "model": "uid.name",
-  "pk": 6,
+  "model": "uid.sample",
+  "pk": 1,
   "fields": {
     "name": "MA_052_KR_S_Snh_S03_Mariensee_WF001265_OMS_13.01.04",
     "submission": 1,
@@ -214,74 +222,7 @@
     "status": 1,
     "last_changed": "2019-06-18T17:08:50.730Z",
     "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.animal",
-  "pk": 1,
-  "fields": {
-    "name": 3,
-    "alternative_id": "438",
-    "description": null,
-    "material": "Organism",
-    "breed": 4,
-    "sex": 1,
-    "father": 1,
-    "mother": 2,
-    "birth_date": null,
-    "birth_location": null,
-    "birth_location_latitude": null,
-    "birth_location_longitude": null,
-    "birth_location_accuracy": 0,
-    "owner": 1
-  }
-},
-{
-  "model": "uid.animal",
-  "pk": 2,
-  "fields": {
-    "name": 4,
-    "alternative_id": "439",
-    "description": null,
-    "material": "Organism",
-    "breed": 4,
-    "sex": 2,
-    "father": 1,
-    "mother": 2,
-    "birth_date": null,
-    "birth_location": null,
-    "birth_location_latitude": null,
-    "birth_location_longitude": null,
-    "birth_location_accuracy": 0,
-    "owner": 1
-  }
-},
-{
-  "model": "uid.animal",
-  "pk": 3,
-  "fields": {
-    "name": 5,
-    "alternative_id": "440",
-    "description": null,
-    "material": "Organism",
-    "breed": 4,
-    "sex": 1,
-    "father": 3,
-    "mother": 4,
-    "birth_date": "2003-01-16",
-    "birth_location": null,
-    "birth_location_latitude": 52.034505,
-    "birth_location_longitude": 8.939664,
-    "birth_location_accuracy": 4,
-    "owner": 1
-  }
-},
-{
-  "model": "uid.sample",
-  "pk": 1,
-  "fields": {
-    "name": 6,
+    "publication": null,
     "alternative_id": "1451",
     "description": "Qualit\u00e4tsrate (Mot) 87,5 %",
     "material": "Specimen from Organism",
@@ -300,8 +241,7 @@
     "availability": null,
     "storage": null,
     "storage_processing": null,
-    "preparation_interval": null,
-    "owner": 1
+    "preparation_interval": null
   }
 },
 {

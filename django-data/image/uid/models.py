@@ -524,9 +524,7 @@ class Animal(BioSampleMixin, Name):
         default=MISSING)
 
     class Meta:
-        # HINT: can I put two files for my cryoweb instance? May they have two
-        # different version
-        unique_together = (("name", "breed"),)
+        unique_together = (("name", "breed", "owner"),)
 
     @property
     def specie(self):
@@ -737,9 +735,7 @@ class Sample(BioSampleMixin, Name):
         blank=True)
 
     class Meta:
-        # HINT: can I put two files for my cryoweb instance? May they have two
-        # different version
-        unique_together = (("name", "animal"),)
+        unique_together = (("name", "animal", "owner"),)
 
     @property
     def specie(self):

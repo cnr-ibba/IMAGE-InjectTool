@@ -17,7 +17,7 @@ from common.constants import ERROR
 from common.tests import WebSocketMixin
 from language.models import SpecieSynonym
 from uid.models import (
-    Submission, DictBreed, Name, Animal, Sample, DictSex,
+    Submission, DictBreed, Animal, Sample, DictSex,
     DictCountry, DictSpecie)
 from uid.tests import DataSourceMixinTestCase
 
@@ -105,10 +105,6 @@ class ImportMixin(WebSocketMixin, CryoWebMixin):
                 ('Aberdeen Angus', 'Germany'),
                 ('Ostfriesisches Milchschaf', 'Germany')],
             msg="Check breeds loaded")
-
-        # check name upload (5 animal, 1 sample)
-        queryset = Name.objects.filter(submission=self.submission)
-        self.assertEqual(len(queryset), 6, msg='check name load')
 
         # check animal name
         queryset = Animal.objects.all()
