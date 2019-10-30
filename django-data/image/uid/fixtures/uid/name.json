@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 1,
   "fields": {
     "name": "ANIMAL:::ID:::unknown_sire",
@@ -10,7 +10,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 2,
   "fields": {
     "name": "ANIMAL:::ID:::unknown_dam",
@@ -20,7 +20,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 3,
   "fields": {
     "name": "ANIMAL:::ID:::132713",
@@ -31,7 +31,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 4,
   "fields": {
     "name": "Siems_0722_393449",
@@ -41,7 +41,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 5,
   "fields": {
     "name": "ANIMAL:::ID:::mother",
@@ -51,7 +51,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 6,
   "fields": {
     "name": "ANIMAL:::ID:::son",

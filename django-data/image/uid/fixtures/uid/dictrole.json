@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.dictrole",
+  "model": "uid.dictrole",
   "pk": 1,
   "fields": {
     "label": "submitter",

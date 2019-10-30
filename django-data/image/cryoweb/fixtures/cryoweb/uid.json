@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.dictrole",
+  "model": "uid.dictrole",
   "pk": 1,
   "fields": {
     "label": "submitter",
@@ -8,7 +8,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 1,
   "fields": {
     "label": "United Kingdom",
@@ -17,7 +17,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 2,
   "fields": {
     "label": "Italy",
@@ -26,7 +26,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 3,
   "fields": {
     "label": "Germany",
@@ -35,7 +35,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 1,
   "fields": {
     "label": "male",
@@ -43,7 +43,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 2,
   "fields": {
     "label": "female",
@@ -51,7 +51,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 3,
   "fields": {
     "label": "record of unknown sex",
@@ -59,7 +59,7 @@
   }
 },
 {
-  "model": "image_app.dictuberon",
+  "model": "uid.dictuberon",
   "pk": 1,
   "fields": {
     "label": "semen",
@@ -68,7 +68,7 @@
   }
 },
 {
-  "model": "image_app.dictspecie",
+  "model": "uid.dictspecie",
   "pk": 1,
   "fields": {
     "label": "Bos taurus",
@@ -77,7 +77,7 @@
   }
 },
 {
-  "model": "image_app.dictspecie",
+  "model": "uid.dictspecie",
   "pk": 2,
   "fields": {
     "label": "Ovis aries",
@@ -86,7 +86,7 @@
   }
 },
 {
-  "model": "image_app.dictbreed",
+  "model": "uid.dictbreed",
   "pk": 1,
   "fields": {
     "confidence": null,
@@ -98,7 +98,7 @@
   }
 },
 {
-  "model": "image_app.dictbreed",
+  "model": "uid.dictbreed",
   "pk": 2,
   "fields": {
     "confidence": null,
@@ -110,7 +110,7 @@
   }
 },
 {
-  "model": "image_app.dictbreed",
+  "model": "uid.dictbreed",
   "pk": 3,
   "fields": {
     "confidence": null,
@@ -122,7 +122,7 @@
   }
 },
 {
-  "model": "image_app.dictbreed",
+  "model": "uid.dictbreed",
   "pk": 4,
   "fields": {
     "confidence": null,
@@ -134,7 +134,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 1,
   "fields": {
     "name": "ANIMAL:::ID:::unknown_sire",
@@ -148,7 +148,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 2,
   "fields": {
     "name": "ANIMAL:::ID:::unknown_dam",
@@ -162,7 +162,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 3,
   "fields": {
     "name": "ANIMAL:::ID:::WF60/B0811",
@@ -176,7 +176,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 4,
   "fields": {
     "name": "ANIMAL:::ID:::WF60/6532",
@@ -190,7 +190,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 5,
   "fields": {
     "name": "ANIMAL:::ID:::WF001265",
@@ -204,7 +204,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 6,
   "fields": {
     "name": "MA_052_KR_S_Snh_S03_Mariensee_WF001265_OMS_13.01.04",
@@ -218,7 +218,7 @@
   }
 },
 {
-  "model": "image_app.animal",
+  "model": "uid.animal",
   "pk": 1,
   "fields": {
     "name": 3,
@@ -238,7 +238,7 @@
   }
 },
 {
-  "model": "image_app.animal",
+  "model": "uid.animal",
   "pk": 2,
   "fields": {
     "name": 4,
@@ -258,7 +258,7 @@
   }
 },
 {
-  "model": "image_app.animal",
+  "model": "uid.animal",
   "pk": 3,
   "fields": {
     "name": 5,
@@ -278,7 +278,7 @@
   }
 },
 {
-  "model": "image_app.sample",
+  "model": "uid.sample",
   "pk": 1,
   "fields": {
     "name": 6,
@@ -305,7 +305,7 @@
   }
 },
 {
-  "model": "image_app.organization",
+  "model": "uid.organization",
   "pk": 1,
   "fields": {
     "name": "Test organization",
@@ -316,7 +316,7 @@
   }
 },
 {
-  "model": "image_app.organization",
+  "model": "uid.organization",
   "pk": 2,
   "fields": {
     "name": "IBBA-CNR",
@@ -327,7 +327,7 @@
   }
 },
 {
-  "model": "image_app.submission",
+  "model": "uid.submission",
   "pk": 1,
   "fields": {
     "title": "test",

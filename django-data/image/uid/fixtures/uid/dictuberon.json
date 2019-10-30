@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.dictuberon",
+  "model": "uid.dictuberon",
   "pk": 1,
   "fields": {
     "label": "semen",

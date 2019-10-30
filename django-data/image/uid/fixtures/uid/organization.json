@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.organization",
+  "model": "uid.organization",
   "pk": 1,
   "fields": {
     "name": "Test organization",
@@ -11,7 +11,7 @@
   }
 },
 {
-  "model": "image_app.organization",
+  "model": "uid.organization",
   "pk": 2,
   "fields": {
     "name": "IBBA-CNR",

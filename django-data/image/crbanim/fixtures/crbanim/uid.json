@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.dictrole",
+  "model": "uid.dictrole",
   "pk": 1,
   "fields": {
     "label": "submitter",
@@ -8,7 +8,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 1,
   "fields": {
     "label": "United Kingdom",
@@ -17,7 +17,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 2,
   "fields": {
     "label": "Italy",
@@ -26,7 +26,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 3,
   "fields": {
     "label": "France",
@@ -35,7 +35,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 1,
   "fields": {
     "label": "male",
@@ -43,7 +43,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 2,
   "fields": {
     "label": "female",
@@ -51,7 +51,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 3,
   "fields": {
     "label": "record of unknown sex",
@@ -59,7 +59,7 @@
   }
 },
 {
-  "model": "image_app.dictuberon",
+  "model": "uid.dictuberon",
   "pk": 1,
   "fields": {
     "label": "bone marrow",
@@ -68,7 +68,7 @@
   }
 },
 {
-  "model": "image_app.dictuberon",
+  "model": "uid.dictuberon",
   "pk": 2,
   "fields": {
     "label": "uterus",
@@ -77,7 +77,7 @@
   }
 },
 {
-  "model": "image_app.dictspecie",
+  "model": "uid.dictspecie",
   "pk": 1,
   "fields": {
     "label": "Bos taurus",
@@ -86,7 +86,7 @@
   }
 },
 {
-  "model": "image_app.dictspecie",
+  "model": "uid.dictspecie",
   "pk": 2,
   "fields": {
     "label": "Capra hircus",
@@ -95,7 +95,7 @@
   }
 },
 {
-  "model": "image_app.dictspecie",
+  "model": "uid.dictspecie",
   "pk": 3,
   "fields": {
     "label": "Gallus gallus",
@@ -104,7 +104,7 @@
   }
 },
 {
-  "model": "image_app.dictbreed",
+  "model": "uid.dictbreed",
   "pk": 1,
   "fields": {
     "confidence": null,
@@ -116,7 +116,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 1,
   "fields": {
     "name": "ANIMAL:::2",
@@ -130,7 +130,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 2,
   "fields": {
     "name": "FAKE726008",
@@ -144,7 +144,7 @@
   }
 },
 {
-  "model": "image_app.name",
+  "model": "uid.name",
   "pk": 3,
   "fields": {
     "name": "FAKE760848",
@@ -158,7 +158,7 @@
   }
 },
 {
-  "model": "image_app.animal",
+  "model": "uid.animal",
   "pk": 1,
   "fields": {
     "name": 1,
@@ -178,7 +178,7 @@
   }
 },
 {
-  "model": "image_app.sample",
+  "model": "uid.sample",
   "pk": 1,
   "fields": {
     "name": 2,
@@ -205,7 +205,7 @@
   }
 },
 {
-  "model": "image_app.sample",
+  "model": "uid.sample",
   "pk": 2,
   "fields": {
     "name": 3,
@@ -232,7 +232,7 @@
   }
 },
 {
-  "model": "image_app.organization",
+  "model": "uid.organization",
   "pk": 1,
   "fields": {
     "name": "Test organization",
@@ -243,7 +243,7 @@
   }
 },
 {
-  "model": "image_app.organization",
+  "model": "uid.organization",
   "pk": 2,
   "fields": {
     "name": "IBBA-CNR",
@@ -254,14 +254,14 @@
   }
 },
 {
-  "model": "image_app.publication",
+  "model": "uid.publication",
   "pk": 1,
   "fields": {
     "doi": "doi:10.1139/o09-005"
   }
 },
 {
-  "model": "image_app.submission",
+  "model": "uid.submission",
   "pk": 1,
   "fields": {
     "title": "test",

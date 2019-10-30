@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 1,
   "fields": {
     "label": "United Kingdom",
@@ -8,7 +8,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 2,
   "fields": {
     "label": "Italy",
@@ -16,7 +16,7 @@
   }
 },
 {
-  "model": "image_app.dictcountry",
+  "model": "uid.dictcountry",
   "pk": 3,
   "fields": {
     "label": "Germany",

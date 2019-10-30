@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.sample",
+  "model": "uid.sample",
   "pk": 1,
   "fields": {
     "name": 4,

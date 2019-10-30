@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.animal",
+  "model": "uid.animal",
   "pk": 1,
   "fields": {
     "name": 3,
@@ -18,7 +18,7 @@
   }
 },
 {
-  "model": "image_app.animal",
+  "model": "uid.animal",
   "pk": 2,
   "fields": {
     "name": 5,
@@ -36,7 +36,7 @@
   }
 },
 {
-  "model": "image_app.animal",
+  "model": "uid.animal",
   "pk": 3,
   "fields": {
     "name": 6,

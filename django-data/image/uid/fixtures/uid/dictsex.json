@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 1,
   "fields": {
     "label": "male",
@@ -8,7 +8,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 2,
   "fields": {
     "label": "female",
@@ -16,7 +16,7 @@
   }
 },
 {
-  "model": "image_app.dictsex",
+  "model": "uid.dictsex",
   "pk": 3,
   "fields": {
     "label": "record of unknown sex",

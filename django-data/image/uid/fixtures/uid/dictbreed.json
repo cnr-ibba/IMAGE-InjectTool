@@ -1,6 +1,6 @@
 [
 {
-  "model": "image_app.dictbreed",
+  "model": "uid.dictbreed",
   "pk": 1,
   "fields": {
     "supplied_breed": "Bunte Bentheimer",
