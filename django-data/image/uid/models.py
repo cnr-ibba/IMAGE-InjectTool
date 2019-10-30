@@ -862,7 +862,7 @@ class Person(BaseMixin, models.Model):
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        related_name='%(class)s_set')
+        related_name='person')
 
     initials = models.CharField(max_length=255, blank=True, null=True)
 
