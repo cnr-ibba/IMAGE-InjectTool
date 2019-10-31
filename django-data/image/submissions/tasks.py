@@ -178,11 +178,10 @@ class BatchUpdateMixin(SubmissionTaskMixin):
 
             if getattr(item_object, attribute) != value:
                 setattr(item_object, attribute, value)
-                item_object.save()
 
                 # update name object
-                item_object.name.last_changed = timezone.now()
-                item_object.name.save()
+                item_object.last_changed = timezone.now()
+                item_object.save()
 
         # get a submission object (from SubmissionTaskMixin)
         submission_obj = self.get_uid_submission(submission_id)

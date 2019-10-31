@@ -20,9 +20,9 @@ def constant_factory(value):
 
 
 @register.filter(name="get_badge")
-def get_badge(name):
+def get_badge(model):
     # return unknown badge if no validation is done
-    if not name.validationresult:
+    if not model.validationresult:
         return mark_safe(
             '<span class="badge badge-pill badge-secondary">Unknown'
             '</span></td>'
@@ -35,12 +35,12 @@ def get_badge(name):
     badge_types['Info'] = 'info'
 
     # get a badge class from status
-    status = name.validationresult.status
+    status = model.validationresult.status
     badge_class = badge_types[status]
 
     # get messages
     messages_str = "<br>".join(
-        escape(message) for message in name.validationresult.messages)
+        escape(message) for message in model.validationresult.messages)
 
     # set result string
     if status == 'Pass':

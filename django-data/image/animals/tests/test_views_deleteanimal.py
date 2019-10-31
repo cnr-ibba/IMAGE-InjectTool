@@ -9,7 +9,7 @@ Created on Thu Feb 14 16:00:29 2019
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
-from uid.models import Animal, Sample, Name
+from uid.models import Animal, Sample
 from validation.models import ValidationResult
 from common.tests import MessageMixinTestCase
 
@@ -109,7 +109,6 @@ class SuccessfulDeleteAnimalViewTest(
 
         # count number of objects
         self.n_of_animals = Animal.objects.count()
-        self.n_of_names = Name.objects.count()
         self.n_of_samples = Sample.objects.count()
 
         self.url = reverse("animals:delete", kwargs={'pk': 1})
@@ -123,21 +122,15 @@ class SuccessfulDeleteAnimalViewTest(
         """Create a new child animal for testing purpose"""
 
         # choose mother and father
-        father = Name.objects.get(name='ANIMAL:::ID:::132713')
-        mother = Name.objects.get(name='ANIMAL:::ID:::unknown_dam')
+        father = Animal.objects.get(name='ANIMAL:::ID:::132713')
+        mother = Animal.objects.get(name='ANIMAL:::ID:::mother')
 
         # create an animal object from an existing one
         animal = Animal.objects.get(pk=1)
-        name = animal.name
 
-        # create a name, first
-        name.pk = None
-        name.name = "test child"
-        name.save()
-
-        # then create a new animal from animal
+        # create a new animal from animal
         animal.pk = None
-        animal.name = name
+        animal.name = "test child"
         animal.father = father
         animal.mother = mother
         animal.save()
@@ -149,7 +142,7 @@ class SuccessfulDeleteAnimalViewTest(
         self.assertRedirects(self.response, url)
 
     def test_animal_delete(self):
-        """Deleting an animal will delete its samples, names and
+        """Deleting an animal will delete its samples and
         validationresults. Its child will be present"""
 
         # three animals present (see uid fixtures)
@@ -161,19 +154,15 @@ class SuccessfulDeleteAnimalViewTest(
 
         # assert child father and mother
         self.assertIsNone(self.child.father)
-        mother = Name.objects.get(name='ANIMAL:::ID:::unknown_dam')
+        mother = Animal.objects.get(name='ANIMAL:::ID:::unknown_dam')
         self.assertEqual(self.child.mother, mother)
 
         # now its samples (the sample related to deleted animal was deleted)
         n_samples = Sample.objects.count()
         self.assertEqual(n_samples, self.n_of_samples-1)
 
-        # names will be deleted. One name for sample, one for animals
-        n_names = Name.objects.count()
-        self.assertEqual(n_names, self.n_of_names-2)
-
         # check for ramaining names
-        names = [name.name for name in Name.objects.all()]
+        names = [animal.name for animal in Animal.objects.all()]
         self.assertIn("ANIMAL:::ID:::unknown_sire", names)
         self.assertIn("ANIMAL:::ID:::unknown_dam", names)
         self.assertIn("test child", names)

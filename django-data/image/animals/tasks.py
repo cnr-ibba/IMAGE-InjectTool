@@ -13,7 +13,7 @@ from django.db import transaction
 from common.constants import NEED_REVISION
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from uid.models import Animal, Name
+from uid.models import Animal
 from submissions.tasks import BatchUpdateMixin, SubmissionTaskMixin
 from validation.models import ValidationSummary
 
@@ -42,33 +42,28 @@ class BatchDeleteAnimals(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
 
         for animal_id in animal_ids:
             try:
-                name = Name.objects.get(
+                # HINT: this will raise exception if I have two animals
+                # with different breed and the same name
+                animal_object = Animal.objects.get(
                     name=animal_id, submission=submission_obj)
 
-                animal_object = Animal.objects.get(name=name)
                 samples = animal_object.sample_set.all()
 
                 with transaction.atomic():
                     for sample in samples:
-                        sample_name = sample.name
                         sample.delete()
-                        sample_name.delete()
 
                     logger.debug("Clearing all childs from this animal")
-                    name.mother_of.clear()
-                    name.father_of.clear()
+                    animal_object.mother_of.clear()
+                    animal_object.father_of.clear()
 
                     # delete this animal object
                     logger.debug(
-                        "Deleting animal:%s and name:%s" % (
-                            animal_object, name))
+                        "Deleting animal:%s" % (
+                            animal_object))
                     animal_object.delete()
-                    name.delete()
 
                 success_ids.append(animal_id)
-
-            except Name.DoesNotExist:
-                failed_ids.append(animal_id)
 
             except Animal.DoesNotExist:
                 failed_ids.append(animal_id)

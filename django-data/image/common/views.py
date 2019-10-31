@@ -147,9 +147,9 @@ class UpdateMaterialMixin(OwnerMixin):
         # HINT: validate object?
 
         # setting statuses and messages
-        self.object.name.status = NEED_REVISION
-        self.object.name.last_changed = timezone.now()
-        self.object.name.save()
+        self.object.status = NEED_REVISION
+        self.object.last_changed = timezone.now()
+        self.object.save()
 
         if hasattr(self.object.name, 'validationresult'):
             validationresult = self.object.name.validationresult
