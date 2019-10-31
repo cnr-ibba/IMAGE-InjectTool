@@ -200,24 +200,24 @@ class ValidateSubmission(object):
                     message['offending_column']
 
         # get a validation result model or create a new one
-        if hasattr(model.name, 'validationresult'):
-            validationresult = model.name.validationresult
+        if model.validationresult:
+            validationresult = model.validationresult
 
         else:
             validationresult = ValidationResultModel()
-            model.name.validationresult = validationresult
+            model.validationresult = validationresult
 
         # setting valdiationtool results and save
         validationresult.messages = messages
         validationresult.status = overall_status
         validationresult.save()
 
-        # ok, don't update Name statuses for submitted objects which
+        # ok, don't update statuses for submitted objects which
         # already are in biosamples and pass validation
-        if model.name.status == COMPLETED and status == READY:
+        if model.status == COMPLETED and status == READY:
             logger.debug(
                 "Ignoring %s: status was '%s' and validation is OK" % (
-                    model, key2status[model.name.status]))
+                    model, key2status[model.status]))
 
         else:
             logger.debug(
@@ -225,8 +225,8 @@ class ValidateSubmission(object):
                     model, key2status[status], messages))
 
             # update model status and save
-            model.name.status = status
-            model.name.save()
+            model.status = status
+            model.save()
 
     def create_validation_summary(self):
         """
@@ -433,11 +433,11 @@ class ValidateTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
 
         try:
             for animal in Animal.objects.filter(
-                    name__submission=submission_obj).order_by('id'):
+                    submission=submission_obj).order_by('id'):
                 validate_submission.validate_model(animal)
 
             for sample in Sample.objects.filter(
-                    name__submission=submission_obj).order_by('id'):
+                    submission=submission_obj).order_by('id'):
                 validate_submission.validate_model(sample)
 
         # TODO: errors in validation should raise custom exception

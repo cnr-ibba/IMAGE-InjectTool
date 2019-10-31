@@ -22,7 +22,7 @@ from django.test import TestCase
 from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import WebSocketMixin
 from common.tests import PersonMixinTestCase
-from uid.models import Submission, Person, Name, Animal, Sample
+from uid.models import Submission, Person, Animal, Sample
 
 from ..tasks import ValidateTask, ValidationError, ValidateSubmission
 from ..helpers import OntologyCacheError, RulesetError
@@ -70,15 +70,11 @@ class ValidateSubmissionMixin(
         # track submission ID
         self.submission_id = self.submission.id
 
-        # track names
-        self.name_qs = Name.objects.exclude(
-            name__contains="unknown").order_by("animal", "id")
-
         # track animal and samples
         self.animal_qs = Animal.objects.filter(
-            name__submission=self.submission)
+            submission=self.submission).order_by("id")
         self.sample_qs = Sample.objects.filter(
-            name__submission=self.submission)
+            submission=self.submission).order_by("id")
 
         # track animal and samples count
         self.n_animals = self.animal_qs.count()
@@ -100,17 +96,17 @@ class CustomWebSocketMixin(WebSocketMixin):
         # defining default validation message.
         if not validation_message:
             animal_qs = Animal.objects.filter(
-                name__submission=self.submission)
+                submission=self.submission)
             sample_qs = Sample.objects.filter(
-                name__submission=self.submission)
+                submission=self.submission)
 
             validation_message = {
                 'animals': self.n_animals,
                 'samples': self.n_samples,
                 'animal_unkn': animal_qs.filter(
-                    name__validationresult__isnull=True).count(),
+                    validationresults__isnull=True).count(),
                 'sample_unkn': sample_qs.filter(
-                    name__validationresult__isnull=True).count(),
+                    validationresults__isnull=True).count(),
                 'animal_issues': 0,
                 'sample_issues': 0
             }
@@ -411,6 +407,20 @@ class ValidateTaskTest(
             'Error',
             'Error in IMAGE-metadata ruleset. Please inform InjectTool team')
 
+    def check_model_status(self, queryset, responses, status):
+        for i, model in enumerate(queryset):
+            # get the appropriate ValidationResultRecord
+            result = responses[i]
+
+            # assert status
+            self.assertEqual(model.status, status)
+            self.assertEqual(
+                model.validationresult.status,
+                result.get_overall_status())
+            self.assertEqual(
+                model.validationresult.messages,
+                result.get_messages())
+
     @patch("validation.tasks.MetaDataValidation.check_usi_structure")
     @patch("validation.tasks.MetaDataValidation.validate")
     def test_validate_submission(
@@ -431,7 +441,10 @@ class ValidateTaskTest(
         result_set = Mock()
         result_set.get_comparable_str.return_value = "A message"
         validation_result.result_set = [result_set]
-        my_validate.return_value = validation_result
+
+        # track 4 object to call check_model_status
+        responses = [validation_result] * 4
+        my_validate.side_effect = responses
 
         # NOTE that I'm calling the function directly, without delay
         # (AsyncResult). I've patched the time consuming task
@@ -449,14 +462,14 @@ class ValidateTaskTest(
             self.submission.message,
             "Submission validated with success")
 
-        # check Names (they are all ok)
-        for name in self.name_qs:
-            self.assertEqual(name.status, READY)
+        # check Animal (they are all ok)
+        self.check_model_status(self.animal_qs, responses, READY)
 
-            # test for model message (usi_results)
-            self.assertEqual(
-                name.validationresult.messages, ["A message"])
-            self.assertEqual(name.validationresult.status, "Pass")
+        # sample has need revision
+        self.check_model_status(
+            self.sample_qs,
+            responses[self.animal_qs.count():],
+            READY)
 
         # assert validation functions called
         self.assertTrue(my_check.called)
@@ -510,7 +523,9 @@ class ValidateTaskTest(
                 "")
         )
 
-        my_check.return_value = usi_result
+        # track 4 object to call check_model_status
+        responses = [usi_result] * 4
+        my_check.side_effect = responses
 
         # setting a return value for check_with_ruleset
         rule_result = Mock()
@@ -532,15 +547,14 @@ class ValidateTaskTest(
             "Validation got errors",
             self.submission.message)
 
-        # check Names (they require revisions)
-        for name in self.name_qs:
-            self.assertEqual(name.status, NEED_REVISION)
+        # Animals and samples have issues
+        self.check_model_status(self.animal_qs, responses, NEED_REVISION)
 
-            # test for model message (usi_results)
-            self.assertEqual(
-                name.validationresult.messages, usi_result.get_messages())
-            self.assertEqual(
-                name.validationresult.status, usi_result.get_overall_status())
+        # sample has need revision
+        self.check_model_status(
+            self.sample_qs,
+            responses[self.animal_qs.count():],
+            NEED_REVISION)
 
         # if JSON is not valid, I don't check for ruleset
         self.assertTrue(my_check.called)
@@ -691,21 +705,14 @@ class ValidateTaskTest(
             "Submission validated with some warnings",
             self.submission.message)
 
-        # check Names (they are all ok)
-        for i, name in enumerate(self.name_qs):
-            # get the appropriate ValidationResultRecord
-            result = responses[i]
+        # check Animal (they are all ok)
+        self.check_model_status(self.animal_qs, responses, READY)
 
-            # all objects are ready for submissions
-            self.assertEqual(name.status, READY)
-
-            self.assertEqual(
-                name.validationresult.messages,
-                result.get_messages())
-
-            self.assertEqual(
-                name.validationresult.status,
-                result.get_overall_status())
+        # sample has need revision
+        self.check_model_status(
+            self.sample_qs,
+            responses[self.animal_qs.count():],
+            READY)
 
         # test for my methods called
         self.assertTrue(my_check.called)
@@ -793,25 +800,14 @@ class ValidateTaskTest(
             "Error in metadata",
             self.submission.message)
 
-        # check Names (they are all ok, except 1 - sample)
-        for i, name in enumerate(self.name_qs):
-            # get the appropriate ValidationResultRecord
-            result = responses[i]
+        # check Animal (they are all ok)
+        self.check_model_status(self.animal_qs, responses, READY)
 
-            if hasattr(name, "animal"):
-                self.assertEqual(name.status, READY)
-
-            else:
-                # sample has errors
-                self.assertEqual(name.status, NEED_REVISION)
-
-            self.assertEqual(
-                name.validationresult.messages,
-                result.get_messages())
-
-            self.assertEqual(
-                name.validationresult.status,
-                result.get_overall_status())
+        # sample has need revision
+        self.check_model_status(
+            self.sample_qs,
+            responses[self.animal_qs.count():],
+            NEED_REVISION)
 
         # test for my methods called
         self.assertTrue(my_check.called)
@@ -847,9 +843,8 @@ class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
 
         # track an animal for testing
         self.animal = Animal.objects.get(pk=1)
-        self.animal_name = self.animal.name
 
-    def check_status(self, status, messages, name_status):
+    def check_status(self, status, messages, animal_status):
         """Test if I can update status for a model that pass validation"""
 
         result = PickableMock()
@@ -870,11 +865,11 @@ class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
             submission_statuses, self.animal, result)
 
         # Test for animal status
-        self.animal_name.refresh_from_db()
-        self.assertEqual(self.animal_name.status, name_status)
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.status, animal_status)
 
         # get validation result object
-        validationresult = self.animal_name.validationresult
+        validationresult = self.animal.validationresult
         self.assertEqual(validationresult.status, status)
         self.assertEqual(validationresult.messages, messages)
 
@@ -884,23 +879,23 @@ class ValidateSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
     def test_update_status_pass(self):
         status = 'Pass'
         messages = ['Passed all tests']
-        name_status = READY
+        animal_status = READY
 
-        self.check_status(status, messages, name_status)
+        self.check_status(status, messages, animal_status)
 
     def test_update_status_warning(self):
         status = 'Warning'
         messages = ['issued a warning']
-        name_status = READY
+        animal_status = READY
 
-        self.check_status(status, messages, name_status)
+        self.check_status(status, messages, animal_status)
 
     def test_update_status_error(self):
         status = 'Error'
         messages = ['issued an error']
-        name_status = NEED_REVISION
+        animal_status = NEED_REVISION
 
-        self.check_status(status, messages, name_status)
+        self.check_status(status, messages, animal_status)
 
 
 class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
@@ -916,12 +911,12 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         self.submission_data = ValidateSubmission(
             self.submission, ruleset=None)
 
-        # take all names and set them to completed, as after a successful
+        # take all animals and set them to completed, as after a successful
         # submission:
-        self.name_qs.update(status=COMPLETED)
+        self.animal_qs.update(status=COMPLETED)
 
-        # take the animal name I want to update
-        self.animal_name = Name.objects.get(pk=3)
+        # take the animal I want to update
+        self.animal = Animal.objects.get(pk=1)
 
         # update submission status. Simulate a completed submission in which
         # I want to update something
@@ -929,10 +924,10 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         self.submission.save()
 
         # update name objects. In this case, animal was modified
-        self.animal_name.status = NEED_REVISION
-        self.animal_name.save()
+        self.animal.status = NEED_REVISION
+        self.animal.save()
 
-    def update_status(self, status, messages, name_status):
+    def update_status(self, status, messages):
         """Test if I can update status for a model that pass validation"""
 
         # modelling validation same result for every object
@@ -951,58 +946,61 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
              'JSON': 0})
 
         # calling update statuses on name objects
-        for name in self.name_qs:
-            if hasattr(name, "animal"):
-                self.submission_data.update_statuses(
-                    submission_statuses,
-                    name.animal,
-                    result)
-            else:
-                self.submission_data.update_statuses(
-                    submission_statuses,
-                    name.sample,
-                    result)
+        for animal in self.animal_qs:
+            self.submission_data.update_statuses(
+                submission_statuses,
+                animal,
+                result)
+
+        for sample in self.sample_qs:
+            self.submission_data.update_statuses(
+                submission_statuses,
+                sample,
+                result)
 
         # refreshing data from db
-        self.animal_name.refresh_from_db()
+        self.animal.refresh_from_db()
 
     def test_update_status_pass(self):
         status = 'Pass'
         messages = ['Passed all tests']
-        name_status = READY
+        animal_status = READY
 
-        self.update_status(status, messages, name_status)
+        self.update_status(status, messages)
 
         # asserting status change for animal
-        self.assertEqual(self.animal_name.status, name_status)
+        self.assertEqual(self.animal.status, animal_status)
 
         # validationresult is tested outside this class
 
         # other statuses are unchanged
-        for name in self.name_qs.exclude(pk=self.animal_name.pk):
-            self.assertEqual(name.status, COMPLETED)
+        for animal in self.animal_qs.exclude(pk=self.animal.pk):
+            self.assertEqual(animal.status, COMPLETED)
 
     def test_update_status_warning(self):
         status = 'Warning'
         messages = ['issued a warning']
-        name_status = READY
+        animal_status = READY
 
-        self.update_status(status, messages, name_status)
+        self.update_status(status, messages)
 
         # asserting status change for animal
-        self.assertEqual(self.animal_name.status, name_status)
+        self.assertEqual(self.animal.status, animal_status)
 
         # other statuses are unchanged
-        for name in self.name_qs.exclude(pk=self.animal_name.pk):
-            self.assertEqual(name.status, COMPLETED)
+        for animal in self.animal_qs.exclude(pk=self.animal.pk):
+            self.assertEqual(animal.status, COMPLETED)
 
     def test_update_status_error(self):
         status = 'Error'
         messages = ['issued an error']
-        name_status = NEED_REVISION
+        animal_status = NEED_REVISION
 
-        self.update_status(status, messages, name_status)
+        self.update_status(status, messages)
 
-        # all statuses are changed (and need revisions)
-        for name in self.name_qs:
-            self.assertEqual(name.status, NEED_REVISION)
+        # asserting status change for animal
+        self.assertEqual(self.animal.status, animal_status)
+
+        # other statuses are changed (and need revisions)
+        for animal in self.animal_qs.exclude(pk=self.animal.pk):
+            self.assertEqual(animal.status, NEED_REVISION)

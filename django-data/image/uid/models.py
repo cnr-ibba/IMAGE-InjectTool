@@ -196,12 +196,18 @@ class Name(BaseMixin, models.Model):
     def validationresult(self, validationresult):
         """return the first validationresult object (should be uinique)"""
 
+        # destroying relathionship when passin a None object
         if not validationresult:
             del(self.validationresult)
 
         else:
-            self.__validationresult = self.__validationresult
-            self.validationresults.set([validationresult])
+            # bind object to self
+            validationresult.submission = self.submission
+            validationresult.content_object = self
+            validationresult.save()
+
+            # update cache (object already bound with save)
+            self.__validationresult = validationresult
 
     @validationresult.deleter
     def validationresult(self):
