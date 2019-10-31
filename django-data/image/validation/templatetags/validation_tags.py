@@ -22,7 +22,7 @@ def constant_factory(value):
 @register.filter(name="get_badge")
 def get_badge(model):
     # return unknown badge if no validation is done
-    if not model.validationresult:
+    if not hasattr(model, 'validationresult') or not model.validationresult:
         return mark_safe(
             '<span class="badge badge-pill badge-secondary">Unknown'
             '</span></td>'

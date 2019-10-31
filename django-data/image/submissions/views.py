@@ -13,7 +13,6 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
@@ -31,7 +30,7 @@ from common.views import OwnerMixin, FormInvalidMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import ImportCryowebTask
 
-from uid.models import Submission, Name, Animal, Sample
+from uid.models import Submission, Animal, Sample
 from excel.tasks import ImportTemplateTask
 
 from validation.helpers import construct_validation_message
@@ -314,16 +313,26 @@ class EditSubmissionView(
             pk=self.kwargs['pk'],
             owner=self.request.user)
 
-        # unknown animals should be removed from a submission. They have no
-        # data in animal table nor sample
-        return Name.objects.select_related(
-                "validationresult",
-                "submission",
-                "animal",
-                "sample").filter(
-            Q(submission=self.submission) & (
-                Q(animal__isnull=False) | Q(sample__isnull=False))
-            ).order_by('id')
+        # need to perform 2 distinct queryset
+        animal_qs = Animal.objects.filter(
+            submission=self.submission).order_by('id').values_list(
+                'name',
+                'material',
+                'biosample_id',
+                'status',
+                'last_changed',
+                'last_submitted')
+
+        sample_qs = Sample.objects.filter(
+            submission=self.submission).order_by('id').values_list(
+                'name',
+                'material',
+                'biosample_id',
+                'status',
+                'last_changed',
+                'last_submitted')
+
+        return animal_qs.union(sample_qs)
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context

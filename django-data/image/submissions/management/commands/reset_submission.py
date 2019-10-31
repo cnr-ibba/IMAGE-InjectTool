@@ -15,7 +15,7 @@ from django.core.management import BaseCommand
 from django.utils import timezone
 
 from common.constants import LOADED
-from uid.models import Submission, Name
+from uid.models import Submission, Animal, Sample
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -44,14 +44,23 @@ class Command(BaseCommand):
             "Resetting submission %s and its animals/samples to 'LOADED'"
             % (submission))
 
-        # get all names for a submissions
-        names = Name.objects.filter(submission=submission)
+        # get all animals for a submissions
+        animals = Animal.objects.filter(submission=submission)
 
         # update name status
-        for name in names:
-            name.status = LOADED
-            name.last_changed = timezone.now()
-            name.save()
+        for animal in animals:
+            animal.status = LOADED
+            animal.last_changed = timezone.now()
+            animal.save()
+
+        # get all samples for a submissions
+        samples = Sample.objects.filter(submission=submission)
+
+        # update name status
+        for sample in samples:
+            sample.status = LOADED
+            sample.last_changed = timezone.now()
+            sample.save()
 
         # update submission status
         submission.status = LOADED

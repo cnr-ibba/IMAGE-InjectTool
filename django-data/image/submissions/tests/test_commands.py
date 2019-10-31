@@ -10,7 +10,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from common.constants import LOADED
-from uid.models import Submission, Name
+from uid.models import Submission, Animal, Sample
 
 
 class CommandsTestCase(TestCase):
@@ -44,8 +44,14 @@ class CommandsTestCase(TestCase):
         # check submission.state changed
         self.assertEqual(submission_obj.status, LOADED)
 
-        # check name status changed
-        qs = Name.objects.filter(submission=submission_obj)
+        # check Animal status changed
+        qs = Animal.objects.filter(submission=submission_obj)
 
-        for name in qs:
-            self.assertEqual(name.status, LOADED)
+        for model in qs:
+            self.assertEqual(model.status, LOADED)
+
+        # check sample status changed
+        qs = Sample.objects.filter(submission=submission_obj)
+
+        for model in qs:
+            self.assertEqual(model.status, LOADED)
