@@ -41,11 +41,19 @@ class ValidationResult(models.Model):
 
     messages = ArrayField(
         models.TextField(max_length=255, blank=True),
-        default=list
+        default=list,
+        blank=True
     )
 
+    class Meta:
+        unique_together = ('content_type', 'object_id')
+
     def __str__(self):
-        return "%s:%s" % (self.name, self.status)
+        return "(%s - %s:%s) %s" % (
+            self.submission,
+            self.content_type,
+            self.object_id,
+            self.status)
 
 
 class ValidationSummary(models.Model):

@@ -4,6 +4,7 @@ import os
 import shlex
 
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import Func, Value, F
 from django.db.models.signals import post_save
@@ -117,6 +118,8 @@ class Name(BaseMixin, models.Model):
     """Model UID names: define a name (sample or animal) unique for each
     data submission"""
 
+    __validationresult = None
+
     # two different animal may have the same name. Its unicity depens on
     # data source name and version
     name = models.CharField(
@@ -173,6 +176,43 @@ class Name(BaseMixin, models.Model):
         max_length=255,
         blank=True,
         null=True)
+
+    validationresults = GenericRelation(
+        'validation.ValidationResult',
+        related_query_name='%(class)ss')
+
+    # https://www.machinelearningplus.com/python/python-property/
+    # https://stackoverflow.com/questions/7837330/generic-one-to-one-relation-in-django
+    @property
+    def validationresult(self):
+        """return the first validationresult object (should be uinique)"""
+
+        if not self.__validationresult:
+            self.__validationresult = self.validationresults.first()
+
+        return self.__validationresult
+
+    @validationresult.setter
+    def validationresult(self, validationresult):
+        """return the first validationresult object (should be uinique)"""
+
+        if not validationresult:
+            del(self.validationresult)
+
+        else:
+            self.__validationresult = self.__validationresult
+            self.validationresults.set([validationresult])
+
+    @validationresult.deleter
+    def validationresult(self):
+        """return the first validationresult object (should be uinique)"""
+
+        if not self.__validationresult:
+            self.__validationresult = self.validationresults.first()
+
+        # for a genericrelation, removin an object mean destroy it
+        self.validationresults.remove(self.__validationresult)
+        self.__validationresult = None
 
     class Meta:
         # Abstract base classes are useful when you want to put some common

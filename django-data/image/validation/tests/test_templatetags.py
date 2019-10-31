@@ -9,13 +9,17 @@ Created on Wed Jan 30 11:14:02 2019
 from django.test import TestCase
 from django.template import Template, Context
 
-from uid.models import Name
+from uid.models import Animal
 
 
 class GetBadgeTest(TestCase):
     """Test get_badges filter function"""
 
     fixtures = [
+        "uid/animal",
+        "uid/dictbreed",
+        "uid/dictsex",
+        "uid/dictspecie",
         "uid/user",
         "uid/dictcountry",
         "uid/dictrole",
@@ -31,23 +35,20 @@ class GetBadgeTest(TestCase):
 
     def setUp(self):
         # get a name object
-        self.name = Name.objects.get(pk=3)
-        self.validationresult = self.name.validationresult
+        self.animal = Animal.objects.get(pk=1)
+        self.validationresult = self.animal.validationresult
 
     def render(self):
         """Render context"""
 
-        # reload name
-        self.name.refresh_from_db()
-
-        return self.TEMPLATE.render(Context({'name': self.name}))
+        return self.TEMPLATE.render(Context({'name': self.animal}))
 
     def test_unknown(self):
         """Test an unknown validation"""
 
         # remove validation object
         self.validationresult.delete()
-        self.name.validationresult = None
+        self.animal.validationresult = None
 
         # rdener context
         rendered = self.render()
