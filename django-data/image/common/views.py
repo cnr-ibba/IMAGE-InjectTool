@@ -56,7 +56,7 @@ class DetailMaterialMixin(OwnerMixin):
         data = super().get_context_data(**kwargs)
 
         # get a validationresult obj
-        if hasattr(self.object, "validationresult"):
+        if self.object.validationresult:
             validation = self.object.validationresult
 
             logger.debug(
@@ -142,7 +142,7 @@ class UpdateMaterialMixin(OwnerMixin):
         self.object.last_changed = timezone.now()
         self.object.save()
 
-        if hasattr(self.object, 'validationresult'):
+        if self.object.validationresult:
             validationresult = self.object.validationresult
         else:
             validationresult = self.validationresult_class()

@@ -167,10 +167,10 @@ class SuccessfulUpdateSampleViewTest(
         sample = Sample.objects.get(pk=1)
 
         # test status for sample
-        self.assertEqual(sample.name.status, NEED_REVISION)
-        self.assertEqual(sample.name.validationresult.status, 'Info')
+        self.assertEqual(sample.status, NEED_REVISION)
+        self.assertEqual(sample.validationresult.status, 'Info')
         self.assertListEqual(
-            sample.name.validationresult.messages,
+            sample.validationresult.messages,
             ['Info: Data has changed, validation has to be called']
         )
 
@@ -191,7 +191,7 @@ class SuccessfulUpdateSampleViewTest(
         self.assertTrue(self.mytime.called)
 
         # assert time was updated
-        self.assertEqual(sample.name.last_changed, NOW)
+        self.assertEqual(sample.last_changed, NOW)
 
 
 class InvalidUpdateSampleViewTest(
@@ -242,7 +242,7 @@ class InvalidUpdateSampleViewTest(
         sample = Sample.objects.get(pk=1)
 
         # test status for sample (default one)
-        self.assertEqual(sample.name.status, LOADED)
+        self.assertEqual(sample.status, LOADED)
 
     def test_fake_coordinates(self):
         """Test form with text into numeric fields"""

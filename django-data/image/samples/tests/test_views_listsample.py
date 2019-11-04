@@ -50,7 +50,7 @@ class ListSampleViewTest(SampleViewTestMixin, TestCase):
         # assert one sample for this user
         self.assertEqual(qs.count(), 1)
 
-        names = [sample.name.name for sample in qs.all()]
+        names = [sample.name for sample in qs.all()]
         self.assertIn("Siems_0722_393449", names)
 
     def test_contains_navigation_links(self):

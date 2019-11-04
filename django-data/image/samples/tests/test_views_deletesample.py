@@ -9,7 +9,7 @@ Created on Thu Feb 14 16:00:29 2019
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
-from uid.models import Animal, Sample, Name
+from uid.models import Animal, Sample
 from validation.models import ValidationResult
 from common.tests import MessageMixinTestCase
 
@@ -91,9 +91,8 @@ class SuccessfulDeleteSampleViewTest(
         sample = Sample.objects.get(pk=1)
         self.submission = sample.submission
 
-        # count number of animals and names
+        # count number of animals
         self.n_of_animals = Animal.objects.count()
-        self.n_of_names = Name.objects.count()
 
         # update submission status (to get this url)
         self.submission.status = READY
@@ -102,8 +101,8 @@ class SuccessfulDeleteSampleViewTest(
         # set validation result (since is not present in features)
         validation = ValidationResult()
         validation.status = "Pass"
-        sample.name.validationresult = validation
-        sample.name.save()
+        sample.validationresult = validation
+        sample.save()
 
         self.url = reverse("samples:delete", kwargs={'pk': 1})
         self.response = self.client.post(
@@ -117,7 +116,7 @@ class SuccessfulDeleteSampleViewTest(
         self.assertRedirects(self.response, url)
 
     def test_sample_delete(self):
-        """Deleting a sample will delete its name and validationresult"""
+        """Deleting a sample will delete its validationresult"""
 
         # Animals objects are the same
         n_animals = Animal.objects.count()
@@ -127,14 +126,8 @@ class SuccessfulDeleteSampleViewTest(
         n_samples = Sample.objects.count()
         self.assertEqual(n_samples, 0)
 
-        # 1 names was deleted
-        n_names = Name.objects.count()
-        self.assertEqual(n_names, self.n_of_names-1)
-
-        # check for ramaining names
-        names = [name.name for name in Name.objects.all()]
-        self.assertIn("ANIMAL:::ID:::unknown_sire", names)
-        self.assertIn("ANIMAL:::ID:::unknown_dam", names)
+        # check for ramaining objects
+        names = [animal.name for animal in Animal.objects.all()]
         self.assertIn("ANIMAL:::ID:::132713", names)
         self.assertIn("ANIMAL:::ID:::mother", names)
         self.assertIn("ANIMAL:::ID:::son", names)

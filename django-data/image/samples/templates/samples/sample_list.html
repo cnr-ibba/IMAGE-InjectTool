@@ -24,13 +24,13 @@
   <tbody>
     {% for sample in object_list %}
       <tr class="{% cycle 'table-primary' 'table-secondary' %}">
-        <th><a href="{% url 'samples:detail' pk=sample.pk %}">{{ sample.name.name|truncatechars:30 }}</a></th>
+        <th><a href="{% url 'samples:detail' pk=sample.pk %}">{{ sample.name|truncatechars:30 }}</a></th>
         <td>
           {% include "samples/sample_buttons.html" %}
         </td>
         <td><a href="{% url 'submissions:detail' pk=sample.submission.pk %}">{{ sample.submission.title }}</a> </td>
-        <td>{{ sample.name.biosample_id|get_biosample_link }}</td>
-        <td>{{ sample.name|get_badge }}</td>
+        <td>{{ sample.biosample_id|get_biosample_link }}</td>
+        <td>{{ sample|get_badge }}</td>
       </tr>
     {% endfor %}
   </tbody>

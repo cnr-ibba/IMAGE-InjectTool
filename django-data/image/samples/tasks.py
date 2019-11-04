@@ -13,7 +13,7 @@ from django.db import transaction
 from common.constants import NEED_REVISION
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from uid.models import Sample, Name
+from uid.models import Sample
 from submissions.tasks import BatchUpdateMixin, SubmissionTaskMixin
 from validation.models import ValidationSummary
 
@@ -42,18 +42,13 @@ class BatchDeleteSamples(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
 
         for sample_id in sample_ids:
             try:
-                name = Name.objects.get(
+                sample_obj = Sample.objects.get(
                     name=sample_id, submission=submission_obj)
-
-                sample_obj = Sample.objects.get(name=name)
 
                 with transaction.atomic():
                     sample_obj.delete()
-                    name.delete()
-                success_ids.append(sample_id)
 
-            except Name.DoesNotExist:
-                failed_ids.append(sample_id)
+                success_ids.append(sample_id)
 
             except Sample.DoesNotExist:
                 failed_ids.append(sample_id)

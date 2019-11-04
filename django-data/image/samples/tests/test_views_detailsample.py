@@ -84,8 +84,8 @@ class DetailSampleViewMessagesTest(
         # set validation result (since is not present in features)
         validation = ValidationResult()
         validation.status = "Pass"
-        sample.name.validationresult = validation
-        sample.name.save()
+        sample.validationresult = validation
+        sample.save()
 
         self.validationresult = validation
 
