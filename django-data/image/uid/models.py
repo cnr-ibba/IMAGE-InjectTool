@@ -419,7 +419,8 @@ class DictBreed(Confidence):
         unique_together = (("supplied_breed", "specie", "country"),)
 
     def __str__(self):
-        return "{supplied} ({mapped}, {specie})".format(
+        return "{supplied} - {country} ({mapped}, {specie})".format(
+            country=self.country.label,
             supplied=self.supplied_breed,
             mapped=self.mapped_breed,
             specie=self.specie.label)

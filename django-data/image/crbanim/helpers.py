@@ -280,19 +280,19 @@ def fill_uid_animal(record, breed, submission, animals):
         defaults = {
             # HINT: is a duplication of name. Can this be non-mandatory?
             'alternative_id': record.animal_ID,
-            'breed': breed,
             'sex': sex,
             'birth_date': record.animal_birth_date,
             'birth_location_accuracy': accuracy,
-            'owner': submission.owner,
-            'submission': submission,
         }
 
-        # HINT: I could have the same animal again and again. Should I update
-        # every times?
+        # I could have the same animal again and again. by tracking it in a
+        # dictionary, I will change animal once
         animal = update_or_create_obj(
             Animal,
             name=record.animal_ID,
+            breed=breed,
+            owner=submission.owner,
+            submission=submission,
             defaults=defaults)
 
         # track this animal in dictionary
@@ -374,20 +374,20 @@ def fill_uid_sample(record, animal, submission):
         'collection_date': record.sampling_date,
         'protocol': record.sampling_protocol_url,
         'organism_part': organism_part,
-        'animal': animal,
         # 'description': v_vessel.comment,
-        'owner': submission.owner,
         'storage': find_storage_type(record),
         'availability': sanitize_url(record.sample_availability),
         'animal_age_at_collection': animal_age_at_collection,
         'animal_age_at_collection_units': time_units,
         'publication': publication,
-        'submission': submission,
     }
 
     sample = update_or_create_obj(
         Sample,
         name=record.sample_identifier,
+        animal=animal,
+        owner=submission.owner,
+        submission=submission,
         defaults=defaults)
 
     return sample

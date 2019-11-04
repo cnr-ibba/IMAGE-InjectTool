@@ -130,6 +130,29 @@ def get_or_create_obj(model, **kwargs):
 def update_or_create_obj(model, **kwargs):
     """Generic method to create or getting a model object"""
 
+    if 'submission' in kwargs:
+        # ok, try to remove submission from kwargs and test if this objects
+        # is already in database
+        new_kwargs = kwargs.copy()
+        submission = new_kwargs.pop('submission')
+        new_kwargs.pop('defaults')
+
+        logger.debug("Test if %s is already in database" % (new_kwargs))
+        instance = model.objects.filter(**new_kwargs).first()
+
+        if instance:
+            logger.debug("Found %s in database" % (instance))
+
+            # test if instance is in a different submission
+            if submission != instance.submission:
+                logger.warning("Ignoring: %s" % (kwargs))
+                logger.warning(
+                    "Already in database with submission %s" % (submission))
+                return instance
+
+    # if I arrive here, or I don't have the submission key or
+    # I see this object for the first time or I just see this
+    # object in this submission
     instance, created = model.objects.update_or_create(**kwargs)
 
     if created:

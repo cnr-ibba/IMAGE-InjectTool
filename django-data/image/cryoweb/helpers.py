@@ -282,7 +282,6 @@ def fill_uid_animals(submission):
 
         # get name for this animal and for mother and father
         logger.debug("Getting %s as my name" % (v_animal.ext_animal))
-        name = v_animal.ext_animal
 
         logger.debug("Getting %s as father" % (v_animal.ext_sire))
 
@@ -324,7 +323,6 @@ def fill_uid_animals(submission):
         # updating data
         defaults = {
             'alternative_id': v_animal.db_animal,
-            'breed': breed,
             'sex': sex,
             'father': father,
             'mother': mother,
@@ -333,14 +331,15 @@ def fill_uid_animals(submission):
             'birth_location_longitude': v_animal.longitude,
             'birth_location_accuracy': accuracy,
             'description': v_animal.comment,
-            'owner': submission.owner,
-            'submission': submission,
         }
 
         # Upate or create animal obj
         update_or_create_obj(
             Animal,
-            name=name,
+            name=v_animal.ext_animal,
+            breed=breed,
+            owner=submission.owner,
+            submission=submission,
             defaults=defaults)
 
     # create a validation summary object and set all_count
@@ -398,18 +397,18 @@ def fill_uid_samples(submission):
             'collection_date': v_vessel.production_dt,
             # 'protocol': v_vessel.get_protocol_name(),
             'organism_part': organism_part,
-            'animal': animal,
             'description': v_vessel.comment,
-            'owner': submission.owner,
             'animal_age_at_collection': animal_age_at_collection,
             'animal_age_at_collection_units': time_units,
             # 'storage': v_vessel.ext_vessel_type,
-            'submission': submission,
         }
 
         update_or_create_obj(
             Sample,
             name=name,
+            animal=animal,
+            owner=submission.owner,
+            submission=submission,
             defaults=defaults)
 
     # create a validation summary object and set all_count

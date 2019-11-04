@@ -204,13 +204,15 @@ class DictBreedTestCase(TestCase):
         breed = DictBreed.objects.get(pk=1)
         self.assertEqual(
             str(breed),
-            "Bunte Bentheimer (Bentheim Black Pied, Sus scrofa)")
+            ("Bunte Bentheimer - United Kingdom (Bentheim Black Pied, "
+             "Sus scrofa)"))
 
         # unset mapped_breed
         breed.mapped_breed = None
         breed.mapped_breed_term = None
         self.assertEqual(
-            str(breed), "Bunte Bentheimer (pig breed, Sus scrofa)")
+            str(breed),
+            "Bunte Bentheimer - United Kingdom (pig breed, Sus scrofa)")
 
     def test_default_mapped_breed(self):
         """Test mapped breed returns specie.label if no mapping occours"""

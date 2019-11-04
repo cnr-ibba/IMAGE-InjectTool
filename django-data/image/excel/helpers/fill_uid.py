@@ -119,7 +119,6 @@ def fill_uid_animals(submission_obj, template):
         defaults = {
             'alternative_id': record.alternative_animal_id,
             'description': record.animal_description,
-            'breed': breed,
             'sex': sex,
             'father': father,
             'mother': mother,
@@ -128,14 +127,15 @@ def fill_uid_animals(submission_obj, template):
             'birth_location_latitude': record.birth_location_latitude,
             'birth_location_longitude': record.birth_location_longitude,
             'birth_location_accuracy': accuracy,
-            'owner': submission_obj.owner,
-            'submission': submission_obj,
         }
 
         # creating or updating an object
         update_or_create_obj(
             Animal,
             name=record.animal_id_in_data_source,
+            breed=breed,
+            owner=submission_obj.owner,
+            submission=submission_obj,
             defaults=defaults)
 
     # create a validation summary object and set all_count
@@ -248,7 +248,6 @@ def fill_uid_samples(submission_obj, template):
         defaults = {
             'alternative_id': record.alternative_sample_id,
             'description': record.sample_description,
-            'animal': animal,
             'protocol': record.specimen_collection_protocol,
             'collection_date': record.collection_date,
             'collection_place_latitude': record.collection_place_latitude,
@@ -265,13 +264,14 @@ def fill_uid_samples(submission_obj, template):
             'storage_processing': storage_processing,
             'preparation_interval': preparation_interval,
             'preparation_interval_units': preparation_interval_units,
-            'owner': submission_obj.owner,
-            'submission': submission_obj,
         }
 
         update_or_create_obj(
             Sample,
             name=record.sample_id_in_data_source,
+            animal=animal,
+            owner=submission_obj.owner,
+            submission=submission_obj,
             defaults=defaults)
 
     # create a validation summary object and set all_count
