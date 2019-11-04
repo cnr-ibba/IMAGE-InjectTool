@@ -13,6 +13,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
@@ -34,7 +35,7 @@ from uid.models import Submission, Animal, Sample
 from excel.tasks import ImportTemplateTask
 
 from validation.helpers import construct_validation_message
-from validation.models import ValidationSummary
+from validation.models import ValidationSummary, ValidationResult
 from animals.tasks import BatchDeleteAnimals, BatchUpdateAnimals
 from samples.tasks import BatchDeleteSamples, BatchUpdateSamples
 
@@ -305,6 +306,17 @@ class EditSubmissionView(
     template_name = "submissions/submission_edit.html"
     paginate_by = 10
 
+    # set the columns for this union query
+    headers = [
+        'id',
+        'name',
+        'material',
+        'biosample_id',
+        'status',
+        'last_changed',
+        'last_submitted'
+    ]
+
     def get_queryset(self):
         """Subsetting names relying submission id"""
 
@@ -315,24 +327,12 @@ class EditSubmissionView(
 
         # need to perform 2 distinct queryset
         animal_qs = Animal.objects.filter(
-            submission=self.submission).order_by('id').values_list(
-                'name',
-                'material',
-                'biosample_id',
-                'status',
-                'last_changed',
-                'last_submitted')
+            submission=self.submission).values_list(*self.headers)
 
         sample_qs = Sample.objects.filter(
-            submission=self.submission).order_by('id').values_list(
-                'name',
-                'material',
-                'biosample_id',
-                'status',
-                'last_changed',
-                'last_submitted')
+            submission=self.submission).values_list(*self.headers)
 
-        return animal_qs.union(sample_qs)
+        return animal_qs.union(sample_qs).order_by('material', 'id')
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -340,6 +340,46 @@ class EditSubmissionView(
 
         # add submission to context
         context["submission"] = self.submission
+
+        # modify queryset to a more useful object
+        object_list = context["object_list"]
+
+        # the new result object
+        new_object_list = []
+
+        # define Animal and Sample content types
+        animal_type = ContentType.objects.get_for_model(Animal)
+        sample_type = ContentType.objects.get_for_model(Animal)
+
+        for element in object_list:
+            # modify element in a dictionary
+            element = dict(zip(self.headers, element))
+
+            if element['material'] == 'Organism':
+                validationresult = ValidationResult.objects.filter(
+                    content_type=animal_type,
+                    object_id=element['id']).first()
+
+                # change material to be more readable
+                element['material'] = 'animal'
+                element['model'] = Animal.objects.get(pk=element['id'])
+
+            else:
+                # this is a specimen
+                validationresult = ValidationResult.objects.filter(
+                    content_type=sample_type,
+                    object_id=element['id']).first()
+
+                element['material'] = 'sample'
+                element['model'] = Sample.objects.get(pk=element['id'])
+
+            # add a validationresult object
+            element['validationresult'] = validationresult
+
+            new_object_list.append(element)
+
+        # ovverride the default object list
+        context["object_list"] = new_object_list
 
         return context
 
@@ -497,9 +537,9 @@ class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
 
         # counting object relying submission
         animal_count = Animal.objects.filter(
-            name__submission=self.object).count()
+            submission=self.object).count()
         sample_count = Sample.objects.filter(
-            name__submission=self.object).count()
+            submission=self.object).count()
 
         # get only sample and animals from model_count
         info_deleted = {

@@ -12,7 +12,7 @@ from django.urls import resolve, reverse
 from common.constants import READY
 from common.tests.mixins import (
     GeneralMixinTestCase, OwnerMixinTestCase, MessageMixinTestCase)
-from uid.models import Submission, Animal, Sample, Name
+from uid.models import Submission, Animal, Sample
 
 from ..views import DeleteSubmissionView
 from .common import SubmissionStatusMixin, SubmissionDataMixin
@@ -117,10 +117,6 @@ class SuccessfulDeleteSubmissionViewTest(
         # nor its samples
         n_samples = Sample.objects.count()
         self.assertEqual(n_samples, 0)
-
-        # names will be deleted
-        n_names = Name.objects.count()
-        self.assertEqual(n_names, 0)
 
         # check submission objects
         n_submissions = Submission.objects.count()
