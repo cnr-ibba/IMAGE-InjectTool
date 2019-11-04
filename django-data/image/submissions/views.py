@@ -13,7 +13,6 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
@@ -35,7 +34,7 @@ from uid.models import Submission, Animal, Sample
 from excel.tasks import ImportTemplateTask
 
 from validation.helpers import construct_validation_message
-from validation.models import ValidationSummary, ValidationResult
+from validation.models import ValidationSummary
 from animals.tasks import BatchDeleteAnimals, BatchUpdateAnimals
 from samples.tasks import BatchDeleteSamples, BatchUpdateSamples
 
@@ -347,34 +346,19 @@ class EditSubmissionView(
         # the new result object
         new_object_list = []
 
-        # define Animal and Sample content types
-        animal_type = ContentType.objects.get_for_model(Animal)
-        sample_type = ContentType.objects.get_for_model(Animal)
-
         for element in object_list:
             # modify element in a dictionary
             element = dict(zip(self.headers, element))
 
             if element['material'] == 'Organism':
-                validationresult = ValidationResult.objects.filter(
-                    content_type=animal_type,
-                    object_id=element['id']).first()
-
                 # change material to be more readable
                 element['material'] = 'animal'
                 element['model'] = Animal.objects.get(pk=element['id'])
 
             else:
                 # this is a specimen
-                validationresult = ValidationResult.objects.filter(
-                    content_type=sample_type,
-                    object_id=element['id']).first()
-
                 element['material'] = 'sample'
                 element['model'] = Sample.objects.get(pk=element['id'])
-
-            # add a validationresult object
-            element['validationresult'] = validationresult
 
             new_object_list.append(element)
 
