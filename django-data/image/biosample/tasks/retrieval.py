@@ -187,8 +187,8 @@ class FetchStatusHelper():
         # get sample/animal object relying on table name and pk
         sample_obj = get_model_object(table, pk)
 
-        sample_obj.name.status = NEED_REVISION
-        sample_obj.name.save()
+        sample_obj.status = NEED_REVISION
+        sample_obj.save()
 
         # get a USI validation result
         validation_result = sample.get_validation_result()
@@ -253,7 +253,7 @@ class FetchStatusHelper():
             self.submission.finalize()
 
     def complete(self):
-        """Complete a submission and fetch name objects"""
+        """Complete a submission and fetch biosample names"""
 
         logger.debug("Completing submission '%s'" % (
             self.submission_name))
@@ -272,9 +272,9 @@ class FetchStatusHelper():
             sample_obj = get_model_object(table, pk)
 
             # update statuses
-            sample_obj.name.status = COMPLETED
-            sample_obj.name.biosample_id = sample.accession
-            sample_obj.name.save()
+            sample_obj.status = COMPLETED
+            sample_obj.biosample_id = sample.accession
+            sample_obj.save()
 
         # update submission
         self.usi_submission.status = COMPLETED

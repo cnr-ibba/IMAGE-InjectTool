@@ -242,9 +242,9 @@ class SubmissionHelper():
             self.submitted_samples[alias] = sample
 
         # update sample status
-        model.name.status = SUBMITTED
-        model.name.last_submitted = timezone.now()
-        model.name.save()
+        model.status = SUBMITTED
+        model.last_submitted = timezone.now()
+        model.save()
 
     def add_samples(self):
         """Iterate over sample data (animal/sample) and call
@@ -256,7 +256,7 @@ class SubmissionHelper():
             # get model for simplicity
             model = submission_data.content_object
 
-            if model.name.status == READY:
+            if model.status == READY:
                 logger.debug("Adding %s %s to submission %s" % (
                     model._meta.verbose_name,
                     model,
@@ -353,10 +353,10 @@ class SplitSubmissionHelper():
         """Add animal and its samples to a submission"""
 
         for animal in Animal.objects.filter(
-                name__submission=self.uid_submission):
+                submission=self.uid_submission):
 
             # add animal if not yet submitted, or patch it
-            if animal.name.status == READY:
+            if animal.status == READY:
                 self.add_to_submission_data(animal)
 
             else:
@@ -366,7 +366,7 @@ class SplitSubmissionHelper():
             # Add their specimen
             for sample in animal.sample_set.all():
                 # add sample if not yet submitted
-                if sample.name.status == READY:
+                if sample.status == READY:
                     self.add_to_submission_data(sample)
 
                 else:

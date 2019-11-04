@@ -45,7 +45,7 @@ class Command(BaseCommand):
         samples_json = []
 
         # a more limited subset
-        for animal in Animal.objects.filter(name__submission=submission):
+        for animal in Animal.objects.filter(submission=submission):
             animals_json += [animal.to_biosample()]
 
             # get samples data and add to a list

@@ -111,7 +111,8 @@ class SplitSubmissionTaskTestCase(SplitSubmissionMixin, TestCase):
     def test_split_submission_partial(self):
         """Test splitting submission data with some data already submitted"""
 
-        self.name_qs.filter(pk__in=[3, 4]).update(status=COMPLETED)
+        self.animal_qs.filter(pk=1).update(status=COMPLETED)
+        self.sample_qs.filter(pk=1).update(status=COMPLETED)
 
         res = self.my_task.run(submission_id=self.submission_id)
 
@@ -344,7 +345,7 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
         self.submission_helper.create_or_update_sample(model)
 
         # assert status
-        self.assertEqual(model.name.status, SUBMITTED)
+        self.assertEqual(model.status, SUBMITTED)
 
         # testing things
         self.assertEqual(
@@ -372,7 +373,7 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
         self.submission_helper.create_or_update_sample(model)
 
         # assert status
-        self.assertEqual(model.name.status, SUBMITTED)
+        self.assertEqual(model.status, SUBMITTED)
 
         # testing patch
         for sample in my_samples:
@@ -384,8 +385,8 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
 
         # simulate a submission recover: mark an animal as already submitted
         submission_data = SubmissionData.objects.get(pk=1)
-        submission_data.content_object.name.status = SUBMITTED
-        submission_data.content_object.name.save()
+        submission_data.content_object.status = SUBMITTED
+        submission_data.content_object.save()
 
         # calling method
         self.submission_helper.add_samples()
