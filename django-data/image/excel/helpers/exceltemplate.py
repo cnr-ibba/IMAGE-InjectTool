@@ -226,6 +226,40 @@ class ExcelTemplateReader(FileDataSourceMixin):
         sheet_name = "sample"
         return self.get_sheet_records(sheet_name)
 
+    def get_animal_from_sample(self, record):
+        """get an animal record from a sample record"""
+
+        animals = [
+            animal for animal in self.get_animal_records() if
+            animal.animal_id_in_data_source == record.animal_id_in_data_source
+        ]
+
+        # animal is supposed to be unique
+        if len(animals) != 1:
+            raise ExcelImportError(
+                "Can't determine a unique animal from '%s' record data" %
+                (record))
+
+        return animals[0]
+
+    def get_breed_from_animal(self, record):
+        """Get a breed record from an animal record"""
+
+        breeds = [
+            breed for breed in self.get_breed_records()
+            if breed.supplied_breed == record.breed and
+            breed.species == record.species]
+
+        # breed is supposed to be unique, from UID constraints. However
+        # I could place the same breed name for two countries. In that case,
+        # I cant derive a unique breed from users data
+        if len(breeds) != 1:
+            raise ExcelImportError(
+                "Can't determine a unique breed for '%s:%s' from user data" %
+                (record.breed, record.species))
+
+        return breeds[0]
+
     def check_species(self, country):
         """Check if all species are defined in UID DictSpecies. If not,
         create dictionary term"""

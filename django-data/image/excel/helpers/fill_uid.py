@@ -74,25 +74,15 @@ def fill_uid_animals(submission_obj, template):
         logger.debug("Found '%s' as specie" % (specie))
 
         # how I can get breed from my data?
-        breeds = [breed for breed in template.get_breed_records()
-                  if breed.supplied_breed == record.breed and
-                  breed.species == record.species]
-
-        # breed is supposed to be unique, from UID constraints. However
-        # I could place the same breed name for two countries. In that case,
-        # I cant derive a unique breed from users data
-        if len(breeds) != 1:
-            raise ExcelImportError(
-                "Can't determine a unique breed for '%s:%s' from user data" %
-                (record.breed, record.species))
+        breed_record = template.get_breed_from_animal(record)
 
         # get a country for this breed
         country = DictCountry.objects.get(
-            label=breeds[0].efabis_breed_country)
+            label=breed_record.efabis_breed_country)
 
         # ok get a real dictbreed object
         breed = DictBreed.objects.get(
-            supplied_breed=record.breed,
+            supplied_breed=breed_record.supplied_breed,
             specie=specie,
             country=country)
 
@@ -108,7 +98,8 @@ def fill_uid_animals(submission_obj, template):
 
             father = Animal.objects.get(
                 name=record.father_id_in_data_source,
-                submission=submission_obj)
+                breed=breed,
+                owner=submission_obj.owner)
 
         if record.mother_id_in_data_source:
             logger.debug("Getting %s as mother" % (
@@ -116,7 +107,8 @@ def fill_uid_animals(submission_obj, template):
 
             mother = Animal.objects.get(
                 name=record.mother_id_in_data_source,
-                submission=submission_obj)
+                breed=breed,
+                owner=submission_obj.owner)
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(
@@ -163,12 +155,42 @@ def fill_uid_samples(submission_obj, template):
     # debug
     logger.info("called fill_uid_samples()")
 
+    # get language
+    language = submission_obj.gene_bank_country.label
+
     # iterate among excel template
     for record in template.get_sample_records():
         # get animal by reading record
+        animal_record = template.get_animal_from_sample(record)
+
+        # get specie (mind synonyms)
+        specie = DictSpecie.get_specie_check_synonyms(
+            species_label=animal_record.species,
+            language=language)
+
+        logger.debug("Found '%s' as specie" % (specie))
+
+        # get breed from animal record
+        breed_record = template.get_breed_from_animal(animal_record)
+
+        # get a country for this breed
+        country = DictCountry.objects.get(
+            label=breed_record.efabis_breed_country)
+
+        # ok get a real dictbreed object
+        breed = DictBreed.objects.get(
+            supplied_breed=breed_record.supplied_breed,
+            specie=specie,
+            country=country)
+
+        logger.debug("Selected breed is %s" % (breed))
+
         animal = Animal.objects.get(
-            name=record.animal_id_in_data_source,
-            submission=submission_obj)
+            name=animal_record.animal_id_in_data_source,
+            breed=breed,
+            owner=submission_obj.owner)
+
+        logger.debug("Selected animal is %s" % (animal))
 
         # get a organism part. Organism parts need to be in lowercases
         organism_part = get_or_create_obj(
