@@ -55,7 +55,7 @@ class ListAnimaViewTest(AnimalViewTestMixin, TestCase):
         # assert three animal for this user (see uid fixtures)
         self.assertEqual(qs.count(), self.n_of_animals)
 
-        names = [animal.name.name for animal in qs.all()]
+        names = [animal.name for animal in qs.all()]
         self.assertIn("ANIMAL:::ID:::132713", names)
         self.assertIn("ANIMAL:::ID:::mother", names)
         self.assertIn("ANIMAL:::ID:::son", names)

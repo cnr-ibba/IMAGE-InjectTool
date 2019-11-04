@@ -154,7 +154,7 @@ class SuccessfulDeleteAnimalViewTest(
 
         # assert child father and mother
         self.assertIsNone(self.child.father)
-        mother = Animal.objects.get(name='ANIMAL:::ID:::unknown_dam')
+        mother = Animal.objects.get(name='ANIMAL:::ID:::mother')
         self.assertEqual(self.child.mother, mother)
 
         # now its samples (the sample related to deleted animal was deleted)
@@ -163,8 +163,8 @@ class SuccessfulDeleteAnimalViewTest(
 
         # check for ramaining names
         names = [animal.name for animal in Animal.objects.all()]
-        self.assertIn("ANIMAL:::ID:::unknown_sire", names)
-        self.assertIn("ANIMAL:::ID:::unknown_dam", names)
+        self.assertIn("ANIMAL:::ID:::mother", names)
+        self.assertIn("ANIMAL:::ID:::son", names)
         self.assertIn("test child", names)
 
         # check for validationresults

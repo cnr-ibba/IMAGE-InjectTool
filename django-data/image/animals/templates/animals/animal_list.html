@@ -24,13 +24,13 @@
   <tbody>
     {% for animal in object_list %}
       <tr class="{% cycle 'table-primary' 'table-secondary' %}">
-        <th><a href="{% url 'animals:detail' pk=animal.pk %}">{{ animal.name.name|truncatechars:30 }}</a></th>
+        <th><a href="{% url 'animals:detail' pk=animal.pk %}">{{ animal.name|truncatechars:30 }}</a></th>
         <td>
           {% include "animals/animal_buttons.html" %}
         </td>
         <td><a href="{% url 'submissions:detail' pk=animal.submission.pk %}">{{ animal.submission.title }}</a> </td>
-        <td>{{ animal.name.biosample_id|get_biosample_link }}</td>
-        <td>{{ animal.name|get_badge }}</td>
+        <td>{{ animal.biosample_id|get_biosample_link }}</td>
+        <td>{{ animal|get_badge }}</td>
       </tr>
     {% endfor %}
   </tbody>

@@ -113,13 +113,4 @@ class ListAnimalView(ListMaterialMixin, ListView):
     model = Animal
     template_name = "animals/animal_list.html"
     paginate_by = 10
-    ordering = ["name__submission"]
-
-    def get_queryset(self):
-        """Override get_queryset"""
-
-        qs = super(ListAnimalView, self).get_queryset()
-        return qs.select_related(
-            "name",
-            "name__validationresult",
-            "name__submission")
+    ordering = ["submission"]

@@ -81,7 +81,7 @@ class DetailAnimalViewMessagesTest(
         animal = Animal.objects.get(pk=1)
 
         # get validation result
-        self.validationresult = animal.name.validationresult
+        self.validationresult = animal.validationresult
 
     def check_message(self, message_type, message_str):
         """Test messages in DetailAnimalView"""
