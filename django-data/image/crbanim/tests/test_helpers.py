@@ -16,13 +16,13 @@ from django.test import TestCase
 
 from common.tests import WebSocketMixin
 from uid.models import (
-    DictSex, DictBreed, Name, Animal,
+    DictSex, DictBreed, Animal,
     Sample, DictUberon, DictCountry)
 from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
 from ..helpers import (
-    logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
+    logger, CRBAnimReader, upload_crbanim, fill_uid_breed,
     fill_uid_animal, fill_uid_sample, find_storage_type, sanitize_url)
 from .common import BaseTestCase
 
@@ -223,14 +223,9 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # fill object to test inserts. Fill breed
         self.breed = fill_uid_breed(self.record, self.country)
 
-        # fill names
-        self.animal_name, self.sample_name = fill_uid_names(
-            self.record, self.submission)
-
         # filling animal and samples
         self.animal = fill_uid_animal(
             self.record,
-            self.animal_name,
             self.breed,
             self.submission,
             {})
@@ -238,7 +233,6 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # testing samples
         self.sample = fill_uid_sample(
             self.record,
-            self.sample_name,
             self.animal,
             self.submission)
 
@@ -252,12 +246,8 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
             self.breed.specie.label, self.record.species_latin_name)
 
     def test_fill_uid_names(self):
-        # testing output
-        self.assertIsInstance(self.animal_name, Name)
-        self.assertIsInstance(self.sample_name, Name)
-
-        self.assertEqual(self.animal_name.name, self.record.animal_ID)
-        self.assertEqual(self.sample_name.name, self.record.sample_identifier)
+        self.assertEqual(self.animal.name, self.record.animal_ID)
+        self.assertEqual(self.sample.name, self.record.sample_identifier)
 
     def test_fill_uid_animals(self):
         # testing animal
@@ -286,14 +276,9 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # fill breeds
         breed = fill_uid_breed(record, self.country)
 
-        # creating name
-        animal_name, sample_name = fill_uid_names(
-            record, self.submission)
-
         # filling animal and samples
         animal = fill_uid_animal(
             record,
-            animal_name,
             breed,
             self.submission,
             {})
@@ -301,7 +286,6 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # testing samples
         sample = fill_uid_sample(
             record,
-            sample_name,
             animal,
             self.submission)
 

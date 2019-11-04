@@ -116,7 +116,7 @@
   }
 },
 {
-  "model": "uid.name",
+  "model": "uid.animal",
   "pk": 1,
   "fields": {
     "name": "ANIMAL:::2",
@@ -126,42 +126,7 @@
     "status": 1,
     "last_changed": "2019-06-18T17:25:01.308Z",
     "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 2,
-  "fields": {
-    "name": "FAKE726008",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-06-18T17:25:01.312Z",
-    "last_submitted": null,
-    "publication": 1
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 3,
-  "fields": {
-    "name": "FAKE760848",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-06-18T17:25:01.345Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.animal",
-  "pk": 1,
-  "fields": {
-    "name": 1,
+    "publication": null,
     "alternative_id": "ANIMAL:::2",
     "description": null,
     "material": "Organism",
@@ -173,15 +138,21 @@
     "birth_location": null,
     "birth_location_latitude": null,
     "birth_location_longitude": null,
-    "birth_location_accuracy": 0,
-    "owner": 1
+    "birth_location_accuracy": 0
   }
 },
 {
   "model": "uid.sample",
   "pk": 1,
   "fields": {
-    "name": 2,
+    "name": "FAKE726008",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-06-18T17:25:01.312Z",
+    "last_submitted": null,
+    "publication": 1,
     "alternative_id": "FAKE726008",
     "description": null,
     "material": "Specimen from Organism",
@@ -200,15 +171,21 @@
     "availability": "mailto:mail@example.com",
     "storage": 2,
     "storage_processing": null,
-    "preparation_interval": null,
-    "owner": 1
+    "preparation_interval": null
   }
 },
 {
   "model": "uid.sample",
   "pk": 2,
   "fields": {
-    "name": 3,
+    "name": "FAKE760848",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-06-18T17:25:01.345Z",
+    "last_submitted": null,
+    "publication": null,
     "alternative_id": "FAKE760848",
     "description": null,
     "material": "Specimen from Organism",
@@ -227,8 +204,7 @@
     "availability": "mailto:mail@example.com",
     "storage": 2,
     "storage_processing": null,
-    "preparation_interval": null,
-    "owner": 1
+    "preparation_interval": null
   }
 },
 {

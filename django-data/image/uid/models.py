@@ -1227,7 +1227,9 @@ def missing_terms():
 # A method to discover is image database has data or not
 def db_has_data():
     # Test only tables I read data to fill UID
-    if Submission.objects.exists():
+    if (Submission.objects.exists() and
+            Animal.objects.exists() and
+            Sample.objects.exists()):
         return True
 
     else:

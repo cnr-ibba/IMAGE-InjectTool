@@ -21,7 +21,7 @@ from common.helpers import image_timedelta
 from uid.helpers import (
     FileDataSourceMixin, get_or_create_obj, update_or_create_obj)
 from uid.models import (
-    DictSpecie, DictSex, DictCountry, DictBreed, Name, Animal, Sample,
+    DictSpecie, DictSex, DictCountry, DictBreed, Animal, Sample,
     DictUberon, Publication)
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -254,49 +254,18 @@ def fill_uid_breed(record, language):
     return breed
 
 
-def fill_uid_names(record, submission):
-    """fill Names table from crbanim record"""
-
-    # in the same record I have the sample identifier and animal identifier
-    # a name record for animal
-    animal_name = get_or_create_obj(
-        Name,
-        name=record.animal_ID,
-        submission=submission,
-        owner=submission.owner)
-
-    # get a publication (if present)
-    publication = None
-
-    if record.sample_bibliographic_references:
-        publication = get_or_create_obj(
-            Publication,
-            doi=record.sample_bibliographic_references)
-
-    # name record for sample
-    sample_name = get_or_create_obj(
-        Name,
-        name=record.sample_identifier,
-        submission=submission,
-        owner=submission.owner,
-        publication=publication)
-
-    # returning 2 Name instances
-    return animal_name, sample_name
-
-
-def fill_uid_animal(record, animal_name, breed, submission, animals):
+def fill_uid_animal(record, breed, submission, animals):
     """Helper function to fill animal data in UID animal table"""
 
     # HINT: does CRBAnim models mother and father?
 
     # check if such animal is already beed updated
-    if animal_name.name in animals:
+    if record.animal_ID in animals:
         logger.debug(
-            "Ignoring %s: already created or updated" % (animal_name))
+            "Ignoring %s: already created or updated" % (record.animal_ID))
 
         # return an animal object
-        animal = animals[animal_name.name]
+        animal = animals[record.animal_ID]
 
     else:
         # determine sex. Check for values
@@ -310,23 +279,24 @@ def fill_uid_animal(record, animal_name, breed, submission, animals):
         # HINT: CRBanim has less attribute than cryoweb
         defaults = {
             # HINT: is a duplication of name. Can this be non-mandatory?
-            'alternative_id': animal_name.name,
+            'alternative_id': record.animal_ID,
             'breed': breed,
             'sex': sex,
             'birth_date': record.animal_birth_date,
             'birth_location_accuracy': accuracy,
-            'owner': submission.owner
+            'owner': submission.owner,
+            'submission': submission,
         }
 
         # HINT: I could have the same animal again and again. Should I update
         # every times?
         animal = update_or_create_obj(
             Animal,
-            name=animal_name,
+            name=record.animal_ID,
             defaults=defaults)
 
         # track this animal in dictionary
-        animals[animal_name.name] = animal
+        animals[record.animal_ID] = animal
 
     # I need to track animal to relate the sample
     return animal
@@ -361,7 +331,7 @@ def sanitize_url(url):
     return urllib.parse.quote(url, ':/#?=')
 
 
-def fill_uid_sample(record, sample_name, animal, submission):
+def fill_uid_sample(record, animal, submission):
     """Helper function to fill animal data in UID sample table"""
 
     # name and animal name come from parameters
@@ -388,11 +358,19 @@ def fill_uid_sample(record, sample_name, animal, submission):
     animal_age_at_collection, time_units = image_timedelta(
         sampling_date, animal_birth_date)
 
+    # get a publication (if present)
+    publication = None
+
+    if record.sample_bibliographic_references:
+        publication = get_or_create_obj(
+            Publication,
+            doi=record.sample_bibliographic_references)
+
     # create a new object. Using defaults to avoid collisions when
     # updating data
     defaults = {
         # HINT: is a duplication of name. Can this be non-mandatory?
-        'alternative_id': sample_name.name,
+        'alternative_id': record.sample_identifier,
         'collection_date': record.sampling_date,
         'protocol': record.sampling_protocol_url,
         'organism_part': organism_part,
@@ -402,12 +380,14 @@ def fill_uid_sample(record, sample_name, animal, submission):
         'storage': find_storage_type(record),
         'availability': sanitize_url(record.sample_availability),
         'animal_age_at_collection': animal_age_at_collection,
-        'animal_age_at_collection_units': time_units
+        'animal_age_at_collection_units': time_units,
+        'publication': publication,
+        'submission': submission,
     }
 
     sample = update_or_create_obj(
         Sample,
-        name=sample_name,
+        name=record.sample_identifier,
         defaults=defaults)
 
     return sample
@@ -427,14 +407,11 @@ def process_record(record, submission, animals, language):
     # filling breeds
     breed = fill_uid_breed(record, language)
 
-    # filling name tables
-    animal_name, sample_name = fill_uid_names(record, submission)
-
     # fill animal
-    animal = fill_uid_animal(record, animal_name, breed, submission, animals)
+    animal = fill_uid_animal(record, breed, submission, animals)
 
     # fill sample
-    fill_uid_sample(record, sample_name, animal, submission)
+    fill_uid_sample(record, animal, submission)
 
 
 def check_UID(submission, reader):
