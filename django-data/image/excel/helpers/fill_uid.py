@@ -13,7 +13,7 @@ from common.constants import (
 from common.helpers import image_timedelta, parse_image_timedelta
 from uid.helpers import get_or_create_obj, update_or_create_obj
 from uid.models import (
-    DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Name, Animal,
+    DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Animal,
     Sample, DictDevelStage, DictPhysioStage)
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -53,34 +53,6 @@ def fill_uid_breeds(submission_obj, template):
             country=country)
 
     logger.info("fill_uid_breeds() completed")
-
-
-def fill_uid_names(submission_obj, template):
-    """fill Names table from crbanim record"""
-
-    # debug
-    logger.info("called fill_uid_names()")
-
-    # iterate among excel template
-    for record in template.get_animal_records():
-        # in the same record I have the sample identifier and animal identifier
-        # a name record for animal
-        get_or_create_obj(
-            Name,
-            name=record.animal_id_in_data_source,
-            submission=submission_obj,
-            owner=submission_obj.owner)
-
-    # iterate among excel template
-    for record in template.get_sample_records():
-        # name record for sample
-        get_or_create_obj(
-            Name,
-            name=record.sample_id_in_data_source,
-            submission=submission_obj,
-            owner=submission_obj.owner)
-
-    logger.info("fill_uid_names() completed")
 
 
 def fill_uid_animals(submission_obj, template):
@@ -126,22 +98,15 @@ def fill_uid_animals(submission_obj, template):
 
         logger.debug("Selected breed is %s" % (breed))
 
-        # define names
-        name, mother, father = None, None, None
+        # define mother and father
+        mother, father = None, None
 
         # get name for this animal and for mother and father
-        logger.debug("Getting %s as my name" % (
-            record.animal_id_in_data_source))
-
-        name = Name.objects.get(
-            name=record.animal_id_in_data_source,
-            submission=submission_obj)
-
         if record.father_id_in_data_source:
             logger.debug("Getting %s as father" % (
                 record.father_id_in_data_source))
 
-            father = Name.objects.get(
+            father = Animal.objects.get(
                 name=record.father_id_in_data_source,
                 submission=submission_obj)
 
@@ -149,7 +114,7 @@ def fill_uid_animals(submission_obj, template):
             logger.debug("Getting %s as mother" % (
                 record.mother_id_in_data_source))
 
-            mother = Name.objects.get(
+            mother = Animal.objects.get(
                 name=record.mother_id_in_data_source,
                 submission=submission_obj)
 
@@ -171,13 +136,14 @@ def fill_uid_animals(submission_obj, template):
             'birth_location_latitude': record.birth_location_latitude,
             'birth_location_longitude': record.birth_location_longitude,
             'birth_location_accuracy': accuracy,
-            'owner': submission_obj.owner
+            'owner': submission_obj.owner,
+            'submission': submission_obj,
         }
 
         # creating or updating an object
         update_or_create_obj(
             Animal,
-            name=name,
+            name=record.animal_id_in_data_source,
             defaults=defaults)
 
     # create a validation summary object and set all_count
@@ -199,16 +165,10 @@ def fill_uid_samples(submission_obj, template):
 
     # iterate among excel template
     for record in template.get_sample_records():
-        # get name for this sample
-        name = Name.objects.get(
-            name=record.sample_id_in_data_source,
-            submission=submission_obj,
-            owner=submission_obj.owner)
-
         # get animal by reading record
         animal = Animal.objects.get(
-            name__name=record.animal_id_in_data_source,
-            name__submission=submission_obj)
+            name=record.animal_id_in_data_source,
+            submission=submission_obj)
 
         # get a organism part. Organism parts need to be in lowercases
         organism_part = get_or_create_obj(
@@ -284,11 +244,12 @@ def fill_uid_samples(submission_obj, template):
             'preparation_interval': preparation_interval,
             'preparation_interval_units': preparation_interval_units,
             'owner': submission_obj.owner,
+            'submission': submission_obj,
         }
 
         update_or_create_obj(
             Sample,
-            name=name,
+            name=record.sample_id_in_data_source,
             defaults=defaults)
 
     # create a validation summary object and set all_count
@@ -370,9 +331,6 @@ def upload_template(submission_obj):
 
         # BREEDS
         fill_uid_breeds(submission_obj, reader)
-
-        # NAME
-        fill_uid_names(submission_obj, reader)
 
         # ANIMALS
         fill_uid_animals(submission_obj, reader)

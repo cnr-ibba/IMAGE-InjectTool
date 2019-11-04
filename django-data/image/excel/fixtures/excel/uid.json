@@ -119,8 +119,8 @@
   }
 },
 {
-  "model": "uid.name",
-  "pk": 7,
+  "model": "uid.animal",
+  "pk": 4,
   "fields": {
     "name": "ANIMAL:::ID:::CS05_1999",
     "submission": 1,
@@ -129,84 +129,7 @@
     "status": 1,
     "last_changed": "2019-07-08T16:05:10.310Z",
     "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 8,
-  "fields": {
-    "name": "ANIMAL:::ID:::CS12_1999",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-07-08T16:05:10.313Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 9,
-  "fields": {
-    "name": "ANIMAL:::ID:::VERCH1539971_2010",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-07-08T16:05:10.315Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 10,
-  "fields": {
-    "name": "CS05_1999_IBBACNR_PTP_02.06.1999",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-07-08T16:05:10.318Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 11,
-  "fields": {
-    "name": "CS05_1999_IBBACNR_PTP_23.06.1999",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-07-08T16:05:10.321Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.name",
-  "pk": 12,
-  "fields": {
-    "name": "VERCH1539971_2010_RegLomBank_PTPLodi_03.09.2011",
-    "submission": 1,
-    "biosample_id": null,
-    "owner": 1,
-    "status": 1,
-    "last_changed": "2019-07-08T16:05:10.323Z",
-    "last_submitted": null,
-    "publication": null
-  }
-},
-{
-  "model": "uid.animal",
-  "pk": 4,
-  "fields": {
-    "name": 7,
+    "publication": null,
     "alternative_id": "855.0",
     "description": null,
     "material": "Organism",
@@ -218,15 +141,21 @@
     "birth_location": null,
     "birth_location_latitude": null,
     "birth_location_longitude": null,
-    "birth_location_accuracy": 0,
-    "owner": 1
+    "birth_location_accuracy": 0
   }
 },
 {
   "model": "uid.animal",
   "pk": 5,
   "fields": {
-    "name": 8,
+    "name": "ANIMAL:::ID:::CS12_1999",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-07-08T16:05:10.313Z",
+    "last_submitted": null,
+    "publication": null,
     "alternative_id": "862.0",
     "description": null,
     "material": "Organism",
@@ -238,35 +167,47 @@
     "birth_location": "Italy",
     "birth_location_latitude": null,
     "birth_location_longitude": null,
-    "birth_location_accuracy": 1,
-    "owner": 1
+    "birth_location_accuracy": 1
   }
 },
 {
   "model": "uid.animal",
   "pk": 6,
   "fields": {
-    "name": 9,
+    "name": "ANIMAL:::ID:::VERCH1539971_2010",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-07-08T16:05:10.315Z",
+    "last_submitted": null,
+    "publication": null,
     "alternative_id": "1440.0",
     "description": null,
     "material": "Organism",
     "breed": 4,
     "sex": 1,
-    "father": 7,
-    "mother": 8,
+    "father": 4,
+    "mother": 5,
     "birth_date": null,
     "birth_location": null,
     "birth_location_latitude": null,
     "birth_location_longitude": null,
-    "birth_location_accuracy": 4,
-    "owner": 1
+    "birth_location_accuracy": 4
   }
 },
 {
   "model": "uid.sample",
   "pk": 4,
   "fields": {
-    "name": 10,
+    "name": "CS05_1999_IBBACNR_PTP_02.06.1999",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-07-08T16:05:10.318Z",
+    "last_submitted": null,
+    "publication": null,
     "alternative_id": "1834.0",
     "description": null,
     "material": "Specimen from Organism",
@@ -286,15 +227,21 @@
     "storage": null,
     "storage_processing": null,
     "preparation_interval": null,
-    "preparation_interval_units": null,
-    "owner": 1
+    "preparation_interval_units": null
   }
 },
 {
   "model": "uid.sample",
   "pk": 5,
   "fields": {
-    "name": 11,
+    "name": "CS05_1999_IBBACNR_PTP_23.06.1999",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-07-08T16:05:10.321Z",
+    "last_submitted": null,
+    "publication": null,
     "alternative_id": "1835.0",
     "description": null,
     "material": "Specimen from Organism",
@@ -314,15 +261,21 @@
     "storage": null,
     "storage_processing": null,
     "preparation_interval": null,
-    "preparation_interval_units": null,
-    "owner": 1
+    "preparation_interval_units": null
   }
 },
 {
   "model": "uid.sample",
   "pk": 6,
   "fields": {
-    "name": 12,
+    "name": "VERCH1539971_2010_RegLomBank_PTPLodi_03.09.2011",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-07-08T16:05:10.323Z",
+    "last_submitted": null,
+    "publication": null,
     "alternative_id": "2302.0",
     "description": null,
     "material": "Specimen from Organism",
@@ -342,8 +295,7 @@
     "storage": 2,
     "storage_processing": 0,
     "preparation_interval": 7,
-    "preparation_interval_units": 2,
-    "owner": 1
+    "preparation_interval_units": 2
   }
 },
 {
