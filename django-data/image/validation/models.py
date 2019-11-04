@@ -89,7 +89,7 @@ class ValidationSummary(models.Model):
         verbose_name_plural = "validation summaries"
 
     def __str__(self):
-        return "submission %s, type: %s, all:%s, pass:%s" % (
+        return "Summary for %s, type: %s, all:%s, pass:%s" % (
             self.submission,
             self.type,
             self.all_count,

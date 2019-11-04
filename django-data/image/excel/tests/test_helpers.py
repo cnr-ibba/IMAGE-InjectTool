@@ -13,6 +13,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 
 from common.tests import WebSocketMixin
+from uid.models import Animal, Sample, Submission
 from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
@@ -371,3 +372,75 @@ class ReloadTemplateTestCase(ExcelMixin, TestCase):
         'excel/submission',
         'excel/speciesynonym'
     ]
+
+
+class UpdateTemplateTestCase(ExcelMixin, TestCase):
+    """Simulate an excel update with the same dataset. Data already
+    present will be ignored."""
+
+    # override used fixtures
+    fixtures = [
+        'crbanim/auth',
+        'excel/dictspecie',
+        'excel/uid',
+        'excel/submission',
+        'excel/speciesynonym'
+    ]
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # track old submission
+        self.old_submission = Submission.objects.get(pk=1)
+
+        # generate a new submission from old submission object
+        submission = self.submission
+        submission.pk = None
+        submission.title = "Updated database"
+        submission.datasource_version = "Updated database"
+        submission.save()
+
+        # track the new submission
+        self.submission = submission
+
+        # remove items from database
+        sample = Sample.objects.get(pk=6)
+        animal = sample.animal
+        animal.delete()
+
+    def test_upload_template(self):
+        """Testing uploading and importing data from excel template to UID"""
+
+        # test data loaded
+        message = "Template import completed for submission"
+        self.upload_datasource(message)
+
+        # check animal and sample
+        queryset = Animal.objects.all()
+        self.assertEqual(len(queryset), 3, msg="check animal load")
+
+        queryset = Sample.objects.all()
+        self.assertEqual(len(queryset), 3, msg="check sample load")
+
+        # assert data are in the proper submission
+        self.assertEqual(self.old_submission.animal_set.count(), 2)
+        self.assertEqual(self.old_submission.sample_set.count(), 2)
+
+        self.assertEqual(self.submission.animal_set.count(), 1)
+        self.assertEqual(self.submission.sample_set.count(), 1)
+
+        # check async message called
+        notification_message = (
+            'Template import completed for submission: 2')
+        validation_message = {
+            'animals': 1, 'samples': 1,
+            'animal_unkn': 1, 'sample_unkn': 1,
+            'animal_issues': 0, 'sample_issues': 0}
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message(
+            'Loaded',
+            notification_message,
+            validation_message,
+            pk=self.submission.id)

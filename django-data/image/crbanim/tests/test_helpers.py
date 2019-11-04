@@ -17,7 +17,7 @@ from django.test import TestCase
 from common.tests import WebSocketMixin
 from uid.models import (
     DictSex, DictBreed, Animal,
-    Sample, DictUberon, DictCountry)
+    Sample, DictUberon, DictCountry, Submission)
 from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
@@ -364,6 +364,74 @@ class ReloadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
         'crbanim/submission',
         'language/speciesynonym'
     ]
+
+
+class UpdateCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
+    """Simulate a crbanim update with the same dataset. Data already
+    present will be ignored. I won't remove anithing from old submission,
+    so I expect to not add any items into database"""
+
+    # override used fixtures
+    fixtures = [
+        'crbanim/auth',
+        'crbanim/dictspecie',
+        'crbanim/uid',
+        'crbanim/submission',
+        'language/speciesynonym'
+    ]
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # track old submission
+        self.old_submission = Submission.objects.get(pk=1)
+
+        # generate a new submission from old submission object
+        submission = self.submission
+        submission.pk = None
+        submission.title = "Updated database"
+        submission.datasource_version = "Updated database"
+        submission.save()
+
+        # track the new submission
+        self.submission = submission
+
+    def test_upload_crbanim(self):
+        """Testing uploading and importing data from crbanim to UID"""
+
+        # test data loaded
+        message = "CRBAnim import completed for submission"
+        self.upload_datasource(message)
+
+        # check animal and samples
+        queryset = Animal.objects.all()
+        self.assertEqual(len(queryset), 1, msg="check animal load")
+
+        queryset = Sample.objects.all()
+        self.assertEqual(len(queryset), 2, msg="check sample load")
+
+        # assert data are in the proper submission
+        self.assertEqual(self.old_submission.animal_set.count(), 1)
+        self.assertEqual(self.old_submission.sample_set.count(), 2)
+
+        self.assertEqual(self.submission.animal_set.count(), 0)
+        self.assertEqual(self.submission.sample_set.count(), 0)
+
+        # check async message called
+        notification_message = (
+            'CRBAnim import completed for submission: 2')
+        validation_message = {
+            'animals': 0, 'samples': 0,
+            'animal_unkn': 0, 'sample_unkn': 0,
+            'animal_issues': 0, 'sample_issues': 0}
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message(
+            'Loaded',
+            notification_message,
+            validation_message,
+            pk=self.submission.id)
 
 
 class SanitizeAccessionTest(TestCase):

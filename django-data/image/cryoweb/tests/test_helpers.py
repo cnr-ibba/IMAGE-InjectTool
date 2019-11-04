@@ -366,3 +366,89 @@ class CryowebReload(ImportMixin, BaseMixin, TestCase):
         'language/dictspecie',
         'language/speciesynonym'
     ]
+
+
+class CryowebUpdate(ImportMixin, BaseMixin, TestCase):
+    """Simulate a cryoweb update with the same dataset. Data already
+    present will be ignored"""
+
+    # override fixtures
+    fixtures = [
+        'cryoweb/auth',
+        'cryoweb/dictbreed',
+        'cryoweb/uid',
+        'language/dictspecie',
+        'language/speciesynonym'
+    ]
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # track old submission
+        self.old_submission = Submission.objects.get(pk=1)
+
+        # generate a new submission from old submission object
+        submission = self.submission
+        submission.pk = None
+        submission.title = "Updated database"
+        submission.datasource_version = "Updated database"
+        submission.save()
+
+        # track the new submission
+        self.submission = submission
+
+        # now delete an animal and its associated sample
+        sample = Sample.objects.get(pk=1)
+        animal = sample.animal
+        animal.delete()
+
+    # override ImportMixin.test_cryoweb_import
+    def test_cryoweb_import(self):
+        """A method to test if data were imported from cryoweb or not"""
+
+        self.assertTrue(cryoweb_import(self.submission))
+
+        # check breed upload
+        queryset = DictBreed.objects.all()
+
+        breeds = [(dictbreed.supplied_breed, dictbreed.country.label)
+                  for dictbreed in queryset]
+
+        self.assertEqual(len(queryset), 4)
+        self.assertListEqual(
+            breeds, [
+                ('Bunte Bentheimer', 'United Kingdom'),
+                ('Ostfriesisches Milchschaf', 'Italy'),
+                ('Aberdeen Angus', 'Germany'),
+                ('Ostfriesisches Milchschaf', 'Germany')],
+            msg="Check breeds loaded")
+
+        # check animal and samples
+        queryset = Animal.objects.all()
+        self.assertEqual(len(queryset), 3, msg="check animal load")
+
+        queryset = Sample.objects.all()
+        self.assertEqual(len(queryset), 1, msg="check sample load")
+
+        # assert data are in the proper submission
+        self.assertEqual(self.old_submission.animal_set.count(), 2)
+        self.assertEqual(self.old_submission.sample_set.count(), 0)
+
+        self.assertEqual(self.submission.animal_set.count(), 1)
+        self.assertEqual(self.submission.sample_set.count(), 1)
+
+        # check async message called
+        message = 'Loaded'
+        notification_message = (
+            'Cryoweb import completed for submission: 2')
+        validation_message = {
+            'animals': 1, 'samples': 1,
+            'animal_unkn': 1, 'sample_unkn': 1,
+            'animal_issues': 0, 'sample_issues': 0}
+
+        self.check_message(
+            message,
+            notification_message,
+            validation_message,
+            pk=self.submission.id)

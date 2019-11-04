@@ -119,10 +119,10 @@ def get_or_create_obj(model, **kwargs):
     instance, created = model.objects.get_or_create(**kwargs)
 
     if created:
-        logger.info("Created %s" % instance)
+        logger.info("Created '%s'" % instance)
 
     else:
-        logger.debug("Found %s" % instance)
+        logger.debug("Found '%s'" % instance)
 
     return instance
 
@@ -133,9 +133,9 @@ def update_or_create_obj(model, **kwargs):
     instance, created = model.objects.update_or_create(**kwargs)
 
     if created:
-        logger.debug("Created %s" % instance)
+        logger.debug("Created '%s'" % instance)
 
     else:
-        logger.debug("Updating %s" % instance)
+        logger.debug("Updating '%s'" % instance)
 
     return instance
