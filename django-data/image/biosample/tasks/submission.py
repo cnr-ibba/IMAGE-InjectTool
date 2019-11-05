@@ -546,7 +546,24 @@ class SubmissionCompleteTask(
         """Fetch submission data and then update
         :py:class:`uid.models.Submission` status"""
 
+        # those are the output of SubmitTask, as a tuple of
+        # biosample.model.Submission.pk and "success"
         submission_statuses = args[0]
+
+        # get UID submission
+        uid_submission = self.get_uid_submission(kwargs['uid_submission_id'])
+
+        # mark as completed if submission_statuses is empty, for example when
+        # submitting a uid submission with no data
+        if not submission_statuses:
+            message = "Submission %s is empty!" % uid_submission
+            logger.warning(message)
+
+            # update submission status. No more queries on this
+            self.update_submission_status(
+                uid_submission, ERROR, message)
+
+            return "success"
 
         # submission_statuses will be an array like this
         # [("success", 1), ("success"), 2]
@@ -555,9 +572,6 @@ class SubmissionCompleteTask(
         # fetch data from database
         submission_qs = USISubmission.objects.filter(
             pk__in=usi_submission_ids)
-
-        # get UID submission
-        uid_submission = self.get_uid_submission(kwargs['uid_submission_id'])
 
         # annotate biosample submission by statuses
         statuses = {}

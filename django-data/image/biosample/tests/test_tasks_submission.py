@@ -137,7 +137,7 @@ class SplitSubmissionTaskUpdateTestCase(
     A particoular test case: I submit data once and then biosample tell me
     that there are errors in submission data. So I mark name with need revision
     status and the submission is already opened. I can't send data within a
-    new submission, I need to restore things a submit the data I have (since
+    new submission, I need to restore things and submit the data I have (since
     to_biosample() is called on user data when submitting, there are no issues
     with old data in biosample.models)"""
 
@@ -145,10 +145,10 @@ class SplitSubmissionTaskUpdateTestCase(
         # call Mixin method
         super().setUp()
 
-        # ok in this case, my samples are READY since I passed validation
-        # after fail into biosample stage. My submission will be in SUBMITTED
-        # stage
-        USISubmission.objects.update(status=SUBMITTED)
+        # ok in this case, my uid.Samples are READY since I passed validation
+        # after fail into biosample stage. My biosample.submission will be in
+        # ERROS or NEED_REVISION since is the last status I saw
+        USISubmission.objects.update(status=ERROR)
 
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
@@ -585,14 +585,15 @@ class SubmissionCompleteTaskTestCase(
             status=SUBMITTED,
             message='Waiting for biosample validation')
 
-    def common_check(self, status, message):
+    def common_check(self, status, message, update_db=True):
         """Common check for tests"""
 
         # update an object
-        usi_submission = USISubmission.objects.get(pk=1)
-        usi_submission.status = status
-        usi_submission.message = message
-        usi_submission.save()
+        if update_db:
+            usi_submission = USISubmission.objects.get(pk=1)
+            usi_submission.status = status
+            usi_submission.message = message
+            usi_submission.save()
 
         # calling task
         result = self.my_task.run(
@@ -618,6 +619,20 @@ class SubmissionCompleteTaskTestCase(
         self.common_check(
             SUBMITTED,
             'Waiting for biosample validation')
+
+    def test_empty_submission(self):
+        """An empty submission is marked as COMPLETED"""
+
+        # delete USISubmission objects
+        USISubmission.objects.all().delete()
+
+        # updating task args like a result for an empty submission
+        self.my_tasks_args = ([], )
+
+        # check status and messages
+        status = ERROR
+        message = "Submission %s is empty!" % self.submission_obj
+        self.common_check(status, message, update_db=False)
 
     def test_error_api_endpoint(self):
         """test issues with API endpoint"""
