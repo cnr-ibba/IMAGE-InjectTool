@@ -15,13 +15,13 @@ from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, F
+from django.db.models.functions import Least
 from django.utils import timezone
 
 from common.constants import ERROR, READY, SUBMITTED, COMPLETED
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from uid.models import Animal
 from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_auth
@@ -352,8 +352,15 @@ class SplitSubmissionHelper():
     def process_data(self):
         """Add animal and its samples to a submission"""
 
-        for animal in Animal.objects.filter(
-                submission=self.uid_submission):
+        # here we try to submit first animal without parents, then animal
+        # with parent with lowest foreign keys, supposing that when uploadimg
+        # a chiuld, his parents need to be defined and so they have a lower id
+        # the postgres LEAST is a function that will return the column with
+        # the lowest value, then we have to order explicitely with F in
+        # order to apply the NULLS FIRST condition (animal without parents)
+        for animal in self.uid_submission.animal_set.annotate(
+                least=Least('father_id', 'mother_id')).order_by(
+                    F('least').asc(nulls_first=True), F('id')):
 
             # ignore not READY models
             self.process_model(animal)

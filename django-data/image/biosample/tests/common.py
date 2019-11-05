@@ -54,6 +54,7 @@ class BaseMixin(PersonMixinTestCase):
     fixtures = [
         'biosample/account',
         'biosample/managedteam',
+        'biosample/sample',
         'uid/animal',
         'uid/dictbreed',
         'uid/dictcountry',
@@ -65,7 +66,6 @@ class BaseMixin(PersonMixinTestCase):
         'uid/ontology',
         'uid/organization',
         'uid/publication',
-        'uid/sample',
         'uid/submission',
         'uid/user'
     ]

@@ -29,6 +29,7 @@ class SubmissionFeaturesMixin(BaseMixin):
     fixtures = [
         'biosample/account',
         'biosample/managedteam',
+        'biosample/sample',
         'biosample/submission',
         'biosample/submissiondata',
         'uid/animal',
@@ -42,7 +43,6 @@ class SubmissionFeaturesMixin(BaseMixin):
         'uid/ontology',
         'uid/organization',
         'uid/publication',
-        'uid/sample',
         'uid/submission',
         'uid/user'
     ]
@@ -114,6 +114,20 @@ class SplitSubmissionTaskTestCase(SplitSubmissionMixin, TestCase):
 
         self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
         self.assertEqual(self.n_to_submit, SubmissionData.objects.count())
+
+        # now get data by ids, like SubmissionHelper does
+        submissiondata_qs = SubmissionData.objects.order_by('id')
+        names = [submissiondata.content_object.name for submissiondata
+                 in submissiondata_qs.all()]
+
+        reference = [
+            "ANIMAL:::ID:::132713",
+            "ANIMAL:::ID:::mother",
+            "ANIMAL:::ID:::son",
+            "Siems_0722_393449",
+        ]
+
+        self.assertEqual(names, reference)
 
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
