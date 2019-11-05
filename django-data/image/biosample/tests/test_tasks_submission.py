@@ -13,6 +13,7 @@ from django.core import mail
 
 from common.constants import (
     READY, COMPLETED, ERROR, SUBMITTED, WAITING, STATUSES)
+from uid.models import Submission as UIDSubmission
 
 from .common import TaskFailureMixin, RedisMixin, BaseMixin
 from ..models import Submission as USISubmission, SubmissionData
@@ -71,7 +72,15 @@ class SplitSubmissionMixin(TaskFailureMixin, BaseMixin):
         super().tearDown()
 
     def generic_check(self, res, n_of_submission, n_of_submissiondata):
-        """Generic check for created data"""
+        """Generic check for created data
+
+        Args:
+            res (str): the task output
+            n_of_submission (int): number of biosample.models.Submission
+                created
+            n_of_submissiondata (int): number or submission data for each
+                biosample.models.Submission
+        """
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
@@ -129,6 +138,33 @@ class SplitSubmissionTaskTestCase(SplitSubmissionMixin, TestCase):
         res = self.my_task.run(submission_id=self.submission_id)
 
         self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
+
+    # A very particoular case: I have a submission with only samples,
+    # since I uploaded a new submission with a new sample
+    @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
+    def test_only_samples_in_submission(self):
+        """Simulate a submission with samples only"""
+
+        # this is a very limit case. Create a new uid Submission
+        self.old_submission_obj = UIDSubmission.objects.get(
+            pk=self.submission_id)
+
+        uid_submission = self.submission_obj
+        uid_submission.pk = None
+        uid_submission.title = "Updated database"
+        uid_submission.datasource_version = "Updated database"
+        uid_submission.save()
+        uid_submission.refresh_from_db()
+
+        # now move sample to this new submission
+        self.sample_qs.filter(pk=1).update(submission=uid_submission)
+
+        # call task with this submission
+        res = self.my_task.run(submission_id=uid_submission.id)
+
+        # assert 1 biosample.models.Submission with 1 SubmissionData
+        self.generic_check(res, n_of_submission=1, n_of_submissiondata=1)
+        self.assertEqual(1, SubmissionData.objects.count())
 
 
 class SplitSubmissionTaskUpdateTestCase(

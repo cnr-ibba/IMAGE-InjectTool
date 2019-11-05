@@ -355,25 +355,31 @@ class SplitSubmissionHelper():
         for animal in Animal.objects.filter(
                 submission=self.uid_submission):
 
-            # add animal if not yet submitted, or patch it
-            if animal.status == READY:
-                self.add_to_submission_data(animal)
-
-            else:
-                # already submitted, so could be ignored
-                logger.debug("Ignoring animal %s" % (animal))
+            # ignore not READY models
+            self.process_model(animal)
 
             # Add their specimen
             for sample in animal.sample_set.all():
-                # add sample if not yet submitted
-                if sample.status == READY:
-                    self.add_to_submission_data(sample)
+                # ignore not READY models
+                self.process_model(sample)
 
-                else:
-                    # already submittes, so could be ignored
-                    logger.debug("Ignoring sample %s" % (sample))
+            # end of cicle for animal
 
-            # end of cicle for animal.
+        # are there orphaned samples (a submission with only samples)?
+        for sample in self.uid_submission.sample_set.all():
+            # ignore not READY models
+            self.process_model(sample)
+
+    def process_model(self, model):
+        """Test for a model in a biosample submission. Ignore a model if
+        status is not READY"""
+
+        if model.status == READY:
+            self.add_to_submission_data(model)
+
+        else:
+            # already submittes, so could be ignored
+            logger.debug("Ignoring %s %s" % (model._meta.verbose_name, model))
 
     def create_submission(self):
         """
