@@ -36,21 +36,6 @@ class DictBreedAdmin(admin.ModelAdmin):
     list_filter = ('country', 'specie')
 
 
-# redefine form to edit Sample. Link animal to names in order to speed up
-# name rendering
-class SampleAdminForm(forms.ModelForm):
-    class Meta:
-        model = Sample
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        super(SampleAdminForm, self).__init__(*args, **kwargs)
-
-        # This is the bit that matters:
-        self.fields['animal'].queryset = Animal.objects.filter(
-            owner=self.owner)
-
-
 # inspired from here:
 # https://github.com/geex-arts/django-jet/issues/244#issuecomment-325001298
 class SampleInLineFormSet(forms.BaseInlineFormSet):
@@ -75,51 +60,9 @@ class SampleInline(admin.StackedInline):
     formset = SampleInLineFormSet
 
     fields = (
-        ('name', 'alternative_id', 'description', 'owner'),
-        ('animal', 'protocol', 'organism_part'),
-        ('collection_date', 'collection_place_latitude',
-         'collection_place_longitude', 'collection_place'),
-        ('developmental_stage', 'physiological_stage',
-         'animal_age_at_collection', 'animal_age_at_collection_units',
-         'availability'),
-        ('storage', 'storage_processing', 'preparation_interval',
-         'preparation_interval_units')
-    )
-
-    # manage a fields with many FK keys
-    # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
-    raw_id_fields = ("animal", )
-
-    model = Sample
-    extra = 0
-
-
-class SampleAdmin(admin.ModelAdmin):
-    form = SampleAdminForm
-
-    # exclude = ('author',)
-    # prepopulated_fields = {'name': ['description']}
-    search_fields = ['name']
-    list_per_page = 25
-    list_display = (
-        'name', 'alternative_id', 'animal',
-        'protocol', 'collection_date', 'collection_place_latitude',
-        'collection_place_longitude', 'collection_place', 'organism_part',
-        'developmental_stage', 'physiological_stage',
-        'animal_age_at_collection', 'animal_age_at_collection_units',
-        'availability', 'storage', 'storage_processing',
-        'preparation_interval', 'preparation_interval_units', 'description',
-        'owner'
-    )
-
-    # To tell Django we want to perform a join instead of fetching the names of
-    # the categories one by one
-    list_select_related = ('owner', 'organism_part')
-
-    list_filter = ('owner', 'status')
-
-    fields = (
-        ('name', 'alternative_id', 'description', 'owner'),
+        ('name', 'alternative_id', 'biosample_id'),
+        ('submission', 'owner', 'status'),
+        ('description', 'publication'),
         ('animal', 'protocol', 'organism_part'),
         ('collection_date', 'collection_place', 'collection_place_latitude',
          'collection_place_longitude', 'collection_place_accuracy'),
@@ -127,43 +70,103 @@ class SampleAdmin(admin.ModelAdmin):
          'physiological_stage', 'animal_age_at_collection',
          'animal_age_at_collection_units', 'availability'),
         ('storage', 'storage_processing', 'preparation_interval',
-         'preparation_interval_units')
+         'preparation_interval_units'),
+        'last_submitted',
     )
 
     # manage a fields with many FK keys
     # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
-    raw_id_fields = ("animal", )
+    raw_id_fields = ("animal", "submission", "publication")
+
+    model = Sample
+    extra = 0
 
 
-class AnimalAdmin(admin.ModelAdmin):
-    search_fields = ['name']
-
+class SampleAdmin(admin.ModelAdmin):
+    # exclude = ('author',)
+    # prepopulated_fields = {'name': ['description']}
+    search_fields = ['name', 'biosample_id']
     list_per_page = 25
+
     list_display = (
-        'name', 'alternative_id', 'breed', 'sex',
-        'father', 'mother', 'birth_location', 'birth_location_latitude',
-        'birth_location_longitude', 'description', 'owner'
+        'name', 'biosample_id', 'submission', 'status', 'last_changed',
+        'last_submitted', 'alternative_id', 'animal', 'collection_date',
+        'collection_place', 'collection_place_latitude',
+        'collection_place_longitude', 'collection_place_accuracy',
+        'organism_part', 'developmental_stage', 'physiological_stage',
+        'animal_age_at_collection', 'animal_age_at_collection_units',
+        'availability', 'storage', 'storage_processing',
+        'preparation_interval', 'preparation_interval_units',
+        'description', 'publication', 'owner'
         )
+
+    # To tell Django we want to perform a join instead of fetching the names of
+    # the categories one by one
+    # https://medium.com/@hakibenita/things-you-must-know-about-django-admin-as-your-app-gets-bigger-6be0b0ee9614
+    list_select_related = (
+        'submission', 'submission__gene_bank_country', 'animal',
+        'organism_part', 'developmental_stage', 'physiological_stage', 'owner'
+    )
 
     list_filter = ('owner', 'status')
 
     fields = (
-        'name', 'alternative_id', 'breed', 'sex', 'father',
-        'mother', ('birth_location', 'birth_location_latitude',
-                   'birth_location_longitude'),
-        'description', 'owner'
-        )
-
-    # I can add manually an item if it is a readonly field
-    # readonly_fields = ("name",)
+        ('name', 'alternative_id', 'biosample_id'),
+        ('submission', 'owner', 'status'),
+        ('description', 'publication'),
+        ('animal', 'protocol', 'organism_part'),
+        ('collection_date', 'collection_place', 'collection_place_latitude',
+         'collection_place_longitude', 'collection_place_accuracy'),
+        ('developmental_stage',
+         'physiological_stage', 'animal_age_at_collection',
+         'animal_age_at_collection_units', 'availability'),
+        ('storage', 'storage_processing', 'preparation_interval',
+         'preparation_interval_units'),
+        'last_submitted',
+    )
 
     # manage a fields with many FK keys
     # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
-    raw_id_fields = ("father", "mother", "breed")
+    raw_id_fields = ("animal", "submission", "publication")
+
+
+class AnimalAdmin(admin.ModelAdmin):
+    search_fields = ['name', 'biosample_id']
+
+    list_per_page = 25
+    list_display = (
+        'name', 'biosample_id', 'submission', 'status', 'last_changed',
+        'last_submitted', 'alternative_id', 'breed', 'sex', 'father', 'mother',
+        'birth_date', 'birth_location', 'birth_location_latitude',
+        'birth_location_longitude', 'birth_location_accuracy', 'description',
+        'publication', 'owner'
+        )
+
+    list_filter = ('owner', 'status')
+
+    # I don't want to change this
+    readonly_fields = ("owner",)
+
+    fields = (
+        ('name', 'alternative_id', 'biosample_id'),
+        ('submission', 'owner', 'status'),
+        ('description', 'publication'),
+        ('breed', 'sex'),
+        ('father', 'mother'),
+        ('birth_date', 'birth_location'),
+        ('birth_location_latitude',
+         'birth_location_longitude', 'birth_location_accuracy'),
+        'last_submitted',
+    )
+
+    # manage a fields with many FK keys
+    # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
+    raw_id_fields = ("father", "mother", "breed", "submission", "publication")
 
     # https://medium.com/@hakibenita/things-you-must-know-about-django-admin-as-your-app-gets-bigger-6be0b0ee9614
     list_select_related = (
-        'breed', 'breed__specie', 'sex', 'father', 'mother', 'owner')
+        'submission', 'submission__gene_bank_country', 'breed',
+        'breed__specie', 'breed__country', 'sex', 'father', 'mother', 'owner')
 
     inlines = [SampleInline]
 

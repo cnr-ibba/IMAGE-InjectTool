@@ -145,9 +145,11 @@ def update_or_create_obj(model, **kwargs):
 
             # test if instance is in a different submission
             if submission != instance.submission:
-                logger.warning("Ignoring: %s" % (kwargs))
-                logger.warning(
-                    "Already in database with submission %s" % (submission))
+                message = (
+                    "Ignoring: %s - Already in database with submission %s"
+                    % (kwargs, submission)
+                )
+                logger.warning(message)
                 return instance
 
     # if I arrive here, or I don't have the submission key or

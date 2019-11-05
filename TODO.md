@@ -32,6 +32,14 @@ InjectTool TODO
   - Supposing a submission has issues in USI validation. Shuold I track it in
     validation tables? should I have tables for USI errors, since if the
     data is validated using `image_validation` is not a user error?
+  - Data should be ordered in order to do submission. `SplitSubmissionHelper` should
+    do the stuff. Some useful queries to sort data:
+    ```sql
+    -- LEAST take the shorter element from two columns. NULLS FIRST after order take NULL element (no parents) first
+    SELECT id, name, father_id, mother_id, submission_id, LEAST(father_id, mother_id) FROM uid_animal ORDER BY least NULLS FIRST;
+    ```
+  - now, since names are unique by users, I could reload data with only samples (Supposing
+    that I have animals in a different submission).
 
 * regarding issues in cryoweb:
   - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
@@ -85,8 +93,6 @@ InjectTool TODO
   - Pagination: missing jumping to a particular page function
 
 * Issues relative to UID:
-  - `contenttypes` framework for `Name` relations?
-  - `contenttypes` framework to model errors?
   - display the real name of file for the uploaded file
     - not so easy, maybe: add a CharField for user filename; Create a custom
       `django.forms.fields.FileField` or a validation function that track the
@@ -108,5 +114,4 @@ InjectTool TODO
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
 
 * Related to CRBanim
-  - alternative_id issue (now is a duplicate of sample/animal name)
   - deal with biosample records

@@ -553,7 +553,6 @@ class Animal(BioSampleMixin, Name):
         null=True,
         help_text='example: 2019-04-01')
 
-    # TODO: need to set this value? How?
     birth_location = models.CharField(
         max_length=255,
         blank=True,
