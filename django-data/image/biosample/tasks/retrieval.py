@@ -64,6 +64,9 @@ class FetchStatusHelper():
 
         # here I will track the biosample submission
         self.submission_name = self.usi_submission.usi_submission_name
+
+        logger.info(
+            "Getting info for usi submission '%s'" % (self.submission_name))
         self.submission = self.root.get_submission_by_name(
             submission_name=self.submission_name)
 
@@ -79,8 +82,8 @@ class FetchStatusHelper():
                 self.usi_submission, self.usi_submission.get_status_display()))
             return
 
-        logger.debug("Checking status for '%s'" % (
-            self.submission_name))
+        logger.info("Submission '%s' is currently '%s'" % (
+            self.submission_name, self.submission.status))
 
         # Update submission status if completed
         if self.submission.status == 'Completed':
@@ -203,7 +206,7 @@ class FetchStatusHelper():
         """Finalize a submission by closing document and send it to
         biosample"""
 
-        logger.debug("Finalizing submission '%s'" % (
+        logger.info("Finalizing submission '%s'" % (
             self.submission_name))
 
         # get errors for a submission
@@ -255,7 +258,7 @@ class FetchStatusHelper():
     def complete(self):
         """Complete a submission and fetch biosample names"""
 
-        logger.debug("Completing submission '%s'" % (
+        logger.info("Completing submission '%s'" % (
             self.submission_name))
 
         for sample in self.submission.get_samples():
@@ -354,6 +357,8 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
         logger.info("Searching for submissions into biosample")
 
         for uid_submission in queryset:
+            logger.info("getting USI submission for UID '%s'" % (
+                uid_submission))
             usi_submissions = USISubmission.objects.filter(
                 uid_submission=uid_submission,
                 status=SUBMITTED)
@@ -370,9 +375,8 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
             res = retrievalcomplete.delay(uid_submission_id=uid_submission.id)
 
             logger.info(
-                "Start RetrievalCompleteTask process for %s with task %s" % (
-                    uid_submission,
-                    res.task_id))
+                "Start RetrievalCompleteTask process for '%s' "
+                "with task '%s'" % (uid_submission, res.task_id))
 
         logger.info("fetch_queryset completed")
 
@@ -386,6 +390,8 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
 
     def run(self, *args, **kwargs):
         """Fetch submission data and then update UID submission status"""
+
+        logger.info("RetrievalCompleteTask started")
 
         # get UID submission
         uid_submission = self.get_uid_submission(kwargs['uid_submission_id'])
@@ -445,6 +451,8 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
                 "Submission %s completed with success" % uid_submission)
 
             self.update_message(uid_submission, submission_qs, COMPLETED)
+
+        logger.info("RetrievalCompleteTask completed")
 
         return "success"
 

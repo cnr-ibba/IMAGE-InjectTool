@@ -468,7 +468,7 @@ class SplitSubmissionHelper():
 
         # check if model is already in an opened submission
         if self.model_in_submission(model):
-            logger.info("Ignoring %s %s: already in a submission" % (
+            logger.debug("Ignoring %s %s: already in a submission" % (
                 model_type,
                 model))
             return
