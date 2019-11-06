@@ -1,0 +1,18 @@
+[
+{
+  "model": "uid.dictdevelstage",
+  "pk": 1,
+  "fields": {
+    "label": "adult",
+    "term": "EFO_0001272"
+  }
+},
+{
+  "model": "uid.dictphysiostage",
+  "pk": 1,
+  "fields": {
+    "label": "mature",
+    "term": "PATO_0001701"
+  }
+}
+]

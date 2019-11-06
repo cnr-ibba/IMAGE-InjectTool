@@ -56,8 +56,8 @@ class DetailMaterialMixin(OwnerMixin):
         data = super().get_context_data(**kwargs)
 
         # get a validationresult obj
-        if hasattr(self.object.name, "validationresult"):
-            validation = self.object.name.validationresult
+        if self.object.validationresult:
+            validation = self.object.validationresult
 
             logger.debug(
                 "Found validationresult: %s->%s" % (
@@ -90,15 +90,6 @@ class DetailMaterialMixin(OwnerMixin):
 
         # condition: I have validation result
         return data
-
-    def get_queryset(self):
-        """Override get_queryset"""
-
-        qs = super(DetailMaterialMixin, self).get_queryset()
-        return qs.select_related(
-            "name",
-            "name__validationresult",
-            "name__submission")
 
 
 class UpdateMaterialMixin(OwnerMixin):
@@ -147,15 +138,15 @@ class UpdateMaterialMixin(OwnerMixin):
         # HINT: validate object?
 
         # setting statuses and messages
-        self.object.name.status = NEED_REVISION
-        self.object.name.last_changed = timezone.now()
-        self.object.name.save()
+        self.object.status = NEED_REVISION
+        self.object.last_changed = timezone.now()
+        self.object.save()
 
-        if hasattr(self.object.name, 'validationresult'):
-            validationresult = self.object.name.validationresult
+        if self.object.validationresult:
+            validationresult = self.object.validationresult
         else:
             validationresult = self.validationresult_class()
-            self.object.name.validationresult = validationresult
+            self.object.validationresult = validationresult
 
         validationresult.messages = [
             'Info: Data has changed, validation has to be called']
@@ -204,14 +195,7 @@ class DeleteMaterialMixin(OwnerMixin):
 class ListMaterialMixin(OwnerMixin):
     """A common ListMixin for Material classes (Sample/Animal)"""
 
-    def get_queryset(self):
-        """Override get_queryset"""
-
-        qs = super(ListMaterialMixin, self).get_queryset()
-        return qs.select_related(
-            "name",
-            "name__validationresult",
-            "name__submission")
+    pass
 
 
 def ajax_required(f):

@@ -18,7 +18,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 from django.conf import settings
 
-from image_app.models import Animal, Sample, Submission, Person, Name
+from uid.models import Animal, Sample, Submission, Person
 
 from common.tests import PersonMixinTestCase
 
@@ -139,21 +139,20 @@ class SubmissionMixin(PersonMixinTestCase):
     person = Person
 
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     @classmethod
@@ -162,8 +161,8 @@ class SubmissionMixin(PersonMixinTestCase):
         super().setUpClass()
 
         # drop publication for semplicity
-        name = Name.objects.get(pk=3)
-        publication = name.publication
+        animal = Animal.objects.get(pk=1)
+        publication = animal.publication
         publication.delete()
 
     def setUp(self):
@@ -385,12 +384,12 @@ class SampleUpdateTestCase(SubmissionMixin, TestCase):
 
         # modify animal and sample
         self.animal_reference = "SAMEA4450079"
-        self.sample.animal.name.biosample_id = self.animal_reference
-        self.sample.animal.name.save()
+        self.sample.animal.biosample_id = self.animal_reference
+        self.sample.animal.save()
 
         self.sample_reference = "SAMEA4450075"
-        self.sample.name.biosample_id = self.sample_reference
-        self.sample.name.save()
+        self.sample.biosample_id = self.sample_reference
+        self.sample.save()
 
         self.record = self.sample.to_biosample()
 
@@ -440,20 +439,19 @@ class RulesTestCase(TestCase):
 
 class ValidationSummaryTestCase(TestCase):
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/submission',
-        'image_app/user',
-        'image_app/sample',
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/organization',
+        'uid/publication',
+        'uid/submission',
+        'uid/user',
+        'uid/sample',
         'validation/validationresult',
         'validation/validationsummary'
     ]
@@ -464,10 +462,6 @@ class ValidationSummaryTestCase(TestCase):
             submission=self.submission, type="animal")
         self.validationsummary_sample = ValidationSummary.objects.get(
             submission=self.submission, type="sample")
-
-        # set names
-        self.animal_name = Name.objects.get(pk=3)
-        self.sample_name = Name.objects.get(pk=4)
 
         # track validationresult object
         self.validationresult = ValidationResult.objects.get(pk=1)

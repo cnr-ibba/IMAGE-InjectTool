@@ -18,27 +18,23 @@ def child_of(animal):
 
     parents = []
 
-    # get father relathionship
-    relationship = animal.get_father_relationship()
-
-    if relationship:
-        father = animal.father.animal
+    # get father relationship
+    if animal.father:
+        father = animal.father
 
         link = '<a href="{url}">{name}</a>'.format(
             url=father.get_absolute_url(),
-            name=father)
+            name=father.name)
 
         parents.append(link)
 
     # get mother relationship
-    relationship = animal.get_mother_relationship()
-
-    if relationship:
-        mother = animal.mother.animal
+    if animal.mother:
+        mother = animal.mother
 
         link = '<a href="{url}">{name}</a>'.format(
             url=mother.get_absolute_url(),
-            name=mother)
+            name=mother.name)
 
         parents.append(link)
 

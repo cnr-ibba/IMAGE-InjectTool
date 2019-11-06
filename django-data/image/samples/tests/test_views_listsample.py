@@ -50,12 +50,12 @@ class ListSampleViewTest(SampleViewTestMixin, TestCase):
         # assert one sample for this user
         self.assertEqual(qs.count(), 1)
 
-        names = [sample.name.name for sample in qs.all()]
+        names = [sample.name for sample in qs.all()]
         self.assertIn("Siems_0722_393449", names)
 
     def test_contains_navigation_links(self):
         submission_url = reverse('submissions:list')
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertContains(self.response, 'href="{0}"'.format(submission_url))
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))

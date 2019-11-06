@@ -80,7 +80,7 @@ class TestTokenView(SessionEnabledTestCase):
         self.assertIsInstance(view.func.view_class(), TokenView)
 
     def test_contains_navigation_links(self):
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
         newtoken_url = reverse('biosample:token-generation')
 
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))

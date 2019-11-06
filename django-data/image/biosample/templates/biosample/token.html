@@ -11,7 +11,7 @@
   <h1>Your EBI-AAP token information</h1>
 
   <p>This table contains information of your EBI-AAP account. You need a valid
-    <a href="https://submission.ebi.ac.uk/api/docs/guide_accounts_and_logging_in.html#_overview" target="_blank">token</a> 
+    <a href="https://submission.ebi.ac.uk/api/docs/guide_accounts_and_logging_in.html#_overview" target="_blank">token</a>
     in order to start the submission process to BioSamples archive</p>
 
   <table class="table table-hover table-responsive-sm">
@@ -39,7 +39,7 @@
   </table>
 
   <a href="{% url 'biosample:token-generation' %}" class="btn btn-success" role="button">Generate a new token</a>
-  <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+  <a href="{% url 'uid:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
 
 {% endblock content %}
 

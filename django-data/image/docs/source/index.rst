@@ -35,9 +35,9 @@ Documentation by modules
    modules/biosample
    modules/common
    modules/cryoweb
-   modules/image_app
    modules/language
    modules/submissions
+   modules/uid
    modules/validation
 
 

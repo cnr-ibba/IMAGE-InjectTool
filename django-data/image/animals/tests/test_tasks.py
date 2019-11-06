@@ -11,7 +11,7 @@ from billiard.einfo import ExceptionInfo
 from django.core import mail
 from django.test import TestCase
 
-from image_app.models import Submission, Animal
+from uid.models import Submission, Animal
 from common.constants import NEED_REVISION, STATUSES, ERROR
 from common.tests import WebSocketMixin
 

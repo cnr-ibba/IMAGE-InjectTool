@@ -9,7 +9,7 @@ Created on Fri Jun  7 16:00:49 2019
 from django.test import TestCase
 from django.template import Template, Context
 
-from image_app.models import Animal
+from uid.models import Animal
 
 from .common import AnimalFeaturesMixin
 

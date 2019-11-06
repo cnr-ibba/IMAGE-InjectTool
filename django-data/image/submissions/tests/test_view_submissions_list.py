@@ -20,11 +20,11 @@ class ListSubmissionViewTest(
     """Test Submission ListView"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission"
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission"
     ]
 
     def setUp(self):
@@ -71,7 +71,7 @@ class ListSubmissionViewTest(
 
     def test_contains_navigation_links(self):
         create_url = reverse('submissions:create')
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertContains(self.response, 'href="{0}"'.format(create_url))
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))

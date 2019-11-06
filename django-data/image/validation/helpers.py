@@ -17,7 +17,7 @@ from image_validation.static_parameters import ruleset_filename as \
     IMAGE_RULESET
 
 from common.constants import BIOSAMPLE_URL
-from image_app.helpers import parse_image_alias, get_model_object
+from uid.helpers import parse_image_alias, get_model_object
 from validation.models import ValidationSummary
 
 # Get an instance of a logger
@@ -222,7 +222,7 @@ def construct_validation_message(submission):
     validation message
 
     Args:
-        submission (image_app.models.Submission) : submission to get data from
+        submission (uid.models.Submission) : submission to get data from
 
     Returns:
         dict: dictionary with all required data for validation message or None

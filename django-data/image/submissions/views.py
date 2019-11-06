@@ -13,7 +13,6 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
@@ -31,7 +30,7 @@ from common.views import OwnerMixin, FormInvalidMixin
 from crbanim.tasks import ImportCRBAnimTask
 from cryoweb.tasks import ImportCryowebTask
 
-from image_app.models import Submission, Name, Animal, Sample
+from uid.models import Submission, Animal, Sample
 from excel.tasks import ImportTemplateTask
 
 from validation.helpers import construct_validation_message
@@ -51,7 +50,7 @@ class CreateSubmissionView(LoginRequiredMixin, FormInvalidMixin, CreateView):
     model = Submission
 
     # template name is derived from model position and views type.
-    # in this case, ir will be 'image_app/submission_form.html' so
+    # in this case, ir will be 'uid/submission_form.html' so
     # i need to clearly specify it
     template_name = "submissions/submission_form.html"
 
@@ -306,6 +305,17 @@ class EditSubmissionView(
     template_name = "submissions/submission_edit.html"
     paginate_by = 10
 
+    # set the columns for this union query
+    headers = [
+        'id',
+        'name',
+        'material',
+        'biosample_id',
+        'status',
+        'last_changed',
+        'last_submitted'
+    ]
+
     def get_queryset(self):
         """Subsetting names relying submission id"""
 
@@ -314,16 +324,14 @@ class EditSubmissionView(
             pk=self.kwargs['pk'],
             owner=self.request.user)
 
-        # unknown animals should be removed from a submission. They have no
-        # data in animal table nor sample
-        return Name.objects.select_related(
-                "validationresult",
-                "submission",
-                "animal",
-                "sample").filter(
-            Q(submission=self.submission) & (
-                Q(animal__isnull=False) | Q(sample__isnull=False))
-            ).order_by('id')
+        # need to perform 2 distinct queryset
+        animal_qs = Animal.objects.filter(
+            submission=self.submission).values_list(*self.headers)
+
+        sample_qs = Sample.objects.filter(
+            submission=self.submission).values_list(*self.headers)
+
+        return animal_qs.union(sample_qs).order_by('material', 'id')
 
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
@@ -331,6 +339,31 @@ class EditSubmissionView(
 
         # add submission to context
         context["submission"] = self.submission
+
+        # modify queryset to a more useful object
+        object_list = context["object_list"]
+
+        # the new result object
+        new_object_list = []
+
+        for element in object_list:
+            # modify element in a dictionary
+            element = dict(zip(self.headers, element))
+
+            if element['material'] == 'Organism':
+                # change material to be more readable
+                element['material'] = 'animal'
+                element['model'] = Animal.objects.get(pk=element['id'])
+
+            else:
+                # this is a specimen
+                element['material'] = 'sample'
+                element['model'] = Sample.objects.get(pk=element['id'])
+
+            new_object_list.append(element)
+
+        # ovverride the default object list
+        context["object_list"] = new_object_list
 
         return context
 
@@ -479,7 +512,7 @@ class DeleteSamplesView(BatchDeleteMixin, DetailView):
 class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
     model = Submission
     template_name = "submissions/submission_confirm_delete.html"
-    success_url = reverse_lazy('image_app:dashboard')
+    success_url = reverse_lazy('uid:dashboard')
 
     # https://stackoverflow.com/a/39533619/4385116
     def get_context_data(self, **kwargs):
@@ -488,9 +521,9 @@ class DeleteSubmissionView(DeleteSubmissionMixin, OwnerMixin, DeleteView):
 
         # counting object relying submission
         animal_count = Animal.objects.filter(
-            name__submission=self.object).count()
+            submission=self.object).count()
         sample_count = Sample.objects.filter(
-            name__submission=self.object).count()
+            submission=self.object).count()
 
         # get only sample and animals from model_count
         info_deleted = {

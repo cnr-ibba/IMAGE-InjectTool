@@ -1,0 +1,289 @@
+[
+{
+  "model": "uid.dictrole",
+  "pk": 1,
+  "fields": {
+    "label": "submitter",
+    "term": "EFO_0001741"
+  }
+},
+{
+  "model": "uid.dictcountry",
+  "pk": 1,
+  "fields": {
+    "label": "United Kingdom",
+    "term": "NCIT_C17233",
+    "confidence": null
+  }
+},
+{
+  "model": "uid.dictcountry",
+  "pk": 2,
+  "fields": {
+    "label": "Italy",
+    "term": "NCIT_C16761",
+    "confidence": null
+  }
+},
+{
+  "model": "uid.dictcountry",
+  "pk": 3,
+  "fields": {
+    "label": "Germany",
+    "term": null,
+    "confidence": null
+  }
+},
+{
+  "model": "uid.dictsex",
+  "pk": 1,
+  "fields": {
+    "label": "male",
+    "term": "PATO_0000384"
+  }
+},
+{
+  "model": "uid.dictsex",
+  "pk": 2,
+  "fields": {
+    "label": "female",
+    "term": "PATO_0000383"
+  }
+},
+{
+  "model": "uid.dictsex",
+  "pk": 3,
+  "fields": {
+    "label": "record of unknown sex",
+    "term": "OBI_0000858"
+  }
+},
+{
+  "model": "uid.dictuberon",
+  "pk": 1,
+  "fields": {
+    "label": "semen",
+    "term": null,
+    "confidence": null
+  }
+},
+{
+  "model": "uid.dictspecie",
+  "pk": 1,
+  "fields": {
+    "label": "Bos taurus",
+    "term": null,
+    "confidence": null
+  }
+},
+{
+  "model": "uid.dictspecie",
+  "pk": 2,
+  "fields": {
+    "label": "Ovis aries",
+    "term": null,
+    "confidence": null
+  }
+},
+{
+  "model": "uid.dictbreed",
+  "pk": 1,
+  "fields": {
+    "confidence": null,
+    "supplied_breed": "Bunte Bentheimer",
+    "label": "Bentheim Black Pied",
+    "term": "LBO_0000347",
+    "country": 1,
+    "specie": 1
+  }
+},
+{
+  "model": "uid.dictbreed",
+  "pk": 2,
+  "fields": {
+    "confidence": null,
+    "supplied_breed": "Ostfriesisches Milchschaf",
+    "label": null,
+    "term": null,
+    "country": 2,
+    "specie": 2
+  }
+},
+{
+  "model": "uid.dictbreed",
+  "pk": 3,
+  "fields": {
+    "confidence": null,
+    "supplied_breed": "Aberdeen Angus",
+    "label": null,
+    "term": null,
+    "country": 3,
+    "specie": 1
+  }
+},
+{
+  "model": "uid.dictbreed",
+  "pk": 4,
+  "fields": {
+    "confidence": null,
+    "supplied_breed": "Ostfriesisches Milchschaf",
+    "label": null,
+    "term": null,
+    "country": 3,
+    "specie": 2
+  }
+},
+{
+  "model": "uid.animal",
+  "pk": 1,
+  "fields": {
+    "name": "ANIMAL:::ID:::WF60/B0811",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-06-18T17:08:50.670Z",
+    "last_submitted": null,
+    "publication": null,
+    "alternative_id": "438",
+    "description": null,
+    "material": "Organism",
+    "breed": 4,
+    "sex": 1,
+    "father": null,
+    "mother": null,
+    "birth_date": null,
+    "birth_location": null,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
+    "birth_location_accuracy": 0
+  }
+},
+{
+  "model": "uid.animal",
+  "pk": 2,
+  "fields": {
+    "name": "ANIMAL:::ID:::WF60/6532",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-06-18T17:08:50.672Z",
+    "last_submitted": null,
+    "publication": null,
+    "alternative_id": "439",
+    "description": null,
+    "material": "Organism",
+    "breed": 4,
+    "sex": 2,
+    "father": null,
+    "mother": null,
+    "birth_date": null,
+    "birth_location": null,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
+    "birth_location_accuracy": 0
+  }
+},
+{
+  "model": "uid.animal",
+  "pk": 3,
+  "fields": {
+    "name": "ANIMAL:::ID:::WF001265",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-06-18T17:08:50.674Z",
+    "last_submitted": null,
+    "publication": null,
+    "alternative_id": "440",
+    "description": null,
+    "material": "Organism",
+    "breed": 4,
+    "sex": 1,
+    "father": 1,
+    "mother": 2,
+    "birth_date": "2003-01-16",
+    "birth_location": null,
+    "birth_location_latitude": 52.034505,
+    "birth_location_longitude": 8.939664,
+    "birth_location_accuracy": 4
+  }
+},
+{
+  "model": "uid.sample",
+  "pk": 1,
+  "fields": {
+    "name": "MA_052_KR_S_Snh_S03_Mariensee_WF001265_OMS_13.01.04",
+    "submission": 1,
+    "biosample_id": null,
+    "owner": 1,
+    "status": 1,
+    "last_changed": "2019-06-18T17:08:50.730Z",
+    "last_submitted": null,
+    "publication": null,
+    "alternative_id": "1451",
+    "description": "Qualit\u00e4tsrate (Mot) 87,5 %",
+    "material": "Specimen from Organism",
+    "animal": 3,
+    "protocol": "NHS_Kryoprotokoll_Schafe_2004",
+    "collection_date": "2004-01-13",
+    "collection_place_latitude": null,
+    "collection_place_longitude": null,
+    "collection_place": null,
+    "collection_place_accuracy": 0,
+    "organism_part": 1,
+    "developmental_stage": null,
+    "physiological_stage": null,
+    "animal_age_at_collection": 11,
+    "animal_age_at_collection_units": 4,
+    "availability": null,
+    "storage": null,
+    "storage_processing": null,
+    "preparation_interval": null
+  }
+},
+{
+  "model": "uid.organization",
+  "pk": 1,
+  "fields": {
+    "name": "Test organization",
+    "address": "Foo Bar",
+    "country": 1,
+    "URI": null,
+    "role": 1
+  }
+},
+{
+  "model": "uid.organization",
+  "pk": 2,
+  "fields": {
+    "name": "IBBA-CNR",
+    "address": null,
+    "country": 1,
+    "URI": null,
+    "role": 1
+  }
+},
+{
+  "model": "uid.submission",
+  "pk": 1,
+  "fields": {
+    "title": "test",
+    "project": "IMAGE",
+    "description": "image test data",
+    "gene_bank_name": "Cryoweb",
+    "gene_bank_country": 1,
+    "datasource_type": 0,
+    "datasource_version": "test",
+    "organization": 1,
+    "uploaded_file": "data_source/cryoweb_test_data_only.sql",
+    "created_at": "2018-04-11T13:44:31.988Z",
+    "updated_at": "2019-06-18T17:08:50.747Z",
+    "status": 1,
+    "message": "Cryoweb import completed for submission: 1",
+    "owner": 1
+  }
+}
+]

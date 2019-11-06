@@ -23,7 +23,7 @@ from django.urls import reverse_lazy
 from betterforms.multiform import MultiModelForm
 from common.forms import RequestFormMixin
 from common.helpers import get_admin_emails
-from image_app.models import Person
+from uid.models import Person
 
 
 class SignUpUserForm(UserCreationForm):

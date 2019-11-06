@@ -15,13 +15,13 @@ from celery.utils.log import get_task_logger
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, F
+from django.db.models.functions import Least
 from django.utils import timezone
 
 from common.constants import ERROR, READY, SUBMITTED, COMPLETED
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
-from image_app.models import Animal
 from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_auth
@@ -220,7 +220,7 @@ class SubmissionHelper():
         animal or sample
 
         Args:
-            model (:py:class:`image_app.mixins.BioSampleMixin`): An animal or
+            model (:py:class:`uid.mixins.BioSampleMixin`): An animal or
                 sample object"""
 
         # alias is used to reference the same objects
@@ -242,9 +242,9 @@ class SubmissionHelper():
             self.submitted_samples[alias] = sample
 
         # update sample status
-        model.name.status = SUBMITTED
-        model.name.last_submitted = timezone.now()
-        model.name.save()
+        model.status = SUBMITTED
+        model.last_submitted = timezone.now()
+        model.save()
 
     def add_samples(self):
         """Iterate over sample data (animal/sample) and call
@@ -256,7 +256,7 @@ class SubmissionHelper():
             # get model for simplicity
             model = submission_data.content_object
 
-            if model.name.status == READY:
+            if model.status == READY:
                 logger.debug("Adding %s %s to submission %s" % (
                     model._meta.verbose_name,
                     model,
@@ -340,7 +340,7 @@ class SubmitTask(NotifyAdminTaskMixin, BaseTask):
 # HINT: move into helper module?
 class SplitSubmissionHelper():
     """
-    helper class to split py:class`image_app.models.Submission` data in
+    helper class to split py:class`uid.models.Submission` data in
     bacthes limited in sizes"""
 
     def __init__(self, uid_submission):
@@ -352,28 +352,41 @@ class SplitSubmissionHelper():
     def process_data(self):
         """Add animal and its samples to a submission"""
 
-        for animal in Animal.objects.filter(
-                name__submission=self.uid_submission):
+        # here we try to submit first animal without parents, then animal
+        # with parent with lowest foreign keys, supposing that when uploadimg
+        # a chiuld, his parents need to be defined and so they have a lower id
+        # the postgres LEAST is a function that will return the column with
+        # the lowest value, then we have to order explicitely with F in
+        # order to apply the NULLS FIRST condition (animal without parents)
+        for animal in self.uid_submission.animal_set.annotate(
+                least=Least('father_id', 'mother_id')).order_by(
+                    F('least').asc(nulls_first=True), F('id')):
 
-            # add animal if not yet submitted, or patch it
-            if animal.name.status == READY:
-                self.add_to_submission_data(animal)
-
-            else:
-                # already submitted, so could be ignored
-                logger.debug("Ignoring animal %s" % (animal))
+            # ignore not READY models
+            self.process_model(animal)
 
             # Add their specimen
             for sample in animal.sample_set.all():
-                # add sample if not yet submitted
-                if sample.name.status == READY:
-                    self.add_to_submission_data(sample)
+                # ignore not READY models
+                self.process_model(sample)
 
-                else:
-                    # already submittes, so could be ignored
-                    logger.debug("Ignoring sample %s" % (sample))
+            # end of cicle for animal
 
-            # end of cicle for animal.
+        # are there orphaned samples (a submission with only samples)?
+        for sample in self.uid_submission.sample_set.all():
+            # ignore not READY models
+            self.process_model(sample)
+
+    def process_model(self, model):
+        """Test for a model in a biosample submission. Ignore a model if
+        status is not READY"""
+
+        if model.status == READY:
+            self.add_to_submission_data(model)
+
+        else:
+            # already submittes, so could be ignored
+            logger.debug("Ignoring %s %s" % (model._meta.verbose_name, model))
 
     def create_submission(self):
         """
@@ -395,7 +408,7 @@ class SplitSubmissionHelper():
 
     def model_in_submission(self, model):
         """
-        Check if :py:class:`image_app.mixins.BioSampleMixin` is already in an
+        Check if :py:class:`uid.mixins.BioSampleMixin` is already in an
         opened submission"""
 
         logger.debug("Searching %s %s in submissions" % (
@@ -446,7 +459,7 @@ class SplitSubmissionHelper():
             return False
 
     def add_to_submission_data(self, model):
-        """Add a :py:class:`image_app.mixins.BioSampleMixin` to a
+        """Add a :py:class:`uid.mixins.BioSampleMixin` to a
         :py:class:`biosample.models.Submission` object, or create a new
         one if there are more samples than required"""
 
@@ -493,7 +506,7 @@ class SplitSubmissionTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
 
     def run(self, submission_id):
         """Call :py:class:`SplitSubmissionHelper` to split
-        :py:class:`image_app.models.Submission` data.
+        :py:class:`uid.models.Submission` data.
         Call :py:class:`SubmitTask` for each
         batch of data and then call :py:class:`SubmissionCompleteTask` after
         all data were submitted"""
@@ -544,9 +557,26 @@ class SubmissionCompleteTask(
 
     def run(self, *args, **kwargs):
         """Fetch submission data and then update
-        :py:class:`image_app.models.Submission` status"""
+        :py:class:`uid.models.Submission` status"""
 
+        # those are the output of SubmitTask, as a tuple of
+        # biosample.model.Submission.pk and "success"
         submission_statuses = args[0]
+
+        # get UID submission
+        uid_submission = self.get_uid_submission(kwargs['uid_submission_id'])
+
+        # mark as completed if submission_statuses is empty, for example when
+        # submitting a uid submission with no data
+        if not submission_statuses:
+            message = "Submission %s is empty!" % uid_submission
+            logger.warning(message)
+
+            # update submission status. No more queries on this
+            self.update_submission_status(
+                uid_submission, ERROR, message)
+
+            return "success"
 
         # submission_statuses will be an array like this
         # [("success", 1), ("success"), 2]
@@ -555,9 +585,6 @@ class SubmissionCompleteTask(
         # fetch data from database
         submission_qs = USISubmission.objects.filter(
             pk__in=usi_submission_ids)
-
-        # get UID submission
-        uid_submission = self.get_uid_submission(kwargs['uid_submission_id'])
 
         # annotate biosample submission by statuses
         statuses = {}
@@ -609,7 +636,7 @@ class SubmissionCompleteTask(
 
     def update_message(self, uid_submission, submission_qs, status):
         """Read :py:class:`biosample.models.Submission` message and set
-        :py:class:`image_app.models.Submission` message"""
+        :py:class:`uid.models.Submission` message"""
 
         # get error messages for submission
         message = []

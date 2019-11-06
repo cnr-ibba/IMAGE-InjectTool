@@ -11,9 +11,9 @@ import logging
 from common.constants import (
     ERROR, LOADED, ACCURACIES, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
 from common.helpers import image_timedelta, parse_image_timedelta
-from image_app.helpers import get_or_create_obj, update_or_create_obj
-from image_app.models import (
-    DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Name, Animal,
+from uid.helpers import get_or_create_obj, update_or_create_obj
+from uid.models import (
+    DictBreed, DictCountry, DictSpecie, DictSex, DictUberon, Animal,
     Sample, DictDevelStage, DictPhysioStage)
 from submissions.helpers import send_message
 from validation.helpers import construct_validation_message
@@ -55,34 +55,6 @@ def fill_uid_breeds(submission_obj, template):
     logger.info("fill_uid_breeds() completed")
 
 
-def fill_uid_names(submission_obj, template):
-    """fill Names table from crbanim record"""
-
-    # debug
-    logger.info("called fill_uid_names()")
-
-    # iterate among excel template
-    for record in template.get_animal_records():
-        # in the same record I have the sample identifier and animal identifier
-        # a name record for animal
-        get_or_create_obj(
-            Name,
-            name=record.animal_id_in_data_source,
-            submission=submission_obj,
-            owner=submission_obj.owner)
-
-    # iterate among excel template
-    for record in template.get_sample_records():
-        # name record for sample
-        get_or_create_obj(
-            Name,
-            name=record.sample_id_in_data_source,
-            submission=submission_obj,
-            owner=submission_obj.owner)
-
-    logger.info("fill_uid_names() completed")
-
-
 def fill_uid_animals(submission_obj, template):
     # debug
     logger.info("called fill_uid_animals()")
@@ -102,56 +74,41 @@ def fill_uid_animals(submission_obj, template):
         logger.debug("Found '%s' as specie" % (specie))
 
         # how I can get breed from my data?
-        breeds = [breed for breed in template.get_breed_records()
-                  if breed.supplied_breed == record.breed and
-                  breed.species == record.species]
-
-        # breed is supposed to be unique, from UID constraints. However
-        # I could place the same breed name for two countries. In that case,
-        # I cant derive a unique breed from users data
-        if len(breeds) != 1:
-            raise ExcelImportError(
-                "Can't determine a unique breed for '%s:%s' from user data" %
-                (record.breed, record.species))
+        breed_record = template.get_breed_from_animal(record)
 
         # get a country for this breed
         country = DictCountry.objects.get(
-            label=breeds[0].efabis_breed_country)
+            label=breed_record.efabis_breed_country)
 
         # ok get a real dictbreed object
         breed = DictBreed.objects.get(
-            supplied_breed=record.breed,
+            supplied_breed=breed_record.supplied_breed,
             specie=specie,
             country=country)
 
         logger.debug("Selected breed is %s" % (breed))
 
-        # define names
-        name, mother, father = None, None, None
+        # define mother and father
+        mother, father = None, None
 
         # get name for this animal and for mother and father
-        logger.debug("Getting %s as my name" % (
-            record.animal_id_in_data_source))
-
-        name = Name.objects.get(
-            name=record.animal_id_in_data_source,
-            submission=submission_obj)
-
         if record.father_id_in_data_source:
             logger.debug("Getting %s as father" % (
                 record.father_id_in_data_source))
 
-            father = Name.objects.get(
+            father = Animal.objects.get(
                 name=record.father_id_in_data_source,
-                submission=submission_obj)
+                breed=breed,
+                owner=submission_obj.owner)
 
         if record.mother_id_in_data_source:
             logger.debug("Getting %s as mother" % (
                 record.mother_id_in_data_source))
 
-            mother = Name.objects.get(
+            mother = Animal.objects.get(
                 name=record.mother_id_in_data_source,
-                submission=submission_obj)
+                breed=breed,
+                owner=submission_obj.owner)
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(
@@ -162,7 +119,6 @@ def fill_uid_animals(submission_obj, template):
         defaults = {
             'alternative_id': record.alternative_animal_id,
             'description': record.animal_description,
-            'breed': breed,
             'sex': sex,
             'father': father,
             'mother': mother,
@@ -171,13 +127,15 @@ def fill_uid_animals(submission_obj, template):
             'birth_location_latitude': record.birth_location_latitude,
             'birth_location_longitude': record.birth_location_longitude,
             'birth_location_accuracy': accuracy,
-            'owner': submission_obj.owner
         }
 
         # creating or updating an object
         update_or_create_obj(
             Animal,
-            name=name,
+            name=record.animal_id_in_data_source,
+            breed=breed,
+            owner=submission_obj.owner,
+            submission=submission_obj,
             defaults=defaults)
 
     # create a validation summary object and set all_count
@@ -193,22 +151,89 @@ def fill_uid_animals(submission_obj, template):
     logger.info("fill_uid_animals() completed")
 
 
+def parse_times(record, animal):
+    """Try to deal with times in excel templates"""
+
+    animal_age_at_collection, time_units = None, None
+
+    # animal age could be present or not
+    try:
+        if record.animal_age_at_collection:
+            animal_age_at_collection, time_units = parse_image_timedelta(
+                record.animal_age_at_collection)
+
+        else:
+            # derive animal age at collection
+            animal_age_at_collection, time_units = image_timedelta(
+                record.collection_date, animal.birth_date)
+
+    except ValueError as exc:
+        message = (
+            "Error for Sample '%s' at animal_age_at_collection column: %s" % (
+                    record.sample_id_in_data_source, exc))
+        logger.error(message)
+        raise ExcelImportError(message)
+
+    # another time column
+    preparation_interval, preparation_interval_units = None, None
+
+    try:
+        if record.sampling_to_preparation_interval:
+            preparation_interval, preparation_interval_units = \
+                parse_image_timedelta(record.sampling_to_preparation_interval)
+
+    except ValueError as exc:
+        message = (
+            "Error for Sample '%s' at sampling_to_preparation_interval "
+            "column: %s" % (
+                record.sample_id_in_data_source, exc))
+        logger.error(message)
+        raise ExcelImportError(message)
+
+    return (animal_age_at_collection, time_units, preparation_interval,
+            preparation_interval_units)
+
+
 def fill_uid_samples(submission_obj, template):
     # debug
     logger.info("called fill_uid_samples()")
 
+    # get language
+    language = submission_obj.gene_bank_country.label
+
     # iterate among excel template
     for record in template.get_sample_records():
-        # get name for this sample
-        name = Name.objects.get(
-            name=record.sample_id_in_data_source,
-            submission=submission_obj,
+        # get animal by reading record
+        animal_record = template.get_animal_from_sample(record)
+
+        # get specie (mind synonyms)
+        specie = DictSpecie.get_specie_check_synonyms(
+            species_label=animal_record.species,
+            language=language)
+
+        logger.debug("Found '%s' as specie" % (specie))
+
+        # get breed from animal record
+        breed_record = template.get_breed_from_animal(animal_record)
+
+        # get a country for this breed
+        country = DictCountry.objects.get(
+            label=breed_record.efabis_breed_country)
+
+        # ok get a real dictbreed object
+        breed = DictBreed.objects.get(
+            supplied_breed=breed_record.supplied_breed,
+            specie=specie,
+            country=country)
+
+        logger.debug("Selected breed is %s" % (breed))
+
+        animal = Animal.objects.get(
+            name=animal_record.animal_id_in_data_source,
+            breed=breed,
             owner=submission_obj.owner)
 
-        # get animal by reading record
-        animal = Animal.objects.get(
-            name__name=record.animal_id_in_data_source,
-            name__submission=submission_obj)
+        logger.debug("Selected animal is %s" % (animal))
 
         # get a organism part. Organism parts need to be in lowercases
         organism_part = get_or_create_obj(
@@ -232,22 +257,9 @@ def fill_uid_samples(submission_obj, template):
                 label=record.physiological_stage
             )
 
-        # animal age could be present or not
-        if record.animal_age_at_collection:
-            animal_age_at_collection, time_units = parse_image_timedelta(
-                record.animal_age_at_collection)
-
-        else:
-            # derive animal age at collection
-            animal_age_at_collection, time_units = image_timedelta(
-                record.collection_date, animal.birth_date)
-
-        # another time column
-        preparation_interval, preparation_interval_units = None, None
-
-        if record.sampling_to_preparation_interval:
-            preparation_interval, preparation_interval_units = \
-                parse_image_timedelta(record.sampling_to_preparation_interval)
+        # deal with time columns
+        (animal_age_at_collection, time_units, preparation_interval,
+         preparation_interval_units) = parse_times(record, animal)
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(
@@ -266,7 +278,6 @@ def fill_uid_samples(submission_obj, template):
         defaults = {
             'alternative_id': record.alternative_sample_id,
             'description': record.sample_description,
-            'animal': animal,
             'protocol': record.specimen_collection_protocol,
             'collection_date': record.collection_date,
             'collection_place_latitude': record.collection_place_latitude,
@@ -283,12 +294,14 @@ def fill_uid_samples(submission_obj, template):
             'storage_processing': storage_processing,
             'preparation_interval': preparation_interval,
             'preparation_interval_units': preparation_interval_units,
-            'owner': submission_obj.owner,
         }
 
         update_or_create_obj(
             Sample,
-            name=name,
+            name=record.sample_id_in_data_source,
+            animal=animal,
+            owner=submission_obj.owner,
+            submission=submission_obj,
             defaults=defaults)
 
     # create a validation summary object and set all_count
@@ -370,9 +383,6 @@ def upload_template(submission_obj):
 
         # BREEDS
         fill_uid_breeds(submission_obj, reader)
-
-        # NAME
-        fill_uid_names(submission_obj, reader)
 
         # ANIMALS
         fill_uid_animals(submission_obj, reader)

@@ -1,0 +1,74 @@
+[
+{
+  "model": "uid.ontology",
+  "pk": 1,
+  "fields": {
+    "library_name": "PATO",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "Phenotype And Trait Ontology"
+  }
+},
+{
+  "model": "uid.ontology",
+  "pk": 2,
+  "fields": {
+    "library_name": "LBO",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "Livestock Breed Ontology"
+  }
+},
+{
+  "model": "uid.ontology",
+  "pk": 3,
+  "fields": {
+    "library_name": "EFO",
+    "library_uri": "http://www.ebi.ac.uk/efo",
+    "comment": "Experimental Factor Ontology"
+  }
+},
+{
+  "model": "uid.ontology",
+  "pk": 4,
+  "fields": {
+    "library_name": "OBI",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "Ontology for Biomedical Investigations"
+  }
+},
+{
+  "model": "uid.ontology",
+  "pk": 5,
+  "fields": {
+    "library_name": "NCBITaxon",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "NCBI Taxonomy"
+  }
+},
+{
+  "model": "uid.ontology",
+  "pk": 6,
+  "fields": {
+    "library_name": "UBERON",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "cross-species ontology covering anatomical structures in animals"
+  }
+},
+{
+  "model": "uid.ontology",
+  "pk": 7,
+  "fields": {
+    "library_name": "GAZ",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "A gazetteer constructed on ontological principles"
+  }
+},
+{
+  "model": "uid.ontology",
+  "pk": 8,
+  "fields": {
+    "library_name": "NCIT",
+    "library_uri": "http://purl.obolibrary.org/obo",
+    "comment": "NCI Thesaurus OBO Edition"
+  }
+}
+]

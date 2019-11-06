@@ -14,7 +14,7 @@ from django import forms
 from common.constants import CRB_ANIM_TYPE, TEMPLATE_TYPE
 from common.forms import RequestFormMixin
 from common.helpers import get_admin_emails
-from image_app.models import Submission
+from uid.models import Submission
 from crbanim.helpers import CRBAnimReader
 from excel.helpers import ExcelTemplateReader
 

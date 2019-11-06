@@ -8,7 +8,7 @@ Created on Wed Nov  7 14:38:51 2018
 
 from django import forms
 
-from image_app.models import DictCountry
+from uid.models import DictCountry
 
 from .models import SpecieSynonym
 

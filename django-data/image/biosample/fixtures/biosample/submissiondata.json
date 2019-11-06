@@ -5,7 +5,7 @@
   "fields": {
     "submission": 1,
     "content_type": [
-      "image_app",
+      "uid",
       "animal"
     ],
     "object_id": 1
@@ -17,7 +17,7 @@
   "fields": {
     "submission": 1,
     "content_type": [
-      "image_app",
+      "uid",
       "sample"
     ],
     "object_id": 1
@@ -29,7 +29,7 @@
   "fields": {
     "submission": 2,
     "content_type": [
-      "image_app",
+      "uid",
       "animal"
     ],
     "object_id": 2
@@ -41,7 +41,7 @@
   "fields": {
     "submission": 2,
     "content_type": [
-      "image_app",
+      "uid",
       "animal"
     ],
     "object_id": 3

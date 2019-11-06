@@ -269,7 +269,7 @@ class MyAccountView(LoginRequiredMixin, UpdateView):
 
     # import a multiform object
     form_class = MyAccountForm
-    success_url = reverse_lazy('image_app:dashboard')
+    success_url = reverse_lazy('uid:dashboard')
     template_name = 'accounts/update_user.html'
 
     def get_object(self):

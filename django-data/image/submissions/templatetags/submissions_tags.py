@@ -7,7 +7,7 @@ Created on Wed Sep 19 15:48:51 2018
 """
 
 from django import template
-from image_app.models import Submission
+from uid.models import Submission
 
 register = template.Library()
 
