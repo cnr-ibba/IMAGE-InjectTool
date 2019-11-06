@@ -12,7 +12,8 @@ from unittest.mock import patch, Mock
 
 from django.test import TestCase
 
-from common.tests import WebSocketMixin
+from common.tests import (
+    WebSocketMixin, DataSourceMixinTestCase as CommonDataSourceMixinTest)
 from uid.models import Animal, Sample, Submission
 from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
@@ -358,6 +359,46 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
 
         # check template import fails
         self.check_errors(my_check, message, notification_message)
+
+    @patch("excel.helpers.fill_uid.image_timedelta",
+           side_effect=ValueError("message"))
+    def test_issue_animal_age_at_collection(self, my_check):
+        """Test an issue in animal_age_at_collection column"""
+
+        message = "message"
+
+        notification_message = (
+            "Error in importing data: Error for Sample '%s' at "
+            "animal_age_at_collection column: %s" % (
+                "CS05_1999_IBBACNR_PTP_02.06.1999", message))
+
+        # check template import fails, calling a parent method since
+        # database is filled and the base ExcelMixin doesn't work
+        CommonDataSourceMixinTest.check_errors(
+            self, my_check, message)
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message('Error', notification_message)
+
+    @patch("excel.helpers.fill_uid.parse_image_timedelta",
+           side_effect=[[None, None], ValueError("message")])
+    def test_issue_sampling_to_preparation_interval(self, my_check):
+        """Test an issue in animal_age_at_collection column"""
+
+        message = "message"
+
+        notification_message = (
+            "Error in importing data: Error for Sample '%s' at sampling_to_"
+            "preparation_interval column: %s" % (
+                "VERCH1539971_2010_RegLomBank_PTPLodi_03.09.2011", message))
+
+        # check template import fails, calling a parent method since
+        # database is filled and the base ExcelMixin doesn't work
+        CommonDataSourceMixinTest.check_errors(
+            self, my_check, message)
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message('Error', notification_message)
 
 
 class ReloadTemplateTestCase(ExcelMixin, TestCase):

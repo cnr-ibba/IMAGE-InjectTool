@@ -151,6 +151,49 @@ def fill_uid_animals(submission_obj, template):
     logger.info("fill_uid_animals() completed")
 
 
+def parse_times(record, animal):
+    """Try to deal with times in excel templates"""
+
+    animal_age_at_collection, time_units = None, None
+
+    # animal age could be present or not
+    try:
+        if record.animal_age_at_collection:
+            animal_age_at_collection, time_units = parse_image_timedelta(
+                record.animal_age_at_collection)
+
+        else:
+            # derive animal age at collection
+            animal_age_at_collection, time_units = image_timedelta(
+                record.collection_date, animal.birth_date)
+
+    except ValueError as exc:
+        message = (
+            "Error for Sample '%s' at animal_age_at_collection column: %s" % (
+                    record.sample_id_in_data_source, exc))
+        logger.error(message)
+        raise ExcelImportError(message)
+
+    # another time column
+    preparation_interval, preparation_interval_units = None, None
+
+    try:
+        if record.sampling_to_preparation_interval:
+            preparation_interval, preparation_interval_units = \
+                parse_image_timedelta(record.sampling_to_preparation_interval)
+
+    except ValueError as exc:
+        message = (
+            "Error for Sample '%s' at sampling_to_preparation_interval "
+            "column: %s" % (
+                record.sample_id_in_data_source, exc))
+        logger.error(message)
+        raise ExcelImportError(message)
+
+    return (animal_age_at_collection, time_units, preparation_interval,
+            preparation_interval_units)
+
+
 def fill_uid_samples(submission_obj, template):
     # debug
     logger.info("called fill_uid_samples()")
@@ -214,22 +257,9 @@ def fill_uid_samples(submission_obj, template):
                 label=record.physiological_stage
             )
 
-        # animal age could be present or not
-        if record.animal_age_at_collection:
-            animal_age_at_collection, time_units = parse_image_timedelta(
-                record.animal_age_at_collection)
-
-        else:
-            # derive animal age at collection
-            animal_age_at_collection, time_units = image_timedelta(
-                record.collection_date, animal.birth_date)
-
-        # another time column
-        preparation_interval, preparation_interval_units = None, None
-
-        if record.sampling_to_preparation_interval:
-            preparation_interval, preparation_interval_units = \
-                parse_image_timedelta(record.sampling_to_preparation_interval)
+        # deal with time columns
+        (animal_age_at_collection, time_units, preparation_interval,
+         preparation_interval_units) = parse_times(record, animal)
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(

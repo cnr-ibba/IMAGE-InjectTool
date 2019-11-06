@@ -80,6 +80,17 @@ class TestImageTimedelta(TestCase):
         self.assertEqual(len(cm.output), 1)
         self.assertIn("One date is NULL", cm.output[0])
 
+    def test_usupported_date(self):
+        t1 = "foo"
+        t2 = parse_date("1900-01-01")
+
+        self.assertRaisesRegex(
+            ValueError,
+            "Expecting a datetime value",
+            image_timedelta,
+            t1, t2
+        )
+
     def test_parse_image_timedelta(self):
         interval = "7 days"
         reference = (7, 2)  # days in common constants
@@ -92,6 +103,14 @@ class TestImageTimedelta(TestCase):
 
         test = parse_image_timedelta(interval)
         self.assertEqual(reference, test)
+
+        interval = 1
+        self.assertRaisesRegex(
+            ValueError,
+            "Expecting a value like",
+            parse_image_timedelta,
+            interval,
+        )
 
 
 class TestAttributes(TestCase):
