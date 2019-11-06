@@ -401,9 +401,9 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
 
         reference = [
             {'alias': 'IMAGEA000000001',
-             'relationshipNature': 'derived from'},
+             'relationshipNature': 'child of'},
             {'alias': 'IMAGEA000000002',
-             'relationshipNature': 'derived from'}
+             'relationshipNature': 'child of'}
         ]
 
         # asserting relationship
@@ -418,7 +418,7 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
 
         reference = [
             {'alias': 'IMAGEA000000002',
-             'relationshipNature': 'derived from'},
+             'relationshipNature': 'child of'},
         ]
 
         # asserting relationship

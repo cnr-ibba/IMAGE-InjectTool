@@ -625,21 +625,25 @@ class Animal(BioSampleMixin, Name):
 
         return attributes
 
-    def get_relationship(self):
+    def get_relationship(self, nature="derived from"):
         """Get a relationship to this animal (call this method from a related
-        object to get a connection to this element)"""
+        object to get a connection to this element)
+
+        Args:
+            nature (str): set relationship nature (child of, derived_from, ...)
+        """
 
         # if animal is already uploaded I will use accession as
         # relationship key. This biosample id could be tested in validation
         if self.biosample_id and self.biosample_id != '':
             return {
                 "accession": self.biosample_id,
-                "relationshipNature": "derived from",
+                "relationshipNature": nature,
             }
         else:
             return {
                 "alias": self.biosample_alias,
-                "relationshipNature": "derived from",
+                "relationshipNature": nature,
             }
 
     def get_father_relationship(self):
@@ -649,7 +653,7 @@ class Animal(BioSampleMixin, Name):
         if self.father is None:
             return None
 
-        return self.father.get_relationship()
+        return self.father.get_relationship(nature="child of")
 
     def get_mother_relationship(self):
         """Get a relationship with mother if possible"""
@@ -658,7 +662,7 @@ class Animal(BioSampleMixin, Name):
         if self.mother is None:
             return None
 
-        return self.mother.get_relationship()
+        return self.mother.get_relationship(nature="child of")
 
     def to_biosample(self, release_date=None):
         """get a json from animal for biosample submission"""
