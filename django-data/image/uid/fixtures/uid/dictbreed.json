@@ -1,0 +1,14 @@
+[
+{
+  "model": "uid.dictbreed",
+  "pk": 1,
+  "fields": {
+    "supplied_breed": "Bunte Bentheimer",
+    "label": "Bentheim Black Pied",
+    "term": "LBO_0000347",
+    "confidence": null,
+    "country": 1,
+    "specie": 1
+  }
+}
+]

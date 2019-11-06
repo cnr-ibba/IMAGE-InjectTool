@@ -8,14 +8,14 @@ Created on Wed Nov 21 15:11:55 2018
 
 from django.test import TestCase
 
-from image_app.models import DictCountry
+from uid.models import DictCountry
 
 from ..models import SpecieSynonym
 
 
 class SpecieSynonymTest(TestCase):
     fixtures = [
-        "image_app/dictcountry",
+        "uid/dictcountry",
         "language/dictspecie",
         "language/speciesynonym"
     ]

@@ -1,0 +1,32 @@
+[
+{
+  "model": "uid.sample",
+  "pk": 1,
+  "fields": {
+    "name": "Siems_0722_393449",
+    "submission": 1,
+    "biosample_id": null,
+    "alternative_id": "Siems_0722_393449",
+    "description": "semen collected when the animal turns to 4",
+    "material": "Specimen from Organism",
+    "animal": 3,
+    "protocol": "ftp://ftp.faang.ebi.ac.uk/ftp/protocols/samples/WUR_SOP_animal_sampling_20160405.pdf",
+    "collection_date": "2017-03-12",
+    "collection_place_latitude": null,
+    "collection_place_longitude": null,
+    "collection_place": "deutschland",
+    "collection_place_accuracy": 4,
+    "organism_part": 1,
+    "developmental_stage": 1,
+    "physiological_stage": 1,
+    "animal_age_at_collection": 4,
+    "animal_age_at_collection_units": 5,
+    "availability": "mailto:test@example.com",
+    "storage": 2,
+    "storage_processing": 0,
+    "preparation_interval": 3,
+    "preparation_interval_units": 2,
+    "owner": 1
+  }
+}
+]

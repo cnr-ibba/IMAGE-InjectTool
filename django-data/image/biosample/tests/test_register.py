@@ -137,7 +137,7 @@ class SuccessfulRegisterUserViewTests(Basetest):
         }
 
         self.response = self.client.post(self.url, self.data)
-        self.dashboard_url = reverse('image_app:dashboard')
+        self.dashboard_url = reverse('uid:dashboard')
 
     def test_redirection(self):
         '''

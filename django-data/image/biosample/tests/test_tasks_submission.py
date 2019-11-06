@@ -13,6 +13,7 @@ from django.core import mail
 
 from common.constants import (
     READY, COMPLETED, ERROR, SUBMITTED, WAITING, STATUSES)
+from uid.models import Submission as UIDSubmission
 
 from .common import TaskFailureMixin, RedisMixin, BaseMixin
 from ..models import Submission as USISubmission, SubmissionData
@@ -28,23 +29,22 @@ class SubmissionFeaturesMixin(BaseMixin):
     fixtures = [
         'biosample/account',
         'biosample/managedteam',
+        'biosample/sample',
         'biosample/submission',
         'biosample/submissiondata',
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/submission',
+        'uid/user'
     ]
 
 
@@ -72,7 +72,15 @@ class SplitSubmissionMixin(TaskFailureMixin, BaseMixin):
         super().tearDown()
 
     def generic_check(self, res, n_of_submission, n_of_submissiondata):
-        """Generic check for created data"""
+        """Generic check for created data
+
+        Args:
+            res (str): the task output
+            n_of_submission (int): number of biosample.models.Submission
+                created
+            n_of_submissiondata (int): number or submission data for each
+                biosample.models.Submission
+        """
 
         # assert a success with data uploading
         self.assertEqual(res, "success")
@@ -107,12 +115,27 @@ class SplitSubmissionTaskTestCase(SplitSubmissionMixin, TestCase):
         self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
         self.assertEqual(self.n_to_submit, SubmissionData.objects.count())
 
+        # now get data by ids, like SubmissionHelper does
+        submissiondata_qs = SubmissionData.objects.order_by('id')
+        names = [submissiondata.content_object.name for submissiondata
+                 in submissiondata_qs.all()]
+
+        reference = [
+            "ANIMAL:::ID:::132713",
+            "ANIMAL:::ID:::mother",
+            "ANIMAL:::ID:::son",
+            "Siems_0722_393449",
+        ]
+
+        self.assertEqual(names, reference)
+
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
     def test_split_submission_partial(self):
         """Test splitting submission data with some data already submitted"""
 
-        self.name_qs.filter(pk__in=[3, 4]).update(status=COMPLETED)
+        self.animal_qs.filter(pk=1).update(status=COMPLETED)
+        self.sample_qs.filter(pk=1).update(status=COMPLETED)
 
         res = self.my_task.run(submission_id=self.submission_id)
 
@@ -130,6 +153,33 @@ class SplitSubmissionTaskTestCase(SplitSubmissionMixin, TestCase):
 
         self.generic_check(res, n_of_submission=2, n_of_submissiondata=2)
 
+    # A very particoular case: I have a submission with only samples,
+    # since I uploaded a new submission with a new sample
+    @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
+    def test_only_samples_in_submission(self):
+        """Simulate a submission with samples only"""
+
+        # this is a very limit case. Create a new uid Submission
+        self.old_submission_obj = UIDSubmission.objects.get(
+            pk=self.submission_id)
+
+        uid_submission = self.submission_obj
+        uid_submission.pk = None
+        uid_submission.title = "Updated database"
+        uid_submission.datasource_version = "Updated database"
+        uid_submission.save()
+        uid_submission.refresh_from_db()
+
+        # now move sample to this new submission
+        self.sample_qs.filter(pk=1).update(submission=uid_submission)
+
+        # call task with this submission
+        res = self.my_task.run(submission_id=uid_submission.id)
+
+        # assert 1 biosample.models.Submission with 1 SubmissionData
+        self.generic_check(res, n_of_submission=1, n_of_submissiondata=1)
+        self.assertEqual(1, SubmissionData.objects.count())
+
 
 class SplitSubmissionTaskUpdateTestCase(
         SubmissionFeaturesMixin, SplitSubmissionMixin, TestCase):
@@ -137,7 +187,7 @@ class SplitSubmissionTaskUpdateTestCase(
     A particoular test case: I submit data once and then biosample tell me
     that there are errors in submission data. So I mark name with need revision
     status and the submission is already opened. I can't send data within a
-    new submission, I need to restore things a submit the data I have (since
+    new submission, I need to restore things and submit the data I have (since
     to_biosample() is called on user data when submitting, there are no issues
     with old data in biosample.models)"""
 
@@ -145,10 +195,10 @@ class SplitSubmissionTaskUpdateTestCase(
         # call Mixin method
         super().setUp()
 
-        # ok in this case, my samples are READY since I passed validation
-        # after fail into biosample stage. My submission will be in SUBMITTED
-        # stage
-        USISubmission.objects.update(status=SUBMITTED)
+        # ok in this case, my uid.Samples are READY since I passed validation
+        # after fail into biosample stage. My biosample.submission will be in
+        # ERROS or NEED_REVISION since is the last status I saw
+        USISubmission.objects.update(status=ERROR)
 
     # ovverride MAX_SAMPLES in order to split data
     @patch('biosample.tasks.submission.MAX_SAMPLES', 2)
@@ -345,7 +395,7 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
         self.submission_helper.create_or_update_sample(model)
 
         # assert status
-        self.assertEqual(model.name.status, SUBMITTED)
+        self.assertEqual(model.status, SUBMITTED)
 
         # testing things
         self.assertEqual(
@@ -373,7 +423,7 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
         self.submission_helper.create_or_update_sample(model)
 
         # assert status
-        self.assertEqual(model.name.status, SUBMITTED)
+        self.assertEqual(model.status, SUBMITTED)
 
         # testing patch
         for sample in my_samples:
@@ -385,8 +435,8 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
 
         # simulate a submission recover: mark an animal as already submitted
         submission_data = SubmissionData.objects.get(pk=1)
-        submission_data.content_object.name.status = SUBMITTED
-        submission_data.content_object.name.save()
+        submission_data.content_object.status = SUBMITTED
+        submission_data.content_object.save()
 
         # calling method
         self.submission_helper.add_samples()
@@ -585,14 +635,15 @@ class SubmissionCompleteTaskTestCase(
             status=SUBMITTED,
             message='Waiting for biosample validation')
 
-    def common_check(self, status, message):
+    def common_check(self, status, message, update_db=True):
         """Common check for tests"""
 
         # update an object
-        usi_submission = USISubmission.objects.get(pk=1)
-        usi_submission.status = status
-        usi_submission.message = message
-        usi_submission.save()
+        if update_db:
+            usi_submission = USISubmission.objects.get(pk=1)
+            usi_submission.status = status
+            usi_submission.message = message
+            usi_submission.save()
 
         # calling task
         result = self.my_task.run(
@@ -618,6 +669,20 @@ class SubmissionCompleteTaskTestCase(
         self.common_check(
             SUBMITTED,
             'Waiting for biosample validation')
+
+    def test_empty_submission(self):
+        """An empty submission is marked as COMPLETED"""
+
+        # delete USISubmission objects
+        USISubmission.objects.all().delete()
+
+        # updating task args like a result for an empty submission
+        self.my_tasks_args = ([], )
+
+        # check status and messages
+        status = ERROR
+        message = "Submission %s is empty!" % self.submission_obj
+        self.common_check(status, message, update_db=False)
 
     def test_error_api_endpoint(self):
         """test issues with API endpoint"""

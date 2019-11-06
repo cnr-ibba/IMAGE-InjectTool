@@ -11,18 +11,18 @@ from django.template import Template, Context
 
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
-from image_app.models import Submission, User
+from uid.models import Submission, User
 
 
 class CommonTestCase():
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission"
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission"
     ]
 
     def setUp(self):

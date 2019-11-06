@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 from django.http import HttpResponseRedirect
 
-from image_app.models import Animal
+from uid.models import Animal
 from common.views import (
     DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
     ListMaterialMixin)
@@ -72,10 +72,6 @@ class DeleteAnimalView(DeleteMaterialMixin, DeleteView):
         logger.debug("Got animal: %s" % (self.object))
         success_url = self.get_success_url()
 
-        # get the related name object
-        name = self.object.name
-        logger.debug("Got name: %s" % (name))
-
         # get its samples and their names
         samples = self.object.sample_set.all()
         logger.debug("Got samples: %s" % (samples))
@@ -84,30 +80,22 @@ class DeleteAnimalView(DeleteMaterialMixin, DeleteView):
         with transaction.atomic():
             # delete all child samples
             for sample in samples:
-                sample_name = sample.name
-
                 logger.debug(
-                    "Deleting sample:%s and name:%s" % (sample, sample_name))
+                    "Deleting sample:%s" % (sample))
 
                 result = sample.delete()
                 logger.debug("%s objects deleted" % str(result))
 
-                result = sample_name.delete()
-                logger.debug("%s objects deleted" % str(result))
-
             # clear all child from this animal
             logger.debug("Clearing all childs from this animal")
-            name.mother_of.clear()
-            name.father_of.clear()
+            self.object.mother_of.clear()
+            self.object.father_of.clear()
 
             # delete this animal object
             logger.debug(
-                "Deleting animal:%s and name:%s" % (self.object, name))
+                "Deleting animal:%s" % (self.object))
 
             result = self.object.delete()
-            logger.debug("%s objects deleted" % str(result))
-
-            result = name.delete()
             logger.debug("%s objects deleted" % str(result))
 
         message = "Animal %s was successfully deleted" % self.object.name
@@ -125,13 +113,4 @@ class ListAnimalView(ListMaterialMixin, ListView):
     model = Animal
     template_name = "animals/animal_list.html"
     paginate_by = 10
-    ordering = ["name__submission"]
-
-    def get_queryset(self):
-        """Override get_queryset"""
-
-        qs = super(ListAnimalView, self).get_queryset()
-        return qs.select_related(
-            "name",
-            "name__validationresult",
-            "name__submission")
+    ordering = ["submission"]

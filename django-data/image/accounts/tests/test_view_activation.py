@@ -18,8 +18,8 @@ from ..models import create_key
 
 class BaseTest(TestCase):
     fixtures = [
-        "image_app/dictcountry.json",
-        "image_app/dictrole.json",
+        "uid/dictcountry.json",
+        "uid/dictrole.json",
         "accounts/organization.json"
     ]
 

@@ -20,11 +20,12 @@ class ValidationSummaryAdmin(admin.ModelAdmin):
 
 
 class ValidationResultAdmin(admin.ModelAdmin):
-    list_display = ['name', 'status', 'messages']
+    list_display = [
+            'submission', 'content_type', 'object_id', 'status', 'messages']
 
-    list_filter = ['status', 'name__submission__owner']
+    list_filter = ['status', 'submission__owner']
 
-    list_select_related = ('name', 'name__submission')
+    list_select_related = ('submission', )
 
     list_per_page = 20
 

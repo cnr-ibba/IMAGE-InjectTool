@@ -9,7 +9,7 @@ Created on Fri May 11 16:15:36 2018
 from django.db import models
 from django.db.models import Func, Value
 
-from image_app.models import DictCountry
+from uid.models import DictCountry
 
 
 class Replace(Func):
@@ -20,12 +20,12 @@ class Replace(Func):
 class SpecieSynonym(models.Model):
     # linking to others modules
     dictspecie = models.ForeignKey(
-        'image_app.DictSpecie',
+        'uid.DictSpecie',
         on_delete=models.CASCADE,
         null=True)
 
     language = models.ForeignKey(
-        'image_app.DictCountry',
+        'uid.DictCountry',
         on_delete=models.CASCADE)
 
     word = models.CharField(

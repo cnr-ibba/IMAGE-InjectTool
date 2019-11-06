@@ -9,7 +9,7 @@ Created on Fri Feb 15 15:40:00 2019
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
-from image_app.models import Animal
+from uid.models import Animal
 
 from .common import AnimalViewTestMixin
 from ..views import ListAnimalView
@@ -52,17 +52,17 @@ class ListAnimaViewTest(AnimalViewTestMixin, TestCase):
         # get animal queryset
         qs = self.response.context['animal_list']
 
-        # assert three animal for this user (see image_app fixtures)
+        # assert three animal for this user (see uid fixtures)
         self.assertEqual(qs.count(), self.n_of_animals)
 
-        names = [animal.name.name for animal in qs.all()]
+        names = [animal.name for animal in qs.all()]
         self.assertIn("ANIMAL:::ID:::132713", names)
         self.assertIn("ANIMAL:::ID:::mother", names)
         self.assertIn("ANIMAL:::ID:::son", names)
 
     def test_contains_navigation_links(self):
         submission_url = reverse('submissions:list')
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertContains(self.response, 'href="{0}"'.format(submission_url))
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))

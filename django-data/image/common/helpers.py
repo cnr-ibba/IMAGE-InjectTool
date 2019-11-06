@@ -36,6 +36,9 @@ def image_timedelta(t1, t2):
         logger.warning("One date is NULL ({0}, {1}) ignoring".format(t2, t1))
         return None, YEARS
 
+    if type(t1) != datetime.date or type(t2) != datetime.date:
+        raise ValueError("Expecting a datetime value")
+
     if t2 > t1:
         logger.warning("t2>t1 ({0}, {1}) ignoring".format(t2, t1))
         return None, YEARS
@@ -63,10 +66,17 @@ PATTERN_INTERVAL = re.compile(r"([\d]+) ([\w]+s?)")
 def parse_image_timedelta(interval):
     """A function to parse from a image_timdelta string"""
 
+    # cast interval as string
+    interval = str(interval)
+
     match = re.search(PATTERN_INTERVAL, interval)
 
     # get parsed data
-    value, units = match.groups()
+    try:
+        value, units = match.groups()
+
+    except AttributeError:
+        raise ValueError("Expecting a value like '1 year', '10 months', etc")
 
     # time units are plural in database
     if units[-1] != 's':

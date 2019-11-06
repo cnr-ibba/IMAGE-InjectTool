@@ -16,7 +16,7 @@ The Unified Internal Database
 -----------------------------
 
 The **Unified Internal Database (UID)** is the database in which all IMAGE-InjectTool
-data are stored. It is mainly managed by :py:mod:`image_app.models` package, and
+data are stored. It is mainly managed by :py:mod:`uid.models` package, and
 models *dictionary tables*, which are used to provides ontologies references, and
 *data tables*, which are used to store user data like Animals (Organisms) and Samples
 (Specimens from Organim). *Data tables* are linked to user (owner) in order to

@@ -12,7 +12,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from common.constants import WAITING, ERROR, SUBMITTED, LOADED, COMPLETED
-from image_app.models import Submission
+from uid.models import Submission
 
 from ..forms import ValidateForm
 from ..views import ValidateView
@@ -22,11 +22,11 @@ class TestMixin(object):
     """Base class for validation tests"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission"
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission"
     ]
 
     def setUp(self):

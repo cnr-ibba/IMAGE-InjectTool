@@ -11,7 +11,7 @@ from celery.utils.log import get_task_logger
 
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from image.celery import app as celery_app
-from image_app.models import (
+from uid.models import (
     DictCountry, DictBreed, DictSpecie, DictUberon, DictDevelStage,
     DictPhysioStage)
 

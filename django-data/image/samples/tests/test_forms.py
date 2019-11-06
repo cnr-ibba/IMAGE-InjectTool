@@ -8,7 +8,7 @@ Created on Fri Feb  8 13:55:39 2019
 
 from django.test import TestCase
 
-from image_app.models import Sample
+from uid.models import Sample
 
 from ..forms import UpdateSampleForm
 from .common import SampleFeaturesMixin

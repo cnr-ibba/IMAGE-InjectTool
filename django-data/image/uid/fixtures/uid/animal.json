@@ -1,0 +1,64 @@
+[
+{
+  "model": "uid.animal",
+  "pk": 1,
+  "fields": {
+    "name": "ANIMAL:::ID:::132713",
+    "submission": 1,
+    "biosample_id": null,
+    "publication": 1,
+    "same_as": "SAMEA4450079",
+    "alternative_id": "11",
+    "description": "a 4-year old pig organic fed",
+    "material": "Organism",
+    "breed": 1,
+    "sex": 1,
+    "father": null,
+    "mother": null,
+    "birth_location": null,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
+    "owner": 1
+  }
+},
+{
+  "model": "uid.animal",
+  "pk": 2,
+  "fields": {
+    "name": "ANIMAL:::ID:::mother",
+    "submission": 1,
+    "biosample_id": null,
+    "alternative_id": "12",
+    "description": "test mother",
+    "material": "Organism",
+    "breed": 1,
+    "sex": 2,
+    "father": null,
+    "mother": null,
+    "birth_location": null,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
+    "owner": 1
+  }
+},
+{
+  "model": "uid.animal",
+  "pk": 3,
+  "fields": {
+    "name": "ANIMAL:::ID:::son",
+    "submission": 1,
+    "biosample_id": null,
+    "alternative_id": "13",
+    "description": "test son",
+    "material": "Organism",
+    "breed": 1,
+    "sex": 2,
+    "father": 1,
+    "mother": 2,
+    "birth_location": null,
+    "birth_location_latitude": null,
+    "birth_location_longitude": null,
+    "owner": 1
+  }
+}
+]

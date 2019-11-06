@@ -13,7 +13,7 @@ from django.urls import resolve, reverse
 from django.utils import timezone
 
 from common.tests import FormMixinTestCase, MessageMixinTestCase
-from image_app.models import Animal, Submission, ACCURACIES
+from uid.models import Animal, Submission, ACCURACIES
 
 from ..views import UpdateAnimalView
 from ..forms import UpdateAnimalForm
@@ -169,10 +169,10 @@ class SuccessfulUpdateAnimalViewTest(
         animal = Animal.objects.get(pk=1)
 
         # test status for animal
-        self.assertEqual(animal.name.status, NEED_REVISION)
-        self.assertEqual(animal.name.validationresult.status, 'Info')
+        self.assertEqual(animal.status, NEED_REVISION)
+        self.assertEqual(animal.validationresult.status, 'Info')
         self.assertListEqual(
-            animal.name.validationresult.messages,
+            animal.validationresult.messages,
             ['Info: Data has changed, validation has to be called']
         )
 
@@ -193,7 +193,7 @@ class SuccessfulUpdateAnimalViewTest(
         self.assertTrue(self.mytime.called)
 
         # assert time was updated
-        self.assertEqual(animal.name.last_changed, NOW)
+        self.assertEqual(animal.last_changed, NOW)
 
 
 class InvalidUpdateAnimalViewTest(
@@ -244,7 +244,7 @@ class InvalidUpdateAnimalViewTest(
         animal = Animal.objects.get(pk=1)
 
         # test status for animal (default one)
-        self.assertEqual(animal.name.status, LOADED)
+        self.assertEqual(animal.status, LOADED)
 
     def test_fake_coordinates(self):
         """Test form with text into numeric fields"""
