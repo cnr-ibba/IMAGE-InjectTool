@@ -13,6 +13,7 @@
 import os
 import sys
 import django
+import subprocess
 
 git_lfs_version = "v2.9.0"
 
@@ -22,36 +23,51 @@ sys.path.insert(0, project_path)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'image.settings'
 django.setup()
 
-# Workaround to install and execute git-lfs on Read the Docs
+# Workaround modified to install and execute git-lfs on Read the Docs
 # https://github.com/readthedocs/readthedocs.org/issues/1846#issuecomment-477184259
-git_lfs_path = '%s/.git-lfs' % (project_path)
+injecttool_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+
+# I want to install git-lfs here
+bin_dir = os.path.join(injecttool_dir, "bin")
+
+if not os.path.exists(bin_dir):
+    os.mkdir(bin_dir)
+
+# add a new path to PATH environment variable
+os.environ['PATH'] += ":%s" % (bin_dir)
+
+# this will be the directory where git lfs will be installed
+git_lfs_path = '%s/.git/lfs' % (injecttool_dir)
 
 if not os.path.exists(git_lfs_path):
-    os.mkdir(git_lfs_path)
     os.system(
         'wget -P {dest}/ https://github.com/git-lfs/git-lfs'
         '/releases/download/'
         '{version}/git-lfs-linux-amd64-{version}.tar.gz'.format(
             version=git_lfs_version,
-            dest=git_lfs_path))
+            dest=bin_dir))
 
     os.system(
             'tar xvfz {path}/git-lfs-linux-amd64-{version}.tar.gz'
             ' -C {path}'.format(
                 version=git_lfs_version,
-                path=git_lfs_path))
+                path=bin_dir))
 
     # test the system
-    os.system('{path}/git-lfs ls-files'.format(path=git_lfs_path))
+    os.system('git-lfs ls-files')
 
     # make lfs available in current repository
-    os.system('{path}/git-lfs install'.format(path=git_lfs_path))
+    os.system('git-lfs install')
 
+else:
+    print("Git lfs already configured. Skipping")
+
+if os.path.exists(os.path.join(bin_dir, "git-lfs")):
     # download content from remote
-    os.system('{path}/git-lfs fetch'.format(path=git_lfs_path))
+    os.system('git-lfs fetch')
 
     # make local files to have the real content on them
-    os.system('{path}/git-lfs checkout'.format(path=git_lfs_path))
+    os.system('git-lfs checkout')
 
 
 # -- Project information -----------------------------------------------------
