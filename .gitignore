@@ -14,6 +14,7 @@ tmp/
 .pytest_cache/
 django-data/image/dumps/
 django-data/image/protected/
+django-data/image/.git-lfs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
