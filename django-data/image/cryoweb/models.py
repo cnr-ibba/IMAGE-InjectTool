@@ -1049,6 +1049,9 @@ class VVessels(models.Model):
         protocol = self.get_protocol()
         return protocol.ext_material_type
 
+    def get_animal(self):
+        return VAnimal.objects.get(db_animal=self.db_animal)
+
 
 class VProtocols(models.Model):
     v_guid = models.BigIntegerField(primary_key=True)

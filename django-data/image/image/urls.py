@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 # importing image views
-from image_app.views import (
+from uid.views import (
     AboutView, IndexView, protected_view, TermsView, PrivacyView,
     AboutUploadingView)
 
@@ -48,10 +48,10 @@ urlpatterns = [
         auth_views.LogoutView.as_view(
             template_name='accounts/logged_out.html'),
         name='logout'),
-    url(r'^image_app/',
+    url(r'^uid/',
         include(
-            ('image_app.urls', 'image_app'),
-            namespace="image_app")),
+            ('uid.urls', 'uid'),
+            namespace="uid")),
     url(r'^language/',
         include(
             ('language.urls', 'language'),

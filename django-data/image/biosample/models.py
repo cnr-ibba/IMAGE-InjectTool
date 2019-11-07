@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
 from common.constants import STATUSES, WAITING
-from image_app.models import Submission as UIDSubmission
+from uid.models import Submission as UIDSubmission
 
 
 # Create your models here.
@@ -88,8 +88,8 @@ class SubmissionData(models.Model):
 
     # limit choices for contenttypes
     # https://axiacore.com/blog/how-use-genericforeignkey-django-531/
-    name_limit = models.Q(app_label='image_app', model='animal') | \
-        models.Q(app_label='image_app', model='sample')
+    name_limit = models.Q(app_label='uid', model='animal') | \
+        models.Q(app_label='uid', model='sample')
 
     # Below the mandatory fields for generic relation
     # https://simpleisbetterthancomplex.com/tutorial/2016/10/13/how-to-use-generic-relations.html

@@ -73,7 +73,6 @@ InjectTool TODO
   - test each management command, or at least that it works
 
 * Regarding languages, dictionaries and ontology terms:
-  - breeds and countries need to be validated against dictionary tables
   - browse by languages, see all synonym in every language (add navigation links)
   - add a custom synonym manually
 
@@ -86,9 +85,6 @@ InjectTool TODO
   - Pagination: missing jumping to a particular page function
 
 * Issues relative to UID:
-  - rename `image_app` application into `uid`?
-  - `contenttypes` framework for `Name` relations?
-  - `contenttypes` framework to model errors?
   - display the real name of file for the uploaded file
     - not so easy, maybe: add a CharField for user filename; Create a custom
       `django.forms.fields.FileField` or a validation function that track the
@@ -110,5 +106,4 @@ InjectTool TODO
   - Read documentation about [advanced templatetags](https://djangobook.com/advanced-custom-template-tags/)
 
 * Related to CRBanim
-  - alternative_id issue (now is a duplicate of sample/animal name)
   - deal with biosample records

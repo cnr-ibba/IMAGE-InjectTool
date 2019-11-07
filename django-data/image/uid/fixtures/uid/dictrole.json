@@ -1,0 +1,10 @@
+[
+{
+  "model": "uid.dictrole",
+  "pk": 1,
+  "fields": {
+    "label": "submitter",
+    "term": "EFO_0001741"
+  }
+}
+]

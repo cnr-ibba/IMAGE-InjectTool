@@ -95,12 +95,13 @@ you have to move all `IMAGE-InjectTool` directory with all its content
 Build the docker-compose suite
 ------------------------------
 
-There are seven containers defined in `docker-compose.yml`
+There are eight containers defined in `docker-compose.yml`
 
  - uwsgi: the code base
  - nginx: web interface
  - db: the postgres database
  - redis: the redis database
+ - asgi: the webesocket server based on uwsgi image
  - celery-worker: a celey worker image based on uwsgi image
  - celery-beat: a celey beat image based on uwsgi image
  - celery-flower: a celery monitoring imaged based on uwsgi image
@@ -160,6 +161,14 @@ EMAIL_PORT = <your smtp port>
 
 > NOTE: Your email provider (ie Gmail) could untrust email sent from an unkwnown
 address, you need to log in and authorize email sent from a new address
+
+You can also set the EBI endpoints for submitting data to BioSamples:
+
+```
+BIOSAMPLE_URL=https://wwwdev.ebi.ac.uk/biosamples/samples
+EBI_AAP_API_AUTH=https://explore.api.aai.ebi.ac.uk/auth
+BIOSAMPLE_API_ROOT=https://submission-test.ebi.ac.uk/api/
+```
 
 The Inject Tool interface is available for a local access through Internet browser at the URL:
 `http://localhost:26080/image/`.
@@ -227,6 +236,9 @@ $ docker-compose restart
 # stop all
 $ docker-compose stop
 
+# stop containers and cleanup
+$ docker-compose down
+
 # run a command (e.g., python manage.py check) in the python container from the host
 $ docker-compose run --rm uwsgi python manage.py check
 
@@ -245,6 +257,12 @@ $ docker-compose run --rm uwsgi python manage.py remove_stale_contenttypes
 
 # connect to the postgres database as administrator
 $ docker-compose run --rm db psql -h db -U postgres
+
+# make a dump of image database
+$ docker-compose run --rm db pg_dump -h db -U postgres image | gzip --best > image_dump.sql.gz
+
+# restore an image database
+$ docker-compose run --volume $PWD/:/tmp/ --rm db bash -c 'exec zcat /tmp/image_dump.sql.gz | psql -h db -U postgres image'
 
 # executing Unittest. Pytest ensure is the recommended way (since has mock objects)
 $ docker-compose run --rm uwsgi pytest
@@ -284,19 +302,6 @@ $ pg_dump -U <user> -h <host> --column-inserts --data-only --schema apiis_admin 
 
 Biosample submission
 --------------------
-
-Generate a new user using django management command, it will prompt for a new
-password:
-
-```
-$ docker-compose run --rm uwsgi python manage.py create_usi_user -u <username> --email <email> --full_name <name> <surname>
-```
-
-Submit UID data to biosample
-
-```
-$ docker-compose run --rm uwsgi python manage.py biosample_submission --submission=1 [--finalize]
-```
 
 Generate a biosample `json` file:
 

@@ -9,27 +9,26 @@ Created on Wed Sep 18 13:28:23 2019
 from django.test import TestCase
 from django.template import Template, Context
 
-from image_app.models import Animal, Sample
+from uid.models import Animal, Sample
 
 
 class CommonMixin():
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):

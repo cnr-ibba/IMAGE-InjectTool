@@ -17,7 +17,7 @@ from ..forms import GenerateTokenForm
 from ..models import Account, ManagedTeam
 from ..views import GenerateTokenView
 from .session_enabled_test_case import SessionEnabledTestCase
-from .test_token import generate_token
+from .common import generate_token
 
 
 class BaseTest(SessionEnabledTestCase):
@@ -102,7 +102,7 @@ class CreateAuthViewTest(BaseTest):
         self.assertContains(self.response, 'type="password"', 1)
 
     def test_contains_navigation_links(self):
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertContains(self.response, 'href="{0}"'.format(dashboard_url))
         self.assertContains(self.response, '<button type="submit"')
@@ -201,7 +201,7 @@ class SuccessFullCreateAuthViewTest(BaseTest):
         }
 
         self.response = self.client.post(self.url, self.data)
-        self.dashboard_url = reverse('image_app:dashboard')
+        self.dashboard_url = reverse('uid:dashboard')
 
     def test_redirection(self):
         '''
@@ -223,7 +223,7 @@ class SuccessFullCreateAuthViewTest(BaseTest):
 
         self.assertRedirects(response, next_url)
 
-    @patch("biosample.helpers.Auth", side_effect=ConnectionError("test"))
+    @patch("pyUSIrest.auth.Auth", side_effect=ConnectionError("test"))
     def test_error_with_biosample(self, my_auth):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 200)

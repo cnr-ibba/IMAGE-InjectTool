@@ -23,7 +23,7 @@ def annotate_generic(model, zooma_type):
     """Annotate a generic DictTable
 
     Args:
-        model (:py:class:`image_app.models.DictBase`): A DictBase istance
+        model (:py:class:`uid.models.DictBase`): A DictBase istance
         zooma_type (str): the type of zooma annotation (country, species, ...)
     """
 

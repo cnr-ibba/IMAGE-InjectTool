@@ -6,7 +6,7 @@ Created on Wed Feb 27 17:14:49 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-from image_app.models import Submission
+from uid.models import Submission
 
 
 class BaseTestCase():
@@ -14,11 +14,11 @@ class BaseTestCase():
     fixtures = [
         'crbanim/dictspecie',
         'crbanim/submission',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/organization',
-        'image_app/user',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/organization',
+        'uid/user',
         'language/speciesynonym'
     ]
 

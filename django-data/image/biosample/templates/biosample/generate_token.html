@@ -18,12 +18,18 @@
   <div class="row justify-content-center">
     <div class="card col-lg-8 col-md-10 col-sm-12">
       <div class="card-body">
+        <p class="card-text">
+          Please specify the password you have used to register into the <a href="https://aai.ebi.ac.uk/home" target="_blank">AAP profile</a>
+          during the last phase of InjectTool registration. If you dont remember it, you will need to <a href="mailto:aap@ebi.ac.uk">contact EBI</a> and
+          provide them the <em>AAP user</em> and <em>AAP team</em> you can find at
+          <a target="_blank" href="{% url 'biosample:token' %}">your token information</a> page
+        </p>
         <form method="post" novalidate>
             {% csrf_token %}
             {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
             {% include 'includes/form.html' %}
             <button type="submit" class="btn btn-success">Generate Token</button>
-            <a href="{% url 'image_app:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+            <a href="{% url 'uid:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
         </form>
       </div>
     </div>

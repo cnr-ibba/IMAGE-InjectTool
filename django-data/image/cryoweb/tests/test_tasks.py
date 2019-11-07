@@ -17,12 +17,12 @@ from ..helpers import CryoWebImportError
 class ImportCryowebTest(TestCase):
     # import this file and populate database once
     fixtures = [
-        "image_app/user",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/dictcountry",
-        "image_app/submission",
-        "image_app/dictsex",
+        "uid/user",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/dictcountry",
+        "uid/submission",
+        "uid/dictsex",
         "language/dictspecie",
         "language/speciesynonym"
     ]

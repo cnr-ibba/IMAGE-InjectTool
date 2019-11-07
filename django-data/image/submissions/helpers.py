@@ -19,7 +19,7 @@ def send_message(submission_obj, validation_message=None):
     channels
 
     Args:
-        submission_obj (image_app.models.Submission): an UID submission
+        submission_obj (uid.models.Submission): an UID submission
         object
         validation_message (dict): set validation message
     """

@@ -1,0 +1,45 @@
+
+{% extends "base.html" %}
+
+{% load submissions_tags %}
+
+{% block title %}
+  InjectTool Data Summary
+{% endblock title %}
+
+{% block content %}
+
+  <h1>InjectTool Summary</h1>
+
+  <ul>
+    <li>You have {{datasource_count}} submissions loaded
+      ({{datasource_completed}} uploaded into BioSamples)
+    </li>
+    <li>You have {{uid_report.n_of_animals}} animals loaded into InjectTool</li>
+    <li>You have {{uid_report.n_of_samples}} samples loaded into InjectTool</li>
+    <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
+    <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
+    <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
+    <li>You have {{uid_report.organism_parts_without_ontology}} organims parts without ontologies</li>
+    <li>You have {{uid_report.developmental_stages_without_ontology}} developmental stages without ontologies</li>
+    <li>You have {{uid_report.physiological_stages_without_ontology}} physiological stages without ontologies</li>
+  </ul>
+
+  {# call a custom templatetag and send result into a variable #}
+  {% have_submission user as submissions %}
+
+  <p class="container mt-3">
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'zooma:ontologies_report' %}" role="button">Annotate with Zooma</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-secondary btn-lg btn-block {% if not submissions %}disabled{% endif %}" href="{% url 'submissions:list' %}" role="button">Submissions List</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-info btn-lg btn-block" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a>
+      </div>
+    </div>
+  </p>
+
+{% endblock content %}

@@ -14,7 +14,7 @@ from django.core import mail
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-from image_app.models import Organization
+from uid.models import Organization
 from pyUSIrest.auth import Auth
 
 from ..forms import CreateUserForm
@@ -98,9 +98,9 @@ class CreateUserViewTest(Basetest):
 
 class SuccessfulCreateUserViewTest(Basetest):
     fixtures = [
-        "image_app/dictcountry.json",
-        "image_app/dictrole.json",
-        "image_app/organization.json"
+        "uid/dictcountry.json",
+        "uid/dictrole.json",
+        "uid/organization.json"
     ]
 
     def setUp(self):
@@ -197,7 +197,7 @@ class SuccessfulCreateUserViewTest(Basetest):
 
         # posting user and password to generate a new user
         response = self.client.post(self.url, self.data)
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
 
         self.assertRedirects(response, dashboard_url)
         self.check_messages(response, "success", "Account created")

@@ -11,7 +11,7 @@ from django.urls import reverse, resolve
 
 from common.tests import (
     GeneralMixinTestCase, FormMixinTestCase, InvalidFormMixinTestCase)
-from image_app.models import DictCountry, DictSpecie
+from uid.models import DictCountry, DictSpecie
 
 from ..views import ListSpeciesView, UpdateSpeciesView
 from ..forms import SpecieSynonymForm
@@ -20,8 +20,8 @@ from ..models import SpecieSynonym
 
 class BaseTest(TestCase):
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
+        "uid/user",
+        "uid/dictcountry",
         "language/dictspecie",
         "language/speciesynonym",
     ]

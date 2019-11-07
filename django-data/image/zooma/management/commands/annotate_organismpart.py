@@ -9,7 +9,7 @@ Created on Wed May  9 11:25:09 2018
 import logging
 
 from django.core.management.base import BaseCommand
-from image_app.models import DictUberon
+from uid.models import DictUberon
 from zooma.helpers import annotate_organismpart
 
 # Get an instance of a logger

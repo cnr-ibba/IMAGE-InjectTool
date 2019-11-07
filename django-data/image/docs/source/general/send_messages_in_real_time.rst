@@ -23,7 +23,7 @@ asynchronous message and update submisison detail page accordingly::
   from common.constants import WAITING
   from submissions.helpers import send_message
   from validation.helpers import construct_validation_message
-  from image_app.models import Submission
+  from uid.models import Submission
 
   # Get a submission and update its status
   submission = Submission.objects.get(pk=1)

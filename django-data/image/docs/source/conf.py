@@ -14,11 +14,45 @@ import os
 import sys
 import django
 
+git_lfs_version = "v2.9.0"
+
 project_path = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_path)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'image.settings'
 django.setup()
+
+# Workaround to install and execute git-lfs on Read the Docs
+# https://github.com/readthedocs/readthedocs.org/issues/1846#issuecomment-477184259
+git_lfs_path = '%s/.git-lfs' % (project_path)
+
+if not os.path.exists(git_lfs_path):
+    os.mkdir(git_lfs_path)
+    os.system(
+        'wget -P {dest}/ https://github.com/git-lfs/git-lfs'
+        '/releases/download/'
+        '{version}/git-lfs-linux-amd64-{version}.tar.gz'.format(
+            version=git_lfs_version,
+            dest=git_lfs_path))
+
+    os.system(
+            'tar xvfz {path}/git-lfs-linux-amd64-{version}.tar.gz'
+            ' -C {path}'.format(
+                version=git_lfs_version,
+                path=git_lfs_path))
+
+    # test the system
+    os.system('{path}/git-lfs ls-files'.format(path=git_lfs_path))
+
+    # make lfs available in current repository
+    os.system('{path}/git-lfs install'.format(path=git_lfs_path))
+
+    # download content from remote
+    os.system('{path}/git-lfs fetch'.format(path=git_lfs_path))
+
+    # make local files to have the real content on them
+    os.system('{path}/git-lfs checkout'.format(path=git_lfs_path))
+
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +61,7 @@ copyright = '2019, Paolo Cozzi'
 author = 'Paolo Cozzi'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.7.1'
+release = 'v0.8.0.dev0'
 
 
 # -- General configuration ---------------------------------------------------

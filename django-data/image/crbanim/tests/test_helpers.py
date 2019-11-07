@@ -15,14 +15,14 @@ from collections import namedtuple
 from django.test import TestCase
 
 from common.tests import WebSocketMixin
-from image_app.models import (
-    DictSex, DictBreed, Name, Animal,
-    Sample, DictUberon, DictCountry)
-from image_app.tests.mixins import (
+from uid.models import (
+    DictSex, DictBreed, Animal,
+    Sample, DictUberon, DictCountry, Submission)
+from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
 from ..helpers import (
-    logger, CRBAnimReader, upload_crbanim, fill_uid_breed, fill_uid_names,
+    logger, CRBAnimReader, upload_crbanim, fill_uid_breed,
     fill_uid_animal, fill_uid_sample, find_storage_type, sanitize_url)
 from .common import BaseTestCase
 
@@ -223,14 +223,9 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # fill object to test inserts. Fill breed
         self.breed = fill_uid_breed(self.record, self.country)
 
-        # fill names
-        self.animal_name, self.sample_name = fill_uid_names(
-            self.record, self.submission)
-
         # filling animal and samples
         self.animal = fill_uid_animal(
             self.record,
-            self.animal_name,
             self.breed,
             self.submission,
             {})
@@ -238,7 +233,6 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # testing samples
         self.sample = fill_uid_sample(
             self.record,
-            self.sample_name,
             self.animal,
             self.submission)
 
@@ -252,12 +246,8 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
             self.breed.specie.label, self.record.species_latin_name)
 
     def test_fill_uid_names(self):
-        # testing output
-        self.assertIsInstance(self.animal_name, Name)
-        self.assertIsInstance(self.sample_name, Name)
-
-        self.assertEqual(self.animal_name.name, self.record.animal_ID)
-        self.assertEqual(self.sample_name.name, self.record.sample_identifier)
+        self.assertEqual(self.animal.name, self.record.animal_ID)
+        self.assertEqual(self.sample.name, self.record.sample_identifier)
 
     def test_fill_uid_animals(self):
         # testing animal
@@ -286,14 +276,9 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # fill breeds
         breed = fill_uid_breed(record, self.country)
 
-        # creating name
-        animal_name, sample_name = fill_uid_names(
-            record, self.submission)
-
         # filling animal and samples
         animal = fill_uid_animal(
             record,
-            animal_name,
             breed,
             self.submission,
             {})
@@ -301,7 +286,6 @@ class ProcessRecordTestCase(DataSourceMixinTestCase, BaseTestCase, TestCase):
         # testing samples
         sample = fill_uid_sample(
             record,
-            sample_name,
             animal,
             self.submission)
 
@@ -376,10 +360,78 @@ class ReloadCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
     fixtures = [
         'crbanim/auth',
         'crbanim/dictspecie',
-        'crbanim/image_app',
+        'crbanim/uid',
         'crbanim/submission',
         'language/speciesynonym'
     ]
+
+
+class UpdateCRBAnimTestCase(CRBAnimMixin, BaseTestCase, TestCase):
+    """Simulate a crbanim update with the same dataset. Data already
+    present will be ignored. I won't remove anithing from old submission,
+    so I expect to not add any items into database"""
+
+    # override used fixtures
+    fixtures = [
+        'crbanim/auth',
+        'crbanim/dictspecie',
+        'crbanim/uid',
+        'crbanim/submission',
+        'language/speciesynonym'
+    ]
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # track old submission
+        self.old_submission = Submission.objects.get(pk=1)
+
+        # generate a new submission from old submission object
+        submission = self.submission
+        submission.pk = None
+        submission.title = "Updated database"
+        submission.datasource_version = "Updated database"
+        submission.save()
+
+        # track the new submission
+        self.submission = submission
+
+    def test_upload_crbanim(self):
+        """Testing uploading and importing data from crbanim to UID"""
+
+        # test data loaded
+        message = "CRBAnim import completed for submission"
+        self.upload_datasource(message)
+
+        # check animal and samples
+        queryset = Animal.objects.all()
+        self.assertEqual(len(queryset), 1, msg="check animal load")
+
+        queryset = Sample.objects.all()
+        self.assertEqual(len(queryset), 2, msg="check sample load")
+
+        # assert data are in the proper submission
+        self.assertEqual(self.old_submission.animal_set.count(), 1)
+        self.assertEqual(self.old_submission.sample_set.count(), 2)
+
+        self.assertEqual(self.submission.animal_set.count(), 0)
+        self.assertEqual(self.submission.sample_set.count(), 0)
+
+        # check async message called
+        notification_message = (
+            'CRBAnim import completed for submission: 2')
+        validation_message = {
+            'animals': 0, 'samples': 0,
+            'animal_unkn': 0, 'sample_unkn': 0,
+            'animal_issues': 0, 'sample_issues': 0}
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message(
+            'Loaded',
+            notification_message,
+            validation_message,
+            pk=self.submission.id)
 
 
 class SanitizeAccessionTest(TestCase):

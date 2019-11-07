@@ -18,7 +18,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 from django.conf import settings
 
-from image_app.models import Animal, Sample, Submission, Person, Name
+from uid.models import Animal, Sample, Submission, Person
 
 from common.tests import PersonMixinTestCase
 
@@ -139,21 +139,20 @@ class SubmissionMixin(PersonMixinTestCase):
     person = Person
 
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/ontology',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     @classmethod
@@ -162,8 +161,8 @@ class SubmissionMixin(PersonMixinTestCase):
         super().setUpClass()
 
         # drop publication for semplicity
-        name = Name.objects.get(pk=3)
-        publication = name.publication
+        animal = Animal.objects.get(pk=1)
+        publication = animal.publication
         publication.delete()
 
     def setUp(self):
@@ -185,9 +184,17 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
         self.animal = Animal.objects.get(pk=1)
         self.animal_record = self.animal.to_biosample()
 
+        # TODO: remove this when IMAGE-metadata rules will support
+        # IMAGE submission id
+        del(self.animal_record['attributes']['IMAGE submission id'])
+
         # get a sample object
         self.sample = Sample.objects.get(pk=1)
         self.sample_record = self.sample.to_biosample()
+
+        # TODO: remove this when IMAGE-metadata rules will support
+        # IMAGE submission id
+        del(self.sample_record['attributes']['IMAGE submission id'])
 
     def test_animal(self):
         """Testing an animal submission"""
@@ -221,6 +228,10 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
         # get a to_biosample record
         animal = Animal.objects.get(pk=3)
         animal_record = animal.to_biosample()
+
+        # TODO: remove this when IMAGE-metadata rules will support
+        # IMAGE submission id
+        del(animal_record['attributes']['IMAGE submission id'])
 
         # check for usi structure
         usi_result = self.metadata.check_usi_structure([animal_record])
@@ -300,6 +311,10 @@ class SubmissionTestCase(SubmissionMixin, TestCase):
 
         sample_record = self.sample.to_biosample()
 
+        # TODO: remove this when IMAGE-metadata rules will support
+        # IMAGE submission id
+        del(sample_record['attributes']['IMAGE submission id'])
+
         # set an attribute without ontology
         sample_record['attributes']['Organism part'] = [{'value': 'hair'}]
 
@@ -369,14 +384,18 @@ class SampleUpdateTestCase(SubmissionMixin, TestCase):
 
         # modify animal and sample
         self.animal_reference = "SAMEA4450079"
-        self.sample.animal.name.biosample_id = self.animal_reference
-        self.sample.animal.name.save()
+        self.sample.animal.biosample_id = self.animal_reference
+        self.sample.animal.save()
 
         self.sample_reference = "SAMEA4450075"
-        self.sample.name.biosample_id = self.sample_reference
-        self.sample.name.save()
+        self.sample.biosample_id = self.sample_reference
+        self.sample.save()
 
         self.record = self.sample.to_biosample()
+
+        # TODO: remove this when IMAGE-metadata rules will support
+        # IMAGE submission id
+        del(self.record['attributes']['IMAGE submission id'])
 
     # Change BIOSAMPLE_URL to test the real biosample id
     @patch("validation.helpers.BIOSAMPLE_URL",
@@ -420,20 +439,19 @@ class RulesTestCase(TestCase):
 
 class ValidationSummaryTestCase(TestCase):
     fixtures = [
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/submission',
-        'image_app/user',
-        'image_app/sample',
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/organization',
+        'uid/publication',
+        'uid/submission',
+        'uid/user',
+        'uid/sample',
         'validation/validationresult',
         'validation/validationsummary'
     ]
@@ -444,10 +462,6 @@ class ValidationSummaryTestCase(TestCase):
             submission=self.submission, type="animal")
         self.validationsummary_sample = ValidationSummary.objects.get(
             submission=self.submission, type="sample")
-
-        # set names
-        self.animal_name = Name.objects.get(pk=3)
-        self.sample_name = Name.objects.get(pk=4)
 
         # track validationresult object
         self.validationresult = ValidationResult.objects.get(pk=1)

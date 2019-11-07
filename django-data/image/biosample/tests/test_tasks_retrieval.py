@@ -20,7 +20,7 @@ from django.utils import timezone
 from common.constants import (
     LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
 from common.tests import WebSocketMixin
-from image_app.models import Submission, Name
+from uid.models import Submission, Animal, Sample
 
 from ..tasks.retrieval import (
     FetchStatusTask, FetchStatusHelper, RetrievalCompleteTask)
@@ -35,20 +35,19 @@ class FetchMixin():
         'biosample/managedteam',
         'biosample/submission',
         'biosample/submissiondata',
-        'image_app/animal',
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
-        'image_app/name',
-        'image_app/organization',
-        'image_app/publication',
-        'image_app/sample',
-        'image_app/submission',
-        'image_app/user'
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     @classmethod
@@ -63,7 +62,7 @@ class FetchMixin():
         cls.mock_root_patcher = patch('pyUSIrest.client.Root')
         cls.mock_root = cls.mock_root_patcher.start()
 
-        cls.mock_auth_patcher = patch('biosample.helpers.Auth')
+        cls.mock_auth_patcher = patch('pyUSIrest.auth.Auth')
         cls.mock_auth = cls.mock_auth_patcher.start()
 
     @classmethod
@@ -86,20 +85,30 @@ class FetchMixin():
         self.submission_obj.message = "Waiting for biosample validation"
         self.submission_obj.save()
 
-        # set status for names, like submittask does. Only sample not unknown
-        # are submitted
-        self.name_qs = Name.objects.exclude(name__contains="unknown")
-        self.name_qs.update(status=SUBMITTED)
+        # set status for objects, like submittask does.
+        self.animal_qs = Animal.objects.all()
+        self.animal_qs.update(status=SUBMITTED)
+
+        self.sample_qs = Sample.objects.all()
+        self.sample_qs.update(status=SUBMITTED)
 
         # count number of names in UID for such submission (exclude
         # unknown animals)
-        self.n_to_submit = self.name_qs.count()
+        self.n_to_submit = self.animal_qs.count() + self.sample_qs.count()
 
         # track submission ID
         self.submission_obj_id = self.submission_obj.id
 
         # start root object
         self.my_root = self.mock_root.return_value
+
+    def count_by_status(self, status):
+        """Return the number of sample and animal by status"""
+
+        return (
+            Animal.objects.filter(status=status).count() +
+            Sample.objects.filter(status=status).count()
+        )
 
 
 class FetchStatusHelperMixin(FetchMixin):
@@ -126,8 +135,8 @@ class FetchStatusHelperMixin(FetchMixin):
         self.status_helper = FetchStatusHelper(self.usi_submission)
 
         # track names
-        self.animal_name = Name.objects.get(pk=3)
-        self.sample_name = Name.objects.get(pk=4)
+        self.animal_name = Animal.objects.get(pk=1)
+        self.sample_name = Sample.objects.get(pk=1)
 
     def common_tests(self):
         """Assert stuff for each test"""
@@ -165,9 +174,9 @@ class FetchIgnoreTestCase(FetchStatusHelperMixin, TestCase):
         self.usi_submission.refresh_from_db()
         self.assertEqual(self.usi_submission.status, status)
 
-        # check name status didn't changed
-        qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), self.n_to_submit)
+        # check animal/sample status didn't changed
+        n_to_submit = self.count_by_status(SUBMITTED)
+        self.assertEqual(n_to_submit, self.n_to_submit)
 
     def test_fetch_unmanaged_submission_status(self):
         """Test fetch status for an unmanaged submission"""
@@ -216,8 +225,8 @@ class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
         self.assertEqual(self.usi_submission.status, COMPLETED)
 
         # check name status changed
-        qs = Name.objects.filter(status=COMPLETED)
-        self.assertEqual(len(qs), 2)
+        n_completed = self.count_by_status(COMPLETED)
+        self.assertEqual(n_completed, 2)
 
         # fetch two name objects
         self.animal_name.refresh_from_db()
@@ -249,8 +258,8 @@ class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
         self.assertEqual(self.usi_submission.status, SUBMITTED)
 
         # check name status didn't changed
-        qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), self.n_to_submit)
+        n_to_submit = self.count_by_status(SUBMITTED)
+        self.assertEqual(n_to_submit, self.n_to_submit)
 
 
 class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):

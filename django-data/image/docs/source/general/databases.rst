@@ -16,7 +16,7 @@ The Unified Internal Database
 -----------------------------
 
 The **Unified Internal Database (UID)** is the database in which all IMAGE-InjectTool
-data are stored. It is mainly managed by :py:mod:`image_app.models` package, and
+data are stored. It is mainly managed by :py:mod:`uid.models` package, and
 models *dictionary tables*, which are used to provides ontologies references, and
 *data tables*, which are used to store user data like Animals (Organisms) and Samples
 (Specimens from Organim). *Data tables* are linked to user (owner) in order to
@@ -25,10 +25,11 @@ tables* are common for all user in order to facilitate ontology update and resol
 the same terms with the same ontology.
 
 Near the UID tables, there are also :py:mod:`biosample.models` tables, which keep
-the relationship between InjectTool users and `EBI AAP`_ users; :py:mod:`validation.models`
-tables, which keep information abou data validation performed against `IMAGE-metadata`_
-rules through `IMAGE-ValidationTool`_ package; :py:mod:`language.models`, which models
-tables related to language specific term (like species names)
+the relationship between InjectTool users and `EBI AAP`_ users; They keep also track
+of data that are currently in submission state, waiting for a stable BioSamples id.
+:py:mod:`validation.models` tables keeps information about data validation performed
+against `IMAGE-metadata`_ rules through `IMAGE-ValidationTool`_ package and
+:py:mod:`language.models` models tables related to language specific term (like species names)
 
 Here is an example picture of UID relationships:
 

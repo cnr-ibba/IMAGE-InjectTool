@@ -21,21 +21,28 @@
       </tr>
     </thead>
     <tbody>
-      {% for name in object_list %}
+      {% for object in object_list %}
         <tr class="{% cycle 'table-primary' 'table-secondary' %}">
-          <th><a href="{% if name.animal %}{% url 'animals:detail' pk=name.animal.pk %}{% elif name.sample %}{% url 'samples:detail' pk=name.sample.pk %}{% endif %}">{{ name.name|truncatechars:30 }}</a></th>
-          <td>
-            {% if name.animal %}
-              {% include "animals/animal_buttons.html" with animal=name.animal %}
-            {% elif name.sample %}
-              {% include "samples/sample_buttons.html" with sample=name.sample %}
-            {% endif %}
-            {# deal with name.samples #}
-          </td>
-          <td>{{ name.biosample_id|get_biosample_link }}</td>
-          <td>{{ name|get_badge }}</td>
-          <td>{{ name.last_changed }}</td>
-          <td>{{ name.last_submitted }}</td>
+          {% if object.material == 'animal' %}
+            <th>
+              <a href="{% url 'animals:detail' pk=object.id %}">{{ object.name|truncatechars:30 }}</a>
+            </th>
+            <td>
+              {% include "animals/animal_buttons.html" with animal=object.model %}
+            </td>
+          {% else %}
+            <th>
+              <a href="{% url 'samples:detail' pk=object.id %}">{{ object.name|truncatechars:30 }}</a>
+            </th>
+            <td>
+              {% include "samples/sample_buttons.html" with sample=object.model %}
+            </td>
+          {% endif %}
+
+          <td>{{ object.biosample_id|get_biosample_link }}</td>
+          <td>{{ object.model|get_badge }}</td>
+          <td>{{ object.last_changed }}</td>
+          <td>{{ object.last_submitted }}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -55,7 +62,7 @@
         <a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Back to Submissions List</a>
       </div>
       <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a>
       </div>
     </div>
   </div>

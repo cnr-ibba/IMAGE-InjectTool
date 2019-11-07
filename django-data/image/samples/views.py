@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.views.generic import DetailView, UpdateView, DeleteView, ListView
 from django.http import HttpResponseRedirect
 
-from image_app.models import Sample
+from uid.models import Sample
 from common.views import (
     DetailMaterialMixin, UpdateMaterialMixin, DeleteMaterialMixin,
     ListMaterialMixin)
@@ -67,20 +67,13 @@ class DeleteSampleView(DeleteMaterialMixin, DeleteView):
         logger.debug("Got sample: %s" % (self.object))
         success_url = self.get_success_url()
 
-        # get the related name object
-        name = self.object.name
-        logger.debug("Got name: %s" % (name))
-
         # deleting object in a transaction
         with transaction.atomic():
             # delete this sample object
             logger.debug(
-                "Deleting sample:%s and name:%s" % (self.object, name))
+                "Deleting sample:%s" % (self.object))
 
             result = self.object.delete()
-            logger.debug("%s objects deleted" % str(result))
-
-            result = name.delete()
             logger.debug("%s objects deleted" % str(result))
 
         message = "Sample %s was successfully deleted" % self.object.name
@@ -98,4 +91,4 @@ class ListSampleView(ListMaterialMixin, ListView):
     model = Sample
     template_name = "samples/sample_list.html"
     paginate_by = 10
-    ordering = ["name__submission"]
+    ordering = ["submission"]

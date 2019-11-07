@@ -16,17 +16,16 @@ class ValidationSummaryAdmin(admin.ModelAdmin):
         'submission', 'type', 'all_count', 'validation_known_count',
         'issues_count', 'pass_count', 'warning_count', 'error_count']
 
-    list_filter = ['submission', ]
-
-    list_select_related = ('submission', 'submission__gene_bank_country')
+    list_filter = ['submission__owner', 'submission__status']
 
 
 class ValidationResultAdmin(admin.ModelAdmin):
-    list_display = ['name', 'status', 'messages']
+    list_display = [
+            'submission', 'content_type', 'object_id', 'status', 'messages']
 
-    list_filter = ['name__submission', 'status']
+    list_filter = ['status', 'submission__owner']
 
-    list_select_related = ('name', 'name__submission')
+    list_select_related = ('submission', )
 
     list_per_page = 20
 

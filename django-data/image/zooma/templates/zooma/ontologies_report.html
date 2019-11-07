@@ -29,7 +29,7 @@
         <td>
             <button id="annotate_breeds" type="button" class="btn btn-outline-info btn-sm {% if missing_terms.breeds_without_ontology == 0 %} disabled{% endif %}"><i class="fas fa-search"></i> Annotate</button>
             {% if user.is_staff %}
-              <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictbreed_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+              <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:uid_dictbreed_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
             {% else %}
               <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
                 <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
@@ -44,7 +44,7 @@
         <td>
           <button id="annotate_countries" type="button" class="btn btn-outline-info btn-sm{% if missing_terms.countries_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</button>
           {% if user.is_staff %}
-            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictcountry_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:uid_dictcountry_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
           {% else %}
             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
               <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
@@ -59,7 +59,7 @@
         <td>
           <button id="annotate_species" type="button" class="btn btn-outline-info btn-sm{% if missing_terms.species_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</button>
           {% if user.is_staff %}
-            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictspecie_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:uid_dictspecie_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
           {% else %}
             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
               <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
@@ -74,7 +74,7 @@
         <td>
           <button id="annotate_organismparts" type="button" class="btn btn-outline-info btn-sm{% if missing_terms.organism_parts_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</button>
           {% if user.is_staff %}
-            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictuberon_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:uid_dictuberon_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
           {% else %}
             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
               <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
@@ -89,7 +89,7 @@
         <td>
           <button id="annotate_develstages" type="button" class="btn btn-outline-info btn-sm{% if missing_terms.developmental_stages_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</button>
           {% if user.is_staff %}
-            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictdevelstage_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:uid_dictdevelstage_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
           {% else %}
             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
               <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
@@ -109,7 +109,7 @@
           -->
           <button id="annotate_physiostages" type="button" class="btn btn-outline-info btn-sm{% if missing_terms.physiological_stages_without_ontology == 0 %} disabled{% endif %}" href="#" role="button"><i class="fas fa-search"></i> Annotate</button>
           {% if user.is_staff %}
-            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:image_app_dictphysiostage_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
+            <a class="btn btn-outline-warning btn-sm" href="{% url 'admin:uid_dictphysiostage_changelist' %}" target="_blank" role="button"><i class="fas fa-edit"></i> Edit</a>
           {% else %}
             <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="You need ontology privileges to edit this!">
               <a class="btn btn-outline-warning btn-sm disabled" href="#" role="button"><i class="fas fa-edit"></i> Edit</a>
@@ -124,7 +124,7 @@
   <p class="container mt-3">
     <div class="row">
       <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-info btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+        <a class="btn btn-info btn-lg btn-block" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a>
       </div>
     </div>
   </p>

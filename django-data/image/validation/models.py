@@ -8,14 +8,31 @@ Created on Mon Jan 28 11:09:02 2019
 
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
-from image_app.models import Name, Animal, Sample, Submission
+from uid.models import Animal, Sample, Submission
 
 
 class ValidationResult(models.Model):
-    name = models.OneToOneField(
-        Name,
+    submission = models.ForeignKey(
+        Submission,
         on_delete=models.CASCADE)
+
+    # limit choices for contenttypes
+    # https://axiacore.com/blog/how-use-genericforeignkey-django-531/
+    name_limit = models.Q(app_label='uid', model='animal') | \
+        models.Q(app_label='uid', model='sample')
+
+    # Below the mandatory fields for generic relation
+    # https://simpleisbetterthancomplex.com/tutorial/2016/10/13/how-to-use-generic-relations.html
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        limit_choices_to=name_limit)
+
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     status = models.CharField(
             max_length=255,
@@ -24,11 +41,19 @@ class ValidationResult(models.Model):
 
     messages = ArrayField(
         models.TextField(max_length=255, blank=True),
-        default=list
+        default=list,
+        blank=True
     )
 
+    class Meta:
+        unique_together = ('content_type', 'object_id')
+
     def __str__(self):
-        return "%s:%s" % (self.name, self.status)
+        return "(%s - %s:%s) %s" % (
+            self.submission,
+            self.content_type,
+            self.object_id,
+            self.status)
 
 
 class ValidationSummary(models.Model):
@@ -64,7 +89,7 @@ class ValidationSummary(models.Model):
         verbose_name_plural = "validation summaries"
 
     def __str__(self):
-        return "submission %s, type: %s, all:%s, pass:%s" % (
+        return "Summary for %s, type: %s, all:%s, pass:%s" % (
             self.submission,
             self.type,
             self.all_count,
@@ -80,11 +105,11 @@ class ValidationSummary(models.Model):
 
         if self.type == "animal":
             self.all_count = Animal.objects.filter(
-                name__submission=self.submission).count()
+                submission=self.submission).count()
 
         elif self.type == "sample":
             self.all_count = Sample.objects.filter(
-                name__submission=self.submission).count()
+                submission=self.submission).count()
 
         else:
             raise Exception("Unknown type '%s'" % (self.type))

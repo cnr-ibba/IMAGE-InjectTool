@@ -3,7 +3,12 @@
   "model": "validation.validationresult",
   "pk": 1,
   "fields": {
-    "name": 3,
+    "submission": 1,
+    "content_type": [
+      "uid",
+      "animal"
+    ],
+    "object_id": 1,
     "status": "Pass",
     "messages": "[]"
   }

@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
 
 from common.constants import WAITING
-from image_app.models import Submission
+from uid.models import Submission
 
 from .forms import ValidateForm
 from .tasks import ValidateTask

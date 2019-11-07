@@ -13,7 +13,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from common.views import AjaxTemplateView
-from image_app.models import (
+from uid.models import (
     missing_terms, DictBreed, DictCountry, DictSpecie, DictUberon,
     DictDevelStage, DictPhysioStage)
 

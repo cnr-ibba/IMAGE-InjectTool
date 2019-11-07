@@ -11,6 +11,7 @@
 <table class="table table-hover table-responsive-sm">
   <thead>
     <tr>
+      <th scope="col">Id</th>
       <th scope="col">Title</th>
       <th scope="col">Description</th>
       <th scope="col">Type</th>
@@ -22,7 +23,8 @@
   <tbody>
     {% for submission in object_list %}
       <tr class="{% cycle 'table-primary' 'table-secondary' %}">
-        <th><a href="{% url 'submissions:detail' pk=submission.pk %}">{{ submission.title }}</a></th>
+        <th><a href="{% url 'submissions:detail' pk=submission.pk %}">{{ submission.id }}</a></th>
+        <td>{{ submission.title }}</td>
         <td>{{ submission.description|truncatechars:30 }}</td>
         <td>{{ submission.get_datasource_type_display }}</td>
         <td>{{ submission.get_uploaded_file_basename }}</td>
@@ -41,7 +43,7 @@
       <a class="btn btn-primary btn-lg btn-block" href="{% url 'submissions:create' %}" role="button">Create Submission</a>
     </div>
     <div class="col-lg-4 col-md-6 mt-2 text-center">
-      <a class="btn btn-secondary btn-lg btn-block" href="{% url 'image_app:dashboard' %}" role="button">Return to Dashboard</a>
+      <a class="btn btn-secondary btn-lg btn-block" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a>
     </div>
   </div>
 </p>

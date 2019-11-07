@@ -12,9 +12,10 @@ from unittest.mock import patch, Mock
 
 from django.test import TestCase
 
-from common.tests import WebSocketMixin
-from image_app.models import DictCountry
-from image_app.tests.mixins import (
+from common.tests import (
+    WebSocketMixin, DataSourceMixinTestCase as CommonDataSourceMixinTest)
+from uid.models import Animal, Sample, Submission
+from uid.tests.mixins import (
     DataSourceMixinTestCase, FileReaderMixinTestCase)
 
 from ..helpers import (
@@ -359,6 +360,46 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
         # check template import fails
         self.check_errors(my_check, message, notification_message)
 
+    @patch("excel.helpers.fill_uid.image_timedelta",
+           side_effect=ValueError("message"))
+    def test_issue_animal_age_at_collection(self, my_check):
+        """Test an issue in animal_age_at_collection column"""
+
+        message = "message"
+
+        notification_message = (
+            "Error in importing data: Error for Sample '%s' at "
+            "animal_age_at_collection column: %s" % (
+                "CS05_1999_IBBACNR_PTP_02.06.1999", message))
+
+        # check template import fails, calling a parent method since
+        # database is filled and the base ExcelMixin doesn't work
+        CommonDataSourceMixinTest.check_errors(
+            self, my_check, message)
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message('Error', notification_message)
+
+    @patch("excel.helpers.fill_uid.parse_image_timedelta",
+           side_effect=[[None, None], ValueError("message")])
+    def test_issue_sampling_to_preparation_interval(self, my_check):
+        """Test an issue in animal_age_at_collection column"""
+
+        message = "message"
+
+        notification_message = (
+            "Error in importing data: Error for Sample '%s' at sampling_to_"
+            "preparation_interval column: %s" % (
+                "VERCH1539971_2010_RegLomBank_PTPLodi_03.09.2011", message))
+
+        # check template import fails, calling a parent method since
+        # database is filled and the base ExcelMixin doesn't work
+        CommonDataSourceMixinTest.check_errors(
+            self, my_check, message)
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message('Error', notification_message)
+
 
 class ReloadTemplateTestCase(ExcelMixin, TestCase):
     """Simulate a template reload case. Load data as in
@@ -368,7 +409,79 @@ class ReloadTemplateTestCase(ExcelMixin, TestCase):
     fixtures = [
         'crbanim/auth',
         'excel/dictspecie',
-        'excel/image_app',
+        'excel/uid',
         'excel/submission',
         'excel/speciesynonym'
     ]
+
+
+class UpdateTemplateTestCase(ExcelMixin, TestCase):
+    """Simulate an excel update with the same dataset. Data already
+    present will be ignored."""
+
+    # override used fixtures
+    fixtures = [
+        'crbanim/auth',
+        'excel/dictspecie',
+        'excel/uid',
+        'excel/submission',
+        'excel/speciesynonym'
+    ]
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # track old submission
+        self.old_submission = Submission.objects.get(pk=1)
+
+        # generate a new submission from old submission object
+        submission = self.submission
+        submission.pk = None
+        submission.title = "Updated database"
+        submission.datasource_version = "Updated database"
+        submission.save()
+
+        # track the new submission
+        self.submission = submission
+
+        # remove items from database
+        sample = Sample.objects.get(pk=6)
+        animal = sample.animal
+        animal.delete()
+
+    def test_upload_template(self):
+        """Testing uploading and importing data from excel template to UID"""
+
+        # test data loaded
+        message = "Template import completed for submission"
+        self.upload_datasource(message)
+
+        # check animal and sample
+        queryset = Animal.objects.all()
+        self.assertEqual(len(queryset), 3, msg="check animal load")
+
+        queryset = Sample.objects.all()
+        self.assertEqual(len(queryset), 3, msg="check sample load")
+
+        # assert data are in the proper submission
+        self.assertEqual(self.old_submission.animal_set.count(), 2)
+        self.assertEqual(self.old_submission.sample_set.count(), 2)
+
+        self.assertEqual(self.submission.animal_set.count(), 1)
+        self.assertEqual(self.submission.sample_set.count(), 1)
+
+        # check async message called
+        notification_message = (
+            'Template import completed for submission: 2')
+        validation_message = {
+            'animals': 1, 'samples': 1,
+            'animal_unkn': 1, 'sample_unkn': 1,
+            'animal_issues': 0, 'sample_issues': 0}
+
+        # check async message called using WebSocketMixin.check_message
+        self.check_message(
+            'Loaded',
+            notification_message,
+            validation_message,
+            pk=self.submission.id)

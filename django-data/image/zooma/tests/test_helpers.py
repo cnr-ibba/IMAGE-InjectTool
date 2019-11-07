@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from image_app.models import (
+from uid.models import (
     DictBreed, DictSpecie, DictCountry, DictUberon, DictDevelStage,
     DictPhysioStage)
 from common.constants import OBO_URL, GOOD, HIGH
@@ -24,9 +24,9 @@ class TestAnnotateBreed(TestCase):
     """A class to test annotate breeds"""
 
     fixtures = [
-        "image_app/dictbreed",
-        "image_app/dictcountry",
-        "image_app/dictspecie"
+        "uid/dictbreed",
+        "uid/dictcountry",
+        "uid/dictspecie"
     ]
 
     def setUp(self):
@@ -67,7 +67,7 @@ class TestAnnotateCountry(TestCase):
     """A class to test annotate countries"""
 
     fixtures = [
-        "image_app/dictcountry",
+        "uid/dictcountry",
     ]
 
     def setUp(self):
@@ -106,7 +106,7 @@ class TestAnnotateSpecie(TestCase):
     """A class to test annotate species"""
 
     fixtures = [
-        "image_app/dictspecie",
+        "uid/dictspecie",
     ]
 
     def setUp(self):
@@ -146,7 +146,7 @@ class TestAnnotateUberon(TestCase):
     """A class to test annotate uberon"""
 
     fixtures = [
-        "image_app/dictuberon",
+        "uid/dictuberon",
     ]
 
     def setUp(self):
@@ -186,7 +186,7 @@ class TestAnnotateDevelStage(TestCase):
     """A class to test developmental stage"""
 
     fixtures = [
-        "image_app/dictstage",
+        "uid/dictstage",
     ]
 
     def setUp(self):
@@ -226,7 +226,7 @@ class TestAnnotatePhysioStage(TestCase):
     """A class to test developmental stage"""
 
     fixtures = [
-        "image_app/dictstage",
+        "uid/dictstage",
     ]
 
     def setUp(self):

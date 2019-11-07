@@ -11,20 +11,20 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TestCase
 
-from image_app.models import (
+from uid.models import (
     DictBreed, DictCountry, DictSpecie, DictUberon, DictDevelStage,
     DictPhysioStage)
 
 
 class CommandsTestCase(TestCase):
     fixtures = [
-        'image_app/dictbreed',
-        'image_app/dictcountry',
-        'image_app/dictrole',
-        'image_app/dictsex',
-        'image_app/dictspecie',
-        'image_app/dictstage',
-        'image_app/dictuberon',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
     ]
 
     @classmethod

@@ -20,11 +20,11 @@ class SubmissionValidationSummaryViewTest(
     """Test SubmissionValidationSummaryViewTest View"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission",
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission",
         "validation/validationsummary"
     ]
 

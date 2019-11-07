@@ -1,0 +1,12 @@
+[
+{
+  "model": "uid.dictspecie",
+  "pk": 1,
+  "fields": {
+    "label": "Sus scrofa",
+    "term": "NCBITaxon_9823",
+    "general_breed_label": "pig breed",
+    "general_breed_term": "LBO_0000003"
+  }
+}
+]

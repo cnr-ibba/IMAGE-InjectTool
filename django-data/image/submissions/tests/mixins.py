@@ -12,7 +12,7 @@ from billiard.einfo import ExceptionInfo
 from django.core import mail
 
 from common.constants import ERROR
-from image_app.models import Submission
+from uid.models import Submission
 
 
 class ImportGenericTaskMixinTestCase():

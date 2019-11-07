@@ -10,7 +10,7 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from common.constants import LOADED, SUBMITTED, COMPLETED, ERROR
-from image_app.models import Submission
+from uid.models import Submission
 from common.tests import GeneralMixinTestCase, OwnerMixinTestCase
 
 from ..views import DetailSubmissionView
@@ -22,11 +22,11 @@ class DetailSubmissionViewTest(
     """Test Submission DetailView"""
 
     fixtures = [
-        "image_app/user",
-        "image_app/dictcountry",
-        "image_app/dictrole",
-        "image_app/organization",
-        "image_app/submission"
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+        "uid/submission"
     ]
 
     def setUp(self):
@@ -64,7 +64,7 @@ class DetailSubmissionViewTest(
                         "submit()}")
         submit_url = "javascript:{document.getElementById('submit').submit()}"
         list_url = reverse('submissions:list')
-        dashboard_url = reverse('image_app:dashboard')
+        dashboard_url = reverse('uid:dashboard')
         reload_url = reverse('submissions:reload', kwargs={'pk': 1})
 
         self.assertContains(self.response, 'href="{0}"'.format(edit_url))

@@ -45,8 +45,8 @@ class SignUpTests(TestCase):
 
 class SuccessfulSignUpTests(MessageMixinTestCase, TestCase):
     fixtures = [
-        "image_app/dictcountry.json",
-        "image_app/dictrole.json",
+        "uid/dictcountry.json",
+        "uid/dictrole.json",
         "accounts/organization.json"
     ]
 

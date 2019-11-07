@@ -1,7 +1,7 @@
 import ast
 from django import template
 
-from image_app.models import Animal, Sample
+from uid.models import Animal, Sample
 from common.helpers import uid2biosample
 
 register = template.Library()

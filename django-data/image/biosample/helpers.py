@@ -7,13 +7,16 @@ Created on Mon Jan 21 12:13:16 2019
 """
 
 import os
+import logging
 
 from decouple import AutoConfig
 
-from pyUSIrest.auth import Auth
+import pyUSIrest.auth
 
 from django.conf import settings
 
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
@@ -25,9 +28,9 @@ def get_auth(user=None, password=None, token=None):
 
     # instantiate an Auth object if a token is provieded
     if token:
-        return Auth(token=token)
+        return pyUSIrest.auth.Auth(token=token)
 
-    return Auth(user, password)
+    return pyUSIrest.auth.Auth(user, password)
 
 
 def get_manager_auth():

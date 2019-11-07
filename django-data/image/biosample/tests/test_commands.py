@@ -6,17 +6,19 @@ Created on Mon Jan 21 14:30:04 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import io
+import json
+
+from pyUSIrest.auth import Auth
+
 from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TestCase
 
-from common.constants import SUBMITTED
-from image_app.models import Name
+from ..models import ManagedTeam
 
-from ..models import ManagedTeam, Submission as USISubmission
-
-from .common import BaseMixin
+from .common import BaseMixin, generate_token
 
 
 class CommandsTestCase(BaseMixin, TestCase):
@@ -25,55 +27,50 @@ class CommandsTestCase(BaseMixin, TestCase):
         # calling my base class setup
         super().setUpClass()
 
-        unmanaged = ManagedTeam.objects.get(pk=2)
-        unmanaged.delete()
-
         # starting mocked objects
-        cls.mock_root_patcher = patch('pyUSIrest.client.Root')
-        cls.mock_root = cls.mock_root_patcher.start()
-
-        cls.mock_auth_patcher = patch('biosample.helpers.Auth')
+        cls.mock_auth_patcher = patch('biosample.helpers.get_manager_auth')
         cls.mock_auth = cls.mock_auth_patcher.start()
 
     @classmethod
     def tearDownClass(cls):
-        cls.mock_root_patcher.stop()
         cls.mock_auth_patcher.stop()
 
         # calling base method
         super().tearDownClass()
 
-    def test_biosample_submission(self):
-        "Test biosample_submission command command."
+    @patch('biosample.helpers.get_manager_auth')
+    def test_fill_managed(self, my_auth):
+        """test fill_managed command"""
 
-        # mocking objects
+        # remove a managed team
+        managed = ManagedTeam.objects.get(pk=2)
+        managed.delete()
+
+        # patch get_manager_auth value
+        my_auth.return_value = Auth(
+            token=generate_token(
+                domains=[
+                    'subs.test-team-1',
+                    'subs.test-team-2',
+                    'subs.test-team-3']
+            )
+        )
+
+        # calling commands
+        call_command('fill_managed')
+
+        # get all managedteams object
+        self.assertEqual(ManagedTeam.objects.count(), 3)
+        self.assertTrue(my_auth.called)
+
+    def test_get_json_for_biosample(self):
+
         args = ["--submission", 1]
-        opts = {}
-        call_command('biosample_submit', *args, **opts)
 
-        # reload submission
-        self.submission_obj.refresh_from_db()
+        # https://stackoverflow.com/questions/4219717/how-to-assert-output-with-nosetest-unittest-in-python
+        with patch('sys.stdout', new_callable=io.StringIO) as handle:
+            call_command('get_json_for_biosample', *args)
+            handle.seek(0)
 
-        # check submission.state changed
-        self.assertEqual(self.submission_obj.status, SUBMITTED)
-        self.assertEqual(
-            self.submission_obj.message,
-            "Waiting for biosample validation")
-
-        # test biosample.model.Submission object
-        usi_submission = USISubmission.objects.get(
-            uid_submission=self.submission_obj)
-        self.assertEqual(usi_submission.usi_submission_name, "new-submission")
-
-        # check name status changed
-        qs = Name.objects.filter(status=SUBMITTED)
-        self.assertEqual(len(qs), self.n_to_submit)
-
-        # assert called mock objects
-        self.assertTrue(self.mock_root.called)
-        self.assertTrue(self.my_root.get_team_by_name.called)
-        self.assertTrue(self.my_team.create_submission.called)
-        self.assertFalse(self.my_root.get_submission_by_name.called)
-        self.assertEqual(
-            self.new_submission.create_sample.call_count, self.n_to_submit)
-        self.assertFalse(self.new_submission.propertymock.called)
+            data = json.load(handle)
+            self.assertIsInstance(data, dict)

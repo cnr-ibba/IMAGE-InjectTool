@@ -26,4 +26,25 @@ Donwload and install InjectTool
 -------------------------------
 
 A detailed description on how to install InjectTool is described in
-`github README <https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md>`_
+`github README <https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md>`_.
+There also a set or `ansible roles <https://github.com/cnr-ibba/IMAGE-ansible>`_
+which help the user to automate the configuration and installation process.
+
+Switch to BioSamples production environment
+-------------------------------------------
+
+By default InjectTool works by submitting data to BioSamples test servers. In order
+to switch to the BioSamples production environment, you have to define the production
+URLs in the ``.env`` file, like this::
+
+  BIOSAMPLE_URL=https://www.ebi.ac.uk/biosamples/samples
+  EBI_AAP_API_AUTH=https://api.aai.ebi.ac.uk/auth
+  BIOSAMPLE_API_ROOT=https://submission.ebi.ac.uk/api/
+
+.. note:: remember to re-create countainers since those variables are esported
+   as environment variables.
+
+.. warning:: The EBI Auth server is different from the test server. You will need
+   to register your users through the new environment. The resulting group names
+   will be incompatible from test to production, you have to clean up each
+   biosample account data in database
