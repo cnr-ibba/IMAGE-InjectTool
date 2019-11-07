@@ -171,7 +171,7 @@ BIOSAMPLE_API_ROOT=https://submission-test.ebi.ac.uk/api/
 ```
 
 The Inject Tool interface is available for a local access through Internet browser at the URL:
-`http://localhost:26080/image/`.
+`http://localhost:26080/`.
 
 ### Initialize Django tables
 
