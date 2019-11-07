@@ -26,7 +26,9 @@ Donwload and install InjectTool
 -------------------------------
 
 A detailed description on how to install InjectTool is described in
-`github README <https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md>`_
+`github README <https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md>`_.
+There also a set or `ansible roles <https://github.com/cnr-ibba/IMAGE-ansible>`_
+which help the user to automate the configuration and installation process.
 
 Switch to BioSamples production environment
 -------------------------------------------
