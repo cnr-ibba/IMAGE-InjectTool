@@ -124,7 +124,7 @@ async def send_message_to_websocket(message, pk):
     # websocket will overcome response from server
     time.sleep(3)
     async with websockets.connect(
-            'ws://asgi:8001/image/ws/submissions/{}/'.format(pk)) as websocket:
+            'ws://asgi:8001/ws/submissions/{}/'.format(pk)) as websocket:
         await websocket.send(json.dumps(message))
 
 
