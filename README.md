@@ -13,8 +13,10 @@ Install Docker CE
 Please follow your platform documentation:
 [https://docs.docker.com/engine/installation/](https://docs.docker.com/engine/installation/)
 
->NOTE: if you want to interact with docker using your user and not root, you need to do the following (only applies to Linux machines):
-```bash
+>NOTE: if you want to interact with docker using your user and not root, you need to
+do the following (only applies to Linux machines):
+
+```
 $ sudo groupadd docker
 $ sudo usermod -aG docker <your user>
 # login again
@@ -53,6 +55,19 @@ IMAGE-InjectTool/
 ```
 
 The `IMAGE-InjectTool` directory will be referred as the "working directory" in this document.
+
+### Install git LFS
+
+In order to contribute to this repository, you have to install `git-lfs`. Download
+the [package required for your OS](https://git-lfs.github.com/) and install it.
+Then inside `IMAGE-InjectTool` working directory install the github hooks with:
+
+```
+$ git lfs install
+```
+
+This is required once for repository. Please refer to [git lfs](https://git-lfs.github.com/) documentation
+for more info.
 
 Setting the `.env` file
 -----------------------
@@ -126,7 +141,7 @@ module. You need to define new environment variables for `uwsgi` container:
 You need to define a new django `SECRET_KEY`. Start a python terminal with docker:
 
 
-```bash
+```
 $ docker-compose run --rm --no-deps uwsgi python
 ```
 then execute this python code, as described [here](https://stackoverflow.com/a/16630719):
@@ -173,6 +188,26 @@ BIOSAMPLE_API_ROOT=https://submission-test.ebi.ac.uk/api/
 The Inject Tool interface is available for a local access through Internet browser at the URL:
 `http://localhost:26080/`.
 
+### Fixing django permissions
+
+You will also to check file permissions in django data, expecially for `media`
+folder:
+
+```
+$ docker-compose run --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/media'
+$ docker-compose run --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
+$ docker-compose run --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
+$ docker-compose run --rm uwsgi sh -c 'chgrp -R www-data .'
+```
+
+### check that everythong works as expected
+
+Test  your fresh InjectTool installation with:
+
+```
+$ docker-compose run --rm uwsgi pytest
+```
+
 ### Initialize Django tables
 
 After inizialization, a new django user with administrative privilges is needed. This is
@@ -196,18 +231,6 @@ tables. You can do it by launching the following command:
 
 ```
 $ docker-compose run --rm uwsgi python manage.py initializedb
-```
-
-### Fixing django permissions
-
-You will also to check file permissions in django data, expecially for `media`
-folder:
-
-```
-$ docker-compose run --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/media'
-$ docker-compose run --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
-$ docker-compose run --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
-$ docker-compose run --rm uwsgi sh -c 'chgrp -R www-data .'
 ```
 
 ### Start composed image
@@ -288,6 +311,9 @@ $ docker-compose run --rm uwsgi bash -c "cd docs; make linkcheck"
 
 # create sphinx html documentation
 $ docker-compose run --rm uwsgi bash -c "cd docs; make html"
+
+# cleanup sphinx html documentation
+$ docker-compose run --rm uwsgi bash -c "cd docs; make clean"
 ```
 
 Exporting data from cryoweb

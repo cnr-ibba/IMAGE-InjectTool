@@ -5,11 +5,17 @@ History
 0.9.0.dev0
 ----------
 
+* Move InjectTool URLs outside /image/ location (issue `#66 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/66>`_)
+  - remove `/image/` location from django settings
+  - remove `/image/` location from NGINX
+  - update docs
+  - update ansible role
+
 TODO
 ^^^^
 
 * Upgrade to the last django LTS version (2.2) (issue `#34 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/34>`_)
-* Move InjectTool URLs outside /image/ location (issue `#66 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/66>`_)
+
 
 0.8.0 (2019-11-07)
 ------------------
