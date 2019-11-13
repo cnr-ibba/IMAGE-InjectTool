@@ -21,6 +21,7 @@ from image_validation.use_ontology import get_general_breed_by_species
 from django.core.management import BaseCommand
 
 from common.constants import OBO_URL, CURATED
+from uid.helpers import get_or_create_obj, update_or_create_obj
 from uid.models import (
     DictCountry, DictRole, DictSex, DictSpecie, Ontology, Organization,
     DictUberon)
@@ -54,50 +55,62 @@ NCIT;{obo_url};NCI Thesaurus OBO Edition
 
     for row in map(Data._make, reader):
         # update objects
-        ontology, created = Ontology.objects.update_or_create(
-                library_name=row.library_name,
-                defaults=row._asdict())
-
-        if created is True:
-            logger.info("Created: %s" % (ontology))
+        update_or_create_obj(
+            Ontology,
+            library_name=row.library_name,
+            defaults=row._asdict())
 
 
 def fill_DictSex():
     # define three DictSex objects
-    male, created = DictSex.objects.get_or_create(
-        label='male', term='PATO_0000384')
+    get_or_create_obj(
+        DictSex,
+        label='male',
+        term='PATO_0000384')
 
-    if created is True:
-        logger.info("Created: %s" % (male))
+    get_or_create_obj(
+        DictSex,
+        label='female',
+        term='PATO_0000383')
 
-    female, created = DictSex.objects.get_or_create(
-        label='female', term='PATO_0000383')
-
-    if created is True:
-        logger.info("Created: %s" % (female))
-
-    unknown, created = DictSex.objects.get_or_create(
-        label='record of unknown sex', term='OBI_0000858')
-
-    if created is True:
-        logger.info("Created: %s" % (unknown))
+    get_or_create_obj(
+        DictSex,
+        label='record of unknown sex',
+        term='OBI_0000858')
 
 
 # a function to fill up DictRoles
 # TODO: need I fill tables with descendants terms?
 def fill_DictRoles():
     # define a submitter role
-    role, created = DictRole.objects.get_or_create(
-        label='submitter', term='EFO_0001741')
-
-    if created is True:
-        logger.info("Created: %s" % (role))
+    role = get_or_create_obj(
+        DictRole,
+        label='submitter',
+        term='EFO_0001741')
 
     return role
 
 
-# a function to fill up dictspecie and speciesynonym
+# a function to fill up only species
 def fill_Species():
+    """Populate species table"""
+
+    data = [
+        {'confidence': CURATED, 'label': 'Crassostrea gigas',
+         'term': 'NCBITaxon_29159'},
+        {'confidence': CURATED, 'label': 'Equus asinus',
+         'term': 'NCBITaxon_9793'},
+        {'confidence': CURATED, 'label': 'Oncorhynchus mykiss',
+         'term': 'NCBITaxon_8022'},
+        {'confidence': CURATED, 'label': 'Canis lupus familiaris',
+         'term': 'NCBITaxon_9615'}]
+
+    for specie in data:
+        get_or_create_obj(DictSpecie, **specie)
+
+
+# a function to fill up dictspecie and speciesynonym
+def fill_SpeciesAndSynonyms():
     """Populate cryoweb dictionary tables"""
 
     # insert country and get the default language
@@ -115,15 +128,16 @@ def fill_Species():
         'Pig': 'Sus scrofa',
         'Rabbit': 'Oryctolagus cuniculus',
         'Sheep': 'Ovis aries',
-        'Turkey': 'Meleagris gallopavo'
+        'Turkey': 'Meleagris gallopavo',
+        'Rainbow trout': 'Oncorhynchus mykiss',
+        'Goose': 'Anser anser',
+        'Dog': 'Canis lupus familiaris',
     }
 
     for word, specie in cryoweb.items():
-        dictspecie, created = DictSpecie.objects.get_or_create(
+        dictspecie = get_or_create_obj(
+            DictSpecie,
             label=specie)
-
-        if created is True:
-            logger.info("Created: %s" % (specie))
 
         # update with general specie
         result = get_general_breed_by_species(specie)
@@ -134,40 +148,34 @@ def fill_Species():
             general_breed_term = result['ontologyTerms'].split("/")[-1]
 
             if dictspecie.general_breed_label != general_breed_label:
-                logger.info("Added general breed: %s" % (general_breed_label))
                 dictspecie.general_breed_label = general_breed_label
                 dictspecie.general_breed_term = general_breed_term
                 dictspecie.save()
+                logger.info("Added general breed: %s" % (general_breed_label))
 
-        synonym, created = SpecieSynonym.objects.get_or_create(
+        get_or_create_obj(
+            SpecieSynonym,
             dictspecie=dictspecie,
             language=language,
             word=word)
-
-        if created is True:
-            logger.info("Created: %s" % (synonym))
 
 
 def fill_Countries():
     """Fill countries and return the default country (for languages)"""
 
     # define the default country for the default language
-    united_kingdom, created = DictCountry.objects.get_or_create(
+    united_kingdom = get_or_create_obj(
+        DictCountry,
         label='United Kingdom',
         term='NCIT_C17233',
         confidence=CURATED)
 
-    if created is True:
-        logger.info("Created: %s" % (united_kingdom))
-
     # add a country difficult to annotate with zooma
-    country, created = DictCountry.objects.get_or_create(
+    get_or_create_obj(
+        DictCountry,
         label='Colombia',
         term='NCIT_C16449',
         confidence=CURATED)
-
-    if created is True:
-        logger.info("Created: %s" % (country))
 
     # I will return default language for translations
     return united_kingdom
@@ -179,14 +187,12 @@ def fill_OrganismParts():
     data = {'strand of hair': "UBERON_0001037"}
 
     for label, term in data.items():
-        dictorganism, created = DictUberon.objects.get_or_create(
+        get_or_create_obj(
+            DictUberon,
             label=label,
             term=term,
             confidence=CURATED
         )
-
-        if created is True:
-            logger.info("Created: %s" % (dictorganism))
 
 
 def standardize_institute_name(original):
@@ -241,20 +247,16 @@ def fill_Organization():
 
     for row in map(Data._make, reader):
         # get a country object
-        country, created = DictCountry.objects.get_or_create(
+        country = get_or_create_obj(
+            DictCountry,
             label=row.country)
 
-        if created is True:
-            logger.info("Created: %s" % (country))
-
         # HINT: could be better to fix organization names in organization_list?
-        organization, created = Organization.objects.get_or_create(
+        get_or_create_obj(
+            Organization,
             name=standardize_institute_name(row.name),
             role=role,
             country=country)
-
-        if created is True:
-            logger.info("Created: %s" % (organization))
 
     handle.close()
 
@@ -272,8 +274,11 @@ class Command(BaseCommand):
         # fill DictRoles table
         fill_DictRoles()
 
-        # import synonyms
+        # import custom species
         fill_Species()
+
+        # import synonyms
+        fill_SpeciesAndSynonyms()
 
         # import organizations
         fill_Organization()
