@@ -55,6 +55,24 @@ def fill_uid_breeds(submission_obj, template):
     logger.info("fill_uid_breeds() completed")
 
 
+def get_relationship(animal_id_in_data_source, name, breed, owner):
+    try:
+        parent = Animal.objects.get(
+            name=name,
+            breed=breed,
+            owner=owner)
+
+    except Animal.DoesNotExist as exc:
+        logger.error(exc)
+        message = (
+            "Unknown parent '%s': check animal '%s' "
+            "in your dataset" % (name, animal_id_in_data_source))
+        logger.error(message)
+        raise ExcelImportError(message)
+
+    return parent
+
+
 def fill_uid_animals(submission_obj, template):
     # debug
     logger.info("called fill_uid_animals()")
@@ -96,19 +114,21 @@ def fill_uid_animals(submission_obj, template):
             logger.debug("Getting %s as father" % (
                 record.father_id_in_data_source))
 
-            father = Animal.objects.get(
-                name=record.father_id_in_data_source,
-                breed=breed,
-                owner=submission_obj.owner)
+            father = get_relationship(
+                record.animal_id_in_data_source,
+                record.father_id_in_data_source,
+                breed,
+                submission_obj.owner)
 
         if record.mother_id_in_data_source:
             logger.debug("Getting %s as mother" % (
                 record.mother_id_in_data_source))
 
-            mother = Animal.objects.get(
-                name=record.mother_id_in_data_source,
-                breed=breed,
-                owner=submission_obj.owner)
+            mother = get_relationship(
+                record.animal_id_in_data_source,
+                record.mother_id_in_data_source,
+                breed,
+                submission_obj.owner)
 
         # now get accuracy
         accuracy = ACCURACIES.get_value_by_desc(
