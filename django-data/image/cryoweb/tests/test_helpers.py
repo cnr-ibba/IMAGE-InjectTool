@@ -12,6 +12,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
+from django.test.testcases import TransactionTestCase
 
 from common.constants import ERROR
 from common.tests import WebSocketMixin
@@ -27,51 +28,69 @@ from ..helpers import (
 from ..models import db_has_data, truncate_database, BreedsSpecies
 
 
-class BaseMixin():
-    # import this file and populate database once
-    fixtures = [
-        'cryoweb/dictbreed',
-        'uid/dictcountry',
-        'uid/dictrole',
-        'uid/dictsex',
-        'uid/organization',
-        'uid/submission',
-        'uid/user',
-        'language/dictspecie',
-        'language/speciesynonym'
-    ]
-
-    # By default, fixtures are only loaded into the default database. If you
-    # are using multiple databases and set multi_db=True, fixtures will be
-    # loaded into all databases. However, this will raise problems when
-    # managing extended user models
-    multi_db = False
-
-    def setUp(self):
-        # calling my base class setup
-        super().setUp()
-
-        # track submission
-        self.submission = Submission.objects.get(pk=1)
-
-
-class CryoWebMixin(object):
+class CryoWebMixin():
     """Custom methods to upload cryoweb data into database for testing"""
+
+    # change fixtures in order to upload data to different databases
+    fixtures = {
+        'cryoweb': [
+            'cryoweb/cryoweb',
+        ],
+        'default': [
+            'cryoweb/dictbreed',
+            'uid/dictcountry',
+            'uid/dictrole',
+            'uid/dictsex',
+            'uid/organization',
+            'uid/submission',
+            'uid/user',
+            'language/dictspecie',
+            'language/speciesynonym'
+        ]
+    }
+
+    # set database allowed for testing
+    databases = '__all__'
 
     @classmethod
     def setUpClass(cls):
-        # calling my base class setup
-        super().setUpClass()
+        # override the default django.test.testcases.TestCase
+        super(TransactionTestCase, cls).setUpClass()
 
-        # this fixture have to be loaded in a secondary (test) database,
-        # I can't upload it using names and fixture section, so it will
-        # be added manually using loaddata
-        call_command(
-            'loaddata',
-            'cryoweb/cryoweb.json',
-            app='cryoweb',
-            database='cryoweb',
-            verbosity=0)
+        print("Custom TestCase.setUpClass")
+
+        if not cls._databases_support_transactions():
+            return
+        cls.cls_atomics = cls._enter_atomics()
+
+        # installing fixtures in the appropriate database
+        if cls.fixtures:
+            print("fixtures: %s" % (cls.fixtures))
+            for db_name in cls._databases_names(include_mirrors=False):
+                print("db_name: %s" % (db_name))
+
+                # if no features are specified for this database, continue
+                if len(cls.fixtures[db_name]) == 0:
+                    print("Ignoring %s database" % db_name)
+                    continue
+
+                try:
+                    call_command(
+                        'loaddata',
+                        *cls.fixtures[db_name],
+                        **{'verbosity': 1, 'database': db_name})
+
+                except Exception:
+                    cls._rollback_atomics(cls.cls_atomics)
+                    cls._remove_databases_failures()
+                    raise
+        try:
+            cls.setUpTestData()
+
+        except Exception:
+            cls._rollback_atomics(cls.cls_atomics)
+            cls._remove_databases_failures()
+            raise
 
     @classmethod
     def tearDownClass(cls):
@@ -82,8 +101,15 @@ class CryoWebMixin(object):
         # calling my base class teardown class
         super().tearDownClass()
 
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
 
-class ImportMixin(WebSocketMixin, CryoWebMixin):
+        # track submission
+        self.submission = Submission.objects.get(pk=1)
+
+
+class ImportMixin():
     """Mixing to test cryoweb_import method"""
 
     def test_cryoweb_import(self):
@@ -125,7 +151,7 @@ class ImportMixin(WebSocketMixin, CryoWebMixin):
         self.check_message(message, notification_message, validation_message)
 
 
-class CheckSpecie(CryoWebMixin, BaseMixin, TestCase):
+class CheckSpecie(CryoWebMixin, TestCase):
     def test_check_species(self):
         """Testing species and synonyms"""
 
@@ -154,7 +180,7 @@ class CheckSpecie(CryoWebMixin, BaseMixin, TestCase):
             check_species, "United Kingdom")
 
 
-class CheckCountry(CryoWebMixin, BaseMixin, TestCase):
+class CheckCountry(CryoWebMixin, TestCase):
     def test_check_country(self):
         """Test that all Cryoweb countries are defined in database"""
 
@@ -206,7 +232,7 @@ class CheckBreed(TestCase):
         self.assertTrue(created)
 
 
-class CheckUIDTest(CryoWebMixin, BaseMixin, TestCase):
+class CheckUIDTest(CryoWebMixin, TestCase):
     def test_empty_dictsex(self):
         """Empty dictsex and check that I can't proceed"""
 
@@ -246,8 +272,24 @@ class CheckUIDTest(CryoWebMixin, BaseMixin, TestCase):
 
 
 class UploadCryoweb(
-        WebSocketMixin, DataSourceMixinTestCase, BaseMixin, TestCase):
+        WebSocketMixin, DataSourceMixinTestCase, CryoWebMixin, TestCase):
     """Test upload cryoweb dump into cryoweb database"""
+
+    # change fixtures in order to upload data to different databases
+    fixtures = {
+        'cryoweb': [],
+        'default': [
+            'cryoweb/dictbreed',
+            'uid/dictcountry',
+            'uid/dictrole',
+            'uid/dictsex',
+            'uid/organization',
+            'uid/submission',
+            'uid/user',
+            'language/dictspecie',
+            'language/speciesynonym'
+        ]
+    }
 
     # need to clean database after testing import. Can't use CryowebMixin
     # since i need to test cryoweb import
@@ -300,6 +342,10 @@ class UploadCryoweb(
     def test_upload_cryoweb_errors(self):
         """Testing errors in uploading cryoweb data"""
 
+        # assert cryoweb database is empty
+        if db_has_data():
+            truncate_database()
+
         with patch('subprocess.run') as runMock:
             runMock.side_effect = Exception("Test upload failed")
             self.assertFalse(upload_cryoweb(self.submission.id))
@@ -323,7 +369,8 @@ class UploadCryoweb(
             self.check_message(message, notification_message)
 
 
-class CryowebImport(ImportMixin, BaseMixin, TestCase):
+class CryowebImport(
+        ImportMixin, WebSocketMixin, CryoWebMixin, TestCase):
     def test_database_name(self):
         self.assertEqual(
             settings.DATABASES['cryoweb']['NAME'], 'test_cryoweb')
@@ -354,32 +401,44 @@ class CryowebImport(ImportMixin, BaseMixin, TestCase):
         self.check_message(message, notification_message)
 
 
-class CryowebReload(ImportMixin, BaseMixin, TestCase):
+class CryowebReload(
+        ImportMixin, WebSocketMixin, CryoWebMixin, TestCase):
     """Simulate a cryoweb reload case. Load data as in CryowebImport, then
     call test which reload the same data"""
 
-    # override fixtures
-    fixtures = [
-        'cryoweb/auth',
-        'cryoweb/dictbreed',
-        'cryoweb/uid',
-        'language/dictspecie',
-        'language/speciesynonym'
-    ]
+    # change fixtures in order to upload data to different databases
+    fixtures = {
+        'cryoweb': [
+            'cryoweb/cryoweb',
+        ],
+        'default': [
+            'cryoweb/auth',
+            'cryoweb/dictbreed',
+            'cryoweb/uid',
+            'language/dictspecie',
+            'language/speciesynonym'
+        ]
+    }
 
 
-class CryowebUpdate(ImportMixin, BaseMixin, TestCase):
+class CryowebUpdate(
+        ImportMixin, WebSocketMixin, CryoWebMixin, TestCase):
     """Simulate a cryoweb update with the same dataset. Data already
     present will be ignored"""
 
-    # override fixtures
-    fixtures = [
-        'cryoweb/auth',
-        'cryoweb/dictbreed',
-        'cryoweb/uid',
-        'language/dictspecie',
-        'language/speciesynonym'
-    ]
+    # change fixtures in order to upload data to different databases
+    fixtures = {
+        'cryoweb': [
+            'cryoweb/cryoweb',
+        ],
+        'default': [
+            'cryoweb/auth',
+            'cryoweb/dictbreed',
+            'cryoweb/uid',
+            'language/dictspecie',
+            'language/speciesynonym'
+        ]
+    }
 
     def setUp(self):
         # calling my base class setup

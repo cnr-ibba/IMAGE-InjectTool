@@ -5,9 +5,9 @@ channels_redis
 uwsgi
 mysqlclient
 psycopg2-binary
-django==1.11.24
+django==2.2.7
 ipython
-django-debug-toolbar==1.11
+django-debug-toolbar==2.1
 python-decouple
 coverage
 coveralls

@@ -198,7 +198,7 @@ class GenerateTokenView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
 
         # redirect to next url. is_safe_url: is a safe redirection
         # (i.e. it doesn't point to a different host and uses a safe scheme).
-        if next_url and is_safe_url(next_url):
+        if next_url and is_safe_url(next_url, allowed_hosts=None):
             logger.debug("Got %s as next_url" % next_url)
             self.success_url = next_url
 
