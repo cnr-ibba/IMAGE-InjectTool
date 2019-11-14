@@ -14,14 +14,17 @@ from django.utils.encoding import smart_str
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, UpdateView
 from django.conf import settings
+from django.urls import reverse_lazy
 from django.http import HttpResponse
 
 from common.storage import ProtectedFileSystemStorage
 from common.constants import COMPLETED, BIOSAMPLE_URL
+from common.views import FormInvalidMixin
 
-from .models import Submission, uid_report
+from .models import Submission, Organization, uid_report
+from .forms import OrganizationForm
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -142,3 +145,15 @@ def protected_view(request, path):
     response['Content-Length'] = file_size
 
     return response
+
+
+class UpdateOrganizationView(FormInvalidMixin, LoginRequiredMixin, UpdateView):
+    form_class = OrganizationForm
+    model = Organization
+    success_url = reverse_lazy('uid:dashboard')
+    template_name = 'uid/organization_form.html'
+
+    def get_object(self):
+        """Get the organization which this user belongs to"""
+
+        return self.request.user.person.affiliation

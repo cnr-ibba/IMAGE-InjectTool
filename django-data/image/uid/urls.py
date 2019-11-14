@@ -30,4 +30,8 @@ urlpatterns = [
     url(r'^summary/$',
         views.SummaryView.as_view(),
         name='summary'),
+
+    url(r'^organization/update/$',
+        views.UpdateOrganizationView.as_view(),
+        name='organization_update'),
 ]
