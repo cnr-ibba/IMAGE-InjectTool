@@ -22,6 +22,17 @@
   <div class="col-lg-8 col-md-10 col-sm-12">
     <div class="card">
       <div class="card-body">
+        <p>
+          <span class="text-warning"><strong>Please read carefully:</strong></span>
+          By deleting a InjectTool submission, <span class="text-danger"><strong>
+          all this associated Animals and Samples will be deleted</strong></span>,
+          even if they are already submitted to BioSamples.
+          <span class="text-danger"><strong>Deleting data from InjectTool will
+          not remove data from BioSamples archives</strong></span> if those
+          data were already been published, and <span class="text-danger"><strong>
+          you will not be able to update anymore this records using InjectTool</strong>
+        </p>
+
         {# adapted from https://stackoverflow.com/a/39533619/4385116 #}
         {% if info_deleted|length > 0 %}
           <h3>All those items will be also deleted:</h3>

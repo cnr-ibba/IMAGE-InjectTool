@@ -20,7 +20,7 @@ from django.conf import settings
 
 from uid.models import Animal, Sample, Submission, Person
 
-from common.tests import PersonMixinTestCase
+from uid.tests import PersonMixinTestCase
 
 from ..helpers import (
     MetaDataValidation, OntologyCacheError, RulesetError,
@@ -135,8 +135,6 @@ class MetaDataValidationTestCase(MetaDataValidationTestMixin, TestCase):
 
 
 class SubmissionMixin(PersonMixinTestCase):
-    # an attribute for PersonMixinTestCase
-    person = Person
 
     fixtures = [
         'uid/animal',

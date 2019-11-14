@@ -401,6 +401,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': "Annotate All",
         'schedule': crontab(minute=0, hour=0, day_of_week='sunday'),
     },
+    'clean_biosample_models': {
+        'task': "Clean biosample models",
+        'schedule': crontab(minute=0, hour=0),
+    },
 }
 
 # Channels

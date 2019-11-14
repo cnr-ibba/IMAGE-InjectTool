@@ -10,14 +10,15 @@ from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
 from common.tests import (
-    GeneralMixinTestCase, StatusMixinTestCase,
+    GeneralMixinTestCase, StatusMixinTestCase, FormMixinTestCase,
     OwnerMixinTestCase, LoginMixinTestCase)
 
-from . import DataSourceMixinTestCase
+from . import DataSourceMixinTestCase, PersonMixinTestCase
+from ..forms import OrganizationForm
 from ..models import Submission
 from ..views import (
     DashBoardView, SummaryView, AboutView, IndexView, PrivacyView, TermsView,
-    AboutUploadingView)
+    AboutUploadingView, UpdateOrganizationView)
 
 
 class Initialize(TestCase):
@@ -182,3 +183,45 @@ class ProtectedViewTest(DataSourceMixinTestCase, OwnerMixinTestCase,
             'attachment; filename="{}"'.format(
                 self.file_name)
         )
+
+
+class UpdateOrganizationViewTest(
+        FormMixinTestCase, PersonMixinTestCase, Initialize):
+    """A class to test UpdateOrganizationView"""
+
+    form_class = OrganizationForm
+
+    fixtures = [
+        "uid/user",
+        "uid/dictcountry",
+        "uid/dictrole",
+        "uid/organization",
+    ]
+
+    def setUp(self):
+        """call base method"""
+        super().setUp()
+
+        self.url = reverse("uid:organization_update")
+        self.response = self.client.get(self.url)
+
+    def test_url_resolves_view(self):
+        view = resolve('/uid/organization/update/')
+        self.assertIsInstance(view.func.view_class(), UpdateOrganizationView)
+
+    def test_form_inputs(self):
+
+        # total input is n of form fields + (CSRF) + 1 select
+        self.assertContains(self.response, '<input', 4)
+        self.assertContains(self.response, 'type="text"', 2)
+        self.assertContains(self.response, '<select', 2)
+        self.assertContains(self.response, "required disabled", 1)
+
+        # this is specific to my data
+        self.assertContains(
+            self.response,
+            'name="name" value="Test organization"')
+
+# HINT: I don't have to test succesful or invalid update cases, since
+# OrganizationForm inherit from well tested modules and has no custom methods
+# (apart get_object, which is implicitely tested)

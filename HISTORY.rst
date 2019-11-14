@@ -9,12 +9,20 @@ History
   - remove `/image/` location from django settings
   - remove `/image/` location from NGINX
   - update docs
-  - update ansible role
 
 * Upgrade to the last django LTS version (2.2) (issue `#34 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/34>`_)
   - Upgrade Django to last LTS version (2.2)
   - Tests and code were fixed
   - Migrations were resetted to initial state
+
+* Small changes, minor updates (issue `#76 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/76>`_)
+  - model the new species/translations in `initializedb`
+  - a better error message when uploading missing relationship with `excel.helpers`
+  - catch import from cryoweb errors
+  - clean up biosample.models.Submission
+  - moved `PersonMixinTestCase` into `uid.tests.mixins`
+  - add UpdateOrganizationView
+  - update dashboard and submission delete templates
 
 0.8.0 (2019-11-07)
 ------------------

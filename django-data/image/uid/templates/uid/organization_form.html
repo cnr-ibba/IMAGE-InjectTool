@@ -1,0 +1,36 @@
+
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+  Update {{ organization.name }}
+{% endblock title %}
+
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+{% endblock custom-css %}
+
+{% block content %}
+
+<h1 class="text-center my-4">
+  Update {{ organization.name }}
+</h1>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-md-10 col-sm-12">
+    <div class="card">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}
+            {% include 'includes/form.html' %}
+            <button type="submit" class="btn btn-success">Update organization</button>
+            <a href="{% url 'uid:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}

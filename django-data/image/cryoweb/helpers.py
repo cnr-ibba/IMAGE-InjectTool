@@ -158,8 +158,9 @@ def upload_cryoweb(submission_id):
     fullpath = submission.get_uploaded_file_path()
 
     # define command line
-    cmd_line = "/usr/bin/psql -U {user} -h db {database}".format(
-        database=database_name, user='cryoweb_insert_only')
+    cmd_line = (
+        "/usr/bin/psql -U {user} -h db {database} -v ON_ERROR_STOP=1".format(
+            database=database_name, user='cryoweb_insert_only'))
 
     cmds = shlex.split(cmd_line)
 
@@ -179,7 +180,11 @@ def upload_cryoweb(submission_id):
     except Exception as exc:
         # save a message in database
         submission.status = ERROR
-        submission.message = "Error in importing data: %s" % (str(exc))
+        submission.message = (
+            "Error in importing data: %s\nIs '%s' a valid cryoweb"
+            " dump file?" % (
+                str(exc),
+                os.path.split(submission.uploaded_file.name)[-1]))
         submission.save()
 
         # send async message
