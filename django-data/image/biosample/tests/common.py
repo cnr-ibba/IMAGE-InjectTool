@@ -18,7 +18,7 @@ from django.utils import timezone
 
 from common.constants import READY, ERROR, WAITING
 from common.tests import WebSocketMixin
-from uid.models import Submission, Person, Animal, Sample
+from uid.models import Submission, Animal, Sample
 from uid.tests import PersonMixinTestCase
 
 # the token will last for 24h (in seconds)
