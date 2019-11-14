@@ -14,13 +14,14 @@ from django.utils import timezone
 
 from common.constants import OBO_URL
 from common.helpers import get_deleted_objects
-from common.tests import PersonMixinTestCase
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
 
 from uid.models import (
     Animal, Submission, DictBreed, DictCountry,
     DictSex, DictSpecie, Sample, uid_report, Person, User, db_has_data)
+
+from .mixins import PersonMixinTestCase
 
 
 class DictSexTestCase(TestCase):
@@ -340,9 +341,6 @@ class SubmissionTestCase(TestCase):
 class AnimalTestCase(PersonMixinTestCase, TestCase):
     """Testing Animal Class"""
 
-    # an attribute for PersonMixinTestCase
-    person = Person
-
     fixtures = [
         'uid/animal',
         'uid/dictbreed',
@@ -517,9 +515,6 @@ class AnimalTestCase(PersonMixinTestCase, TestCase):
 
 class SampleTestCase(PersonMixinTestCase, TestCase):
     """testing sample class"""
-
-    # an attribute for PersonMixinTestCase
-    person = Person
 
     fixtures = [
         'uid/animal',
@@ -738,9 +733,6 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
 
 class PersonTestCase(PersonMixinTestCase, TestCase):
     """Testing Person Class"""
-
-    # an attribute for PersonMixinTestCase
-    person = Person
 
     fixtures = [
         'uid/dictcountry',

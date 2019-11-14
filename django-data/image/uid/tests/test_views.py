@@ -11,11 +11,11 @@ from django.urls import resolve, reverse
 
 from common.tests import (
     GeneralMixinTestCase, StatusMixinTestCase, FormMixinTestCase,
-    OwnerMixinTestCase, LoginMixinTestCase, PersonMixinTestCase)
+    OwnerMixinTestCase, LoginMixinTestCase)
 
-from . import DataSourceMixinTestCase
+from . import DataSourceMixinTestCase, PersonMixinTestCase
 from ..forms import OrganizationForm
-from ..models import Submission, Person
+from ..models import Submission
 from ..views import (
     DashBoardView, SummaryView, AboutView, IndexView, PrivacyView, TermsView,
     AboutUploadingView, UpdateOrganizationView)
@@ -190,7 +190,6 @@ class UpdateOrganizationViewTest(
     """A class to test UpdateOrganizationView"""
 
     form_class = OrganizationForm
-    person = Person
 
     fixtures = [
         "uid/user",

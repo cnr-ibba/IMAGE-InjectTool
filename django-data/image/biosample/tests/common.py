@@ -17,9 +17,9 @@ from django.conf import settings
 from django.utils import timezone
 
 from common.constants import READY, ERROR, WAITING
-from common.tests import PersonMixinTestCase, WebSocketMixin
+from common.tests import WebSocketMixin
 from uid.models import Submission, Person, Animal, Sample
-
+from uid.tests import PersonMixinTestCase
 
 # the token will last for 24h (in seconds)
 TOKEN_DURATION = (24*60*60)
@@ -48,8 +48,6 @@ def generate_token(now=None, domains=['subs.test-team-1']):
 
 
 class BaseMixin(PersonMixinTestCase):
-    # an attribute for PersonMixinTestCase
-    person = Person
 
     fixtures = [
         'biosample/account',
