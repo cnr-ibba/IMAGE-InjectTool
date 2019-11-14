@@ -19,7 +19,7 @@ from django.conf import settings
 from django.http import HttpResponse
 
 from common.storage import ProtectedFileSystemStorage
-from common.constants import COMPLETED
+from common.constants import COMPLETED, BIOSAMPLE_URL
 
 from .models import Submission, uid_report
 
@@ -53,6 +53,15 @@ class AboutUploadingView(TemplateView):
 
 class DashBoardView(LoginRequiredMixin, TemplateView):
     template_name = "uid/dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        # Call the base implementation first to get a context
+        context = super().get_context_data(**kwargs)
+
+        # add the base biosample urls to context
+        context["biosample_url"] = BIOSAMPLE_URL + "?filter=attr:project:IMAGE"
+
+        return context
 
 
 class SummaryView(LoginRequiredMixin, TemplateView):
