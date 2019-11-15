@@ -2,22 +2,38 @@
 History
 =======
 
+0.9.1.dev0
+----------
+
+TODO
+^^^^
+
+* fix ``wp5image.eu`` links in sphinx docs and templates
+* model *USI* errors as ``ValidationResult`` objects
+* ``django-tables`` and ``django-filters`` integration
+* *same as* relationship support
+
+Features
+^^^^^^^^
+
+* minor fixes
+
 0.9.0 (2019-11-15)
 ------------------
 
 Features
 ^^^^^^^^
-- remove `/image/` location from django settings
-- remove `/image/` location from NGINX
+- remove ``/image/`` location from django settings
+- remove ``/image/`` location from NGINX
 - update docs
 - Upgrade Django to last LTS version (2.2)
 - Tests and code were fixed
 - Migrations were resetted to initial state
-- model the new species/translations in `initializedb`
-- a better error message when uploading missing relationship with `excel.helpers`
+- model the new species/translations in ``initializedb``
+- a better error message when uploading missing relationship with ``excel.helpers``
 - catch import from cryoweb errors
 - clean up biosample.models.Submission
-- moved `PersonMixinTestCase` into `uid.tests.mixins`
+- moved ``PersonMixinTestCase`` into ``uid.tests.mixins``
 - add UpdateOrganizationView
 - update dashboard and submission delete templates
 
