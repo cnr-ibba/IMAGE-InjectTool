@@ -183,25 +183,6 @@ class DataSourceMixinTestCase(object):
             self.submission.message)
 
 
-# a mixin to correctly instantiate a person object in order to get
-# a biosample json for test data
-class PersonMixinTestCase(object):
-    # set this attribute to Person model
-    person = None
-
-    @classmethod
-    def setUpClass(cls):
-        # calling my base class setup
-        super().setUpClass()
-
-        # now fix person table
-        person = cls.person.objects.get(user__username="test")
-        person.affiliation_id = 1
-        person.role_id = 1
-        person.initials = "T"
-        person.save()
-
-
 # TODO: move into submission.tests (since related to submission.helpers)
 class WebSocketMixin(object):
     """Override setUp to mock websocket objects"""

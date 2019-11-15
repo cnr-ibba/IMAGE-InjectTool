@@ -16,7 +16,7 @@ contents. InjectTool is able to perform time consuming task on the background, l
 user data to `BioSamples <https://www.ebi.ac.uk/biosamples/>`_, using
 `Celery <https://docs.celeryproject.org/en/latest/>`_.
 
-InjectTool is available at https://www.wp5image.eu/image/, while the repository of
+InjectTool is available at https://www.wp5image.eu/, while the repository of
 source code is maintained at `GitHub <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
 
 This guide is addressed to developers/contribuitor to InjectTool or people that

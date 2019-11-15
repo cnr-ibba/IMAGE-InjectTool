@@ -5,11 +5,6 @@ InjectTool TODO
 * Regarding libraries upgrades and downgrades
   - Need to test if we can migrate to newer django release?
   - waiting for the next LTS version (April 2019). No stable branch with a non-LTS version
-  - celery-flower need to be removed if it is not necessary
-
-* regarding docker configuration:
-  - move flower to another port (eg 15555; however is flower needed?)
-  - move /image/ location to injecttool (or use a CNAME domain)
 
 * Data export: How data needs to be exported? How IMAGE metadata works?
   - IMAGE metadata defines fields in .xls used for import. There is a correspondance

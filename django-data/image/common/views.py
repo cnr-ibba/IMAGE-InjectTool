@@ -8,6 +8,8 @@ Created on Mon Oct 29 15:33:34 2018
 
 import logging
 
+from functools import wraps
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import HttpResponseBadRequest
@@ -199,14 +201,15 @@ class ListMaterialMixin(OwnerMixin):
 
 
 def ajax_required(f):
+    # https://stackoverflow.com/a/52271410/4385116
+    # use a decorator to wrap a function and avoid
+    # 'functools.partial' object has no attribute '__name__'.
+    @wraps(f)
     def wrap(request, *args, **kwargs):
         if not request.is_ajax():
             return HttpResponseBadRequest()
 
         return f(request, *args, **kwargs)
-
-    wrap.__doc__ = f.__doc__
-    wrap.__name__ = f.__name__
 
     return wrap
 

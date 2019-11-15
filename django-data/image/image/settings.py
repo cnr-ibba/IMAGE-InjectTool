@@ -310,8 +310,8 @@ LOGIN_REDIRECT_URL = 'uid:dashboard'
 
 # Static files (CSS, JavaScript, Images) and users' media
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
-STATIC_URL = '/image/static/'
-MEDIA_URL = '/image/media/'
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
 
 # collect all Django static files in the static folder
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
@@ -338,10 +338,10 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 # restrict access to media URLs
 # https://gist.github.com/cobusc/ea1d01611ef05dacb0f33307e292abf4
 PROTECTED_MEDIA_ROOT = os.path.join(BASE_DIR, "protected/")
-PROTECTED_MEDIA_URL = "/image/protected/"
+PROTECTED_MEDIA_URL = "/protected/"
 
 # Prefix used in nginx config
-PROTECTED_MEDIA_LOCATION_PREFIX = "/image/internal/"
+PROTECTED_MEDIA_LOCATION_PREFIX = "/internal/"
 
 # Django registration redux. One-week activation window;
 ACCOUNT_ACTIVATION_DAYS = 7
@@ -400,6 +400,10 @@ CELERY_BEAT_SCHEDULE = {
     'call_zooma': {
         'task': "Annotate All",
         'schedule': crontab(minute=0, hour=0, day_of_week='sunday'),
+    },
+    'clean_biosample_models': {
+        'task': "Clean biosample models",
+        'schedule': crontab(minute=0, hour=0),
     },
 }
 

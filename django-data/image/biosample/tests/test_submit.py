@@ -68,7 +68,7 @@ class SubmitViewTest(TestMixin, FormMixinTestCase, TestCase):
 
         # total input is n of form fields + (CSRF)
         self.assertContains(self.response, '<input', 4)
-        self.assertContains(self.response, '<input type="hidden"', 2)
+        self.assertContains(self.response, '<input type="hidden"', 3)
         self.assertContains(self.response, 'type="password"', 1)
 
 
