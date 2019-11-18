@@ -21,8 +21,8 @@ from django.test import TestCase
 
 from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import WebSocketMixin
-from common.tests import PersonMixinTestCase
 from uid.models import Submission, Person, Animal, Sample
+from uid.tests import PersonMixinTestCase
 
 from ..tasks import ValidateTask, ValidationError, ValidateSubmission
 from ..helpers import OntologyCacheError, RulesetError
@@ -33,9 +33,6 @@ from .common import PickableMock, MetaDataValidationTestMixin
 class ValidateSubmissionMixin(
         PersonMixinTestCase, MetaDataValidationTestMixin):
     """A mixin to define common stuff for testing data validation"""
-
-    # an attribute for PersonMixinTestCase
-    person = Person
 
     fixtures = [
         'uid/animal',

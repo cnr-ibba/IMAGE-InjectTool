@@ -2,15 +2,6 @@
 InjectTool TODO
 ===============
 
-* Regarding libraries upgrades and downgrades
-  - Need to test if we can migrate to newer django release?
-  - waiting for the next LTS version (April 2019). No stable branch with a non-LTS version
-  - celery-flower need to be removed if it is not necessary
-
-* regarding docker configuration:
-  - move flower to another port (eg 15555; however is flower needed?)
-  - move /image/ location to injecttool (or use a CNAME domain)
-
 * Data export: How data needs to be exported? How IMAGE metadata works?
   - IMAGE metadata defines fields in .xls used for import. There is a correspondance
     between IMAGE metadata columns and UID database columns
@@ -19,7 +10,6 @@ InjectTool TODO
   - if needed, should be implemented using [django-rest-framework](https://www.django-rest-framework.org/)
 
 * Regarding data submissions
-  - Think about renaming `EditSubmissionView` with a more useful name
   - Supposing a submission has issues in USI validation. Shuold I track it in
     validation tables? should I have tables for USI errors, since if the
     data is validated using `image_validation` is not a user error?
@@ -72,7 +62,6 @@ InjectTool TODO
     there's no difference from a web page, however, is only aesthetic
   - Add breadcrumb for pages
   - serving all 3rd party modules using CDN when possible
-  - replace text placeholder (Lorem ipsum...) in dashboard
   - Pagination: missing jumping to a particular page function
 
 * Issues relative to UID:

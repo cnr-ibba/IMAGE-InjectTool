@@ -179,8 +179,12 @@ class SubmissionAdmin(admin.ModelAdmin):
         'updated_at', 'status', 'owner'
     )
 
+    # manage a fields with many FK keys
+    # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html
+    raw_id_fields = ("gene_bank_country", "organization")
+
     # I cannot edit a auto_add_now field
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('owner', 'created_at', 'updated_at')
 
     list_filter = ('owner', 'status')
 

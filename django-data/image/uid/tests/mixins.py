@@ -9,7 +9,8 @@ Created on Fri Jul  5 15:57:10 2019
 from common.tests import DataSourceMixinTestCase as CommonDataSourceMixinTest
 
 from ..models import (
-    db_has_data, Animal, Sample, Submission, DictCountry, DictSpecie, DictSex)
+    db_has_data, Animal, Sample, Submission, DictCountry, DictSpecie, DictSex,
+    Person)
 
 
 class DataSourceMixinTestCase(CommonDataSourceMixinTest):
@@ -94,3 +95,19 @@ class FileReaderMixinTestCase:
 
         self.assertFalse(check)
         self.assertGreater(len(not_found), 0)
+
+
+# a mixin to correctly instantiate a person object in order to get
+# a biosample json for test data
+class PersonMixinTestCase(object):
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        # now fix person table
+        person = Person.objects.get(user__username="test")
+        person.affiliation_id = 1
+        person.role_id = 1
+        person.initials = "T"
+        person.save()

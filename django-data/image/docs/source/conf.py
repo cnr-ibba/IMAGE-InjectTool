@@ -13,12 +13,62 @@
 import os
 import sys
 import django
+import subprocess
+
+git_lfs_version = "v2.9.0"
 
 project_path = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_path)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'image.settings'
 django.setup()
+
+# Workaround modified to install and execute git-lfs on Read the Docs
+# https://github.com/readthedocs/readthedocs.org/issues/1846#issuecomment-477184259
+injecttool_dir = subprocess.getoutput('git rev-parse --show-toplevel')
+
+# I want to install git-lfs here
+bin_dir = os.path.join(injecttool_dir, "bin")
+
+if not os.path.exists(bin_dir):
+    os.mkdir(bin_dir)
+
+# add a new path to PATH environment variable
+os.environ['PATH'] += ":%s" % (bin_dir)
+
+# this will be the directory where git lfs will be installed
+git_lfs_path = '%s/.git/lfs' % (injecttool_dir)
+
+if not os.path.exists(git_lfs_path):
+    os.system(
+        'wget -P {dest}/ https://github.com/git-lfs/git-lfs'
+        '/releases/download/'
+        '{version}/git-lfs-linux-amd64-{version}.tar.gz'.format(
+            version=git_lfs_version,
+            dest=bin_dir))
+
+    os.system(
+            'tar xvfz {path}/git-lfs-linux-amd64-{version}.tar.gz'
+            ' -C {path}'.format(
+                version=git_lfs_version,
+                path=bin_dir))
+
+    # test the system
+    os.system('git-lfs ls-files')
+
+    # make lfs available in current repository
+    os.system('git-lfs install')
+
+else:
+    print("Git lfs already configured. Skipping")
+
+if os.path.exists(os.path.join(bin_dir, "git-lfs")):
+    # download content from remote
+    os.system('git-lfs fetch')
+
+    # make local files to have the real content on them
+    os.system('git-lfs checkout')
+
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +77,7 @@ copyright = '2019, Paolo Cozzi'
 author = 'Paolo Cozzi'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.7.2'
+release = 'v0.9.1.dev0'
 
 
 # -- General configuration ---------------------------------------------------

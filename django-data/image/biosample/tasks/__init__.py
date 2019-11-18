@@ -8,5 +8,7 @@ Created on Tue Jul 16 11:26:52 2019
 
 from .retrieval import FetchStatusTask
 from .submission import SubmitTask, SplitSubmissionTask
+from .cleanup import CleanUpTask
 
-__all__ = ["SubmitTask", "FetchStatusTask", "SplitSubmissionTask"]
+__all__ = [
+    "SubmitTask", "FetchStatusTask", "SplitSubmissionTask", "CleanUpTask"]

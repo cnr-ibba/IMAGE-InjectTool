@@ -14,7 +14,7 @@ from django.test import TestCase
 
 
 class CommandsTestCase(TestCase):
-    # TODO: need to define a custom settings.py
+    databases = {'default', 'cryoweb'}
 
     def test_truncate_cryoweb(self):
         " Test initializedb command."

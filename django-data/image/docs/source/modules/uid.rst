@@ -7,7 +7,7 @@ All stuff related with image :ref:`The Unified Internal Database` and site pages
 are defined in this module.
 
 uid.models
-----------------
+----------
 
 Submission and user data
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -17,22 +17,28 @@ The main object is :py:class:`uid.models.Submission` which is the object that
 a registered user create when starts creating a new submission. Animals and Samples
 data loaded by user are manged by the :py:class:`uid.models.Animal` and
 :py:class:`uid.models.Sample` class. The original name of such objects (defined
-as ``Data source id`` from the IMAGE metadata rules) is managed by :py:class:`uid.models.Name`
-class, which track also the ``biosample_id`` of such objects and its :ref:`Common statuses`.
-Here are presented the relations between ``Names`` objects:
+as ``Data source id`` from the IMAGE metadata rules) is managed by
+:py:class:`uid.models.Animal` and :py:class:`uid.models.Sample` respectively
+which track also the ``biosample_id`` of such objects and its :ref:`Common statuses`.
+Here are presented the relations between :py:class:`uid.models.Submission` objects:
 
-.. image:: ../_static/uid_name.1degree.png
+.. image:: ../_static/uid_submission.1degree.png
 
-Through name relationship, you could rerieve all animal belonging to a submission,
+Through relationship, you could rerieve all animal belonging to a submission,
 for example::
 
   from uid.models import Submission, Animal
 
   submission = Submission.objects.get(pk=1)
-  animals = Animal.objects.filter(name__submission=submission)
+  animals = Animal.objects.filter(submission=submission)
 
 in this example ``animals`` is a :py:class:`django.db.models.query.QuerySet` instance
-with all animals defined in selected submission.
+with all animals defined in selected submission. You can also fecth all animals
+from the submission instance itself::
+
+  animals = submission.animal_set
+
+This command is equivalent of the previous.
 
 Private data
 ^^^^^^^^^^^^
@@ -80,7 +86,7 @@ sessions is required to access to derived views. The login redirect will be mana
 if the session is anonymous
 
 uid.models module contents
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: uid.models
    :members:
@@ -91,7 +97,7 @@ uid.mixins
 ----------------
 
 uid.mixins module contents
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: uid.mixins
   :members:

@@ -19,7 +19,9 @@ register = template.Library()
 @register.simple_tag
 def git_describe():
     # https://stackoverflow.com/a/14989911
-    return subprocess.check_output(["git", "describe", "--always"]).strip()
+    version = subprocess.check_output(["git", "describe", "--always"]).strip()
+
+    return version.decode('utf8')
 
 
 # browse git repository using current version

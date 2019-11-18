@@ -8,10 +8,25 @@ Welcome to IMAGE-InjectTool's documentation!
 
 InjectTool is developed to help gene bank managers to enhance, standardize, tag and submit their gene bank data to EBI BioSamples, that integrates all gene bank records from across Europe. The interface guides users throughout submission and allows standardization of data following an agreed IMAGE rule set
 
+InjectTool is a web application mainly written with `django <https://docs.djangoproject.com/en/2.2/intro/overview/>`_,
+relying on a `postgres <https://www.postgresql.org/docs/>`_ and `redis <https://redis.io/documentation>`_
+databases and a `nginx <https://nginx.org/en/docs/>`_ frontend to serve static
+contents. InjectTool is able to perform time consuming task on the background, like
+`validating <https://github.com/cnr-ibba/IMAGE-ValidationTool>`_ user data or submitting
+user data to `BioSamples <https://www.ebi.ac.uk/biosamples/>`_, using
+`Celery <https://docs.celeryproject.org/en/latest/>`_.
+
+InjectTool is available at https://www.wp5image.eu/, while the repository of
+source code is maintained at `GitHub <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
+
+This guide is addressed to developers/contribuitor to InjectTool or people that
+want to understand how InjectTool works behind the curtains.
+
 General Documentation
 ---------------------
 
-Overview of InjectTool
+This section provides an overview of InjectTool, discussing the main features of the
+web application:
 
 .. toctree::
    :maxdepth: 3
@@ -27,7 +42,10 @@ Overview of InjectTool
 Module Documentation
 --------------------
 
-Documentation by modules
+This is the module dedicated section. InjectTool is composed by several **django-applications**,
+each one perform a specific activity like user registration or BioSamples submission.
+Follow the links to understand what these applications do:
+
 
 .. toctree::
    :maxdepth: 3

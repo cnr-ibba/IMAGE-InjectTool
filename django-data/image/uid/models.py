@@ -916,6 +916,7 @@ class Person(BaseMixin, models.Model):
 class Organization(BaseMixin, models.Model):
     # id = models.IntegerField(primary_key=True)  # AutoField?
     name = models.CharField(max_length=255)
+
     address = models.CharField(
         max_length=255, blank=True, null=True,
         help_text='One line, comma separated')

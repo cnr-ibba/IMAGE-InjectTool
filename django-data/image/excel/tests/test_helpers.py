@@ -400,6 +400,45 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
         # check async message called using WebSocketMixin.check_message
         self.check_message('Error', notification_message)
 
+    @patch('excel.helpers.ExcelTemplateReader.get_animal_records')
+    def test_issue_with_relationship(self, my_check):
+        """Test a relationship that don't exists"""
+
+        # create a fake record with wrong relationship for testing
+        fake_data = [
+            'ANIMAL:::ID:::CS05_1999',
+            None,
+            855,
+            "fake father",
+            "fake mother",
+            'Cinta Senese',
+            'Pig',
+            'male',
+            None,
+            None,
+            None,
+            None,
+            'missing geographic information']
+
+        Animal = namedtuple(
+            'Animal',
+            [column.lower().replace(" ", "_")
+             for column in TEMPLATE_COLUMNS['animal']]
+        )
+
+        record = Animal._make(fake_data)
+
+        my_check.return_value = [record]
+
+        # ok now test method
+        message = "Unknown parent '%s'" % (fake_data[3])
+        notification_message = (
+            "Error in importing data: %s: check animal '%s' "
+            "in your dataset" % (message, fake_data[0]))
+
+        # check template import fails
+        self.check_errors(my_check, message, notification_message)
+
 
 class ReloadTemplateTestCase(ExcelMixin, TestCase):
     """Simulate a template reload case. Load data as in

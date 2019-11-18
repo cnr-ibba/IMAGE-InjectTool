@@ -10,8 +10,20 @@
 
   <h1>Welcome {{ user.first_name|capfirst }}!</h1>
 
-  {# （TODO to be replaced) #}
-  <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+  <p>
+    This is the main page of InjectTool application. The key idea is to upload
+    data from your data sources by creating a new InjectTool Submission object.
+    Data that you upload here will be private to you, and will be published into
+    <a href="{{ biosample_url }}" target="_blank">BioSamples</a> when
+    you complete the InjectTool submission process after validating your data against
+    <a href="https://github.com/cnr-ibba/IMAGE-metadata" target="_blank">IMAGE-metadata</a> rules.
+    You can start to upload your data by clicking on <em>Create</em> button and create
+    a new InjectTool Submission object. You can also recover a previous submission by pressing the
+    <em>List</em> Submission button. You can have a picture of your data by pressing
+    the <em>info</em> button. If you need more help during the submission process, please
+    refer to the <a href="{% url 'about-uploading' %}" target="_blank">Uploading data into BioSamples</a>
+    tutorial.
+  </p>
 
   <div class="card-deck pt-5">
 
