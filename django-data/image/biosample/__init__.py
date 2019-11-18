@@ -10,6 +10,7 @@ import logging
 
 import pyUSIrest.auth
 import pyUSIrest.client
+import pyUSIrest.settings
 
 from common.constants import EBI_AAP_API_AUTH, BIOSAMPLE_API_ROOT
 
@@ -20,14 +21,14 @@ logger = logging.getLogger(__name__)
 # imported
 
 # Ovveride pyUSIrest biosample urls, relying on common.constants
-if pyUSIrest.auth.Auth.auth_url != EBI_AAP_API_AUTH:
+if pyUSIrest.settings.AUTH_URL != EBI_AAP_API_AUTH:
     logger.warning("Setting AAP API URL to: %s" % EBI_AAP_API_AUTH)
 
     # Ovveride Auth.auth_url
-    pyUSIrest.auth.Auth.auth_url = EBI_AAP_API_AUTH
+    pyUSIrest.settings.AUTH_URL = EBI_AAP_API_AUTH
 
-if pyUSIrest.client.Root.api_root != BIOSAMPLE_API_ROOT:
+if pyUSIrest.settings.ROOT_URL != BIOSAMPLE_API_ROOT:
     logger.warning("Setting BIOSAMPLE API ROOT to: %s" % BIOSAMPLE_API_ROOT)
 
     # Override Root api_root
-    pyUSIrest.client.Root.api_root = BIOSAMPLE_API_ROOT
+    pyUSIrest.settings.ROOT_URL = BIOSAMPLE_API_ROOT
