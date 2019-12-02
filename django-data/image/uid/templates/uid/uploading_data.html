@@ -41,18 +41,17 @@
     in order to submit your data into BioSamples.
     Please note that we can't store your AAP credentials on our site, you need
     to keep record of AAP credentials, otherwise you will not be able to submit
-    your data to BioSamples. Please note that this site is in beta stage,
-    so this registration will be done on BioSample tests servers. Click on
+    your data to BioSamples. Click on
     <em>Generate a new AAP profile button</em> to fill out the form to create a new EBI AAP profile:</p>
 
     <div class="row align-items-center">
-      <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left w-25" src="{% static 'images/03-create_aap.png' %}" alt="Generate a new AAP profile">
+      <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left w-25" style="min-width: 300px" src="{% static 'images/03-create_aap.png' %}" alt="Generate a new AAP profile">
       <img href="{% static 'images/04-aap-profile.png' %}" data-fancybox data-caption="Fill form and generate a new AAP profile" class="img-thumbnail mx-auto float-right" src="{% static 'images/04-aap-profile-thumbnail.png' %}" alt="Generate a new AAP profile Form">
     </div>
 
     <p class="my-3">If the registration is successful, you will be able to generate
-      a new AAP token. This token is stored in your browser session and will be used to perform
-      BioSamples submission. The token will be valid for one hour. When submitting
+      a new AAP token. This token is stored in your browser session, will be valid
+      for 24 hours and will be used to perform BioSamples submission. When submitting
       data to BioSamples, InjectTool will check token validity and will ask
       the user to generate a new token if necessary. You can check your token
       status by clicking <a href="{% url 'biosample:token' %}">My Token</a> on
@@ -170,8 +169,24 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <h3><a id="template_file"></a>Creating a template file</h3>
 
     <p>
-      Download the empty template file from <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
-      and start filling tables. When it is completed, please continue to the next paragraph.
+      The Template file is the tabular version of <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a> rules,
+      however some records will be provided by InjectTool itself, for instance
+      the information regarding the submitter or the institution are provided by
+      the user during the registration phase and shouldn't be provided during the
+      template loading. To upload your data, download an empty template file from
+      <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
+      and start by filling <code>breed</code>, <code>animal</code> and <code>sample</code>
+      sheets: not all columns are mandatory, please refer to
+      <a href="https://github.com/cnr-ibba/IMAGE-metadata/blob/master/docs/image_sample_metadata.md">IMAGE metadata - sample specification</a>
+      for a list of mandatory and recommended attributes. Not all columns are
+      required to have a successful upload, please take a look
+      <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/307dd77d59836c4616ed057fb664fd2390b18f26/django-data/image/excel/helpers/exceltemplate.py#L25">here</a>
+      to have an idea on what fields are currently supported by the Template
+      loading process. Please keep in mind that <em>animal IDs</em> in <code>animal</code>
+      and <code>samples</code> sheets need to be consistent in order to have a
+      successful upload; the same applies for the couple <em>Species</em> and <em>Breed</em>
+      that need to be consistent in <code>breed</code> and <code>animal</code>
+      sheets.
     </p>
 
   </section>
