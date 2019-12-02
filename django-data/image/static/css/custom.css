@@ -72,3 +72,10 @@ pre {
   padding-right: 1rem;
   padding-left: 1rem;
 }
+
+.back-to-top {
+  position: fixed;
+  bottom: 3.75rem;
+  right: 25px;
+  display: none;
+}

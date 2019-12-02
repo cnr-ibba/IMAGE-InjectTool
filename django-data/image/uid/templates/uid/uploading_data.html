@@ -248,6 +248,9 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <a class="btn btn-primary btn-lg" href="{% url 'uid:dashboard' %}" role="button">Dashboard</a>
   </div>
 
+  {# back to top adapted from https://codepen.io/michalwyrwa/pen/GBaPPj #}
+  <a id="back-to-top" href="#" class="btn btn-primary btn-lg back-to-top" role="button"><i class="fas fa-chevron-up"></i></a>
+
 {% endblock content %}
 
 {% block custom-js %}
@@ -256,6 +259,24 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     $(function () {
       $('[data-fancybox]').fancybox({
   	     // Options will go here
+      });
+    });
+
+    $(document).ready(function(){
+      $(window).scroll(function () {
+        if ($(this).scrollTop() > 50) {
+          $('#back-to-top').fadeIn();
+        } else {
+          $('#back-to-top').fadeOut();
+        }
+      });
+
+      // scroll body to 0px on click
+      $('#back-to-top').click(function () {
+        $('body,html').animate({
+          scrollTop: 0
+          }, 400);
+        return false;
       });
     });
   </script>
