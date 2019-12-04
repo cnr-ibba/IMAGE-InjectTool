@@ -12,6 +12,7 @@ tmp/
 *.gz
 *.tar
 .pytest_cache/
+django-data/image/static/images/.directory
 django-data/image/dumps/
 django-data/image/protected/
 django-data/image/.git-lfs/
