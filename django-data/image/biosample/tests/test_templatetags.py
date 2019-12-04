@@ -68,9 +68,9 @@ class IsBiosampleTestEnv(TestCase):
     @patch("biosample.templatetags.biosample_tags.BIOSAMPLE_URL",
            "https://wwwdev.ebi.ac.uk/biosamples/samples")
     @patch("biosample.templatetags.biosample_tags.EBI_AAP_API_AUTH",
-           "https://explore.api.aai.ebi.ac.uk/auth")
+           "https://explore.api.aai.ebi.ac.uk")
     @patch("biosample.templatetags.biosample_tags.BIOSAMPLE_API_ROOT",
-           "https://submission-test.ebi.ac.uk/api/")
+           "https://submission-test.ebi.ac.uk")
     def test_is_biosample_test_env(self):
         rendered = self.TEMPLATE.render(Context({}))
         self.assertIn("True", rendered)
@@ -78,9 +78,9 @@ class IsBiosampleTestEnv(TestCase):
     @patch("biosample.templatetags.biosample_tags.BIOSAMPLE_URL",
            "https://www.ebi.ac.uk/biosamples/samples")
     @patch("biosample.templatetags.biosample_tags.EBI_AAP_API_AUTH",
-           "https://api.aai.ebi.ac.uk/auth")
+           "https://api.aai.ebi.ac.uk")
     @patch("biosample.templatetags.biosample_tags.BIOSAMPLE_API_ROOT",
-           "https://submission.ebi.ac.uk/api/")
+           "https://submission.ebi.ac.uk")
     def test_is_not_biosample_test_env(self):
         rendered = self.TEMPLATE.render(Context({}))
         self.assertIn("False", rendered)

@@ -36,8 +36,8 @@ def is_biosample_test_env():
     or not"""
 
     if (BIOSAMPLE_URL == "https://wwwdev.ebi.ac.uk/biosamples/samples" and
-            EBI_AAP_API_AUTH == "https://explore.api.aai.ebi.ac.uk/auth" and
-            BIOSAMPLE_API_ROOT == "https://submission-test.ebi.ac.uk/api/"):
+            EBI_AAP_API_AUTH == "https://explore.api.aai.ebi.ac.uk" and
+            BIOSAMPLE_API_ROOT == "https://submission-test.ebi.ac.uk"):
         return True
 
     else:
