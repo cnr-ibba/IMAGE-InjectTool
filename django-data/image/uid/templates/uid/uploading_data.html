@@ -34,7 +34,7 @@
       <img href="{% static 'images/02-signup.png' %}" data-fancybox data-caption="Sign up in InjectTool" class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
     </div>
 
-    <p class="my-3">After registration is complete, you will receive an email to
+    <p id="aap_registration" class="my-3">After registration is complete, you will receive an email to
     the address used for registration. Click on the activation link, in order to
     complete InjectTool registration.  Now you will require an
     <a href="https://aai.ebi.ac.uk/home" target="_blank">EBI AAP profile</a>
@@ -104,7 +104,8 @@ postgres=# \l
 
     <p>
       <code>cryo1</code>, owned by <code>apiis_admin</code>, is the target database we need to dump.
-      Other databases are system databases. Next, make a <em>data-only</em>
+      Other databases are system databases. Log out from the Postgres console with
+      <code>\q</code> and then make a <em>data-only</em>
       dump using the <code>--data-only</code> parameter for the <code>apiis_admin</code>
       schema, as in the following example:
     </p>
@@ -219,8 +220,87 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       After the submission is created, data will be imported in background by the
       system. When submission status has the <em>Loaded</em> state, data are imported
       with success from your data source and need to be validated before submission.
-      You can have more information on submission statuses <a href="{% url 'about' %}#submission_statuses">here</a>.
     </p>
+
+    <div class="row align-items-center">
+      <img href="{% static 'images/09-submission_loaded.png' %}" data-fancybox data-caption="Submission Loaded" class="img-thumbnail mx-auto float-right" src="{% static 'images/09-submission_loaded-thumbnail.png' %}" alt="Submission loaded">
+    </div>
+
+    <p>
+      Annotation task are called automatically after data import. You can start
+      annotation tasks manually by clicking on <em>Annotate</em> button in the
+      <a href="{% url 'zooma:ontologies_report' %}">Ontology report</a> page.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="mt-3">Validate your submission</h2>
+
+    <p>
+      You will need to validate your data against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      rules before uploading data into BioSamples. From the submission detail page
+      click on the <em>Validate</em> button on the bottom of the page:
+    </p>
+
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/10-validate-button.png' %}" alt="Validate Button">
+    </div>
+
+    <p>
+      Your submission will enter in the <em>Waiting</em> status during the validation
+      process. During this state you aren't allowed to modify your submission, nor
+      delete or submit it. When the validation process terminates, your submission
+      could be in two different states: the <em>Ready</em> state means that your data
+      are compliant with the <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      rules and can be submitted to BioSamples; The <em>Need Revision</em> state
+      means that your data have issues with rules or lacks of some mandatory fields.
+      If your data are not valid you could click on <em>validation</em> link in the
+      Sample or Animal issues field in order to <em>Bulk update</em> objects with
+      the same type of errors. Or you could click on the <em>Edit data</em> button
+      in order to manage and fix your data one by one:
+    </p>
+
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/11-issues-in-validation.png' %}" alt="Issues in validation">
+    </div>
+
+  </section>
+
+  <section>
+    <h2 class="mt-3">Submit your data to BioSamples</h2>
+
+    <p>
+      If your data are valid and in the <em>Ready</em> status, you can submit them
+      to BioSamples by clicking on <em>Submit</em> button on the bottom of the
+      submission detail page. You could be prompted for a password in order to generate
+      a BioSample token. This password is the password you have chosen during the
+      registration process, when you have generated an <a href="#aap_registration">AAP profile</a>:
+    </p>
+
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/12-submit_to_biosamples.png' %}" alt="Submit to BioSamples">
+    </div>
+
+    <p>
+      While your data are submitted to Biosamples, your submission will enter in
+      <em>Waiting</em> and <em>Submitted</em> states: during those stages data
+      will be submitted to BioSamples and you won't be able to modify or delete your data.
+      InjectTool will perform regularly updates on your submission process, asking
+      to BioSamples about statuses and errors. If the submission process is successful,
+      your submission will change its status to <em>Completed</em>:
+      <strong>
+        <span class="text-primary">
+        this means that your data are correctly registed into BioSamples and received
+        a BioSample id.</span>
+      </strong>
+      You can inspect your submitted data by clicking on <em>Edit data</em> button
+      and by clicking on the <em>BioSamples id</em> link:
+    </p>
+
+    <div class="row align-items-center">
+      <img href="{% static 'images/13-submission_complete.png' %}" data-fancybox data-caption="Submission Completed with BioSamples IDs" class="img-thumbnail mx-auto float-right" src="{% static 'images/13-submission_complete-thumbnail.png' %}" alt="Submission completed with BioSamples ids">
+    </div>
+
   </section>
 
   <section>
