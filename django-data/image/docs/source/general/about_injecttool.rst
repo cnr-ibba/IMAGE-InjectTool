@@ -12,7 +12,7 @@ private space, they can validate their data against `IMAGE-metadata`_ and can fi
 or update data using the application. If data are compliant with `IMAGE-metadata`_
 standards, they could upload their data into `BioSamples`_ using and use this
 application even to maintain and update data from InjectTool to `BioSamples`_.
-InjectTool site is available `here <https://www.wp5image.eu/>`_,
+InjectTool site is available `here <https://inject.image2020genebank.eu/>`_,
 while its code is available from `github <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
 
 InjectTool composed image

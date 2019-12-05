@@ -22,9 +22,9 @@ in the :ref:`The Unified Internal Database`
 Common statuses
 ^^^^^^^^^^^^^^^
 
-Statuses are applied for a :py:class:`uid.models.Submission` and :py:class:`uid.models.Name`
-objects, and reflects the entiere submission status and the Object (Animal/Sample) statuses
-rispectively. Here are the main statuses:
+Statuses are applied for a :py:class:`uid.models.Submission` and
+:py:class:`biosample.models.Submission` and reflect what happened to submissions
+and what is possible to do with submission. Here are the main statuses:
 
 - **waiting**: means a processing phase where no user access is intended to data. While
   in this status data are checked, submitted or loaded and no update/deletion should
@@ -45,9 +45,15 @@ rispectively. Here are the main statuses:
   that they received a ``biosample_id``. After such status, you need to refer to
   ``biosample_id`` to update or change such data.
 
+.. _submission_statuses:
+
 Status could change as described by this figure:
 
 .. image:: ../_static/submission_statuses.png
+
+A subset of such statuses are applied also to :py:class:`uid.models.Animal`
+and :py:class:`uid.models.Sample` objects (``loaded``, ``ready``, ``need_revision``,
+``submitted``, ``completed``). Their meaning is the same of submission statuses.
 
 Common confidences
 ^^^^^^^^^^^^^^^^^^

@@ -8,7 +8,6 @@ History
 TODO
 ^^^^
 
-* fix ``wp5image.eu`` links in sphinx docs and templates
 * model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
@@ -17,6 +16,7 @@ Features
 ^^^^^^^^
 
 * minor fixes
+* fix ``wp5image.eu`` links in sphinx docs and templates
 
 0.9.0 (2019-11-15)
 ------------------

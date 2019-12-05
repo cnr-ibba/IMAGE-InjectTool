@@ -21,3 +21,5 @@ django-data/image/static/images/04-aap-profile.png filter=lfs diff=lfs merge=lfs
 django-data/image/static/images/palm-leaf.png filter=lfs diff=lfs merge=lfs -text
 django-data/image/static/images/01-signup.png filter=lfs diff=lfs merge=lfs -text
 django-data/image/static/images/05-token-generated-thumbnail.png filter=lfs diff=lfs merge=lfs -text
+django-data/image/docs/source/_static/periodic_task.png filter=lfs diff=lfs merge=lfs -text
+django-data/image/docs/source/_static/submission_statuses.png filter=lfs diff=lfs merge=lfs -text

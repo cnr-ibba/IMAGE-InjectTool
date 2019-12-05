@@ -3,6 +3,8 @@ Submissions App
 
 .. _submissions-app:
 
+Submission statuses are described in :ref:`Common statuses <Common statuses>`
+
 submissions.helpers
 -------------------
 
