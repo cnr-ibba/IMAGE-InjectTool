@@ -16,7 +16,8 @@
       is the integration and transparent use of the vast information stored within
       more than 60 gene banks/genetic collections spanning 20 European countries,
       together with the collection of newly generated data. Information to be collected
-      and integrated through the IMAGE portal is currently stored in each
+      and integrated through the <a href="https://www.image2020genebank.eu/" target="_blank">
+      IMAGE portal</a> is currently stored in each
       individual's local databases at gene banks, research institutions, breeding
       companies etc. which utilizes a wide range of systems : from simple excel
       files to large national well-structured databases.
@@ -79,106 +80,6 @@
       the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">here</a>
     </p>
 
-    <h3><a class="anchor" id="submission_statuses"></a>Submission statuses</h3>
-
-    <p>
-      Processes like data import, data validation and submission to BioSamples
-      require a period of time and can't be completed immediately to get the instant result page.
-      InjectTool have monitoring procedures running constantly and asynchronously
-      in the background, in order to provide 'live' result pages. However, you can't
-      modify your data while performing such background tasks, otherwise valid data could be modified to be invalid
-      by mistake during a submission process.
-      Various submission statuses have been defined within InjectTool depending on which tasks are accomplished
-      on your data. Statuses may change when tasks are completed.
-      We plan to develop status updates in the visualized page without user intervention.
-      Current statuses are:
-      <ul>
-        <li>
-          <strong>Loaded:</strong> Data were correctly imported from your data sources.
-          You need to validate them before submitting to BioSamples archive
-        </li>
-        <li>
-          <strong>Waiting:</strong> Some tasks are currently running on your data, you
-          can't edit or delete your data or perform other tasks like validation or
-          submission to BioSamples. All links or buttons related to such changes are
-          disabled, and you have to wait in order to modify your data again.
-        </li>
-        <li>
-          <strong>Error:</strong> This status should never be seen. This status
-          could be determined by an issue in InjectTool. You may receive an email describing
-          what has gone wrong, please forward this email to InjectTool
-          <a href="mailto:{% get_admin_email %}?subject=feedback">developers</a>
-          with description of the steps you have taken to reach this particular status.
-        </li>
-        <li>
-          <strong>Ready:</strong> Submission has been validated with success and
-          could be submitted to BioSamples
-        </li>
-        <li>
-          <strong>Need revision:</strong> Submission has issues in validation or
-          in BioSamples submission. You need to check error message and fix your
-          data accordingly. Modifying or deleting your data in any other submission
-          states, will result in a <em>Need revision</em> status. You have to
-          validate your submission with success to get a <em>Ready</em> status and
-          being able to submit your data to BioSamples.
-        </li>
-        <li>
-          <strong>Submitted:</strong> Data has been submitted to BioSamples. InjectTool is waiting for the submission
-          response from BioSamples to retrieve assigned BioSamples accessions.
-        </li>
-        <li>
-          <strong>Completed:</strong> Data has been submitted to BioSamples with success and
-          has received the assigned BioSamples accession(s). Congratulations! Now your data will be publicly available
-          in BioSamples archives in a few days.
-        </li>
-      </ul>
-    </p>
-
-
-    <h3>Submission details page documentation</h3>
-    <p>
-      The submission details page provides information about each submission, for example,  Submission Title,
-      Description, etc.
-    </p>
-    <p>
-      The action buttons at the bottom of the page allows changes to be made to the submission, the 8 actions are:
-      <ul>
-        <li>
-          <strong>Edit data:</strong> Enables editing of the current submission.
-        </li>
-        <li>
-          <strong>Submissions List:</strong> View all of your submissions.
-        </li>
-        <li>
-          <strong>Validate:</strong> Start the validation process, your must revalidate your submission after any edits
-          or additions of data.
-        </li>
-        <li>
-          <strong>Return to Dashboard:</strong> Return to the Dashboard homepage view.
-        </li>
-        <li>
-          <strong>Submit:</strong> This button will submit your data to BioSamples. This button only becomes active when
-          the status of your submission is "Ready", meaning that you have passed all validation steps.
-        </li>
-        <li>
-          <strong>Danger Zone:</strong> Dropdown menu contains group of buttons with possible dangerous actions:
-          <ul>
-            <li>
-              <strong>Reload from external data source:</strong> Enables user to overwrite existing data using a new
-              data source file. If you have made edits to records within the IMAGE inject tool, these changes may be
-              lost and need to be remade.
-            </li>
-            <li>
-              <strong>Update submission:</strong> Enables user to update information about current submission (could
-              possibly lead to situation when submission is no more valid)
-            </li>
-            <li>
-              <strong>Delete submission:</strong> Delete the current submission. Warning, this cannot be undone.
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </p>
   </section>
 
   {# I need to call my function in a variable or I couldn't evaluate an if condition #}

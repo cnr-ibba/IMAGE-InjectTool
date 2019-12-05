@@ -50,6 +50,7 @@
               <a class="nav-link dropdown-toggle" href="#" id="aboutMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">About</a>
               <div class="dropdown-menu" aria-labelledby="aboutMenu">
                 <a class="dropdown-item {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">About IMAGE-InjectTool</a>
+                <a class="dropdown-item {% if request.resolver_match.url_name == 'about-submission' %}active{% endif %}" href="{% url 'about-submission' %}">About Submissions</a>
                 <a class="dropdown-item {% if request.resolver_match.url_name == 'about-uploading' %}active{% endif %}" href="{% url 'about-uploading' %}">Uploading data into BioSamples</a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item {% if request.resolver_match.url_name == 'terms-and-conditions' %}active{% endif %}" href="{% url 'terms-and-conditions' %}">Terms and Conditions</a>
