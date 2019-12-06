@@ -64,7 +64,7 @@
   </section>
 
   <section>
-    <h2 class="mt-3">Preparing a new submission</h2>
+    <h2 id="prepare_a_new_submission" class="mt-3">Preparing a new submission</h2>
 
     <p>
       Before starting a new submission with InjectTool, you need to prepare data to upload. Currently,
@@ -322,10 +322,19 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
   </section>
 
-  <div class="row justify-content-around">
-    <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'uid:dashboard' %}" role="button">Dashboard</a>
-  </div>
+  <p class="container mt-3">
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-info btn-lg btn-block" href="{% url 'about' %}" role="button">About IMAGE-InjectTool</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-submission' %}" role="button">About Submissions</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'index' %}" role="button">Back to Home</a>
+      </div>
+    </div>
+  </p>
 
   {# back to top adapted from https://codepen.io/michalwyrwa/pen/GBaPPj #}
   <a id="back-to-top" href="#" class="btn btn-primary btn-lg back-to-top" role="button"><i class="fas fa-chevron-up"></i></a>

@@ -35,7 +35,7 @@
       standards and finally submitted to <a href="https://www.ebi.ac.uk/biosamples/">EBI BioSamples</a>,
       which has been chosen as the sample reference archive for all IMAGE data.
     </p>
-    <p class="lead text-primary text-justify">
+    <p class="lead text-primary text-center">
       <strong>
         The IMAGE InjectTool is a tool which makes it easier to
         archive data into BioSamples from the user's point of view.
@@ -52,12 +52,33 @@
       managers to enhance, standardize, tag and submit their gene bank data to
       <a href="https://www.ebi.ac.uk/biosamples/">BioSamples archive</a> that integrates all
       gene bank records from across Europe. The InjectTool uses a well-defined
-      metadata ruleset ensuring high quality and comparable data across the diverse
+      <a href="https://github.com/cnr-ibba/IMAGE-metadata">metadata ruleset</a>
+      ensuring high quality and comparable data across the diverse
       collections originating in different storage formats and languages.
     </p>
     <p>
+      User will be able to import data from the dump files of either Cryoweb or CRB-Anim, or the template spreadsheet
+      file into InjectTool and the system will validates and submits data to BioSamples archive. User interaction is
+      only required when the data fails the validation against <a href="https://github.com/cnr-ibba/IMAGE-metadata">
+      IMAGE metadata</a> standards to make manual curations. Error messages are
+      reported to the user within the user interface or by emails, and available
+      options are continuosly provided to the user by enabling or disabling
+      buttons during the whole submission process.
+    </p>
+    <p>
+      InjectTool can provide
+      ontologies for <em>Countries</em>, <em>Species</em>, <em>Breeds</em>, <em>Physiological</em>
+      and <em>developmental stages</em>,
+      if it possible. When a new term is added into InjectTool during data import,
+      annotation tasks will start on the background in order to find the most suitable
+      ontology by quering <a href="https://www.ebi.ac.uk/spot/zooma/">EBI Zooma Tools</a>.
+      InjectTool can also provide translation tables for species terms, in order to refer
+      to the correct species ontology by providing the common name in the own user language
+      during data loading.
+    </p>
+    <p>
       The system is built on a set of customized <a href="https://www.docker.com/">docker</a> images using
-      <a href="https://docs.docker.com/compose/">docker-compose</a> :
+      <a href="https://docs.docker.com/compose/">docker-compose</a>:
       the user will interact on a web application rendered using
       <a href="https://www.nginx.com/">Nginx</a>, while
       on the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
@@ -65,20 +86,34 @@
       image renders pages in HTML using <a href="https://getbootstrap.com/">Bootstrap 4</a>
       in order to display data and proving forms able to do data manipulation.
       <a href="http://www.celeryproject.org/">Celery</a> and <a href="https://redis.io/">Redis</a> are used to perform
-      long tasks such as the data validation process, data submissions to BioSamples archive and monitoring of
+      time consuming tasks on background such as the data validation process,
+      data submissions to BioSamples archive and monitoring of
       BioSamples submission statuses.
-    </p>
-    <p>
-      User will be able to import data from the dump files of either Cryoweb or CRB-Anim, or the template spreadsheet
-      file into InjectTool and Injects tool will validates and submits data to BioSamples archive. User interaction is
-      only required when the data fails the validation against <a href="https://github.com/cnr-ibba/IMAGE-metadata">
-      IMAGE metadata</a> standards to make manual curations.
-
       The project is mainly written in <a href="https://www.python.org/downloads/">Python 3</a>
       using the <a href="http://www.obeythetestinggoat.com/">test-driven</a> approach. A live version of the system is available
       at <a href="{% url 'index' %}">{% absolute_url '/' %}</a> while
-      the code is available <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">here</a>
+      the code is available at <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">GitHub</a>.
+      The BioSamples submission is done through the
+      <a href="https://submission.ebi.ac.uk/api/docs/guide_overview.html">Unified Submission Interface</a>
+      portal using the <a href="https://pypi.org/project/pyUSIrest/">pyUSIrest</a> python package
+      developed within this project.
     </p>
+
+  </section>
+
+  <section>
+    <h2>Contributing and Reporting Bugs</h2>
+
+    We welcome any feedback/comment/suggestion which can be submitted by
+    <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
+    to make InjectTool better. InjectTool is developed under the
+    <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/LICENSE">GNU General Public License v3.0</a>.
+    Detailed instructions on how to build and start a local InjectTool instance is
+    available inside <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md">InjectTool GitHub repository</a>,
+    while the InjectTool developers guide is available at
+    <a href="https://image-injecttool.readthedocs.io/en/latest/?badge=latest">Read the Docs</a>
+
+
 
   </section>
 
@@ -94,17 +129,23 @@
         <a href="https://wwwdev.ebi.ac.uk/biosamples/">BioSamples test server</a>, which synchronize the data with
         production server weekly. Therefore data submitted through InjectTool will be lost as planned.
         We are doing our best to shorten the test period
-        while making the system as reliable as possible. We welcome any
-        feedback/comment/suggestion which can be submitted by
-        <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
-        to make InjectTool better.
+        while making the system as reliable as possible.
       </p>
     </section>
   {% endif %}
 
-  <div class="row justify-content-around">
-    <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'about-uploading' %}" role="button">Submitting data to BioSamples</a>
-  </div>
+  <p class="container mt-3">
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-info btn-lg btn-block" href="{% url 'about-submission' %}" role="button">About Submissions</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-uploading' %}" role="button">Submitting data to BioSamples</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'index' %}" role="button">Back to Home</a>
+      </div>
+    </div>
+  </p>
 
 {% endblock content %}

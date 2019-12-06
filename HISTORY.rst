@@ -17,6 +17,7 @@ Features
 
 * minor fixes
 * fix ``wp5image.eu`` links in sphinx docs and templates
+* update documentation
 
 0.9.0 (2019-11-15)
 ------------------

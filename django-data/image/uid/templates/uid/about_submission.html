@@ -1,7 +1,13 @@
 
 {% extends "base.html" %}
 
+{% load static %}
+
 {% load uid_tags %}
+
+{% block custom-css %}
+  <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}" />
+{% endblock custom-css %}
 
 {% block title %}About Submissions{% endblock title %}
 
@@ -9,110 +15,216 @@
 
 <h1>About Submissions</h1>
 
-<h3><a id="submission_statuses"></a>Submission statuses</h3>
+<section>
+  <h2>InjectTool Submission</h2>
 
-<p>
-  Processes like data import, data validation and submission to BioSamples
-  require a period of time and can't be completed immediately to get the instant result page.
-  InjectTool have monitoring procedures running constantly and asynchronously
-  in the background, in order to provide 'live' result pages. However, you can't
-  modify your data while performing such background tasks, otherwise valid data could be modified to be invalid
-  by mistake during a submission process.
-  Various submission statuses have been defined within InjectTool depending on which tasks are accomplished
-  on your data. Statuses may change when tasks are completed.
-  We plan to develop status updates in the visualized page without user intervention.
-  Current statuses are:
-  <ul>
-    <li>
-      <strong>Loaded:</strong> Data were correctly imported from your data sources.
-      You need to validate them before submitting to BioSamples archive
-    </li>
-    <li>
-      <strong>Waiting:</strong> Some tasks are currently running on your data, you
-      can't edit or delete your data or perform other tasks like validation or
-      submission to BioSamples. All links or buttons related to such changes are
-      disabled, and you have to wait in order to modify your data again.
-    </li>
-    <li>
-      <strong>Error:</strong> This status should never be seen. This status
-      could be determined by an issue in InjectTool. You may receive an email describing
-      what has gone wrong, please forward this email to InjectTool
-      <a href="mailto:{% get_admin_email %}?subject=feedback">developers</a>
-      with description of the steps you have taken to reach this particular status.
-    </li>
-    <li>
-      <strong>Ready:</strong> Submission has been validated with success and
-      could be submitted to BioSamples
-    </li>
-    <li>
-      <strong>Need revision:</strong> Submission has issues in validation or
-      in BioSamples submission. You need to check error message and fix your
-      data accordingly. Modifying or deleting your data in any other submission
-      states, will result in a <em>Need revision</em> status. You have to
-      validate your submission with success to get a <em>Ready</em> status and
-      being able to submit your data to BioSamples.
-    </li>
-    <li>
-      <strong>Submitted:</strong> Data has been submitted to BioSamples. InjectTool is waiting for the submission
-      response from BioSamples to retrieve assigned BioSamples accessions.
-    </li>
-    <li>
-      <strong>Completed:</strong> Data has been submitted to BioSamples with success and
-      has received the assigned BioSamples accession(s). Congratulations! Now your data will be publicly available
-      in BioSamples archives in a few days.
-    </li>
-  </ul>
+  <p>
+    InjectTool <em>Submission</em> is the key element for uploading data into BioSamples.
+    It is always associated with a user datafile (for more information see our
+    tutorial at <a href="{% url 'about-uploading' %}#prepare_a_new_submission">Preparing a new submission</a>) and
+    is private to the user who creates it. After creating a submission, data will
+    be loaded and <em>Animals</em> and <em>Samples</em> objects are created reling on
+    submission data.
+
+  </p>
+
+  <h3>Submission details page</h3>
+
+  <p>
+    The submission details page provides information about each submission, for example,  Submission Title,
+    Description, etc. Here is an example picture for a Submission Detail page:
+  </p>
+
+  <div class="row align-items-center">
+    <img href="{% static 'images/submission_detail.png' %}" data-fancybox data-caption="Submission Detail Page" class="img-thumbnail mx-auto float-right" src="{% static 'images/submission_detail-thumbnail.png' %}" alt="Submission Detail Page">
+  </div>
+
+  <p>
+    The action buttons at the bottom of the page allows changes to be made to the
+    submission, the 11 actions are:
+    <ul>
+      <li>
+        <strong>Edit data:</strong> Enables editing of the current submission. Here you
+        can fix <em>Animals</em> and <em>Samples</em> records, or delete them. After
+        BioSamples submission, you can inspect your BioSamples IDs from this page
+      </li>
+      <li>
+        <strong>Submissions List:</strong> View all of your submissions.
+      </li>
+      <li>
+        <strong>Validate:</strong> Start the validation process, your must revalidate
+        your submission after any edits or additions of data.
+      </li>
+      <li>
+        <strong>Return to Dashboard:</strong> Return to the Dashboard homepage view.
+      </li>
+      <li>
+        <strong>Submit:</strong> This button will submit your data to BioSamples.
+        This button only becomes active when the status of your submission is
+        <em>Ready</em>, meaning that you have passed all validation steps.
+      </li>
+      <li>
+        <strong>Danger Zone:</strong> This Dropdown menu contains group of buttons
+        with possible dangerous actions. All of these options may have consequences on
+        multiple <em>Samples</em> or <em>Animal</em> records, hence there are
+        grouped in this <em>Danger zone</em> button:
+        <ul>
+          <li>
+            <strong>Reload from external data source:</strong> Enables user to overwrite existing data using a new
+            data source file. If you have made edits to records within the IMAGE inject tool, these changes may be
+            lost and need to be remade.
+          </li>
+          <li>
+            <strong>Update submission:</strong> Enables user to update information about current submission (could
+            possibly lead to situation when submission is no more valid)
+          </li>
+          <li>
+            <strong>Delete animals from submission:</strong> This is a bulk delete of
+            <em>Animals</em> by specifing a list of names. You have to specify on name by line
+            belonging to the submission you want to modify
+          </li>
+          <li>
+            <strong>Delete samples from submission:</strong> This is a bulk delete of
+            <em>Samples</em> by specifing a list of names. You have to specify on name by line
+            belonging to the submission you want to modify
+          </li>
+          <li>
+            <strong>Delete submission:</strong> Delete the current submission. Warning, this cannot be undone.
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </p>
+
+  <h3><a id="submission_statuses"></a>Submission statuses</h3>
+
+  <p>
+    Processes like data import, data validation and submission to BioSamples
+    require a period of time and can't be completed immediately to get the instant result page.
+    InjectTool have monitoring procedures running constantly and asynchronously
+    in the background, in order to provide 'live' result pages. However, you can't
+    modify your data while performing such background tasks, otherwise valid data could be modified to be invalid
+    by mistake during a submission process.
+    Various submission statuses have been defined within InjectTool depending on which tasks are accomplished
+    on your data. Statuses may change when tasks are completed, and from submission
+    detail page the can change in real-time without user intervention.
+    Current statuses are:
+    <ul>
+      <li>
+        <strong>Loaded:</strong> Data were correctly imported from your data sources.
+        You need to validate them before submitting to BioSamples archive
+      </li>
+      <li>
+        <strong>Waiting:</strong> Some tasks are currently running on your data, you
+        can't edit or delete your data or perform other tasks like validation or
+        submission to BioSamples. All links or buttons related to such changes are
+        disabled, and you have to wait in order to modify your data again.
+      </li>
+      <li>
+        <strong>Error:</strong> This status should never be seen. This status
+        could be determined by an issue in InjectTool. You may receive an email describing
+        what has gone wrong, please forward this email to InjectTool
+        <a href="mailto:{% get_admin_email %}?subject=feedback">developers</a>
+        with description of the steps you have taken to reach this particular status.
+      </li>
+      <li>
+        <strong>Ready:</strong> Submission has been validated with success and
+        could be submitted to BioSamples
+      </li>
+      <li>
+        <strong>Need revision:</strong> Submission has issues in validation or
+        in BioSamples submission. You need to check error message and fix your
+        data accordingly. Modifying or deleting your data in any other submission
+        states, will result in a <em>Need revision</em> status. You have to
+        validate your submission with success to get a <em>Ready</em> status and
+        being able to submit your data to BioSamples.
+      </li>
+      <li>
+        <strong>Submitted:</strong> Data has been submitted to BioSamples. InjectTool is waiting for the submission
+        response from BioSamples to retrieve assigned BioSamples accessions.
+      </li>
+      <li>
+        <strong>Completed:</strong> Data has been submitted to BioSamples with success and
+        has received the assigned BioSamples accession(s). Congratulations! Now your data will be publicly available
+        in BioSamples archives in a few days.
+      </li>
+    </ul>
+
+    For a more detailed picture about status changes, please see the
+    <a href="https://image-injecttool.readthedocs.io/en/latest/modules/common.html#submission-statuses">Submission statuses</a>
+    picture from <a href="https://image-injecttool.readthedocs.io/en/latest/modules/common.html#common-statuses">Common statuse</a>
+    in InjectTool <a href="https://image-injecttool.readthedocs.io/en/latest/index.html">developer documentation at Read The Docs</a>
+
+  </p>
+
+</section>
+
+<section>
+  <h2>Editing Submission data</h2>
+
+  <p>
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  </p>
+
+  <div class="row align-items-center">
+    <img href="{% static 'images/13-submission_complete.png' %}" data-fancybox data-caption="Submission Completed with BioSamples IDs" class="img-thumbnail mx-auto float-right" src="{% static 'images/13-submission_complete-thumbnail.png' %}" alt="Submission completed with BioSamples ids">
+  </div>
+
+</section>
+
+<section>
+  <h2>Updating Submission data</h2>
+
+  <p>
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  </p>
+
+</section>
+
+<p class="container mt-3">
+  <div class="row">
+    <div class="col-lg-4 col-md-6 mt-2 text-center">
+      <a class="btn btn-info btn-lg btn-block" href="{% url 'about' %}" role="button">About IMAGE-InjectTool</a>
+    </div>
+    <div class="col-lg-4 col-md-6 mt-2 text-center">
+      <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-uploading' %}" role="button">Submitting data to BioSamples</a>
+    </div>
+    <div class="col-lg-4 col-md-6 mt-2 text-center">
+      <a class="btn btn-secondary btn-lg btn-block" href="{% url 'index' %}" role="button">Back to Home</a>
+    </div>
+  </div>
 </p>
 
-
-<h3>Submission details page documentation</h3>
-<p>
-  The submission details page provides information about each submission, for example,  Submission Title,
-  Description, etc.
-</p>
-<p>
-  The action buttons at the bottom of the page allows changes to be made to the submission, the 8 actions are:
-  <ul>
-    <li>
-      <strong>Edit data:</strong> Enables editing of the current submission.
-    </li>
-    <li>
-      <strong>Submissions List:</strong> View all of your submissions.
-    </li>
-    <li>
-      <strong>Validate:</strong> Start the validation process, your must revalidate your submission after any edits
-      or additions of data.
-    </li>
-    <li>
-      <strong>Return to Dashboard:</strong> Return to the Dashboard homepage view.
-    </li>
-    <li>
-      <strong>Submit:</strong> This button will submit your data to BioSamples. This button only becomes active when
-      the status of your submission is "Ready", meaning that you have passed all validation steps.
-    </li>
-    <li>
-      <strong>Danger Zone:</strong> Dropdown menu contains group of buttons with possible dangerous actions:
-      <ul>
-        <li>
-          <strong>Reload from external data source:</strong> Enables user to overwrite existing data using a new
-          data source file. If you have made edits to records within the IMAGE inject tool, these changes may be
-          lost and need to be remade.
-        </li>
-        <li>
-          <strong>Update submission:</strong> Enables user to update information about current submission (could
-          possibly lead to situation when submission is no more valid)
-        </li>
-        <li>
-          <strong>Delete submission:</strong> Delete the current submission. Warning, this cannot be undone.
-        </li>
-      </ul>
-    </li>
-  </ul>
-</p>
-
-<div class="row justify-content-around">
-  <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-  <a class="btn btn-primary btn-lg" href="{% url 'about-uploading' %}" role="button">Submitting data to BioSamples</a>
-</div>
+{# back to top adapted from https://codepen.io/michalwyrwa/pen/GBaPPj #}
+<a id="back-to-top" href="#" class="btn btn-primary btn-lg back-to-top" role="button"><i class="fas fa-chevron-up"></i></a>
 
 {% endblock content %}
+
+{% block custom-js %}
+  <script src="{% static 'js/jquery.fancybox.min.js' %}"></script>
+  <script>
+    $(function () {
+      $('[data-fancybox]').fancybox({
+  	     // Options will go here
+      });
+    });
+
+    $(document).ready(function(){
+      $(window).scroll(function () {
+        if ($(this).scrollTop() > 50) {
+          $('#back-to-top').fadeIn();
+        } else {
+          $('#back-to-top').fadeOut();
+        }
+      });
+
+      // scroll body to 0px on click
+      $('#back-to-top').click(function () {
+        $('body,html').animate({
+          scrollTop: 0
+          }, 400);
+        return false;
+      });
+    });
+  </script>
+{% endblock custom-js %}
