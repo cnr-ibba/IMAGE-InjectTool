@@ -74,7 +74,13 @@
       ontology by quering <a href="https://www.ebi.ac.uk/spot/zooma/">EBI Zooma Tools</a>.
       InjectTool can also provide translation tables for species terms, in order to refer
       to the correct species ontology by providing the common name in the own user language
-      during data loading.
+      during data loading. In such way, you can use the <em>Pig</em> term while
+      defining your species: the system will translate it into <em>Sus scrofa</em>.
+      A set of english word is defined for the most common species, however when
+      InjectTool finds a new word, it will stops data import and will ask user
+      intervention to translate a new term. After that, all such word occurrences
+      will be translated with the user provided species. If you have other terms
+      that required translation tables, please <a href="mailto:{% get_admin_email %}?subject=feedback">report it to us</a>.
     </p>
     <p>
       The system is built on a set of customized <a href="https://www.docker.com/">docker</a> images using
@@ -104,16 +110,16 @@
   <section>
     <h2>Contributing and Reporting Bugs</h2>
 
-    We welcome any feedback/comment/suggestion which can be submitted by
-    <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
-    to make InjectTool better. InjectTool is developed under the
-    <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/LICENSE">GNU General Public License v3.0</a>.
-    Detailed instructions on how to build and start a local InjectTool instance is
-    available inside <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md">InjectTool GitHub repository</a>,
-    while the InjectTool developers guide is available at
-    <a href="https://image-injecttool.readthedocs.io/en/latest/?badge=latest">Read the Docs</a>
-
-
+    <p>
+      We welcome any feedback/comment/suggestion which can be submitted by
+      <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
+      to make InjectTool better. InjectTool is developed under the
+      <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/LICENSE">GNU General Public License v3.0</a>.
+      Detailed instructions on how to build and start a local InjectTool instance is
+      available inside <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md">InjectTool GitHub repository</a>,
+      while the InjectTool developers guide is available at
+      <a href="https://image-injecttool.readthedocs.io/en/latest/?badge=latest">Read the Docs</a>
+    </p>
 
   </section>
 

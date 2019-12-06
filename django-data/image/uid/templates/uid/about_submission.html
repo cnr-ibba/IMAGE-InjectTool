@@ -24,15 +24,22 @@
     tutorial at <a href="{% url 'about-uploading' %}#prepare_a_new_submission">Preparing a new submission</a>) and
     is private to the user who creates it. After creating a submission, data will
     be loaded and <em>Animals</em> and <em>Samples</em> objects are created reling on
-    submission data.
+    submission data. All animals and samples belonging to a submission need to be validated
+    against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
+    in order to be submitted to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples archive</a>.
+    Once submitted to BioSamples, your data will be available to the community
+    through BioSamples site in a few days.
 
   </p>
 
   <h3>Submission details page</h3>
 
   <p>
-    The submission details page provides information about each submission, for example,  Submission Title,
-    Description, etc. Here is an example picture for a Submission Detail page:
+    The submission details page provides information about each submission, for example
+    <em>Submission Title</em>, <em>Description</em>, etc. Within the submission
+    detail page a user can perform task like <em>validating data</em> or
+    <em>submitting data to BioSamples</em> by clicking on the appropriate button
+    on the bottom of the page. Here is an example picture for a Submission Detail page:
   </p>
 
   <div class="row align-items-center">
@@ -40,13 +47,16 @@
   </div>
 
   <p>
-    The action buttons at the bottom of the page allows changes to be made to the
-    submission, the 11 actions are:
+    The action buttons allows changes to be made to the submission. Some actions
+    are available only if some conditions are satisfied, for example you can <em>Submit</em>
+    data to BioSamples only if you <em>Validated</em> them with success. Here are
+    described all the possible actions that could be applied to a submission:
     <ul>
       <li>
-        <strong>Edit data:</strong> Enables editing of the current submission. Here you
+        <strong>Edit data:</strong> Enables editing of the current submission data. Here you
         can fix <em>Animals</em> and <em>Samples</em> records, or delete them. After
-        BioSamples submission, you can inspect your BioSamples IDs from this page
+        BioSamples submission, you can inspect your BioSamples IDs by clicking on
+        this button.
       </li>
       <li>
         <strong>Submissions List:</strong> View all of your submissions.
@@ -67,29 +77,40 @@
         <strong>Danger Zone:</strong> This Dropdown menu contains group of buttons
         with possible dangerous actions. All of these options may have consequences on
         multiple <em>Samples</em> or <em>Animal</em> records, hence there are
-        grouped in this <em>Danger zone</em> button:
+        grouped in this <em>Danger zone</em> button. All of them are available only
+        if no background task is executed for this submission:
         <ul>
           <li>
-            <strong>Reload from external data source:</strong> Enables user to overwrite existing data using a new
-            data source file. If you have made edits to records within the IMAGE inject tool, these changes may be
+            <strong>Reload from external data source:</strong> Enables user to overwrite
+            existing data using a new data source file or the same file used
+            when the submission was created. All data present in the datasource will
+            overwrite the data you have in the InjectTool submission. If you have
+            made edits to records within the IMAGE inject tool, these changes may be
             lost and need to be remade.
           </li>
           <li>
-            <strong>Update submission:</strong> Enables user to update information about current submission (could
-            possibly lead to situation when submission is no more valid)
+            <strong>Update submission:</strong> Enables user to update information
+            about current submission, such as the <em>Title</em> or the <em>Description</em>
           </li>
           <li>
             <strong>Delete animals from submission:</strong> This is a bulk delete of
             <em>Animals</em> by specifing a list of names. You have to specify on name by line
-            belonging to the submission you want to modify
+            belonging to the submission you want to modify.
+            <span class="text-danger"><strong>No record will be removed from BioSamples site, if
+            such records were already submitted</strong></span>
           </li>
           <li>
             <strong>Delete samples from submission:</strong> This is a bulk delete of
             <em>Samples</em> by specifing a list of names. You have to specify on name by line
-            belonging to the submission you want to modify
+            belonging to the submission you want to modify.
+            <span class="text-danger"><strong>No record will be removed from BioSamples site, if
+            such records were already submitted</strong></span>
           </li>
           <li>
-            <strong>Delete submission:</strong> Delete the current submission. Warning, this cannot be undone.
+            <strong>Delete submission:</strong> Delete the current submission and
+            all its associated records. Warning, this cannot be undone.
+            <span class="text-danger"><strong>No record will be removed from BioSamples site, if
+            such records were already submitted</strong></span>
           </li>
         </ul>
       </li>
@@ -102,7 +123,7 @@
     Processes like data import, data validation and submission to BioSamples
     require a period of time and can't be completed immediately to get the instant result page.
     InjectTool have monitoring procedures running constantly and asynchronously
-    in the background, in order to provide 'live' result pages. However, you can't
+    in the background, in order to provide <em>"live"</em> result pages. However, you can't
     modify your data while performing such background tasks, otherwise valid data could be modified to be invalid
     by mistake during a submission process.
     Various submission statuses have been defined within InjectTool depending on which tasks are accomplished
@@ -152,7 +173,7 @@
 
     For a more detailed picture about status changes, please see the
     <a href="https://image-injecttool.readthedocs.io/en/latest/modules/common.html#submission-statuses">Submission statuses</a>
-    picture from <a href="https://image-injecttool.readthedocs.io/en/latest/modules/common.html#common-statuses">Common statuse</a>
+    picture from <a href="https://image-injecttool.readthedocs.io/en/latest/modules/common.html#common-statuses">Common statuses</a>
     in InjectTool <a href="https://image-injecttool.readthedocs.io/en/latest/index.html">developer documentation at Read The Docs</a>
 
   </p>
@@ -163,20 +184,63 @@
   <h2>Editing Submission data</h2>
 
   <p>
-    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    Data could be manually edited by clicking on <em>Edit data</em> button and
+    editing a single record by clicking the appropriate <em>Edit/Delete</em>
+    buttom as shown in the following figure:
   </p>
 
   <div class="row align-items-center">
     <img href="{% static 'images/13-submission_complete.png' %}" data-fancybox data-caption="Submission Completed with BioSamples IDs" class="img-thumbnail mx-auto float-right" src="{% static 'images/13-submission_complete-thumbnail.png' %}" alt="Submission completed with BioSamples ids">
   </div>
 
+  <p>
+    After manual modification, data need to be validated again in order to be submitted
+    into BioSamples. In alternative, a user can update the original data source and
+    then reload the edited submission file using <em>Reload Submission</em> under
+    the <em>Danger zone</em> button: all data contained in the edited datasource
+    will overwrite data present in InjectTool reling on animal/sample <em>Name</em>.
+    Data present into InjectTool and not in the edited datasource will remain the same.
+    In order to remove data from a submission, you will need to click on <em>Delete</em>
+    buttons or specify multiple names under the <em>Delete animals from submission</em>
+    or <em>Delete samples from submission</em> under the <em>Danger zone</em> button
+    in submission detail page.
+  </p>
+
+  <p>
+    InjectTool tracks submitted data through its <em>BioSamples id</em>. If you edit
+    an already submitted record and the validation steps is ok, only updated records
+    will be submitted to BioSamples, while not-modified record will be ignored.
+  </p>
+  <p class="lead text-primary text-center">
+    <strong>
+      Through InjectTool is possible to modify a BioSamples record by modifying the
+      corresponding record in your submission
+    </strong>
+  </p>
+
 </section>
 
 <section>
-  <h2>Updating Submission data</h2>
+  <h2>Adding new data into InjectTool</h2>
 
   <p>
-    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    InjectTool is designed in order to collect unique samples or animals for
+    each user. You can have animal with the same name for different breed or species
+    but you can't have the same animal name for the same breed. Similarly, you can
+    have samples with the same names for different animals, but no samples with the
+    same name for the same animal. In such way, if you reload the same dataset in
+    a different submission, you will generate an empty submission (with no Animal or Samples).
+    This means that cryoweb users could upload a more recent version of their
+    database dumps in a new submission without worring about removing records already loaded
+    into BioSamples: only new records will be inserted in the new submission.
+  </p>
+  <p>
+    If you plan to add new data to BioSamples, the recommended way is to load new
+    data in a new submission, in order to maintain a correspondance to data
+    belonging to the submission and its associated datasource. You could upload
+    animal or samples related to animals belonging to a previous submission,
+    however you must ensure that the referred animal is already present into BioSamples
+    otherwise your submission will fail.
   </p>
 
 </section>
