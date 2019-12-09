@@ -26,3 +26,4 @@ django-data/image/docs/source/_static/submission_statuses.png filter=lfs diff=lf
 django-data/image/static/images/submission_detail-thumbnail.png filter=lfs diff=lfs merge=lfs -text
 django-data/image/static/images/submission_detail.png filter=lfs diff=lfs merge=lfs -text
 django-data/image/docs/source/_static/docker-images.png filter=lfs diff=lfs merge=lfs -text
+django-data/image/docs/source/_static/use_case-injecttool.png filter=lfs diff=lfs merge=lfs -text

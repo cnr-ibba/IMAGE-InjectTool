@@ -5,8 +5,8 @@ About InjectTool
 Introduction
 ------------
 
-The IMAGE InjectTool is a tool which makes it easier to archive data into BioSamples
-from the user point of view. InjectTool structured as a web application and runs inside
+The IMAGE InjectTool is a tool which makes it easier to archive genebank data into BioSamples
+from the user point of view. InjectTool is structured as a web application and runs inside
 a web server. Users can register into website in order to upload their data in a
 private space, they can validate their data against `IMAGE-metadata`_ and can fix
 or update data using the application. If data are compliant with `IMAGE-metadata`_
@@ -14,6 +14,9 @@ standards, they could upload their data into `BioSamples`_ using and use this
 application even to maintain and update data from InjectTool to `BioSamples`_.
 InjectTool site is available `here <https://inject.image2020genebank.eu/>`_,
 while its code is available from `github <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
+
+.. image:: ../_static/use_case-injecttool.png
+
 
 InjectTool composed image
 -------------------------
