@@ -8,7 +8,7 @@ Cryoweb helper database
 The cryoweb database is modeled started from an empty cryoweb instance. It models
 the minimal permission and table definitions in order to make possible to upload
 cryoweb data from a postrges *data only* dump file. This database is filled by
-:ref:`cryoweb <cryoweb-app>` module, using :py:meth:`cryoweb.tasks.import_from_cryoweb`.
+:ref:`cryoweb <cryoweb-app>` module, using :py:meth:`cryoweb.tasks.ImportCryowebTask.import_data_from_file`.
 After import is done (with success or not), database is cleaned and restored to
 the original state.
 

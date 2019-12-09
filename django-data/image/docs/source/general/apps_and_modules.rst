@@ -19,7 +19,6 @@ Django apps
 - :ref:`cryoweb <cryoweb-app>`: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
 - **excel**: implement stuff regarding Template data import into :ref:`The Unified Internal Database`
 - **image**: django configuration files
-  views like index, dashboard, about, ...
 - :ref:`language <language-app>`: implement stuff related to language module implementation and to
   resolve common names (ie Cow) into more scientific names (ie Bos taurus)
 - **samples**: Implement all stuff to visualize and manage Samples (specimen from organim)
@@ -27,6 +26,7 @@ Django apps
   user data, starting task as validation and submission, call Sample and Animal views)
 - **submission_ws**: stuff required to deal with real time messages
 - :ref:`uid <uid-app>`: implement stuff related to :ref:`The Unified Internal Database` and
+  views like index, dashboard, about, ...
 - :ref:`validation <validation-app>`: Perform validation stuff by calling `IMAGE-ValidationTool`_
 - **zooma**: Annotate dictionary tables in order to provide ontology informations
   using `zooma`_ API.

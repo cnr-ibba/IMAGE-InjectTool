@@ -7,7 +7,7 @@ Introduction
 
 The IMAGE InjectTool is a tool which makes it easier to archive data into BioSamples
 from the user point of view. InjectTool structured as a web application and runs inside
-a web server. User can register into website in order to upload their data in a
+a web server. Users can register into website in order to upload their data in a
 private space, they can validate their data against `IMAGE-metadata`_ and can fix
 or update data using the application. If data are compliant with `IMAGE-metadata`_
 standards, they could upload their data into `BioSamples`_ using and use this
@@ -23,15 +23,19 @@ and Celery. The application is mainly developed in python, and structured in a
 django project. Each docker container is structured in order to do specific stuff,
 and they are linked through docker-composed `configuration file`_.
 
+Here is a graphical presentation of InjectTool system:
+
+.. image:: ../_static/docker-images.png
+
 The container componing InjectTool are the followings:
 
-- **nginx**: is the frontend layer to InjectTool. It runs a NGINX instance and it exposes ``26080`` port. It serves
-  InjectTool application through
-  the ``image`` location. It provide the static content of the site and forwards
-  all the dynamic request to the ``uwsgi`` container. The configuration files are
+- **nginx**: is the frontend layer to InjectTool. It runs a NGINX instance and it exposes ``26080`` port.
+  It serves InjectTool application to users. It provide the static content of the site and forwards
+  all the dynamic requests to the **uwsgi** container. The configuration files are
   inside the `nginx`_ folder of InjectTool project.
 
-- **db**: is a PostgreSQL instance in which all InjectTool data are stored. The UID
+- **db**: is a PostgreSQL instance in which all InjectTool data are stored. The
+  :ref:`UID <The Unified Internal Database>`
   is inside this image. All the configuration files are inside the `postgres`_
   folder, while data will be stored persistently inside the InjectTool working
   directory inside *postgres_data* folder
@@ -44,7 +48,7 @@ The container componing InjectTool are the followings:
 - **uwsgi**: is part of the backend layer. It manages django codes, it receives request
   from NGINX and replies with dynamic content. The configuration files are inside
   `uwsgi`_ folder of InjectTool project, while django code is stored inside and
-  specifi InjectTool configuration files are stored in `django_data`_ folder
+  specific InjectTool configuration files are stored in `django_data`_ folder
 
 - **asgi**: is part of backend layer. It manages real time message for real time
   updates (ie status update, messages updates) without reloading pages.
@@ -54,12 +58,14 @@ celery operations:
 
 - **celery-worker**: The first of the three containers running Celery. It relies on
   *uwsgi* container, since it share the same django code of *uwsgi*. It performs
-  :ref:`InjectTool time consuming tasks <Asynchronous Tasks>` asynchronously. It consumes task stored in *redis*
-  database and has access to *postgres* database in order to store data persistently.
+  :ref:`InjectTool time consuming tasks <Asynchronous Tasks>` asynchronously, like
+  data import, validation and data submission to BioSamples. It consumes task
+  stored in *redis* by **celery-beat** or by the user while doing stuff,
+  and has access to *postgres* database in order to store data persistently.
 
 - **celery-beat**: The second of the three containers running celery. It send
-  :ref:`routine tasks <Routine Tasks>` or tasks on regolar timning to
-  celery-worker. This operates without user intervention
+  :ref:`routine tasks <Routine Tasks>` or tasks on regular timing to
+  **celery-worker**. This operates without user intervention
 
 - **celery-flower**: is a monitoring instance of celery workers. It displays information
   regarding tasks. Its contents are rendered in HTML and reached through ``5555`` port
