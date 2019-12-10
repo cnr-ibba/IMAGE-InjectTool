@@ -79,4 +79,5 @@ foreing keys::
   specie = DictSpecie.get_by_synonym('Dog', english_language)
 
 The language management is currently supported for species, but could be extended
-even for other terms, like Organisms parts or Physiological or Develomental stages.
+even for other terms, like :py:class:`uid.models.DictUberon`, :py:class:`uid.models.DictDevelStage`,
+and :py:class:`uid.models.DictPhysioStage`.
