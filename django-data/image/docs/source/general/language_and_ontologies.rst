@@ -5,6 +5,44 @@ Language and Ontologies
 Ontology terms
 --------------
 
+Terms which can be annotated with ontologies inherit from :py:class:`uid.models.DictBase`
+class, and are modeled in the :py:class:`uid.models.DictRole`, :py:class:`uid.models.DictCountry`
+:py:class:`uid.models.DictSex`, :py:class:`uid.models.DictUberon`, :py:class:`uid.models.DictDevelStage`,
+:py:class:`uid.models.DictPhysioStage`, :py:class:`uid.models.DictSpecie` and :py:class:`uid.models.DictBreed`
+classes. These terms are linked to user data, so there could be only one ontology for
+a certain terms. Each term instance has a *label* attribute, that is the text
+value of the ontology term, and a *term* attribute which is the ontology id. The
+ontology link can be formatted for BioSamples submission by setting the *library_name*
+class attribute::
+
+  from uid.models import DictSex
+
+  male = DictSex.objects.get(label="male")
+
+  # prints 'PATO'
+  print(male.library_name)
+
+  # returns [{'value': 'male', 'terms': [{'url': 'http://purl.obolibrary.org/obo/PATO_0000384'}]}]
+  male.format_attribute()
+
+The :py:class:`uid.models.DictSpecie` class implement the *general_breed_label* and
+the *general_breed_term* attribute, in which the general **LBO** ontology is
+mapped for the specie level. This let to give at least the general breed ontology
+for unmapped breed ontology through the :py:class:`uid.models.DictBreed` class::
+
+  from uid.models import DictBreed, DictCountry
+
+  italy = DictCountry.objects.get(label="Italy")
+  breed = DictBreed.objects.get(country=italy, supplied_breed="Cinta Senese")
+
+  # returns [{'value': 'pig breed', 'terms': [{'url': 'http://purl.obolibrary.org/obo/LBO_0000003'}]}]
+  breed.format_attribute()
+
+Ontology terms could be manually annotated by setting the *confidence* with the
+``CURATED`` value from :ref:`Common confidences`, or can be automatically annotated
+by calling :ref:`zooma.tasks`
+
+
 The language system
 -------------------
 
