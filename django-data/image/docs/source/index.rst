@@ -35,6 +35,7 @@ web application:
    general/install_and_configure
    general/databases
    general/apps_and_modules
+   general/language_and_ontologies
    general/asynchronous_tasks
    general/send_messages_in_real_time
 

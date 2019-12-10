@@ -17,7 +17,10 @@ which let to get a enum number value from an Enum object, as described in chapte
   WAITING = STATUSES.get_value("waiting")
 
 ``WAITING`` in this example is the numerical representation of ``waiting`` status
-in the :ref:`The Unified Internal Database`
+in the :ref:`The Unified Internal Database`. Other values stored in this modules
+are the *API endpoints* used for BioSamples submission, the different annotation
+confidences used in the ontology tables or the fields that are listed within the
+batch update views used for fix data in a submission. 
 
 Common statuses
 ^^^^^^^^^^^^^^^
