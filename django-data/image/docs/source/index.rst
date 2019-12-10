@@ -58,6 +58,7 @@ Follow the links to understand what these applications do:
    modules/submissions
    modules/uid
    modules/validation
+   modules/zooma
 
 
 Indices and tables

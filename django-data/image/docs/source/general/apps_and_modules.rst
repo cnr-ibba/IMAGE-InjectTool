@@ -28,7 +28,7 @@ Django apps
 - :ref:`uid <uid-app>`: implement stuff related to :ref:`The Unified Internal Database` and
   views like index, dashboard, about, ...
 - :ref:`validation <validation-app>`: Perform validation stuff by calling `IMAGE-ValidationTool`_
-- **zooma**: Annotate dictionary tables in order to provide ontology informations
+- :ref:`zooma <zooma-app>`: Annotate dictionary tables in order to provide ontology informations
   using `zooma`_ API.
 
 Generic content of a django app
