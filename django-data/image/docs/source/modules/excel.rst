@@ -7,10 +7,10 @@ Excel App
 The excel application models the data import from *Template* files
 
 excel.helpers
-----------------
+-------------
 
 excel.helpers module contents
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: excel.helpers
    :members:
@@ -19,10 +19,10 @@ excel.helpers module contents
 
 
 excel.tasks
---------------
+-----------
 
 excel.tasks module contents
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: excel.tasks
    :members:

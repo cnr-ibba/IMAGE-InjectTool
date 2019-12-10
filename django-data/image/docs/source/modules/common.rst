@@ -20,7 +20,7 @@ which let to get a enum number value from an Enum object, as described in chapte
 in the :ref:`The Unified Internal Database`. Other values stored in this modules
 are the *API endpoints* used for BioSamples submission, the different annotation
 confidences used in the ontology tables or the fields that are listed within the
-batch update views used for fix data in a submission. 
+batch update views used for fix data in a submission.
 
 Common statuses
 ^^^^^^^^^^^^^^^
@@ -78,6 +78,9 @@ common.constants module contents
    :undoc-members:
 
 
+common.fields
+-------------
+
 common.fields module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -86,6 +89,9 @@ common.fields module contents
   :show-inheritance:
   :undoc-members:
 
+
+common.forms
+------------
 
 common.forms module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -96,6 +102,9 @@ common.forms module contents
   :undoc-members:
 
 
+common.helpers
+--------------
+
 common.helpers module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -104,6 +113,9 @@ common.helpers module contents
   :show-inheritance:
   :undoc-members:
 
+
+common.storage
+--------------
 
 common.storage module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -126,6 +138,9 @@ common.tasks module contents
   :undoc-members:
 
 
+common.tests
+------------
+
 common.tests module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -137,6 +152,9 @@ common.tests module contents
 
 common.views
 ------------
+
+common.views module contents
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: common.views
    :members:
