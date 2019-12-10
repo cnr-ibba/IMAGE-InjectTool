@@ -49,14 +49,19 @@ Follow the links to understand what these applications do:
 
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
+   modules/accounts
+   modules/animals
    modules/biosample
    modules/common
+   modules/crbanim
    modules/cryoweb
+   modules/excel
    modules/language
    modules/submissions
    modules/uid
+   modules/samples
    modules/validation
    modules/zooma
 
