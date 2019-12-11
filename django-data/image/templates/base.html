@@ -124,6 +124,13 @@
         </div>
       {% endif %}
 
+      <div class="alert alert-dismissible alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <h4 class="alert-heading">Temporary issue in BioSamples submission!</h4>
+        <p class="mb-0">We are encountering issues with BioSamples production servers, so BioSamples submission is temporarily disabled.
+          Others section of this site are fully operational and can be used without problems.</p>
+      </div>
+
       {# https://docs.djangoproject.com/en/1.11/ref/contrib/messages/#displaying-messages #}
       {% block messages %}
         {% if messages %}

@@ -565,6 +565,19 @@ class SubmitView(LoginRequiredMixin, TokenMixin, MyFormMixin, FormView):
         # track submission id in order to render page
         self.submission_id = submission_id
 
+        # prevent use from data submission
+        logger.warning(
+            "Submission to BioSamples temporarily disabled")
+
+        messages.warning(
+            self.request,
+            ("Submission to BioSamples temporarily disabled. "
+             "Please try again later"),
+            extra_tags="alert alert-dismissible alert-warning")
+
+        # returning success url for the moment
+        return redirect(self.get_success_url())
+
         # check if I can submit object (statuses)
         if not submission.can_submit():
             # return super method (which calls get_success_url)
