@@ -4,6 +4,48 @@ Biosample App
 
 .. _biosample-app:
 
+The biosample app is responsible of registering users to BioSamples servers,
+managing their authentications during submission/retrieval and submit and retrieve
+results from BioSamples servers. It relies on `pyUSIrest <https://pypi.org/project/pyUSIrest/>`_
+module for data submission and can override the default endpoints of that module
+relying on InjectTool configuration (please see :ref:`Switch to BioSamples production environment`).
+Every time the biosample module is imported during InjectTool instantiation or
+by calling managent processes this coded is executed to ovverride BioSamples
+endpoints::
+
+  import pyUSIrest.auth
+  import pyUSIrest.client
+  import pyUSIrest.settings
+
+  from common.constants import EBI_AAP_API_AUTH, BIOSAMPLE_API_ROOT
+
+  # Ovveride pyUSIrest biosample urls, relying on common.constants
+  if pyUSIrest.settings.AUTH_URL != EBI_AAP_API_AUTH:
+      logger.warning("Setting AAP API URL to: %s" % EBI_AAP_API_AUTH)
+
+      # Ovveride Auth.auth_url
+      pyUSIrest.settings.AUTH_URL = EBI_AAP_API_AUTH
+
+  if pyUSIrest.settings.ROOT_URL != BIOSAMPLE_API_ROOT:
+      logger.warning("Setting BIOSAMPLE API ROOT to: %s" % BIOSAMPLE_API_ROOT)
+
+      # Override Root api_root
+      pyUSIrest.settings.ROOT_URL = BIOSAMPLE_API_ROOT
+
+``EBI_AAP_API_AUTH`` and ``BIOSAMPLE_API_ROOT`` are defined in :ref:`common.constants`
+and rely on ``.env`` configuration file
+
+biosample.forms
+---------------
+
+biosample.forms module contents
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: biosample.forms
+  :members:
+  :show-inheritance:
+  :undoc-members:
+
 biosample.helpers
 -----------------
 
@@ -56,6 +98,11 @@ which is called after each batch object for a submission has been requested.
 
 biosample.tasks module contents
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: biosample.tasks.cleanup
+   :members:
+   :show-inheritance:
+   :undoc-members:
 
 .. automodule:: biosample.tasks.retrieval
    :members:

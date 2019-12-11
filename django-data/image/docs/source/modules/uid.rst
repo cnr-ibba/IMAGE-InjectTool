@@ -103,3 +103,15 @@ uid.mixins module contents
   :members:
   :show-inheritance:
   :undoc-members:
+
+
+uid.views
+----------------
+
+uid.views module contents
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: uid.views
+  :members:
+  :show-inheritance:
+  :undoc-members:

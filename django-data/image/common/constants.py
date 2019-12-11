@@ -22,10 +22,10 @@ BIOSAMPLE_URL = config(
 
 # read biosample URLs from configuration file
 EBI_AAP_API_AUTH = config(
-    'EBI_AAP_API_AUTH', default="https://explore.api.aai.ebi.ac.uk/auth")
+    'EBI_AAP_API_AUTH', default="https://explore.api.aai.ebi.ac.uk")
 
 BIOSAMPLE_API_ROOT = config(
-    'BIOSAMPLE_API_ROOT', default="https://submission-test.ebi.ac.uk/api/")
+    'BIOSAMPLE_API_ROOT', default="https://submission-test.ebi.ac.uk")
 
 
 class EnumMixin():

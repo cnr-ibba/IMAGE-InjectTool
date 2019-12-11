@@ -22,7 +22,7 @@ Please follow your platform documentation to install `docker-compose`_.
 .. _`install docker`: https://docs.docker.com/engine/installation/
 .. _`docker-compose`: https://docs.docker.com/compose/install/
 
-Donwload and install InjectTool
+Download and install InjectTool
 -------------------------------
 
 A detailed description on how to install InjectTool is described in
@@ -40,6 +40,10 @@ URLs in the ``.env`` file, like this::
   BIOSAMPLE_URL=https://www.ebi.ac.uk/biosamples/samples
   EBI_AAP_API_AUTH=https://api.aai.ebi.ac.uk/auth
   BIOSAMPLE_API_ROOT=https://submission.ebi.ac.uk/api/
+
+This is enough to ovverride the default API endpoints defined in `pyUSIrest <https://pypi.org/project/pyUSIrest/>`_,
+which is the main module for BioSamples submission. For more information, please
+refer to :ref:`Biosample App` documentation.
 
 .. note:: remember to re-create countainers since those variables are esported
    as environment variables.

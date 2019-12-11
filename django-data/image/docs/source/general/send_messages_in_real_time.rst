@@ -33,7 +33,7 @@ asynchronous message and update submisison detail page accordingly::
   # construct the validation message to show in submission detail:
   message = construct_validation_message(submission)
 
-  # send message to submission (submission detail will change aaconrdingly):
+  # send message to submission (submission detail will change accordingly):
   send_message(submission, message)
 
 Asgi image

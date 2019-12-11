@@ -18,7 +18,7 @@ from ..forms import OrganizationForm
 from ..models import Submission
 from ..views import (
     DashBoardView, SummaryView, AboutView, IndexView, PrivacyView, TermsView,
-    AboutUploadingView, UpdateOrganizationView)
+    AboutUploadingView, UpdateOrganizationView, AboutSubmissionView)
 
 
 class Initialize(TestCase):
@@ -128,6 +128,20 @@ class AboutUploadingViewTest(StatusMixinTestCase, Initialize):
     def test_url_resolves_view(self):
         view = resolve('/about_uploading/')
         self.assertIsInstance(view.func.view_class(), AboutUploadingView)
+
+
+class AboutSubmissionViewTest(StatusMixinTestCase, Initialize):
+    def setUp(self):
+        # create a test user
+        super().setUp()
+
+        # get the url and a respose
+        self.url = reverse('about-submission')
+        self.response = self.client.get(self.url)
+
+    def test_url_resolves_view(self):
+        view = resolve('/about_submission/')
+        self.assertIsInstance(view.func.view_class(), AboutSubmissionView)
 
 
 class SummaryViewTest(GeneralMixinTestCase, Initialize):
