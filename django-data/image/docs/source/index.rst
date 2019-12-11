@@ -16,7 +16,7 @@ contents. InjectTool is able to perform time consuming task on the background, l
 user data to `BioSamples <https://www.ebi.ac.uk/biosamples/>`_, using
 `Celery <https://docs.celeryproject.org/en/latest/>`_.
 
-InjectTool is available at https://www.wp5image.eu/, while the repository of
+InjectTool is available at https://inject.image2020genebank.eu/, while the repository of
 source code is maintained at `GitHub <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
 
 This guide is addressed to developers/contribuitor to InjectTool or people that
@@ -35,6 +35,7 @@ web application:
    general/install_and_configure
    general/databases
    general/apps_and_modules
+   general/language_and_ontologies
    general/asynchronous_tasks
    general/send_messages_in_real_time
 
@@ -48,15 +49,21 @@ Follow the links to understand what these applications do:
 
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
+   modules/accounts
+   modules/animals
    modules/biosample
    modules/common
+   modules/crbanim
    modules/cryoweb
+   modules/excel
    modules/language
    modules/submissions
    modules/uid
+   modules/samples
    modules/validation
+   modules/zooma
 
 
 Indices and tables

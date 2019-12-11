@@ -2,7 +2,6 @@
 {% extends "base.html" %}
 
 {% load static %}
-{% load staticfiles %}
 
 {% load uid_tags %}
 
@@ -34,25 +33,24 @@
       <img href="{% static 'images/02-signup.png' %}" data-fancybox data-caption="Sign up in InjectTool" class="img-thumbnail mx-auto float-right" src="{% static 'images/02-signup-thumbnail.png' %}" alt="Sign-Up-Form">
     </div>
 
-    <p class="my-3">After registration is complete, you will receive an email to
+    <p id="aap_registration" class="my-3">After registration is complete, you will receive an email to
     the address used for registration. Click on the activation link, in order to
     complete InjectTool registration.  Now you will require an
     <a href="https://aai.ebi.ac.uk/home" target="_blank">EBI AAP profile</a>
     in order to submit your data into BioSamples.
     Please note that we can't store your AAP credentials on our site, you need
     to keep record of AAP credentials, otherwise you will not be able to submit
-    your data to BioSamples. Please note that this site is in beta stage,
-    so this registration will be done on BioSample tests servers. Click on
+    your data to BioSamples. Click on
     <em>Generate a new AAP profile button</em> to fill out the form to create a new EBI AAP profile:</p>
 
     <div class="row align-items-center">
-      <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left w-25" src="{% static 'images/03-create_aap.png' %}" alt="Generate a new AAP profile">
+      <img href="{% static 'images/03-create_aap.png' %}" data-fancybox data-caption="Press generate a new AAP profile button" class="img-thumbnail mx-auto float-left w-25" style="min-width: 300px" src="{% static 'images/03-create_aap.png' %}" alt="Generate a new AAP profile">
       <img href="{% static 'images/04-aap-profile.png' %}" data-fancybox data-caption="Fill form and generate a new AAP profile" class="img-thumbnail mx-auto float-right" src="{% static 'images/04-aap-profile-thumbnail.png' %}" alt="Generate a new AAP profile Form">
     </div>
 
     <p class="my-3">If the registration is successful, you will be able to generate
-      a new AAP token. This token is stored in your browser session and will be used to perform
-      BioSamples submission. The token will be valid for one hour. When submitting
+      a new AAP token. This token is stored in your browser session, will be valid
+      for 24 hours and will be used to perform BioSamples submission. When submitting
       data to BioSamples, InjectTool will check token validity and will ask
       the user to generate a new token if necessary. You can check your token
       status by clicking <a href="{% url 'biosample:token' %}">My Token</a> on
@@ -66,7 +64,7 @@
   </section>
 
   <section>
-    <h2 class="mt-3">Preparing a new submission</h2>
+    <h2 id="prepare_a_new_submission" class="mt-3">Preparing a new submission</h2>
 
     <p>
       Before starting a new submission with InjectTool, you need to prepare data to upload. Currently,
@@ -74,7 +72,7 @@
       and <a href="#template_file">Template</a> data upload.
     </p>
 
-    <h3><a class="anchor" id="cryoweb_dump"></a>Creating a Cryoweb dump</h3>
+    <h3><a id="cryoweb_dump"></a>Creating a Cryoweb dump</h3>
 
     <p>
       Cryoweb data need to be imported as <em>data-only</em> dumps, as described from
@@ -105,7 +103,8 @@ postgres=# \l
 
     <p>
       <code>cryo1</code>, owned by <code>apiis_admin</code>, is the target database we need to dump.
-      Other databases are system databases. Next, make a <em>data-only</em>
+      Other databases are system databases. Log out from the Postgres console with
+      <code>\q</code> and then make a <em>data-only</em>
       dump using the <code>--data-only</code> parameter for the <code>apiis_admin</code>
       schema, as in the following example:
     </p>
@@ -170,8 +169,24 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <h3><a id="template_file"></a>Creating a template file</h3>
 
     <p>
-      Download the empty template file from <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
-      and start filling tables. When it is completed, please continue to the next paragraph.
+      The Template file is the tabular version of <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a> rules,
+      however some records will be provided by InjectTool itself, for instance
+      the information regarding the submitter or the institution are provided by
+      the user during the registration phase and shouldn't be provided during the
+      template loading. To upload your data, download an empty template file from
+      <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
+      and start by filling <code>breed</code>, <code>animal</code> and <code>sample</code>
+      sheets: not all columns are mandatory, please refer to
+      <a href="https://github.com/cnr-ibba/IMAGE-metadata/blob/master/docs/image_sample_metadata.md">IMAGE metadata - sample specification</a>
+      for a list of mandatory and recommended attributes. Not all columns are
+      required to have a successful upload, please take a look
+      <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/307dd77d59836c4616ed057fb664fd2390b18f26/django-data/image/excel/helpers/exceltemplate.py#L25">here</a>
+      to have an idea on what fields are currently supported by the Template
+      loading process. Please keep in mind that <em>animal IDs</em> in <code>animal</code>
+      and <code>samples</code> sheets need to be consistent in order to have a
+      successful upload; the same applies for the couple <em>Species</em> and <em>Breed</em>
+      that need to be consistent in <code>breed</code> and <code>animal</code>
+      sheets.
     </p>
 
   </section>
@@ -204,8 +219,88 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       After the submission is created, data will be imported in background by the
       system. When submission status has the <em>Loaded</em> state, data are imported
       with success from your data source and need to be validated before submission.
-      You can have more information on submission statuses <a href="{% url 'about' %}#submission_statuses">here</a>.
+      You can have more information on submission statuses <a href="{% url 'about-submission' %}#submission_statuses">here</a>.
     </p>
+
+    <div class="row align-items-center">
+      <img href="{% static 'images/09-submission_loaded.png' %}" data-fancybox data-caption="Submission Loaded" class="img-thumbnail mx-auto float-right" src="{% static 'images/09-submission_loaded-thumbnail.png' %}" alt="Submission loaded">
+    </div>
+
+    <p>
+      Annotation task are called automatically after data import. You can start
+      annotation tasks manually by clicking on <em>Annotate</em> button in the
+      <a href="{% url 'zooma:ontologies_report' %}">Ontology report</a> page.
+    </p>
+  </section>
+
+  <section>
+    <h2 class="mt-3">Validate your submission</h2>
+
+    <p>
+      You will need to validate your data against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      rules before uploading data into BioSamples. From the submission detail page
+      click on the <em>Validate</em> button on the bottom of the page:
+    </p>
+
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/10-validate-button.png' %}" alt="Validate Button">
+    </div>
+
+    <p>
+      Your submission will enter in the <em>Waiting</em> status during the validation
+      process. During this state you aren't allowed to modify your submission, nor
+      delete or submit it. When the validation process terminates, your submission
+      could be in two different states: the <em>Ready</em> state means that your data
+      are compliant with the <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
+      rules and can be submitted to BioSamples; The <em>Need Revision</em> state
+      means that your data have issues with rules or lacks of some mandatory fields.
+      If your data are not valid you could click on <em>validation</em> link in the
+      Sample or Animal issues field in order to <em>Bulk update</em> objects with
+      the same type of errors. Or you could click on the <em>Edit data</em> button
+      in order to manage and fix your data one by one:
+    </p>
+
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/11-issues-in-validation.png' %}" alt="Issues in validation">
+    </div>
+
+  </section>
+
+  <section>
+    <h2 class="mt-3">Submit your data to BioSamples</h2>
+
+    <p>
+      If your data are valid and in the <em>Ready</em> status, you can submit them
+      to BioSamples by clicking on <em>Submit</em> button on the bottom of the
+      submission detail page. You could be prompted for a password in order to generate
+      a BioSample token. This password is the password you have chosen during the
+      registration process, when you have generated an <a href="#aap_registration">AAP profile</a>:
+    </p>
+
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/12-submit_to_biosamples.png' %}" alt="Submit to BioSamples">
+    </div>
+
+    <p>
+      While your data are submitted to Biosamples, your submission will enter in
+      <em>Waiting</em> and <em>Submitted</em> states: during those stages data
+      will be submitted to BioSamples and you won't be able to modify or delete your data.
+      InjectTool will perform regularly updates on your submission process, asking
+      to BioSamples about statuses and errors. If the submission process is successful,
+      your submission will change its status to <em>Completed</em>:
+      <strong>
+        <span class="text-primary">
+        this means that your data are correctly registed into BioSamples and received
+        a BioSample id.</span>
+      </strong>
+      You can inspect your submitted data by clicking on <em>Edit data</em> button
+      and by clicking on the <em>BioSamples id</em> link:
+    </p>
+
+    <div class="row align-items-center">
+      <img href="{% static 'images/13-submission_complete.png' %}" data-fancybox data-caption="Submission Completed with BioSamples IDs" class="img-thumbnail mx-auto float-right" src="{% static 'images/13-submission_complete-thumbnail.png' %}" alt="Submission completed with BioSamples ids">
+    </div>
+
   </section>
 
   <section>
@@ -228,10 +323,22 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
   </section>
 
-  <div class="row justify-content-around">
-    <a class="btn btn-info btn-lg" href="{% url 'index' %}" role="button">Back to Home</a>
-    <a class="btn btn-primary btn-lg" href="{% url 'uid:dashboard' %}" role="button">Dashboard</a>
-  </div>
+  <p class="container mt-3">
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-info btn-lg btn-block" href="{% url 'about' %}" role="button">About IMAGE-InjectTool</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-submission' %}" role="button">About Submissions</a>
+      </div>
+      <div class="col-lg-4 col-md-6 mt-2 text-center">
+        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'index' %}" role="button">Back to Home</a>
+      </div>
+    </div>
+  </p>
+
+  {# back to top adapted from https://codepen.io/michalwyrwa/pen/GBaPPj #}
+  <a id="back-to-top" href="#" class="btn btn-primary btn-lg back-to-top" role="button"><i class="fas fa-chevron-up"></i></a>
 
 {% endblock content %}
 
@@ -241,6 +348,24 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     $(function () {
       $('[data-fancybox]').fancybox({
   	     // Options will go here
+      });
+    });
+
+    $(document).ready(function(){
+      $(window).scroll(function () {
+        if ($(this).scrollTop() > 50) {
+          $('#back-to-top').fadeIn();
+        } else {
+          $('#back-to-top').fadeOut();
+        }
+      });
+
+      // scroll body to 0px on click
+      $('#back-to-top').click(function () {
+        $('body,html').animate({
+          scrollTop: 0
+          }, 400);
+        return false;
       });
     });
   </script>
