@@ -9,8 +9,8 @@ django==2.2.8
 ipython
 django-debug-toolbar==2.1
 python-decouple
-coverage
-coveralls
+coverage==4.5.4
+coveralls==1.9.2
 scrutinizer-ocular
 pytest-django
 pytest-asyncio
