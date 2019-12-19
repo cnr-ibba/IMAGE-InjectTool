@@ -54,6 +54,10 @@ class AboutUploadingView(TemplateView):
     template_name = "uid/uploading_data.html"
 
 
+class AboutSubmissionView(TemplateView):
+    template_name = "uid/about_submission.html"
+
+
 class DashBoardView(LoginRequiredMixin, TemplateView):
     template_name = "uid/dashboard.html"
 

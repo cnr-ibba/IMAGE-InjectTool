@@ -50,6 +50,7 @@
               <a class="nav-link dropdown-toggle" href="#" id="aboutMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">About</a>
               <div class="dropdown-menu" aria-labelledby="aboutMenu">
                 <a class="dropdown-item {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">About IMAGE-InjectTool</a>
+                <a class="dropdown-item {% if request.resolver_match.url_name == 'about-submission' %}active{% endif %}" href="{% url 'about-submission' %}">About Submissions</a>
                 <a class="dropdown-item {% if request.resolver_match.url_name == 'about-uploading' %}active{% endif %}" href="{% url 'about-uploading' %}">Uploading data into BioSamples</a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item {% if request.resolver_match.url_name == 'terms-and-conditions' %}active{% endif %}" href="{% url 'terms-and-conditions' %}">Terms and Conditions</a>
@@ -86,6 +87,7 @@
                   <a class="dropdown-item" href="{% url 'uid:organization_update' %}">My organization</a>
                   <a class="dropdown-item" href="{% url 'accounts:password_change' %}">Change password</a>
                   <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{% url 'submissions:list' %}">My submissions</a>
                   <a class="dropdown-item" href="{% url 'animals:list' %}">My animals</a>
                   <a class="dropdown-item" href="{% url 'samples:list' %}">My samples</a>
                   <div class="dropdown-divider"></div>

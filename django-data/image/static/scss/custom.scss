@@ -94,3 +94,10 @@ pre {
     padding-left: $footer-padding;
   }
 }
+
+.back-to-top {
+    position: fixed;
+    bottom: $footer-height;
+    right: 25px;
+    display: none;
+}

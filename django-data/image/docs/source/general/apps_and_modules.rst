@@ -5,30 +5,29 @@ Django apps and modules
 Django apps
 -----------
 
-- **accounts**: Implement the site registration with the update/create user stuff.
+- :ref:`accounts <accounts-app>`: Implement the site registration with the update/create user stuff.
   it relies on ``django-registration-redux`` 3rd party app and the default :py:mod:`django.contrib.auth`
   module.
-- **animals**: Implement all stuff to visualize and manage Animals (organims)
-  object
+- :ref:`animals <animals-app>`: Implement all stuff to visualize and manage Animals (organim objects)
 - :ref:`biosample <biosample-app>`: implement stuff regarding `EBI AAP`_ registration
   (2nd step InjectTool registration) and biosample submission and retrieval. The
   biosample submission process in described in :ref:`biosample.tasks`
 - :ref:`common <common-app>`: modules and functions that could be imported from
   other django applications
-- **crbanim**: implement stuff regarding CRBanim data import into :ref:`The Unified Internal Database`
+- :ref:`crbanim <crbanim-app>`: implement stuff regarding CRBanim data import into :ref:`The Unified Internal Database`
 - :ref:`cryoweb <cryoweb-app>`: implement stuff regarding Cryoweb data import into :ref:`The Unified Internal Database`
-- **excel**: implement stuff regarding Template data import into :ref:`The Unified Internal Database`
+- :ref:`excel <excel-app>`: implement stuff regarding Template data import into :ref:`The Unified Internal Database`
 - **image**: django configuration files
-  views like index, dashboard, about, ...
 - :ref:`language <language-app>`: implement stuff related to language module implementation and to
   resolve common names (ie Cow) into more scientific names (ie Bos taurus)
-- **samples**: Implement all stuff to visualize and manage Samples (specimen from organim)
+- :ref:`samples <samples-app>`: Implement all stuff to visualize and manage Samples (specimens from organim)
 - :ref:`submissions <submissions-app>`: Implement all stuff regarding submission (uploading
   user data, starting task as validation and submission, call Sample and Animal views)
 - **submission_ws**: stuff required to deal with real time messages
 - :ref:`uid <uid-app>`: implement stuff related to :ref:`The Unified Internal Database` and
+  views like index, dashboard, about, ...
 - :ref:`validation <validation-app>`: Perform validation stuff by calling `IMAGE-ValidationTool`_
-- **zooma**: Annotate dictionary tables in order to provide ontology informations
+- :ref:`zooma <zooma-app>`: Annotate dictionary tables in order to provide ontology informations
   using `zooma`_ API.
 
 Generic content of a django app

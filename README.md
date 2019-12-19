@@ -177,12 +177,14 @@ EMAIL_PORT = <your smtp port>
 > NOTE: Your email provider (ie Gmail) could untrust email sent from an unkwnown
 address, you need to log in and authorize email sent from a new address
 
-You can also set the EBI endpoints for submitting data to BioSamples:
+You can also set the EBI endpoints for submitting data to BioSamples. Please
+refer to the correct API endpoints to submit data into BioSamples production
+servers:
 
 ```
 BIOSAMPLE_URL=https://wwwdev.ebi.ac.uk/biosamples/samples
-EBI_AAP_API_AUTH=https://explore.api.aai.ebi.ac.uk/auth
-BIOSAMPLE_API_ROOT=https://submission-test.ebi.ac.uk/api/
+EBI_AAP_API_AUTH=https://explore.api.aai.ebi.ac.uk
+BIOSAMPLE_API_ROOT=https://submission-test.ebi.ac.uk
 ```
 
 The Inject Tool interface is available for a local access through Internet browser at the URL:
@@ -326,10 +328,10 @@ only data from an existing cryoweb instance. Execute a dump from a cryoweb like 
 $ pg_dump -U <user> -h <host> --column-inserts --data-only --schema apiis_admin <cryoweb_database> > cryoweb_data_only.sql
 ```
 
-Biosample submission
---------------------
+Biosamples submission
+---------------------
 
-Generate a biosample `json` file:
+Generate a biosamples `json` file:
 
 ```
 $ docker-compose run --rm uwsgi python manage.py get_json_for_biosample --submission 1 --outfile italian_submission_example.json

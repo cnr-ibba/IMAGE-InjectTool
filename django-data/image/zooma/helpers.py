@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def annotate_generic(model, zooma_type):
-    """Annotate a generic DictTable
+    """Annotate missing terms from a generic DictTable
 
     Args:
         model (:py:class:`uid.models.DictBase`): A DictBase istance
@@ -52,13 +52,13 @@ def annotate_generic(model, zooma_type):
 
 
 def annotate_country(country_obj):
-    """Annotate a country object using Zooma"""
+    """Annotate country objects using Zooma"""
 
     annotate_generic(country_obj, "country")
 
 
 def annotate_breed(breed_obj):
-    """Annotate a breed object using Zooma"""
+    """Annotate breed objects using Zooma"""
 
     logger.debug("Processing %s" % (breed_obj))
 
@@ -88,24 +88,24 @@ def annotate_breed(breed_obj):
 
 
 def annotate_specie(specie_obj):
-    """Annotate a specie object using Zooma"""
+    """Annotate specie objects using Zooma"""
 
     annotate_generic(specie_obj, "species")
 
 
 def annotate_organismpart(uberon_obj):
-    """Annotate an organism part object using Zooma"""
+    """Annotate organism part objects using Zooma"""
 
     annotate_generic(uberon_obj, "organism part")
 
 
 def annotate_develstage(dictdevelstage_obj):
-    """Annotate an developmental stage part object using Zooma"""
+    """Annotate developmental stage objects using Zooma"""
 
     annotate_generic(dictdevelstage_obj, "developmental stage")
 
 
 def annotate_physiostage(dictphysiostage_obj):
-    """Annotate an physiological stage object using Zooma"""
+    """Annotate physiological stage objects using Zooma"""
 
     annotate_generic(dictphysiostage_obj, "physiological stage")
