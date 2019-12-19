@@ -2,9 +2,6 @@
 History
 =======
 
-0.9.1.dev0
-----------
-
 TODO
 ^^^^
 
@@ -12,14 +9,19 @@ TODO
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
+0.9.1 (2019-12-19)
+------------------
+
 Features
 ^^^^^^^^
 
-* minor fixes
 * fix issue in excel import when more that one animal is found in
   ``excel.helpers.ExcelTemplateReader.get_animal_from_sample``
+* upgraded ``pyUSIrest`` module to support the BioSamples submission to
+  production environment
 * fix ``wp5image.eu`` links in sphinx docs and templates
 * update documentation
+* minor fixes
 
 0.9.0 (2019-11-15)
 ------------------
