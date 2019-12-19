@@ -16,6 +16,8 @@ Features
 ^^^^^^^^
 
 * minor fixes
+* fix issue in excel import when more that one animal is found in
+  ``excel.helpers.ExcelTemplateReader.get_animal_from_sample``
 * fix ``wp5image.eu`` links in sphinx docs and templates
 * update documentation
 

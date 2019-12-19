@@ -140,6 +140,31 @@ class ExcelTemplateReaderTestCase(
         samples = self.reader.get_sample_records()
         self.check_generator(samples, 3)
 
+    def test_issue_in_get_animal_from_sample(self):
+        """Test a non unique mapping to animal id"""
+
+        animals = self.reader.get_animal_records()
+
+        # duplicate animals
+        animals = list(animals) * 2
+
+        # now patching the previous function
+        with patch(
+                'excel.helpers.ExcelTemplateReader'
+                '.get_animal_records') as my_animal:
+
+            my_animal.return_value = animals
+
+            # now get the first sample
+            sample = next(self.reader.get_sample_records())
+
+            # and get an animal from this sample and assert errors
+            self.assertRaisesRegex(
+                ExcelImportError,
+                "Can't determine a unique animal from 'Sample",
+                self.reader.get_animal_from_sample,
+                sample)
+
     def test_check_accuracies(self):
         """Test check accuracies method"""
 
