@@ -2,7 +2,7 @@
 History
 =======
 
-0.9.1.dev0
+0.9.2.dev0
 ----------
 
 TODO
@@ -15,11 +15,22 @@ TODO
 Features
 ^^^^^^^^
 
-* minor fixes
+* force excel date cells into ``datetime.date`` objects
+* remove duplicated ``animal_age_at_collection`` column from excel template
+
+0.9.1 (2019-12-19)
+------------------
+
+Features
+^^^^^^^^
+
 * fix issue in excel import when more that one animal is found in
   ``excel.helpers.ExcelTemplateReader.get_animal_from_sample``
+* upgraded ``pyUSIrest`` module to support the BioSamples submission to
+  production environment
 * fix ``wp5image.eu`` links in sphinx docs and templates
 * update documentation
+* minor fixes
 
 0.9.0 (2019-11-15)
 ------------------

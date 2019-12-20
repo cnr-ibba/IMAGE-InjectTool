@@ -193,12 +193,13 @@ class ExcelTemplateReader(FileDataSourceMixin):
                 if not data[idx]:
                     continue
 
+                # forcing a date object
                 data[idx] = datetime.datetime(
                     *xlrd.xldate_as_tuple(
                         data[idx],
                         self.book.datemode
                     )
-                )
+                ).date()
 
             # get a new object
             record = Record._make(data)
