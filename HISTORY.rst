@@ -2,12 +2,21 @@
 History
 =======
 
+0.9.2.dev0
+----------
+
 TODO
 ^^^^
 
 * model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
+
+Features
+^^^^^^^^
+
+* force excel date cells into ``datetime.date`` objects
+* remove duplicated ``animal_age_at_collection`` column from excel template
 
 0.9.1 (2019-12-19)
 ------------------
