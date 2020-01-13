@@ -6,8 +6,6 @@ Created on Mon Jan 13 12:22:34 2020
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
-import itertools
-
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 
@@ -65,9 +63,20 @@ class ExportSubmissionViewTest(
         # https://stackoverflow.com/a/8244317/4385116
         self.assertEqual(
             self.response.get('Content-Disposition'),
-            'attachment; filename="somefilename.csv"'
+            'attachment; filename="submission_1_names.csv"'
         )
 
+    def test_file_content(self):
+        reference = [
+            b'id,name,biosample_id,material,status,last_changed,'
+            b'last_submitted\r\n',
+            b'3,ANIMAL:::ID:::son,,Organism,Loaded,,\r\n',
+            b'2,ANIMAL:::ID:::mother,,Organism,Loaded,,\r\n',
+            b'1,ANIMAL:::ID:::132713,,Organism,Loaded,,\r\n',
+            b'1,Siems_0722_393449,,Specimen from Organism,Loaded,,\r\n',
+        ]
+
         # https://docs.djangoproject.com/en/dev/ref/request-response/#streaminghttpresponse-objects
-        self.assertIn(b'Row 0,0\r\n', itertools.islice(
-                self.response.streaming_content, 5))
+        test = list(self.response.streaming_content)
+
+        self.assertListEqual(reference, test)

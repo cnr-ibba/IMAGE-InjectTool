@@ -9,8 +9,11 @@ Created on Thu Jun 27 11:52:37 2019
 import asyncio
 import re
 
+from import_export import resources
+
 from common.constants import STATUSES
 from common.helpers import send_message_to_websocket
+from uid.models import Animal, Sample
 
 
 def send_message(submission_obj, validation_message=None):
@@ -54,3 +57,42 @@ def is_target_in_message(target, messages):
         if re.search(message, target):
             return True
     return False
+
+
+# to export data with django-import-export library
+class AnimalResource(resources.ModelResource):
+    class Meta:
+        model = Animal
+        fields = (
+            'id',
+            'name',
+            'biosample_id',
+            'material',
+            'status',
+            'last_changed',
+            'last_submitted'
+        )
+
+        export_order = fields
+
+    def dehydrate_status(self, animal):
+        return STATUSES.get_value_display(animal.status)
+
+
+class SampleResource(resources.ModelResource):
+    class Meta:
+        model = Sample
+        fields = (
+            'id',
+            'name',
+            'biosample_id',
+            'material',
+            'status',
+            'last_changed',
+            'last_submitted'
+        )
+
+        export_order = fields
+
+    def dehydrate_status(self, sample):
+        return STATUSES.get_value_display(sample.status)

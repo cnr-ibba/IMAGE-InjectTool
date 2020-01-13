@@ -6,10 +6,10 @@ Created on Tue Jul 24 15:49:23 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import logging
-import ast
-import csv
+import io
 import re
+import ast
+import logging
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
@@ -41,7 +41,7 @@ from animals.tasks import BatchDeleteAnimals, BatchUpdateAnimals
 from samples.tasks import BatchDeleteSamples, BatchUpdateSamples
 
 from .forms import SubmissionForm, ReloadForm, UpdateSubmissionForm
-from .helpers import is_target_in_message
+from .helpers import is_target_in_message, AnimalResource, SampleResource
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -378,30 +378,33 @@ class ExportSubmissionView(OwnerMixin, BaseDetailView):
     def get(self, request, *args, **kwargs):
         """A view that streams a large CSV file."""
 
-        class Echo:
-            """An object that implements just the write method of the file-like
-            interface.
-            """
-            def write(self, value):
-                """Write the value by returning it, instead of storing in a
-                buffer."""
-                return value
-
         # required to call queryset and to initilize the proper BaseDetailView
         # attributes
         self.object = self.get_object()
 
-        # Generate a sequence of rows. The range is based on the maximum number
-        # of rows that can be handled by a single sheet in most spreadsheet
-        # applications.
-        rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
-        pseudo_buffer = Echo()
-        writer = csv.writer(pseudo_buffer)
+        # ok define two distinct queryset to filter animals and samples
+        # relying on a submission object (self.object)
+        animal_qs = Animal.objects.filter(submission=self.object)
+        sample_qs = Sample.objects.filter(submission=self.object)
+
+        # get the two import_export.resources.ModelResource objects
+        animal_resource = AnimalResource()
+        sample_resource = SampleResource()
+
+        # get the two data objects relying on custom queryset
+        animal_dataset = animal_resource.export(animal_qs)
+        sample_dataset = sample_resource.export(sample_qs)
+
+        # merge the two tablib.Datasets into one
+        merged_dataset = animal_dataset.stack(sample_dataset)
+
+        # streaming a response
         response = StreamingHttpResponse(
-            (writer.writerow(row) for row in rows),
+            io.StringIO(merged_dataset.csv),
             content_type="text/csv")
         response['Content-Disposition'] = (
-            'attachment; filename="somefilename.csv"')
+            'attachment; filename="submission_%s_names.csv"' % self.object.id)
+
         return response
 
 
