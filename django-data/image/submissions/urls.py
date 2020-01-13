@@ -27,6 +27,10 @@ urlpatterns = [
         views.EditSubmissionView.as_view(),
         name='edit'),
 
+    url(r'^(?P<pk>[-\w]+)/export/$',
+        views.ExportSubmissionView.as_view(),
+        name='export'),
+
     url(r'^(?P<pk>[-\w]+)/reload/$',
         views.ReloadSubmissionView.as_view(),
         name='reload'),

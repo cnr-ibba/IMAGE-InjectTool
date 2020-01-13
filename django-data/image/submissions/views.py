@@ -8,14 +8,16 @@ Created on Tue Jul 24 15:49:23 2018
 
 import logging
 import ast
+import csv
 import re
-from django.core.exceptions import ObjectDoesNotExist
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, StreamingHttpResponse
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
+from django.views.generic.detail import BaseDetailView
 from django.views.generic.edit import BaseUpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
@@ -366,6 +368,41 @@ class EditSubmissionView(
         context["object_list"] = new_object_list
 
         return context
+
+
+# streaming CSV large files, as described in
+# https://docs.djangoproject.com/en/2.2/howto/outputting-csv/#streaming-large-csv-files
+class ExportSubmissionView(OwnerMixin, BaseDetailView):
+    model = Submission
+
+    def get(self, request, *args, **kwargs):
+        """A view that streams a large CSV file."""
+
+        class Echo:
+            """An object that implements just the write method of the file-like
+            interface.
+            """
+            def write(self, value):
+                """Write the value by returning it, instead of storing in a
+                buffer."""
+                return value
+
+        # required to call queryset and to initilize the proper BaseDetailView
+        # attributes
+        self.object = self.get_object()
+
+        # Generate a sequence of rows. The range is based on the maximum number
+        # of rows that can be handled by a single sheet in most spreadsheet
+        # applications.
+        rows = (["Row {}".format(idx), str(idx)] for idx in range(65536))
+        pseudo_buffer = Echo()
+        writer = csv.writer(pseudo_buffer)
+        response = StreamingHttpResponse(
+            (writer.writerow(row) for row in rows),
+            content_type="text/csv")
+        response['Content-Disposition'] = (
+            'attachment; filename="somefilename.csv"')
+        return response
 
 
 class ListSubmissionsView(OwnerMixin, ListView):
