@@ -6,16 +6,18 @@ Created on Tue Jul 24 15:49:23 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
-import logging
-import ast
+import io
 import re
-from django.core.exceptions import ObjectDoesNotExist
+import ast
+import logging
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, StreamingHttpResponse
 from django.views.generic import (
     CreateView, DetailView, ListView, UpdateView, DeleteView)
+from django.views.generic.detail import BaseDetailView
 from django.views.generic.edit import BaseUpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
@@ -39,7 +41,7 @@ from animals.tasks import BatchDeleteAnimals, BatchUpdateAnimals
 from samples.tasks import BatchDeleteSamples, BatchUpdateSamples
 
 from .forms import SubmissionForm, ReloadForm, UpdateSubmissionForm
-from .helpers import is_target_in_message
+from .helpers import is_target_in_message, AnimalResource, SampleResource
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -366,6 +368,44 @@ class EditSubmissionView(
         context["object_list"] = new_object_list
 
         return context
+
+
+# streaming CSV large files, as described in
+# https://docs.djangoproject.com/en/2.2/howto/outputting-csv/#streaming-large-csv-files
+class ExportSubmissionView(OwnerMixin, BaseDetailView):
+    model = Submission
+
+    def get(self, request, *args, **kwargs):
+        """A view that streams a large CSV file."""
+
+        # required to call queryset and to initilize the proper BaseDetailView
+        # attributes
+        self.object = self.get_object()
+
+        # ok define two distinct queryset to filter animals and samples
+        # relying on a submission object (self.object)
+        animal_qs = Animal.objects.filter(submission=self.object)
+        sample_qs = Sample.objects.filter(submission=self.object)
+
+        # get the two import_export.resources.ModelResource objects
+        animal_resource = AnimalResource()
+        sample_resource = SampleResource()
+
+        # get the two data objects relying on custom queryset
+        animal_dataset = animal_resource.export(animal_qs)
+        sample_dataset = sample_resource.export(sample_qs)
+
+        # merge the two tablib.Datasets into one
+        merged_dataset = animal_dataset.stack(sample_dataset)
+
+        # streaming a response
+        response = StreamingHttpResponse(
+            io.StringIO(merged_dataset.csv),
+            content_type="text/csv")
+        response['Content-Disposition'] = (
+            'attachment; filename="submission_%s_names.csv"' % self.object.id)
+
+        return response
 
 
 class ListSubmissionsView(OwnerMixin, ListView):

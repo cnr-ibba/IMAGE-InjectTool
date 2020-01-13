@@ -49,7 +49,7 @@ class SubmissionTaskMixin():
 
         Args:
             submission_obj (uid.models.Submission): an UID submission
-            object
+                object
             construct_message (bool): construct validation message or not
         """
 
@@ -66,7 +66,7 @@ class SubmissionTaskMixin():
 
         Args:
             submission_obj (uid.models.Submission): an UID submission
-            object
+                object
             status (int): a :py:class:`common.constants.STATUSES` value
             message (str): the message to send
             construct_message (bool): construct validation message or not
