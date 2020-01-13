@@ -79,4 +79,4 @@ class ExportSubmissionViewTest(
         # https://docs.djangoproject.com/en/dev/ref/request-response/#streaminghttpresponse-objects
         test = list(self.response.streaming_content)
 
-        self.assertListEqual(reference, test)
+        self.assertListEqual(sorted(reference), sorted(test))
