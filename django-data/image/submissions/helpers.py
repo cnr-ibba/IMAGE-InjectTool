@@ -23,7 +23,7 @@ def send_message(submission_obj, validation_message=None):
 
     Args:
         submission_obj (uid.models.Submission): an UID submission
-        object
+            object
         validation_message (dict): set validation message
     """
 
@@ -76,6 +76,8 @@ class AnimalResource(resources.ModelResource):
         export_order = fields
 
     def dehydrate_status(self, animal):
+        """Convert a numeric status field into the displayed column"""
+
         return STATUSES.get_value_display(animal.status)
 
 
@@ -95,4 +97,6 @@ class SampleResource(resources.ModelResource):
         export_order = fields
 
     def dehydrate_status(self, sample):
+        """Convert a numeric status field into the displayed column"""
+
         return STATUSES.get_value_display(sample.status)
