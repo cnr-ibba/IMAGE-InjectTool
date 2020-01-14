@@ -12,7 +12,8 @@ import json
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
 
-import pyUSIrest.client
+import pyUSIrest.usi
+import pyUSIrest.exceptions
 
 from django.conf import settings
 from django.db.models import Count
@@ -60,7 +61,7 @@ class FetchStatusHelper():
 
         # here are pyUSIrest object
         self.auth = get_manager_auth()
-        self.root = pyUSIrest.client.Root(self.auth)
+        self.root = pyUSIrest.usi.Root(self.auth)
 
         # here I will track the biosample submission
         self.submission_name = self.usi_submission.usi_submission_name
@@ -181,7 +182,7 @@ class FetchStatusHelper():
         is a USI sample object
 
         Args:
-            sample (pyUSIrest.client.sample): a USI sample object
+            sample (pyUSIrest.usi.sample): a USI sample object
             table (str): ``Animal`` or ``Sample``, mean the table where this
                 object should be searched
             pk (int): table primary key
@@ -334,7 +335,7 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
 
             # retry a task under errors
             # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
-            except ConnectionError as exc:
+            except pyUSIrest.exceptions.USIConnectionError as exc:
                 raise self.retry(exc=exc)
 
         else:
