@@ -10,6 +10,7 @@ from pytest import raises
 from collections import Counter
 from unittest.mock import patch, Mock
 from datetime import timedelta
+from pyUSIrest.exceptions import USIConnectionError
 
 from celery.exceptions import Retry
 
@@ -577,7 +578,7 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
         my_retry.side_effect = Retry()
-        my_fetch.side_effect = ConnectionError()
+        my_fetch.side_effect = USIConnectionError()
 
         with raises(Retry):
             self.my_task.run()

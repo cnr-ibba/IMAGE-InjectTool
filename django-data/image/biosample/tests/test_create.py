@@ -16,6 +16,7 @@ from django.urls import resolve, reverse
 
 from uid.models import Organization
 from pyUSIrest.auth import Auth
+from pyUSIrest.exceptions import USIConnectionError
 
 from ..forms import CreateUserForm
 from ..views import CreateUserView
@@ -178,7 +179,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing deal with errors method"""
 
         # change create user reply
-        self.create_user.side_effect = ConnectionError("test")
+        self.create_user.side_effect = USIConnectionError("test")
 
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 200)
@@ -219,7 +220,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing create user with biosample errors"""
 
         # setting mock objects
-        self.create_user.side_effect = ConnectionError("test")
+        self.create_user.side_effect = USIConnectionError("test")
 
         message = "Problem in creating user"
         self.check_message(message)
@@ -243,7 +244,7 @@ class SuccessfulCreateUserViewTest(Basetest):
             ' No content to map due to end-of-input\n at [Source: ; line: 1, '
             'column: 0]","path":"/api/user/teams"}')
 
-        return ConnectionError(msg)
+        return USIConnectionError(msg)
 
     def test_error_with_create_team(self):
         """Testing create user"""
@@ -264,7 +265,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing a generic error during user creation step"""
 
         # setting mock objects
-        self.add_user.side_effect = ConnectionError("test")
+        self.add_user.side_effect = USIConnectionError("test")
 
         message = "Problem in adding user"
         self.check_message(message)
@@ -279,7 +280,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing a generic error during user creation step"""
 
         # setting mock objects
-        self.get_auth.side_effect = ConnectionError("test")
+        self.get_auth.side_effect = USIConnectionError("test")
 
         message = "Problem with EBI-AAP endoints. Please contact IMAGE team"
         self.check_message(message)

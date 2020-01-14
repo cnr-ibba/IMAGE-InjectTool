@@ -13,6 +13,7 @@ from decouple import AutoConfig
 from celery.utils.log import get_task_logger
 
 import pyUSIrest.usi
+import pyUSIrest.exceptions
 
 from django.conf import settings
 from django.db.models import Count
@@ -334,7 +335,7 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
 
             # retry a task under errors
             # http://docs.celeryproject.org/en/latest/userguide/tasks.html#retrying
-            except ConnectionError as exc:
+            except pyUSIrest.exceptions.USIConnectionError as exc:
                 raise self.retry(exc=exc)
 
         else:

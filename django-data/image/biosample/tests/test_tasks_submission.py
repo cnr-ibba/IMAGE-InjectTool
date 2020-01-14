@@ -6,6 +6,8 @@ Created on Wed Jul 17 10:51:40 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+from pyUSIrest.exceptions import USIConnectionError, TokenExpiredError
+
 from unittest.mock import patch, PropertyMock, Mock, call
 
 from django.test import TestCase
@@ -574,7 +576,7 @@ class SubmitTaskTestCase(SubmissionFeaturesMixin, TestCase):
 
         # Set a side effect on the patched methods
         # so that they raise the errors we want.
-        self.mock_add.side_effect = ConnectionError()
+        self.mock_add.side_effect = USIConnectionError()
 
         # call task. No retries with issues at EBI
         res = self.my_task.run(usi_submission_id=self.usi_submission_id)
@@ -589,7 +591,7 @@ class SubmitTaskTestCase(SubmissionFeaturesMixin, TestCase):
         """Testing token expiring during a submission"""
 
         # simulating a token expiring during a submission
-        self.mock_add.side_effect = RuntimeError("Your token is expired")
+        self.mock_add.side_effect = TokenExpiredError("Your token is expired")
 
         # calling task
         res = self.my_task.run(usi_submission_id=self.usi_submission_id)

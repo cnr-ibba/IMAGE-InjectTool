@@ -18,6 +18,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 
 from pyUSIrest.usi import User
+from pyUSIrest.exceptions import USIConnectionError
 
 from common.constants import WAITING
 from common.helpers import send_mail_to_admins
@@ -157,7 +158,7 @@ class MyFormMixin(object):
         try:
             auth = get_auth(user=name, password=password)
 
-        except ConnectionError as e:
+        except USIConnectionError as e:
             # logger exception. With repr() the exception name is rendered
             logger.error(repr(e))
 
@@ -381,7 +382,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
             logger.info("user_id %s generated" % (biosample_user_id))
 
-        except ConnectionError as e:
+        except USIConnectionError as e:
             message = "Problem in creating user %s" % (form.username)
             self.deal_with_errors(message, e)
 
@@ -430,7 +431,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
             if created is True:
                 logger.info("Created: %s" % (managed_team))
 
-        except ConnectionError as e:
+        except USIConnectionError as e:
             message = "Problem in creating team for %s" % (full_name)
             self.deal_with_errors(message, e)
 
@@ -479,7 +480,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
                     form.username, team.name),
                 extra_tags="alert alert-dismissible alert-light")
 
-        except ConnectionError as e:
+        except USIConnectionError as e:
             message = "Problem in adding user %s to team %s" % (
                 form.username, team.name)
             self.deal_with_errors(message, e)
@@ -527,7 +528,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
                 # return invalid form
                 return self.form_invalid(form)
 
-        except ConnectionError as e:
+        except USIConnectionError as e:
             message = (
                 "Problem with EBI-AAP endoints. Please contact IMAGE team")
             self.deal_with_errors(message, e)
