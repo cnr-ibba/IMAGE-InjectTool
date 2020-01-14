@@ -32,7 +32,6 @@ python-dateutil
 django-simple-cookie-consent==0.1.1
 xlrd==1.2.0
 django-import-export==2.0
-git+https://github.com/cnr-ibba/pyUSIrest.git@08de902a2ec3bfe4468d0ec2e63b25bd0f461e6c
-# pyUSIrest==0.2.2
+pyUSIrest==0.3.0
 git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@2626339ee976a413e914316236ece09f37e319c9
 sphinx
