@@ -95,7 +95,7 @@ class BaseMixin(PersonMixinTestCase):
         self.n_to_submit = self.animal_qs.count() + self.sample_qs.count()
 
         # starting mocked objects
-        self.mock_root_patcher = patch('pyUSIrest.client.Root')
+        self.mock_root_patcher = patch('pyUSIrest.usi.Root')
         self.mock_root = self.mock_root_patcher.start()
 
         # start root object

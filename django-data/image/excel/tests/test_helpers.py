@@ -140,6 +140,31 @@ class ExcelTemplateReaderTestCase(
         samples = self.reader.get_sample_records()
         self.check_generator(samples, 3)
 
+    def test_issue_in_get_animal_from_sample(self):
+        """Test a non unique mapping to animal id"""
+
+        animals = self.reader.get_animal_records()
+
+        # duplicate animals
+        animals = list(animals) * 2
+
+        # now patching the previous function
+        with patch(
+                'excel.helpers.ExcelTemplateReader'
+                '.get_animal_records') as my_animal:
+
+            my_animal.return_value = animals
+
+            # now get the first sample
+            sample = next(self.reader.get_sample_records())
+
+            # and get an animal from this sample and assert errors
+            self.assertRaisesRegex(
+                ExcelImportError,
+                "Can't determine a unique animal from 'Sample",
+                self.reader.get_animal_from_sample,
+                sample)
+
     def test_check_accuracies(self):
         """Test check accuracies method"""
 
@@ -360,7 +385,7 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
         # check template import fails
         self.check_errors(my_check, message, notification_message)
 
-    @patch("excel.helpers.fill_uid.image_timedelta",
+    @patch("excel.helpers.fill_uid.parse_image_timedelta",
            side_effect=ValueError("message"))
     def test_issue_animal_age_at_collection(self, my_check):
         """Test an issue in animal_age_at_collection column"""
@@ -370,7 +395,7 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
         notification_message = (
             "Error in importing data: Error for Sample '%s' at "
             "animal_age_at_collection column: %s" % (
-                "CS05_1999_IBBACNR_PTP_02.06.1999", message))
+                "VERCH1539971_2010_RegLomBank_PTPLodi_03.09.2011", message))
 
         # check template import fails, calling a parent method since
         # database is filled and the base ExcelMixin doesn't work

@@ -174,7 +174,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       the information regarding the submitter or the institution are provided by
       the user during the registration phase and shouldn't be provided during the
       template loading. To upload your data, download an empty template file from
-      <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
+      <a href="{% get_media_prefix %}Image_sample_empty_template_20191220.xlsx">here</a>
       and start by filling <code>breed</code>, <code>animal</code> and <code>sample</code>
       sheets: not all columns are mandatory, please refer to
       <a href="https://github.com/cnr-ibba/IMAGE-metadata/blob/master/docs/image_sample_metadata.md">IMAGE metadata - sample specification</a>
@@ -282,7 +282,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     </div>
 
     <p>
-      While your data are submitted to Biosamples, your submission will enter in
+      While your data are submitted to BioSamples, your submission will enter in
       <em>Waiting</em> and <em>Submitted</em> states: during those stages data
       will be submitted to BioSamples and you won't be able to modify or delete your data.
       InjectTool will perform regularly updates on your submission process, asking
@@ -299,6 +299,17 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
     <div class="row align-items-center">
       <img href="{% static 'images/13-submission_complete.png' %}" data-fancybox data-caption="Submission Completed with BioSamples IDs" class="img-thumbnail mx-auto float-right" src="{% static 'images/13-submission_complete-thumbnail.png' %}" alt="Submission completed with BioSamples ids">
+    </div>
+
+    <h3 class="mt-3">Export submitted BioSamples IDs</h2>
+
+    <p>
+      From the same <em>Edit page</em> you could export a CSV containing all your BioSamples
+      IDs by clicking on <em>Download all data as CSV</em> button, as shown in figure:
+    </p>
+
+    <div class="row align-items-center">
+      <img class="img-thumbnail mx-auto float-left" src="{% static 'images/14-export_data.png' %}" alt="Export BioSamples ids">
     </div>
 
   </section>

@@ -177,22 +177,23 @@ def parse_times(record, animal):
     animal_age_at_collection, time_units = None, None
 
     # animal age could be present or not
-    try:
-        if record.animal_age_at_collection:
+    if record.animal_age_at_collection:
+        try:
             animal_age_at_collection, time_units = parse_image_timedelta(
                 record.animal_age_at_collection)
 
-        else:
-            # derive animal age at collection
-            animal_age_at_collection, time_units = image_timedelta(
-                record.collection_date, animal.birth_date)
-
-    except ValueError as exc:
-        message = (
-            "Error for Sample '%s' at animal_age_at_collection column: %s" % (
+        except ValueError as exc:
+            message = (
+                "Error for Sample '%s' at animal_age_at_collection "
+                "column: %s" % (
                     record.sample_id_in_data_source, exc))
-        logger.error(message)
-        raise ExcelImportError(message)
+            logger.error(message)
+            raise ExcelImportError(message)
+
+    elif record.collection_date and animal.birth_date:
+        # derive animal age at collection if I have recommended values
+        animal_age_at_collection, time_units = image_timedelta(
+            record.collection_date, animal.birth_date)
 
     # another time column
     preparation_interval, preparation_interval_units = None, None

@@ -29,7 +29,7 @@ This section provides an overview of InjectTool, discussing the main features of
 web application:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    general/about_injecttool
    general/install_and_configure
@@ -38,6 +38,7 @@ web application:
    general/language_and_ontologies
    general/asynchronous_tasks
    general/send_messages_in_real_time
+   general/biosample_submission
 
 
 Module Documentation

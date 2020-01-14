@@ -8,6 +8,8 @@ Created on Tue Oct  9 16:05:54 2018
 
 import redis
 
+from pyUSIrest.exceptions import USIConnectionError
+
 from unittest.mock import Mock, patch
 
 from django.test import Client, TestCase
@@ -278,7 +280,7 @@ class CreateTokenSubmitViewTest(SuccessfulSubmitViewTest):
 
 
 class ErrorTokenSubmitViewTest(SubmitMixin):
-    @patch("pyUSIrest.auth.Auth", side_effect=ConnectionError("test"))
+    @patch("pyUSIrest.auth.Auth", side_effect=USIConnectionError("test"))
     def setUp(self, my_auth):
         """Custom setUp"""
 

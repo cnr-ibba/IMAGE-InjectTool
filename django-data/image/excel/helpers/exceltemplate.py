@@ -193,12 +193,13 @@ class ExcelTemplateReader(FileDataSourceMixin):
                 if not data[idx]:
                     continue
 
+                # forcing a date object
                 data[idx] = datetime.datetime(
                     *xlrd.xldate_as_tuple(
                         data[idx],
                         self.book.datemode
                     )
-                )
+                ).date()
 
             # get a new object
             record = Record._make(data)
@@ -226,19 +227,20 @@ class ExcelTemplateReader(FileDataSourceMixin):
         sheet_name = "sample"
         return self.get_sheet_records(sheet_name)
 
-    def get_animal_from_sample(self, record):
+    def get_animal_from_sample(self, sample):
         """get an animal record from a sample record"""
 
         animals = [
             animal for animal in self.get_animal_records() if
-            animal.animal_id_in_data_source == record.animal_id_in_data_source
+            animal.animal_id_in_data_source == sample.animal_id_in_data_source
         ]
 
         # animal is supposed to be unique
         if len(animals) != 1:
             raise ExcelImportError(
-                "Can't determine a unique animal from '%s' record data" %
-                (record))
+                "Can't determine a unique animal from '{sample}' "
+                "record data. Animal objects found: {animals}".format(
+                    sample=sample, animals=animals))
 
         return animals[0]
 

@@ -2,22 +2,38 @@
 History
 =======
 
-0.9.1.dev0
-----------
-
 TODO
-^^^^
+----
 
 * model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
+0.9.2.dev0
+----------
+
 Features
 ^^^^^^^^
 
-* minor fixes
+* pinning ``pyUSIrest`` dependency to ``v0.3.0``
+* documenting the BioSamples submission process in sphinx
+* export *BioSamples IDs* as a CSV from *Edit Submission view*
+* force excel date cells into ``datetime.date`` objects
+* remove duplicated ``animal_age_at_collection`` column from excel template
+
+0.9.1 (2019-12-19)
+------------------
+
+Features
+^^^^^^^^
+
+* fix issue in excel import when more that one animal is found in
+  ``excel.helpers.ExcelTemplateReader.get_animal_from_sample``
+* upgraded ``pyUSIrest`` module to support the BioSamples submission to
+  production environment
 * fix ``wp5image.eu`` links in sphinx docs and templates
 * update documentation
+* minor fixes
 
 0.9.0 (2019-11-15)
 ------------------
