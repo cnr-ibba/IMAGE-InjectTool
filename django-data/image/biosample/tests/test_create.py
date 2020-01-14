@@ -138,7 +138,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.response = self.client.get(self.url)
 
         # patching object
-        self.create_user_patcher = patch('pyUSIrest.client.User.create_user')
+        self.create_user_patcher = patch('pyUSIrest.usi.User.create_user')
         self.create_user = self.create_user_patcher.start()
         self.create_user.return_value = (
             "usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
@@ -152,17 +152,17 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.get_auth = self.get_auth_patcher.start()
         self.get_auth.return_value = mocked_auth()
 
-        self.create_team_patcher = patch('pyUSIrest.client.User.create_team')
+        self.create_team_patcher = patch('pyUSIrest.usi.User.create_team')
         self.create_team = self.create_team_patcher.start()
         self.create_team.return_value.name = "subs.test-team-3"
 
         self.get_domain_patcher = patch(
-            'pyUSIrest.client.User.get_domain_by_name')
+            'pyUSIrest.usi.User.get_domain_by_name')
         self.get_domain = self.get_domain_patcher.start()
         self.get_domain.return_value.domainReference = (
                 "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
 
-        self.add_user_patcher = patch('pyUSIrest.client.User.add_user_to_team')
+        self.add_user_patcher = patch('pyUSIrest.usi.User.add_user_to_team')
         self.add_user = self.add_user_patcher.start()
 
     def tearDown(self):

@@ -15,6 +15,8 @@ TODO
 Features
 ^^^^^^^^
 
+* upgrade ``pyUSIrest`` dependency
+* export *BioSamples IDs* as a CSV from *Edit Submission view*
 * force excel date cells into ``datetime.date`` objects
 * remove duplicated ``animal_age_at_collection`` column from excel template
 

@@ -17,7 +17,7 @@ from django.views.generic.edit import FormView, CreateView, ModelFormMixin
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 
-from pyUSIrest.client import User
+from pyUSIrest.usi import User
 
 from common.constants import WAITING
 from common.helpers import send_mail_to_admins
@@ -395,7 +395,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
             affiliation (str): the organization the user belongs to
 
         Returns:
-            :py:class:`pyUSIrest.client.Team`: a pyUSIrest Team instance
+            :py:class:`pyUSIrest.usi.Team`: a pyUSIrest Team instance
             :py:class:`biosample.models.ManagedTeam`: a model object
         """
 

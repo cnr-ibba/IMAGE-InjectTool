@@ -59,7 +59,7 @@ class FetchMixin():
         unmanaged.delete()
 
         # starting mocked objects
-        cls.mock_root_patcher = patch('pyUSIrest.client.Root')
+        cls.mock_root_patcher = patch('pyUSIrest.usi.Root')
         cls.mock_root = cls.mock_root_patcher.start()
 
         cls.mock_auth_patcher = patch('pyUSIrest.auth.Auth')

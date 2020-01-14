@@ -13,8 +13,6 @@ Every time the biosample module is imported during InjectTool instantiation or
 by calling managent processes this coded is executed to ovverride BioSamples
 endpoints::
 
-  import pyUSIrest.auth
-  import pyUSIrest.client
   import pyUSIrest.settings
 
   from common.constants import EBI_AAP_API_AUTH, BIOSAMPLE_API_ROOT
