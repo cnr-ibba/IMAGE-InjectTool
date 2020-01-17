@@ -5,12 +5,13 @@ History
 TODO
 ----
 
+* clean up orphaned BioSample IDs
 * model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
-0.9.2.dev0
-----------
+0.9.2 (2020-01-17)
+------------------
 
 Features
 ^^^^^^^^
