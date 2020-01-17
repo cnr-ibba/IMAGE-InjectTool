@@ -32,19 +32,19 @@ class MyRegistrationManager(RegistrationManager):
             profile = self.get(user__email__iexact=email)
 
         except ObjectDoesNotExist:
-            message = "%s not registered in database" % (email)
+            message = "%s not registered with InjectTool" % (email)
             logger.error(message)
             return False, message
 
         except MultipleObjectsReturned:
             message = "%s used more than once" % (email)
             logger.error(message)
-            return False, "mail used more than once"
+            return False, "The email has been used more than once"
 
         if profile.activated:
             message = "%s already active" % (email)
             logger.warning(message)
-            return False, "mail already active"
+            return False, "The email has already been activated"
 
         profile.create_new_activation_key()
         profile.send_activation_email(site, request)

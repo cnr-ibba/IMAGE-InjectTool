@@ -19,14 +19,13 @@
   <h2>InjectTool Submission</h2>
 
   <p>
-    InjectTool <em>Submission</em> is the key element for uploading data into BioSamples.
-    It is always associated with a user datafile (for more information see our
+    <em>Submission</em> is the central concept used within InjectTool.
+    It is associated with a data file (for more information see our
     tutorial at <a href="{% url 'about-uploading' %}#prepare_a_new_submission">Preparing a new submission</a>) and
-    is private to the user who creates it. After creating a submission, data will
-    be loaded and <em>Animals</em> and <em>Samples</em> objects are created reling on
-    submission data. All animals and samples belonging to a submission need to be validated
-    against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
-    in order to be submitted to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples archive</a>.
+    is private to the user who creates it. After creating a submission, <em>Animals</em> and <em>Samples</em> objects
+    are created from the selected data file and to be validated
+    against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>. If all records pass the validation,
+    the data are ready to be submitted to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples archive</a>.
     Once submitted to BioSamples, your data will be available to the community
     through BioSamples site in a few days.
 
@@ -37,9 +36,9 @@
   <p>
     The submission details page provides information about each submission, for example
     <em>Submission Title</em>, <em>Description</em>, etc. Within the submission
-    detail page a user can perform task like <em>validating data</em> or
-    <em>submitting data to BioSamples</em> by clicking on the appropriate button
-    on the bottom of the page. Here is an example picture for a Submission Detail page:
+    detail page a user can perform task like <em>edit</em>, <em>validate</em> or
+    <em>submit</em> the data by clicking the corresponding buttons which locate
+    at the bottom of the page. Here is an example picture for a Submission Detail page:
   </p>
 
   <div class="row align-items-center">
