@@ -15,6 +15,7 @@ TODO
 Features
 ^^^^^^^^
 
+* updgrade ``Django`` to ``2.2.9``
 * pinning ``pyUSIrest`` dependency to ``v0.3.0``
 * documenting the BioSamples submission process in sphinx
 * export *BioSamples IDs* as a CSV from *Edit Submission view*
