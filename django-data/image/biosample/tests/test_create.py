@@ -16,6 +16,7 @@ from django.urls import resolve, reverse
 
 from uid.models import Organization
 from pyUSIrest.auth import Auth
+from pyUSIrest.exceptions import USIConnectionError
 
 from ..forms import CreateUserForm
 from ..views import CreateUserView
@@ -138,7 +139,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.response = self.client.get(self.url)
 
         # patching object
-        self.create_user_patcher = patch('pyUSIrest.client.User.create_user')
+        self.create_user_patcher = patch('pyUSIrest.usi.User.create_user')
         self.create_user = self.create_user_patcher.start()
         self.create_user.return_value = (
             "usr-2a28ca65-2c2f-41e7-9aa5-e829830c6c71")
@@ -152,17 +153,17 @@ class SuccessfulCreateUserViewTest(Basetest):
         self.get_auth = self.get_auth_patcher.start()
         self.get_auth.return_value = mocked_auth()
 
-        self.create_team_patcher = patch('pyUSIrest.client.User.create_team')
+        self.create_team_patcher = patch('pyUSIrest.usi.User.create_team')
         self.create_team = self.create_team_patcher.start()
         self.create_team.return_value.name = "subs.test-team-3"
 
         self.get_domain_patcher = patch(
-            'pyUSIrest.client.User.get_domain_by_name')
+            'pyUSIrest.usi.User.get_domain_by_name')
         self.get_domain = self.get_domain_patcher.start()
         self.get_domain.return_value.domainReference = (
                 "dom-41fd3271-d14b-47ff-8de1-e3f0a6d0a693")
 
-        self.add_user_patcher = patch('pyUSIrest.client.User.add_user_to_team')
+        self.add_user_patcher = patch('pyUSIrest.usi.User.add_user_to_team')
         self.add_user = self.add_user_patcher.start()
 
     def tearDown(self):
@@ -178,7 +179,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing deal with errors method"""
 
         # change create user reply
-        self.create_user.side_effect = ConnectionError("test")
+        self.create_user.side_effect = USIConnectionError("test")
 
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 200)
@@ -219,7 +220,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing create user with biosample errors"""
 
         # setting mock objects
-        self.create_user.side_effect = ConnectionError("test")
+        self.create_user.side_effect = USIConnectionError("test")
 
         message = "Problem in creating user"
         self.check_message(message)
@@ -243,7 +244,7 @@ class SuccessfulCreateUserViewTest(Basetest):
             ' No content to map due to end-of-input\n at [Source: ; line: 1, '
             'column: 0]","path":"/api/user/teams"}')
 
-        return ConnectionError(msg)
+        return USIConnectionError(msg)
 
     def test_error_with_create_team(self):
         """Testing create user"""
@@ -264,7 +265,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing a generic error during user creation step"""
 
         # setting mock objects
-        self.add_user.side_effect = ConnectionError("test")
+        self.add_user.side_effect = USIConnectionError("test")
 
         message = "Problem in adding user"
         self.check_message(message)
@@ -279,7 +280,7 @@ class SuccessfulCreateUserViewTest(Basetest):
         """Testing a generic error during user creation step"""
 
         # setting mock objects
-        self.get_auth.side_effect = ConnectionError("test")
+        self.get_auth.side_effect = USIConnectionError("test")
 
         message = "Problem with EBI-AAP endoints. Please contact IMAGE team"
         self.check_message(message)

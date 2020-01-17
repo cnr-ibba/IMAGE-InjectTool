@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # change the default level for pyUSIrest logging
 logging.getLogger('pyUSIrest.auth').setLevel(logging.INFO)
 logging.getLogger('pyUSIrest.client').setLevel(logging.INFO)
+logging.getLogger('pyUSIrest.usi').setLevel(logging.INFO)
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')

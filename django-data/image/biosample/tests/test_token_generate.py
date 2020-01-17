@@ -6,6 +6,8 @@ Created on Tue Jul 17 14:52:13 2018
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+from pyUSIrest.exceptions import USIConnectionError
+
 from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
@@ -223,7 +225,7 @@ class SuccessFullCreateAuthViewTest(BaseTest):
 
         self.assertRedirects(response, next_url)
 
-    @patch("pyUSIrest.auth.Auth", side_effect=ConnectionError("test"))
+    @patch("pyUSIrest.auth.Auth", side_effect=USIConnectionError("test"))
     def test_error_with_biosample(self, my_auth):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 200)

@@ -3,11 +3,24 @@ History
 =======
 
 TODO
-^^^^
+----
 
 * model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
+
+0.9.2.dev0
+----------
+
+Features
+^^^^^^^^
+
+* updgrade ``Django`` to ``2.2.9``
+* pinning ``pyUSIrest`` dependency to ``v0.3.0``
+* documenting the BioSamples submission process in sphinx
+* export *BioSamples IDs* as a CSV from *Edit Submission view*
+* force excel date cells into ``datetime.date`` objects
+* remove duplicated ``animal_age_at_collection`` column from excel template
 
 0.9.1 (2019-12-19)
 ------------------
