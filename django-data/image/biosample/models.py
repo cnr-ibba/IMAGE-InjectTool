@@ -110,3 +110,30 @@ class SubmissionData(models.Model):
     class Meta:
         verbose_name = "submission data"
         verbose_name_plural = "submission data"
+
+
+class OrphanSample(models.Model):
+    # This will be assigned after submission
+    biosample_id = models.CharField(
+        max_length=255,
+        unique=True)
+
+    found_at = models.DateTimeField(auto_now_add=True)
+
+    ignore = models.BooleanField(
+        default=False,
+        help_text='Should I ignore this record or not?')
+
+    name = models.CharField(
+        max_length=255)
+
+    removed = models.BooleanField(
+        default=False,
+        help_text='Is this sample still available?')
+
+    removed_at = models.DateTimeField(
+        null=True,
+        blank=True)
+
+    def __str__(self):
+        return "%s (%s)" % (self.biosample_id, self.found_at)

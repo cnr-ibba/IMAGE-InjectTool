@@ -8,7 +8,7 @@ Created on Fri Jul  6 11:39:15 2018
 from django.contrib import admin
 
 from .models import (
-    Account, ManagedTeam, Submission, SubmissionData)
+    Account, ManagedTeam, Submission, SubmissionData, OrphanSample)
 
 
 class SubmissionAdmin(admin.ModelAdmin):
@@ -22,7 +22,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     list_filter = ('uid_submission__owner', 'status')
 
-    list_per_page = 10
+    list_per_page = 15
 
 
 class SubmissionDataAdmin(admin.ModelAdmin):
@@ -34,7 +34,7 @@ class SubmissionDataAdmin(admin.ModelAdmin):
         'submission__uid_submission__owner',
         'submission__uid_submission__status')
 
-    list_per_page = 10
+    list_per_page = 15
 
 
 class AccountAdmin(admin.ModelAdmin):
@@ -42,7 +42,18 @@ class AccountAdmin(admin.ModelAdmin):
         'user', 'name', 'team'
     )
 
-    list_per_page = 10
+    list_per_page = 15
+
+
+class OrphanSampleAdmin(admin.ModelAdmin):
+    list_display = (
+        'biosample_id', 'found_at', 'ignore', 'name', 'removed', 'removed_at'
+    )
+
+    # I cannot edit a auto_add_now field
+    readonly_fields = ('found_at', 'removed_at')
+
+    list_per_page = 15
 
 
 # --- registering applications
@@ -53,3 +64,4 @@ admin.site.register(Account, AccountAdmin)
 admin.site.register(ManagedTeam)
 admin.site.register(Submission, SubmissionAdmin)
 admin.site.register(SubmissionData, SubmissionDataAdmin)
+admin.site.register(OrphanSample, OrphanSampleAdmin)
