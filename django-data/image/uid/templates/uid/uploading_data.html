@@ -22,7 +22,7 @@
     <h2>Signing Up and registering to EBI AAP</h2>
 
     <p>Click on <a href="{% url 'accounts:registration_register' %}">Sign-Up</a>
-      in the right-upper corner of InjectTool site and
+      in the top right corner of InjectTool site and
       start to sign up with InjectTool. In the form, you have to provide a valid email address and
       select your organization from the provided list. If you don't find
       your organization, you need to <a href="mailto:{% get_admin_email %}?subject=please add my organization">contact</a>
@@ -35,12 +35,11 @@
 
     <p id="aap_registration" class="my-3">After registration is complete, you will receive an email to
     the address used for registration. Click on the activation link, in order to
-    complete InjectTool registration.  Now you will require an
+    complete the InjectTool registration.  Now you will require an
     <a href="https://aai.ebi.ac.uk/home" target="_blank">EBI AAP profile</a>
-    in order to submit your data into BioSamples.
+    in order to submit your data to EBI BioSamples archive.
     Please note that we can't store your AAP credentials on our site, you need
-    to keep record of AAP credentials, otherwise you will not be able to submit
-    your data to BioSamples. Click on
+    to keep record of your AAP credentials to make the submissions. Click on
     <em>Generate a new AAP profile button</em> to fill out the form to create a new EBI AAP profile:</p>
 
     <div class="row align-items-center">
@@ -50,7 +49,7 @@
 
     <p class="my-3">If the registration is successful, you will be able to generate
       a new AAP token. This token is stored in your browser session, will be valid
-      for 24 hours and will be used to perform BioSamples submission. When submitting
+      for 24 hours and will be used to perform BioSamples submissions. When submitting
       data to BioSamples, InjectTool will check token validity and will ask
       the user to generate a new token if necessary. You can check your token
       status by clicking <a href="{% url 'biosample:token' %}">My Token</a> on
@@ -75,9 +74,9 @@
     <h3><a id="cryoweb_dump"></a>Creating a Cryoweb dump</h3>
 
     <p>
-      Cryoweb data need to be imported as <em>data-only</em> dumps, as described from
+      CryoWeb data need to be exported as <em>data-only</em> dumps, as described from
       Postgres pgdump <a href="https://www.postgresql.org/docs/9.6/app-pgdump.html">documentation</a>.
-      First of all, search for cryoweb database. You can login to postgres database
+      First of all, search for CryoWeb database. You can log into postgres database
       and then get database list with <code>\l</code> command, as in the following example:
     </p>
 
@@ -169,11 +168,10 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <h3><a id="template_file"></a>Creating a template file</h3>
 
     <p>
-      The Template file is the tabular version of <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a> rules,
-      however some records will be provided by InjectTool itself, for instance
-      the information regarding the submitter or the institution are provided by
-      the user during the registration phase and shouldn't be provided during the
-      template loading. To upload your data, download an empty template file from
+      The Template file is created based on the <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>.
+      Some information will be provided by InjectTool, for instance the submitter and the institute are provided by
+      the user during the registration process and will be used every time a submission is made under that account.
+      To upload your data, download an empty template file from
       <a href="{% get_media_prefix %}Image_sample_empty_template_20190405.xlsx">here</a>
       and start by filling <code>breed</code>, <code>animal</code> and <code>sample</code>
       sheets: not all columns are mandatory, please refer to
@@ -184,9 +182,8 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       to have an idea on what fields are currently supported by the Template
       loading process. Please keep in mind that <em>animal IDs</em> in <code>animal</code>
       and <code>samples</code> sheets need to be consistent in order to have a
-      successful upload; the same applies for the couple <em>Species</em> and <em>Breed</em>
-      that need to be consistent in <code>breed</code> and <code>animal</code>
-      sheets.
+      successful upload; the same applies to the value used for <em>Species</em> and <em>Breed</em> in <code>animal</code> sheet
+      that need to be consistent with the values used in the <code>breed</code> sheet.
     </p>
 
   </section>
@@ -195,14 +192,13 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <h2 class="mt-3">Starting a new submission</h2>
     <p>
       From the <a href="{% url 'uid:dashboard' %}">Dashboard</a> page, click
-      on <a href="{% url 'submissions:create' %}">Create</a> submission button,
-      and then fill the form properly: each filled value will be used as part of metadata in BioSamples
-      submission. The <em>Gene bank country</em> field is important since it
+      on the <a href="{% url 'submissions:create' %}">Create</a> submission button,
+      and then fill the form properly: every field will form part of the metadata of all records within this submission.
+      The <em>Gene bank country</em> field is important since it
       will be used to translate terms from the provided language into the standard
-      English used for BioSamples submission. Another important field is the
-      <em>Data source type</em> which will be used to import data from the different
-      data sources types (<a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
-      or <a href="#template_file">Template</a> format). Then you have to choose the
+      English if needed. Another important field is the
+      <em>Data source type</em> from which the importer will be determined. Currently InjectTool supports three data sources types: <a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
+      and <a href="#template_file">Template</a>. Then you have to choose the
       file to upload using the <em>Uploaded file</em> field. File should be
       in <em>plain text</em> and <code>UTF-8</code> or <code>ASCII</code> encoding
       for the Cryoweb and CRBanim data import,
@@ -217,7 +213,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
     <p>
       After the submission is created, data will be imported in background by the
-      system. When submission status has the <em>Loaded</em> state, data are imported
+      system. When submission shows the <em>Loaded</em> status, data are imported
       with success from your data source and need to be validated before submission.
       You can have more information on submission statuses <a href="{% url 'about-submission' %}#submission_statuses">here</a>.
     </p>
@@ -237,8 +233,8 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <h2 class="mt-3">Validate your submission</h2>
 
     <p>
-      You will need to validate your data against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
-      rules before uploading data into BioSamples. From the submission detail page
+      You will need to validate your data against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
+      before uploading data into BioSamples. From the submission detail page
       click on the <em>Validate</em> button on the bottom of the page:
     </p>
 
@@ -247,17 +243,17 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     </div>
 
     <p>
-      Your submission will enter in the <em>Waiting</em> status during the validation
-      process. During this state you aren't allowed to modify your submission, nor
-      delete or submit it. When the validation process terminates, your submission
-      could be in two different states: the <em>Ready</em> state means that your data
-      are compliant with the <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE-metadata</a>
-      rules and can be submitted to BioSamples; The <em>Need Revision</em> state
-      means that your data have issues with rules or lacks of some mandatory fields.
-      If your data are not valid you could click on <em>validation</em> link in the
+      Your submission will turn into the <em>Waiting</em> status during the validation
+      process. During this state you are not allowed to modify your submission, nor
+      delete or submit it. When the validation process completes, your submission
+      could be in one of the two statuses: the <em>Ready</em> status means that your data
+      are compliant with the <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
+      and can be submitted to BioSamples; The <em>Need Revision</em> status
+      indicates that your data have issues  to meet the standards.
+      To curate your data, you could click on <em>validation</em> link in the
       Sample or Animal issues field in order to <em>Bulk update</em> objects with
       the same type of errors. Or you could click on the <em>Edit data</em> button
-      in order to manage and fix your data one by one:
+      to manage and fix individual records:
     </p>
 
     <div class="row align-items-center">
@@ -271,10 +267,9 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
     <p>
       If your data are valid and in the <em>Ready</em> status, you can submit them
-      to BioSamples by clicking on <em>Submit</em> button on the bottom of the
+      to BioSamples by clicking on the <em>Submit</em> button at the bottom of the
       submission detail page. You could be prompted for a password in order to generate
-      a BioSample token. This password is the password you have chosen during the
-      registration process, when you have generated an <a href="#aap_registration">AAP profile</a>:
+      a BioSample token. This password is for the <a href="#aap_registration">AAP profile</a>, not the password for InjectTool:
     </p>
 
     <div class="row align-items-center">
@@ -282,19 +277,17 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     </div>
 
     <p>
-      While your data are submitted to Biosamples, your submission will enter in
-      <em>Waiting</em> and <em>Submitted</em> states: during those stages data
-      will be submitted to BioSamples and you won't be able to modify or delete your data.
-      InjectTool will perform regularly updates on your submission process, asking
-      to BioSamples about statuses and errors. If the submission process is successful,
-      your submission will change its status to <em>Completed</em>:
+      While your data are being submitted to Biosamples, your submission will sequentially enter into
+      <em>Waiting</em> (submission in progress) and <em>Submitted</em> (submission completed) status: during which
+      you won't be able to modify or delete your data.
+      InjectTool will monitor regularly on your submission process, connecting BioSamples server for feedback.
+      When the BioSamples server sends back a list of BioSamples accessions, your submission will change its status to <em>Completed</em>:
       <strong>
         <span class="text-primary">
-        this means that your data are correctly registed into BioSamples and received
-        a BioSample id.</span>
+        this means that your data are successfully submitted to BioSamples and received BioSample accessions.</span>
       </strong>
       You can inspect your submitted data by clicking on <em>Edit data</em> button
-      and by clicking on the <em>BioSamples id</em> link:
+      followed by clicking on the <em>BioSamples id</em> link:
     </p>
 
     <div class="row align-items-center">
