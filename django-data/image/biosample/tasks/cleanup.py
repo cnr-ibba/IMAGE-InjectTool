@@ -88,6 +88,20 @@ async def fetch(session, url=BIOSAMPLE_URL, params=PARAMS):
         return await response.json()
 
 
+async def parse_samples_data(data, managed_domains):
+    # get samples objects
+    samples = data['_embedded']['samples']
+
+    for sample in samples:
+        # filter out unmanaged records
+        if sample['domain'] not in managed_domains:
+            logger.warning("Ignoring %s" % (sample['name']))
+            continue
+
+        # otherwise return to the caller the sample
+        yield sample
+
+
 async def get_samples(
         url=BIOSAMPLE_URL,
         params=PARAMS,
@@ -95,16 +109,9 @@ async def get_samples(
     async with aiohttp.ClientSession() as session:
         data = await fetch(session, url, params)
 
-        # get samples objects
-        samples = data['_embedded']['samples']
-
-        for sample in samples:
-            # filter out unmanaged records
-            if sample['domain'] not in managed_domains:
-                logger.warning("Ignoring %s" % (sample['name']))
-                continue
-
-            # otherwise return to the caller the sample
+        # process data and filter samples I own
+        # https://stackoverflow.com/a/47378063
+        async for sample in parse_samples_data(data, managed_domains):
             yield sample
 
         tasks = []
@@ -129,16 +136,9 @@ async def get_samples(
             # read data
             data = await task
 
-            # get samples objects
-            samples = data['_embedded']['samples']
-
-            for sample in samples:
-                # filter out unmanaged records
-                if sample['domain'] not in managed_domains:
-                    logger.warning("Ignoring %s" % (sample['name']))
-                    continue
-
-                # otherwise return to the caller the sample
+            # process data and filter samples I own
+            # https://stackoverflow.com/a/47378063
+            async for sample in parse_samples_data(data, managed_domains):
                 yield sample
 
 

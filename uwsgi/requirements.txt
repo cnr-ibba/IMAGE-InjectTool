@@ -32,7 +32,9 @@ python-dateutil
 django-simple-cookie-consent==0.1.1
 xlrd==1.2.0
 django-import-export==2.0
-aiohttp
+aiohttp==3.6.2
+pytest-aiohttp==0.3.0
+aioresponses==0.6.2
 pyUSIrest==0.3.0
 git+https://github.com/cnr-ibba/IMAGE-ValidationTool.git@2626339ee976a413e914316236ece09f37e319c9
 sphinx
