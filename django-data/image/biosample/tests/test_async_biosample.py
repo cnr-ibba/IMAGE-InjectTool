@@ -10,10 +10,16 @@ import os
 import asynctest
 
 from aioresponses import aioresponses
+from django.test import TestCase
+from unittest.mock import patch, Mock
 
 from common.constants import BIOSAMPLE_URL
+from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
-from ..tasks.cleanup import collect_samples
+from ..tasks.cleanup import check_samples
+from ..models import OrphanSample
+
+from .common import generate_token
 
 # get my path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -29,7 +35,61 @@ with open(os.path.join(DATA_PATH, "page_1.json")) as handle:
     page1 = handle.read()
 
 
-class AsyncBioSamplesTestCase(asynctest.TestCase):
+# TODO: need mocking the get_manager_auth function
+class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
+
+    fixtures = [
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        cls.mock_auth_patcher = patch('pyUSIrest.auth.requests.get')
+        cls.mock_auth = cls.mock_auth_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_auth_patcher.stop()
+
+        # calling base method
+        super().tearDownClass()
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # well, updating data and set two biosample ids. Those are not
+        # orphans
+        animal = UIDAnimal.objects.get(pk=1)
+        animal.biosample_id = "SAMEA6376980"
+        animal.save()
+
+        sample = UIDSample.objects.get(pk=1)
+        sample.biosample_id = "SAMEA6376982"
+        sample.save()
+
+        # generate tocken
+        self.mock_auth.return_value = Mock()
+        self.mock_auth.return_value.text = generate_token(
+            domains=['subs.test-team-19'])
+        self.mock_auth.return_value.status_code = 200
+
     async def test_request(self) -> None:
         with aioresponses() as mocked:
             mocked.get(
@@ -43,16 +103,14 @@ class AsyncBioSamplesTestCase(asynctest.TestCase):
                 status=200,
                 body=page1)
 
-            samples = await collect_samples()
+            await check_samples()
 
             # get accessions
-            accessions = [sample['accession'] for sample in samples]
-            accessions.sort()
+            reference = ['SAMEA6376991', 'SAMEA6376992']
 
-            reference = [
-                'SAMEA6376980',
-                'SAMEA6376982',
-                'SAMEA6376991',
-                'SAMEA6376992']
+            self.assertEqual(OrphanSample.objects.count(), 2)
 
-            self.assertEqual(accessions, reference)
+            # check objects into UID
+            for accession in reference:
+                qs = OrphanSample.objects.filter(biosample_id=accession)
+                self.assertTrue(qs.exists())

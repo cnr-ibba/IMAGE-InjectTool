@@ -19,9 +19,10 @@ from django.utils import timezone
 from common.constants import COMPLETED, BIOSAMPLE_URL
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from image.celery import app as celery_app
+from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
 from ..helpers import get_manager_auth
-from ..models import Submission
+from ..models import Submission, OrphanSample
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
@@ -142,18 +143,34 @@ async def get_samples(
                 yield sample
 
 
-async def collect_samples():
+async def check_samples():
     # I need an pyUSIrest.auth.Auth object to filter out records that don't
     # belong to me
     auth = get_manager_auth()
     managed_domains = auth.claims['domains']
 
-    samples = []
-
     async for sample in get_samples(managed_domains=managed_domains):
-        samples.append(sample)
+        check_orphan_sample(sample)
 
-    return samples
+
+def check_orphan_sample(sample):
+    animal_qs = UIDAnimal.objects.filter(
+        biosample_id=sample['accession'])
+
+    sample_qs = UIDSample.objects.filter(
+        biosample_id=sample['accession'])
+
+    if animal_qs.exists() or sample_qs.exists():
+        logger.debug("Sample %s is tracked in UID" % (sample['accession']))
+
+    else:
+        # test for orphan sample
+        orphan, created = OrphanSample.objects.get_or_create(
+            biosample_id=sample['accession'],
+            name=sample['name'])
+
+        if created:
+            logger.warning("Add %s to orphan samples" % sample['accession'])
 
 
 # register explicitly tasks
