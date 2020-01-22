@@ -62,7 +62,7 @@
         ({{ validation_summary.animal_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='animal' %}">validation</a>)
         {% endif %}
         {% if validation_summary.animal_unkn %}
-        ({{ validation_summary.animal_unkn }} with unknown validation)
+        ({{ validation_summary.animal_unkn }} waiting to be validated)
         {% endif %}
       </td>
     </tr>

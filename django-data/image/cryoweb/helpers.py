@@ -136,13 +136,13 @@ def upload_cryoweb(submission_id):
     submission = Submission.objects.get(pk=submission_id)
 
     # debug
-    logger.info("Importing data into cryoweb staging area")
+    logger.info("Importing data into CryoWeb staging area")
     logger.debug("Got Submission %s" % (submission))
 
     # If cryoweb has data, update submission message and return exception:
     # maybe another process is running or there is another type of problem
     if cryoweb_has_data():
-        logger.error("Cryoweb has data!")
+        logger.error("CryoWeb has data!")
 
         # update submission status
         submission.status = ERROR
@@ -181,7 +181,7 @@ def upload_cryoweb(submission_id):
         # save a message in database
         submission.status = ERROR
         submission.message = (
-            "Error in importing data: %s\nIs '%s' a valid cryoweb"
+            "Error in importing data: %s\nIs '%s' a valid CryoWeb"
             " dump file?" % (
                 str(exc),
                 os.path.split(submission.uploaded_file.name)[-1]))
