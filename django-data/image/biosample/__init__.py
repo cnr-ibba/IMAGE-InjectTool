@@ -8,8 +8,6 @@ Created on Thu Oct 24 11:04:44 2019
 
 import logging
 
-import pyUSIrest.auth
-import pyUSIrest.client
 import pyUSIrest.settings
 
 from common.constants import EBI_AAP_API_AUTH, BIOSAMPLE_API_ROOT

@@ -8,7 +8,8 @@ Created on Thu Jul 18 14:14:06 2019
 
 import redis
 import traceback
-import pyUSIrest.client
+import pyUSIrest.usi
+import pyUSIrest.exceptions
 
 from celery import chord
 from celery.utils.log import get_task_logger
@@ -109,7 +110,7 @@ class SubmissionHelper():
 
     def read_token(self):
         """Read token from REDIS database and set root attribute with a
-        pyUSIrest.client.Root instance
+        pyUSIrest.usi.Root instance
 
         Returns:
             str: the read token"""
@@ -135,7 +136,7 @@ class SubmissionHelper():
         self.auth = get_auth(token=self.token)
 
         logger.debug("getting biosample root")
-        self.root = pyUSIrest.client.Root(auth=self.auth)
+        self.root = pyUSIrest.usi.Root(auth=self.auth)
 
         return self.token
 
@@ -183,7 +184,7 @@ class SubmissionHelper():
         """Create a new USI submission object
 
         Returns:
-            :py:class:`pyUSIrest.client.Submission` a pyUSIrest submission
+            :py:class:`pyUSIrest.usi.Submission` a pyUSIrest submission
             object
         """
 
@@ -306,7 +307,7 @@ class SubmitTask(NotifyAdminTaskMixin, BaseTask):
             submission_helper.add_samples()
             submission_helper.mark_success()
 
-        except ConnectionError as exc:
+        except pyUSIrest.exceptions.USIConnectionError as exc:
             logger.error("Error in biosample submission: %s" % exc)
             message = "Errors in EBI API endpoints. Please try again later"
             logger.error(message)
@@ -316,7 +317,7 @@ class SubmitTask(NotifyAdminTaskMixin, BaseTask):
 
         # TODO: should I rename this exception with a more informative name
         # when token expires during a submission?
-        except RuntimeError as exc:
+        except pyUSIrest.exceptions.TokenExpiredError as exc:
             logger.error("Error in biosample submission: %s" % exc)
             message = (
                 "Your token is expired: please submit again to resume "

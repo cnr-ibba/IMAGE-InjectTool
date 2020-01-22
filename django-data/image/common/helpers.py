@@ -37,7 +37,9 @@ def image_timedelta(t1, t2):
         return None, YEARS
 
     if type(t1) != datetime.date or type(t2) != datetime.date:
-        raise ValueError("Expecting a datetime value")
+        raise ValueError(
+            "Expecting a datetime value (got '%s':%s and '%s':%s)" % (
+                t1, type(t1), t2, type(t2)))
 
     if t2 > t1:
         logger.warning("t2>t1 ({0}, {1}) ignoring".format(t2, t1))
