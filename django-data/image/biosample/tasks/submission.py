@@ -265,8 +265,10 @@ class SubmissionHelper():
                 self.create_or_update_sample(model)
 
             else:
-                logger.debug("Ignoring %s %s" % (
-                    model._meta.verbose_name, model))
+                logger.debug("Ignoring %s %s: current status is %s" % (
+                    model._meta.verbose_name,
+                    model,
+                    model.get_status_display()))
 
     def mark_submission(self, status, message):
         self.submission_obj.status = status
