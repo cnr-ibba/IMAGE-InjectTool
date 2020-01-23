@@ -371,6 +371,9 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
                     'title': 'semen collected when the animal turns to 4'}),
         ]
 
+        # Ok but now get samples return an iterator object
+        my_samples = (sample for sample in my_samples)
+
         # mocking set samples
         self.my_submission.get_samples.return_value = my_samples
         self.submission_helper.usi_submission = self.my_submission
@@ -409,6 +412,9 @@ class SubmissionHelperTestCase(RedisMixin, SubmissionFeaturesMixin, TestCase):
             Mock(**{'alias': 'IMAGEA000000001',
                     'title': 'a 4-year old pig organic fed'}),
         ]
+
+        # Ok but now get samples return an iterator object
+        my_samples = (sample for sample in my_samples)
 
         # mocking set samples
         self.my_submission.get_samples.return_value = my_samples

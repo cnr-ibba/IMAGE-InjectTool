@@ -208,11 +208,11 @@ class SubmissionHelper():
 
         # read already submitted samples
         logger.debug("Getting info on samples...")
-        samples = self.usi_submission.get_samples()
-        logger.debug("Got %s samples" % (len(samples)))
 
-        for sample in samples:
+        for i, sample in enumerate(self.usi_submission.get_samples()):
             self.submitted_samples[sample.alias] = sample
+
+        logger.debug("Got %s samples" % (i+1))
 
         return self.submitted_samples
 

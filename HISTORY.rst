@@ -10,6 +10,12 @@ TODO
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
+0.9.3.dev0
+----------
+
+* Improve wording in webpages
+* add missing staticfiles
+
 0.9.2 (2020-01-17)
 ------------------
 
