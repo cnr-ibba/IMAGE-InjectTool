@@ -385,7 +385,7 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
         # check template import fails
         self.check_errors(my_check, message, notification_message)
 
-    @patch("excel.helpers.fill_uid.image_timedelta",
+    @patch("excel.helpers.fill_uid.parse_image_timedelta",
            side_effect=ValueError("message"))
     def test_issue_animal_age_at_collection(self, my_check):
         """Test an issue in animal_age_at_collection column"""
@@ -395,7 +395,7 @@ class UploadTemplateTestCase(ExcelMixin, TestCase):
         notification_message = (
             "Error in importing data: Error for Sample '%s' at "
             "animal_age_at_collection column: %s" % (
-                "CS05_1999_IBBACNR_PTP_02.06.1999", message))
+                "VERCH1539971_2010_RegLomBank_PTPLodi_03.09.2011", message))
 
         # check template import fails, calling a parent method since
         # database is filled and the base ExcelMixin doesn't work

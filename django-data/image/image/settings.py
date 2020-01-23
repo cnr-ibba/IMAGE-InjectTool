@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'djcelery_email',
     'django_simple_cookie_consent',
+    'import_export',
     'uid',
     'cryoweb',
     'zooma',
@@ -407,6 +408,7 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+
 # Channels
 ASGI_APPLICATION = 'image.routing.application'
 CHANNEL_LAYERS = {
@@ -417,3 +419,12 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+
+# --- Other stuff
+
+
+# It determines if the library will use database transactions on data import,
+# just to be on the safe side.
+# https://simpleisbetterthancomplex.com/packages/2016/08/11/django-import-export.html
+IMPORT_EXPORT_USE_TRANSACTIONS = True

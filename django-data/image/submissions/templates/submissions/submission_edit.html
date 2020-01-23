@@ -53,16 +53,20 @@
   <p>
     Check my <a href="{% url 'language:species' %}?country={{ submission.gene_bank_country.label|urlencode }}">Species Translation Table</a>
   </p>
+
   <div class="container mt-3">
     <div class="row">
-      <div class="col-lg-4 col-md-12 mt-2 text-center">
+      <div class="col-lg-3 col-md-6 mt-2 text-center">
+        <a class="btn btn-success btn-lg btn-block" href="{% url 'submissions:export' pk=submission.pk %}" role="button">Download all data as CSV</a>
+      </div>
+      <div class="col-lg-3 col-md-6 mt-2 text-center">
         <a class="btn btn-primary btn-lg btn-block" href="{% url 'submissions:detail' pk=submission.pk %}" role="button">Back to Submission Detail</a>
       </div>
-      <div class="col-lg-4 col-md-6 mt-2 text-center">
+      <div class="col-lg-3 col-md-6 mt-2 text-center">
         <a class="btn btn-info btn-lg btn-block" href="{% url 'submissions:list' %}" role="button">Back to Submissions List</a>
       </div>
-      <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-secondary btn-lg btn-block" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a>
+      <div class="col-lg-3 col-md-6 mt-2 text-center">
+        <a class="btn btn-secondary btn-lg btn-block h-100" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a>
       </div>
     </div>
   </div>
