@@ -8,6 +8,7 @@ Created on Fri Oct  5 11:39:34 2018
 
 import logging
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.urls import reverse
@@ -42,6 +43,19 @@ class ValidateView(LoginRequiredMixin, FormView):
 
         # track submission id in order to render page
         self.submission_id = submission_id
+
+        # prevent use from data validation
+        logger.warning(
+            "Data validation temporarily disabled")
+
+        messages.warning(
+            self.request,
+            ("Data validation temporarily disabled. "
+             "Please try again later"),
+            extra_tags="alert alert-dismissible alert-warning")
+
+        # returning success url for the moment
+        return HttpResponseRedirect(self.get_success_url())
 
         # check if I can validate object (statuses)
         if not submission.can_validate():
