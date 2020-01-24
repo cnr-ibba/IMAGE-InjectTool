@@ -499,6 +499,10 @@ class SplitSubmissionHelper():
 
         self.counter += 1
 
+        # Raise internal counter
+        self.usi_submission.samples_count = F('samples_count') + 1
+        self.usi_submission.save()
+
 
 class SplitSubmissionTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     """Split submission data in chunks in order to submit data through

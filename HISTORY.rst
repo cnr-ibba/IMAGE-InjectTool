@@ -16,6 +16,7 @@ TODO
 Features
 ^^^^^^^^
 
+* track samples count and status in ``biosample.models.Submission``
 * truncate error messages sent by emails
 * tune celery worker (autoscaling processes)
 * refactor admin Submission classes

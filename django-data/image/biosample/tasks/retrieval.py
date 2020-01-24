@@ -102,6 +102,10 @@ class FetchStatusHelper():
             # check validation. If it is ok, finalize submission
             status = self.submission.get_status()
 
+            # write status into database
+            self.usi_submission.samples_status = dict(status)
+            self.usi_submission.save()
+
             # this mean validation statuses, I want to see completed in all
             # samples
             if len(status) == 1 and 'Complete' in status:

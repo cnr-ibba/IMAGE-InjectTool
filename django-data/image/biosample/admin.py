@@ -15,7 +15,7 @@ from .models import (
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
         'submission_title', 'usi_submission_name', 'created_at', 'updated_at',
-        'short_message', 'status'
+        'status', 'samples_count', 'samples_status', 'short_message',
     )
 
     list_select_related = ('uid_submission',)
@@ -38,7 +38,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     fields = (
         'uid_submission', 'usi_submission_name', 'created_at', 'updated_at',
-        'message', 'status'
+        'message', 'status', 'samples_count', 'samples_status'
     )
 
 
