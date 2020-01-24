@@ -132,6 +132,18 @@ class FetchStatusHelper():
                 "Current status for submission '%s' is '%s'" % (
                     self.submission_name, document.data))
 
+        elif self.submission.status == 'Processing':
+            # check for a long task
+            if self.submission_has_issues():
+                # return to the caller. I've just marked the submission with
+                # errors and sent a mail to the user
+                return
+
+            logger.debug(
+                "Submission '%s' is '%s'. Still waiting from BioSamples" % (
+                    self.submission_name,
+                    self.submission.status))
+
         else:
             # HINT: thrown an exception?
             logger.warning("Unknown status '%s' for submission '%s'" % (
