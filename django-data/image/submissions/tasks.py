@@ -9,6 +9,7 @@ Created on Tue Jul  9 16:10:06 2019
 import logging
 
 from django.utils import timezone
+from django.template.defaultfilters import truncatechars
 
 from common.constants import ERROR, NEED_REVISION
 from common.tasks import NotifyAdminTaskMixin
@@ -81,10 +82,10 @@ class SubmissionTaskMixin():
 
     def mail_to_owner(self, submission_obj, subject, body):
         # truncate message body if necessary
-        if len(body) > self.max_body_size:
-            body = body[:self.max_body_size] + "...[truncated]"
+        new_body = truncatechars(body, self.max_body_size) + "[truncated]"
 
-        submission_obj.owner.email_user(subject, body)
+        # send mail to user
+        submission_obj.owner.email_user(subject, new_body)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Override the default on_failure method"""

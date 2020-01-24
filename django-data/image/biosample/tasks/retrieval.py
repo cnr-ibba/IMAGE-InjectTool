@@ -18,6 +18,7 @@ import pyUSIrest.exceptions
 from django.conf import settings
 from django.db.models import Count
 from django.utils import timezone
+from django.template.defaultfilters import truncatechars
 
 from image.celery import app as celery_app
 from uid.helpers import parse_image_alias, get_model_object
@@ -441,7 +442,7 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "report this to InjectTool team\n\n"
-                 "%s" % uid_submission.message),
+                 "%s" % truncatechars(uid_submission.message, 2000)),
             )
 
         # check if submission need revision
@@ -455,7 +456,8 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             uid_submission.owner.email_user(
                 "Error in biosample submission %s" % (
                     uid_submission.id),
-                "Some items needs revision:\n\n" + uid_submission.message,
+                "Some items needs revision:\n\n" + truncatechars(
+                    uid_submission.message, 2000),
             )
 
         elif COMPLETED in statuses and len(statuses) == 1:

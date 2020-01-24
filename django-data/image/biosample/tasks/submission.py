@@ -19,6 +19,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F
 from django.db.models.functions import Least
 from django.utils import timezone
+from django.template.defaultfilters import truncatechars
 
 from common.constants import ERROR, READY, SUBMITTED, COMPLETED
 from common.tasks import BaseTask, NotifyAdminTaskMixin
@@ -610,7 +611,7 @@ class SubmissionCompleteTask(
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "report this to InjectTool team\n\n"
-                 "%s" % uid_submission.message),
+                 "%s" % truncatechars(uid_submission.message, 2000)),
             )
 
         elif READY in statuses:
@@ -625,7 +626,7 @@ class SubmissionCompleteTask(
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "try again\n\n"
-                 "%s" % uid_submission.message),
+                 "%s" % truncatechars(uid_submission.message, 2000)),
             )
 
         else:
