@@ -19,6 +19,9 @@ from ..models import Submission
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
+# clean task data after
+CLEANUP_DAYS = 30
+
 
 class CleanUpTask(NotifyAdminTaskMixin, BaseTask):
     """Perform biosample.models cleanup by selecting old completed submission
@@ -39,8 +42,8 @@ class CleanUpTask(NotifyAdminTaskMixin, BaseTask):
 
         logger.info("Clean biosample.database started")
 
-        # get an interval starting from 7 days from now
-        interval = timezone.now() - timedelta(days=7)
+        # get an interval starting from now
+        interval = timezone.now() - timedelta(days=CLEANUP_DAYS)
 
         # select all COMPLETED object older than interval
         qs = Submission.objects.filter(

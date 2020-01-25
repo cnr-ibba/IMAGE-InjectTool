@@ -21,7 +21,8 @@ from django.db.models.functions import Least
 from django.utils import timezone
 from django.template.defaultfilters import truncatechars
 
-from common.constants import ERROR, READY, SUBMITTED, COMPLETED
+from common.constants import (
+    ERROR, READY, SUBMITTED, COMPLETED, EMAIL_MAX_BODY_SIZE)
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
 from submissions.tasks import SubmissionTaskMixin
@@ -615,7 +616,8 @@ class SubmissionCompleteTask(
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "report this to InjectTool team\n\n"
-                 "%s" % truncatechars(uid_submission.message, 2000)),
+                 "%s" % truncatechars(
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
             )
 
         elif READY in statuses:
@@ -630,7 +632,8 @@ class SubmissionCompleteTask(
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "try again\n\n"
-                 "%s" % truncatechars(uid_submission.message, 2000)),
+                 "%s" % truncatechars(
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
             )
 
         else:

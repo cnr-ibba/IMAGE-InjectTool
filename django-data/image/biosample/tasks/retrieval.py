@@ -25,7 +25,7 @@ from uid.helpers import parse_image_alias, get_model_object
 from uid.models import Submission
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from common.constants import (
-    ERROR, NEED_REVISION, SUBMITTED, COMPLETED)
+    ERROR, NEED_REVISION, SUBMITTED, COMPLETED, EMAIL_MAX_BODY_SIZE)
 from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_manager_auth
@@ -446,7 +446,8 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "report this to InjectTool team\n\n"
-                 "%s" % truncatechars(uid_submission.message, 2000)),
+                 "%s" % truncatechars(
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
             )
 
         # check if submission need revision
@@ -461,7 +462,7 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
                 "Error in biosample submission %s" % (
                     uid_submission.id),
                 "Some items needs revision:\n\n" + truncatechars(
-                    uid_submission.message, 2000),
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE),
             )
 
         elif COMPLETED in statuses and len(statuses) == 1:

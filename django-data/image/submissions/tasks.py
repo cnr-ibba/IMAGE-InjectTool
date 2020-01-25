@@ -11,7 +11,7 @@ import logging
 from django.utils import timezone
 from django.template.defaultfilters import truncatechars
 
-from common.constants import ERROR, NEED_REVISION
+from common.constants import ERROR, NEED_REVISION, EMAIL_MAX_BODY_SIZE
 from common.tasks import NotifyAdminTaskMixin
 from uid.models import Submission
 from validation.helpers import construct_validation_message
@@ -28,7 +28,7 @@ class SubmissionTaskMixin():
     """A mixin to extend Task to support UID Submission objects"""
 
     action = None
-    max_body_size = 5000
+    max_body_size = EMAIL_MAX_BODY_SIZE
 
     def get_uid_submission(self, submission_id):
         """Get a UID Submission instance from an id
