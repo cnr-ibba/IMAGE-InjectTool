@@ -8,6 +8,7 @@ Created on Thu Nov 14 16:06:10 2019
 
 import asyncio
 import aiohttp
+import requests
 
 from yarl import URL
 from multidict import MultiDict
@@ -15,20 +16,25 @@ from multidict import MultiDict
 from datetime import timedelta
 from celery.utils.log import get_task_logger
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 
 from common.constants import COMPLETED, BIOSAMPLE_URL
+from common.helpers import format_attribute
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from image.celery import app as celery_app
-from uid.models import Animal as UIDAnimal, Sample as UIDSample
+from uid.models import Animal as UIDAnimal, Sample as UIDSample, DictSpecie
 
 from ..helpers import get_manager_auth
-from ..models import Submission, OrphanSample
+from ..models import Submission, OrphanSample, ManagedTeam
 
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
 # defining constants. Clean biosample database data after
 CLEANUP_DAYS = 30
+
+# this is the timedelta which I want to add to relaseDate to remove samples
+RELEASE_TIMEDELTA = timedelta(days=365*1000)
 
 # Setting page size for biosample requests
 PAGE_SIZE = 20
@@ -174,10 +180,14 @@ def check_orphan_sample(sample):
         logger.debug("Sample %s is tracked in UID" % (sample['accession']))
 
     else:
-        # test for orphan sample
+        # get a managed team
+        team = ManagedTeam.objects.get(name=sample["domain"])
+
+        # Create an orphan sample
         orphan, created = OrphanSample.objects.get_or_create(
             biosample_id=sample['accession'],
-            name=sample['name'])
+            name=sample['name'],
+            team=team)
 
         if created:
             logger.warning("Add %s to orphan samples" % sample['accession'])
@@ -217,6 +227,52 @@ class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
         logger.info("%s completed" % (self.name))
 
         return "success"
+
+
+def purge_orphan_samples():
+    """A function to remove objects from OrphanSample table"""
+
+    with requests.Session() as session:
+        for orphan_sample in OrphanSample.objects.filter(
+                ignore=False, removed=False):
+
+            # define the url I need to check
+            url = "/".join([BIOSAMPLE_URL, orphan_sample.biosample_id])
+
+            # read data from url
+            response = session.get(url)
+            data = response.json()
+
+            # I need a new data dictionary to submit
+            new_data = dict()
+
+            # I suppose the accession exists, since I found this sample
+            # using accession [biosample.id]
+            new_data['accession'] = data.get(
+                'accession', orphan_sample.biosample_id)
+
+            new_data['alias'] = data['name']
+
+            new_data['title'] = data['characteristics']['title'][0]['text']
+
+            # this will be the most important attribute
+            new_data['releaseDate'] = str(
+                parse_date(data['releaseDate']) + RELEASE_TIMEDELTA)
+
+            new_data['taxonId'] = data['taxId']
+
+            # need to determine taxon as
+            new_data['taxon'] = DictSpecie.objects.get(
+                term__endswith=data['taxId']).label
+
+            new_data['attributes'] = dict()
+
+            # set project again
+            new_data['attributes']["Project"] = format_attribute(
+                value="IMAGE")
+
+            # return new biosample data
+            yield new_data
 
 
 # register explicitly tasks

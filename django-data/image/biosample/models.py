@@ -42,12 +42,7 @@ class ManagedTeam(models.Model):
         verbose_name_plural = "managed teams"
 
 
-class Submission(models.Model):
-    uid_submission = models.ForeignKey(
-        UIDSubmission,
-        on_delete=models.CASCADE,
-        related_name='usi_submissions')
-
+class BaseSubmission(models.Model):
     usi_submission_name = models.CharField(
         max_length=255,
         blank=True,
@@ -76,6 +71,18 @@ class Submission(models.Model):
     samples_count = models.PositiveIntegerField(default=0)
 
     samples_status = JSONField(default=dict)
+
+    class Meta:
+        # Abstract base classes are useful when you want to put some common
+        # information into a number of other models
+        abstract = True
+
+
+class Submission(BaseSubmission):
+    uid_submission = models.ForeignKey(
+        UIDSubmission,
+        on_delete=models.CASCADE,
+        related_name='usi_submissions')
 
     def __str__(self):
         return "%s <%s> (%s): %s" % (
@@ -117,7 +124,24 @@ class SubmissionData(models.Model):
         verbose_name_plural = "submission data"
 
 
+class OrphanSubmission(BaseSubmission):
+
+    def __str__(self):
+        return "%s <%s>: %s" % (
+            self.id,
+            self.usi_submission_name,
+            self.get_status_display())
+
+
 class OrphanSample(models.Model):
+    submission = models.ForeignKey(
+        OrphanSubmission,
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+        blank=True,
+        related_name='submission_data')
+
     # This will be assigned after submission
     biosample_id = models.CharField(
         max_length=255,
@@ -131,6 +155,11 @@ class OrphanSample(models.Model):
 
     name = models.CharField(
         max_length=255)
+
+    team = models.ForeignKey(
+        'ManagedTeam',
+        on_delete=models.CASCADE,
+        help_text="Your AAP Team")
 
     removed = models.BooleanField(
         default=False,

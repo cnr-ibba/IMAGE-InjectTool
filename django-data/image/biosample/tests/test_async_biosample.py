@@ -17,7 +17,7 @@ from common.constants import BIOSAMPLE_URL
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
 from ..tasks.cleanup import check_samples
-from ..models import OrphanSample
+from ..models import OrphanSample, ManagedTeam
 
 from .common import generate_token
 
@@ -87,10 +87,16 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
         sample.biosample_id = "SAMEA6376982"
         sample.save()
 
+        # this is the team_name
+        self.team_name = 'subs.test-team-19'
+
+        # create a managed team object
+        self.managed_team = ManagedTeam.objects.create(name=self.team_name)
+
         # generate tocken
         self.mock_auth.return_value = Mock()
         self.mock_auth.return_value.text = generate_token(
-            domains=['subs.test-team-19'])
+            domains=[self.team_name])
         self.mock_auth.return_value.status_code = 200
 
     async def test_request(self) -> None:
