@@ -13,6 +13,19 @@ TODO
 0.9.3.dev0
 ----------
 
+Features
+^^^^^^^^
+
+* track samples count and status in ``biosample.models.Submission``
+* truncate error messages sent by emails
+* tune celery worker (autoscaling processes)
+* refactor admin Submission classes
+* suppress warnings for 'Processing' submission status
+* upgrade pyUSIrest library to fix an issue in patching sample
+* fix a bug when recovering a submission
+* Improve wording in webpages
+* add missing staticfiles
+
 0.9.2 (2020-01-17)
 ------------------
 

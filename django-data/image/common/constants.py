@@ -27,6 +27,9 @@ EBI_AAP_API_AUTH = config(
 BIOSAMPLE_API_ROOT = config(
     'BIOSAMPLE_API_ROOT', default="https://submission-test.ebi.ac.uk")
 
+# truncate email body message after this size
+EMAIL_MAX_BODY_SIZE = 5000
+
 
 class EnumMixin():
     """Common methods for my Enum classes"""

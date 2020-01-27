@@ -365,7 +365,7 @@ class UploadCryoweb(
             message = 'Error'
             notification_message = (
                 "Error in importing data: Test upload failed\nIs "
-                "'cryoweb_test_data_only.sql' a valid cryoweb dump file?"
+                "'cryoweb_test_data_only.sql' a valid CryoWeb dump file?"
             )
 
             self.check_message(message, notification_message)

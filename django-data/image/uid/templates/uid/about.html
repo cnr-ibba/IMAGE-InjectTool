@@ -17,7 +17,7 @@
       more than 60 gene banks/genetic collections spanning 20 European countries,
       together with the collection of newly generated data. Information to be collected
       and integrated through the <a href="https://www.image2020genebank.eu/" target="_blank">
-      IMAGE portal</a> is currently stored in each
+      IMAGE Data Portal</a> is currently stored in each
       individual's local databases at gene banks, research institutions, breeding
       companies etc. which utilizes a wide range of systems : from simple excel
       files to large national well-structured databases.
@@ -28,11 +28,11 @@
       Currently, the majority of National gene banks are using Cryoweb to manage
       their information. In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
       database collects and stores information for reproductive and genomic material
-      of domestic animals (mammals, birds, fishes and shellfishes) in the country.
+      of domestic animals including mammals, birds, fishes and shellfishes in the country.
       Other countries have developed relational databases to manage their collections.
       Using InjectTool, data derived from different sources can be standardized and
-      validated against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
-      standards and finally submitted to <a href="https://www.ebi.ac.uk/biosamples/">EBI BioSamples</a>,
+      validated against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata standards</a>
+      and finally submitted to <a href="https://www.ebi.ac.uk/biosamples/">EBI BioSamples archive</a>,
       which has been chosen as the sample reference archive for all IMAGE data.
     </p>
     <p class="lead text-primary text-center">
@@ -48,9 +48,8 @@
     <h2>Methods</h2>
 
     <p>
-      The InjectTool has been developed to help gene bank/genomic collections
-      managers to enhance, standardize, tag and submit their gene bank data to
-      <a href="https://www.ebi.ac.uk/biosamples/">BioSamples archive</a> that integrates all
+      The InjectTool has been developed to help gene bank managers to enhance, standardize, tag and submit
+      their gene bank data to <a href="https://www.ebi.ac.uk/biosamples/">BioSamples archive</a> that integrates all
       gene bank records from across Europe. The InjectTool uses a well-defined
       <a href="https://github.com/cnr-ibba/IMAGE-metadata">metadata ruleset</a>
       ensuring high quality and comparable data across the diverse
@@ -58,41 +57,41 @@
     </p>
     <p>
       User will be able to import data from the dump files of either Cryoweb or CRB-Anim, or the template spreadsheet
-      file into InjectTool and the system will validates and submits data to BioSamples archive. User interaction is
+      file into InjectTool and the system will validate and submit data to the BioSamples archive. User interaction is
       only required when the data fails the validation against <a href="https://github.com/cnr-ibba/IMAGE-metadata">
-      IMAGE metadata</a> standards to make manual curations. Error messages are
+      IMAGE metadata standards</a> to make manual curations. Error messages are
       reported to the user within the user interface or by emails, and available
-      options are continuosly provided to the user by enabling or disabling
+      options are continuously provided to the user by enabling or disabling
       buttons during the whole submission process.
     </p>
     <p>
       InjectTool can provide
       ontologies for <em>Countries</em>, <em>Species</em>, <em>Breeds</em>, <em>Physiological</em>
       and <em>developmental stages</em>,
-      if it possible. When a new term is added into InjectTool during data import,
-      annotation tasks will start on the background in order to find the most suitable
-      ontology by quering <a href="https://www.ebi.ac.uk/spot/zooma/">EBI Zooma Tools</a>.
-      InjectTool can also provide translation tables for species terms, in order to refer
-      to the correct species ontology by providing the common name in the own user language
+      if possible. When unannotated terms are found during the data importation,
+      annotation tasks will start in the background to look up for the most suitable
+      ontology using <a href="https://www.ebi.ac.uk/spot/zooma/">EBI Zooma Tools</a>.
+      InjectTool can also provide translation tables for <em>Species</em> terms, in order to refer
+      to the correct species ontology by providing the common name in the user's own language
       during data loading. In such way, you can use the <em>Pig</em> term while
       defining your species: the system will translate it into <em>Sus scrofa</em>.
       A set of english word is defined for the most common species, however when
-      InjectTool finds a new word, it will stops data import and will ask user
-      intervention to translate a new term. After that, all such word occurrences
-      will be translated with the user provided species. If you have other terms
-      that required translation tables, please <a href="mailto:{% get_admin_email %}?subject=feedback">report it to us</a>.
+      InjectTool finds a new <em>Species</em> value it has not encountered before, it will stop
+      the data import process and ask the user to manually input an appropriate ontology term.
+      After that, all such word occurrences will be translated with the user provided species. If you have other terms
+      that require translation tables, please <a href="mailto:{% get_admin_email %}?subject=feedback">contact us</a>.
     </p>
     <p>
-      The system is built on a set of customized <a href="https://www.docker.com/">docker</a> images using
+      The system is built on a set of customized <a href="https://www.docker.com/">Docker</a> images using
       <a href="https://docs.docker.com/compose/">docker-compose</a>:
-      the user will interact on a web application rendered using
+      the user will interact on a webpage-based application powered by
       <a href="https://www.nginx.com/">Nginx</a>, while
-      on the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
-      stores user data and a <a href="https://www.djangoproject.com/">Django</a>
-      image renders pages in HTML using <a href="https://getbootstrap.com/">Bootstrap 4</a>
-      in order to display data and proving forms able to do data manipulation.
+      in the backend a <a href="https://www.postgresql.org/">PostgreSQL</a> instance
+      stores data and a <a href="https://www.djangoproject.com/">Django</a>
+      image renders web pages using <a href="https://getbootstrap.com/">Bootstrap 4</a>
+      in order to display, validate, curate and submit data.
       <a href="http://www.celeryproject.org/">Celery</a> and <a href="https://redis.io/">Redis</a> are used to perform
-      time consuming tasks on background such as the data validation process,
+      time-consuming and monitoring tasks in the background such as the data validation process,
       data submissions to BioSamples archive and monitoring of
       BioSamples submission statuses.
       The project is mainly written in <a href="https://www.python.org/downloads/">Python 3</a>
@@ -100,9 +99,8 @@
       at <a href="{% url 'index' %}">{% absolute_url '/' %}</a> while
       the code is available at <a href="https://github.com/cnr-ibba/IMAGE-InjectTool">GitHub</a>.
       The BioSamples submission is done through the
-      <a href="https://submission.ebi.ac.uk/api/docs/guide_overview.html">Unified Submission Interface</a>
-      portal using the <a href="https://pypi.org/project/pyUSIrest/">pyUSIrest</a> python package
-      developed within this project.
+      <a href="https://submission.ebi.ac.uk/api/docs/guide_overview.html">Data Submission Portal</a>
+      using the <a href="https://pypi.org/project/pyUSIrest/">pyUSIrest</a> python package.
     </p>
 
   </section>
@@ -115,10 +113,10 @@
       <a target="_blank" href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/new/choose">opening a new issue</a>
       to make InjectTool better. InjectTool is developed under the
       <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/LICENSE">GNU General Public License v3.0</a>.
-      Detailed instructions on how to build and start a local InjectTool instance is
-      available inside <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md">InjectTool GitHub repository</a>,
-      while the InjectTool developers guide is available at
-      <a href="https://image-injecttool.readthedocs.io/en/latest/?badge=latest">Read the Docs</a>
+      Detailed instructions on how to build and deploy a local InjectTool instance is
+      available inside <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md">the InjectTool GitHub repository</a>,
+      while the InjectTool developers guide is available
+      <a href="https://image-injecttool.readthedocs.io/en/latest/?badge=latest">here</a>
     </p>
 
   </section>

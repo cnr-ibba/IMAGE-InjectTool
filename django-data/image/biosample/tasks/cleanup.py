@@ -27,7 +27,10 @@ from ..models import Submission, OrphanSample
 # Get an instance of a logger
 logger = get_task_logger(__name__)
 
-# defining constants
+# defining constants. Clean biosample database data after
+CLEANUP_DAYS = 30
+
+# Setting page size for biosample requests
 PAGE_SIZE = 20
 
 PARAMS = MultiDict([
@@ -58,8 +61,8 @@ class CleanUpTask(NotifyAdminTaskMixin, BaseTask):
 
         logger.info("Clean biosample.database started")
 
-        # get an interval starting from 7 days from now
-        interval = timezone.now() - timedelta(days=7)
+        # get an interval starting from now
+        interval = timezone.now() - timedelta(days=CLEANUP_DAYS)
 
         # select all COMPLETED object older than interval
         qs = Submission.objects.filter(
@@ -147,7 +150,7 @@ async def check_samples():
     # I need an pyUSIrest.auth.Auth object to filter out records that don't
     # belong to me
     auth = get_manager_auth()
-    managed_domains = auth.claims['domains']
+    managed_domains = auth.get_domains()
 
     async for sample in get_samples(managed_domains=managed_domains):
         check_orphan_sample(sample)

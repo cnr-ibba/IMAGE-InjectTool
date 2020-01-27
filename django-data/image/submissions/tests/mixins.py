@@ -127,4 +127,4 @@ class ImportGenericTaskMixinTestCase():
 
         # read email
         email = mail.outbox[0]
-        self.assertEqual(email.body, "123456789...[truncated]")
+        self.assertEqual(email.body, "12345678…[truncated]")
