@@ -94,16 +94,23 @@ async def fetch(session, url=BIOSAMPLE_URL, params=PARAMS):
 
 async def parse_samples_data(data, managed_domains):
     # get samples objects
-    samples = data['_embedded']['samples']
+    try:
+        samples = data['_embedded']['samples']
 
-    for sample in samples:
-        # filter out unmanaged records
-        if sample['domain'] not in managed_domains:
-            logger.warning("Ignoring %s" % (sample['name']))
-            continue
+        for sample in samples:
+            # filter out unmanaged records
+            if sample['domain'] not in managed_domains:
+                logger.warning("Ignoring %s" % (sample['name']))
+                continue
 
-        # otherwise return to the caller the sample
-        yield sample
+            # otherwise return to the caller the sample
+            yield sample
+
+    except KeyError as exc:
+        # logger exception. With repr() the exception name is rendered
+        logger.error(repr(exc))
+        logger.warning("error while parsing samples")
+        logger.warning(data)
 
 
 async def get_samples(
@@ -199,10 +206,12 @@ class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
         loop = asyncio.get_event_loop()
 
         # execute stuff
-        loop.run_until_complete(check_samples())
+        try:
+            loop.run_until_complete(check_samples())
 
-        # close loop
-        loop.close()
+        finally:
+            # close loop
+            loop.close()
 
         # debug
         logger.info("%s completed" % (self.name))

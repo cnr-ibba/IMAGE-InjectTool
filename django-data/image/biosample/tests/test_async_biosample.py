@@ -34,6 +34,9 @@ with open(os.path.join(DATA_PATH, "page_0.json")) as handle:
 with open(os.path.join(DATA_PATH, "page_1.json")) as handle:
     page1 = handle.read()
 
+with open(os.path.join(DATA_PATH, "issue_page1.json")) as handle:
+    issue_page1 = handle.read()
+
 
 # TODO: need mocking the get_manager_auth function
 class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
@@ -114,3 +117,23 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
             for accession in reference:
                 qs = OrphanSample.objects.filter(biosample_id=accession)
                 self.assertTrue(qs.exists())
+
+    async def test_request_with_issues(self) -> None:
+        """Test a temporary issue with BioSamples reply"""
+
+        with aioresponses() as mocked:
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&size=20'.format(
+                    url=BIOSAMPLE_URL),
+                status=200,
+                body=page0)
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&page=1&size=20'.format(
+                    url=BIOSAMPLE_URL),
+                status=200,
+                body=issue_page1)
+
+            await check_samples()
+
+            # no objects where tracked since issue in response
+            self.assertEqual(OrphanSample.objects.count(), 0)
