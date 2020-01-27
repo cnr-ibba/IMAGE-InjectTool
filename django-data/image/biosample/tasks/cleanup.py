@@ -176,6 +176,41 @@ def check_orphan_sample(sample):
             logger.warning("Add %s to orphan samples" % sample['accession'])
 
 
+class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
+    """Search accross biosamples for objects not present in UID"""
+
+    name = "Search Orphan BioSamples IDs"
+    description = """Track BioSamples IDs not present in UID"""
+
+    @exclusive_task(
+        task_name=name, lock_id="SearchOrphanTask")
+    def run(self):
+        """
+        This function is called when delay is called. It will acquire a lock
+        in redis, so those tasks are mutually exclusive
+
+        Returns:
+            str: success if everything is ok. Different messages if task is
+            already running or exception is caught"""
+
+        logger.info("%s started" % (self.name))
+
+        # create a loop object
+        loop = asyncio.get_event_loop()
+
+        # execute stuff
+        loop.run_until_complete(check_samples())
+
+        # close loop
+        loop.close()
+
+        # debug
+        logger.info("%s completed" % (self.name))
+
+        return "success"
+
+
 # register explicitly tasks
 # https://github.com/celery/celery/issues/3744#issuecomment-271366923
 celery_app.tasks.register(CleanUpTask)
+celery_app.tasks.register(SearchOrphanTask)

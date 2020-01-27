@@ -12,9 +12,10 @@ Here I will set all the tests.mixins I want to export outside common.tests
 from .mixins import (
     DataSourceMixinTestCase, FormMixinTestCase, GeneralMixinTestCase,
     InvalidFormMixinTestCase, LoginMixinTestCase, MessageMixinTestCase,
-    OwnerMixinTestCase, StatusMixinTestCase, WebSocketMixin)
+    OwnerMixinTestCase, StatusMixinTestCase, AsyncIOMixin, WebSocketMixin)
 
 __all__ = [
     "DataSourceMixinTestCase", "FormMixinTestCase", "GeneralMixinTestCase",
     "InvalidFormMixinTestCase", "LoginMixinTestCase", "MessageMixinTestCase",
-    "OwnerMixinTestCase", "StatusMixinTestCase", "WebSocketMixin"]
+    "OwnerMixinTestCase", "StatusMixinTestCase", "AsyncIOMixin",
+    "WebSocketMixin"]
