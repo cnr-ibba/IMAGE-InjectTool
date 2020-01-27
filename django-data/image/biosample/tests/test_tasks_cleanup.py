@@ -6,7 +6,7 @@ Created on Thu Nov 14 16:19:41 2019
 @author: Paolo Cozzi <paolo.cozzi@ibba.cnr.it>
 """
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.test import TestCase
 from django.utils import timezone
@@ -75,11 +75,20 @@ class CleanUpTaskTestCase(TestCase):
         self.assertEqual(Submission.objects.count(), 2)
 
 
-class SearchOrphanTaskTestCase(AsyncIOMixin, TestCase):
+class SearchOrphanTaskTestCase(TestCase):
 
     def setUp(self):
         # calling my base setup
         super().setUp()
+
+        # ovveride the base patcher method
+        self.asyncio_mock_patcher = patch(
+            'asyncio.new_event_loop')
+        self.asyncio_mock = self.asyncio_mock_patcher.start()
+
+        # mocking asyncio return value
+        self.run_until = self.asyncio_mock.return_value
+        self.run_until.run_until_complete = Mock()
 
         # another patch
         self.check_samples_patcher = patch(
@@ -94,6 +103,7 @@ class SearchOrphanTaskTestCase(AsyncIOMixin, TestCase):
 
     def tearDown(self):
         # stopping mock objects
+        self.asyncio_mock_patcher.stop()
         self.check_samples_patcher.stop()
 
         # calling base methods

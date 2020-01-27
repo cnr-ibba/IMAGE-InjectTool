@@ -213,7 +213,7 @@ class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
         logger.info("%s started" % (self.name))
 
         # create a loop object
-        loop = asyncio.get_event_loop()
+        loop = asyncio.new_event_loop()
 
         # execute stuff
         try:

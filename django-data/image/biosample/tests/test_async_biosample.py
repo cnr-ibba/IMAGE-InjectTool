@@ -19,7 +19,7 @@ from common.constants import BIOSAMPLE_URL
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
 from ..tasks.cleanup import check_samples, purge_orphan_samples
-from ..models import OrphanSample, ManagedTeam
+from ..models import OrphanSample
 
 from .common import generate_token
 
