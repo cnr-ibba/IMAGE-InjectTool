@@ -3,7 +3,7 @@
     "samples" : [ {
       "name" : "IMAGES000006757",
       "accession" : "SAMEA6376982",
-      "domain" : "subs.test-team-19",
+      "domain" : "subs.test-team-1",
       "release" : "2020-01-14T00:00:00Z",
       "update" : "2020-01-15T15:04:43.418Z",
       "taxId" : 9823,
@@ -143,7 +143,7 @@
     }, {
       "name" : "IMAGEA000005610",
       "accession" : "SAMEA6376991",
-      "domain" : "subs.test-team-19",
+      "domain" : "subs.test-team-1",
       "release" : "2020-01-14T00:00:00Z",
       "update" : "2020-01-15T15:04:44.006Z",
       "taxId" : 9823,
@@ -290,7 +290,7 @@
     }, {
       "name" : "IMAGEA000005607",
       "accession" : "SAMEA6376992",
-      "domain" : "subs.test-team-19",
+      "domain" : "subs.test-team-1",
       "release" : "2020-01-14T00:00:00Z",
       "update" : "2020-01-16T13:18:50.956Z",
       "taxId" : 9823,

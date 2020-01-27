@@ -1,0 +1,141 @@
+{
+  "name" : "IMAGES000006757",
+  "accession" : "SAMEA6376982",
+  "domain" : "subs.test-team-19",
+  "release" : "2020-01-24T00:00:00Z",
+  "update" : "2020-01-24T16:16:52.917Z",
+  "taxId" : 9823,
+  "characteristics" : {
+    "Alternative id" : [ {
+      "text" : "7"
+    } ],
+    "Animal age at collection" : [ {
+      "text" : "1",
+      "unit" : "day"
+    } ],
+    "Availability" : [ {
+      "text" : "no longer available"
+    } ],
+    "Collection place accuracy" : [ {
+      "text" : "missing geographic information"
+    } ],
+    "Data source ID" : [ {
+      "text" : "7"
+    } ],
+    "Data source type" : [ {
+      "text" : "Template"
+    } ],
+    "Data source version" : [ {
+      "text" : "0.3"
+    } ],
+    "Derived from" : [ {
+      "text" : "7"
+    } ],
+    "Gene bank country" : [ {
+      "text" : "Italy",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCIT_C16761" ]
+    } ],
+    "Gene bank name" : [ {
+      "text" : "Cryoweb IT"
+    } ],
+    "IMAGE submission id" : [ {
+      "text" : "12"
+    } ],
+    "Organism part" : [ {
+      "text" : "blood",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/UBERON_0000178" ]
+    } ],
+    "Organization address" : [ {
+      "text" : "Via E. Bassini, 15 / Via A. Corti 12, 20133 Milano"
+    } ],
+    "Organization country" : [ {
+      "text" : "Italy",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCIT_C16761" ]
+    } ],
+    "Organization name" : [ {
+      "text" : "IBBA-CNR"
+    } ],
+    "Organization role" : [ {
+      "text" : "submitter",
+      "ontologyTerms" : [ "http://www.ebi.ac.uk/efo/EFO_0001741" ]
+    } ],
+    "Organization uri" : [ {
+      "text" : "http://www.ibba.cnr.it/"
+    } ],
+    "Person affiliation" : [ {
+      "text" : "IBBA-CNR"
+    } ],
+    "Person email" : [ {
+      "text" : "mailto:paolo.cozzi@ibba.cnr.it"
+    } ],
+    "Person first name" : [ {
+      "text" : "Paolo"
+    } ],
+    "Person initial" : [ {
+      "text" : "PC"
+    } ],
+    "Person last name" : [ {
+      "text" : "Cozzi"
+    } ],
+    "Person role" : [ {
+      "text" : "submitter",
+      "ontologyTerms" : [ "http://www.ebi.ac.uk/efo/EFO_0001741" ]
+    } ],
+    "Sample storage" : [ {
+      "text" : "frozen, -20 degrees Celsius freezer"
+    } ],
+    "collection date" : [ {
+      "text" : "2019-11-06",
+      "unit" : "YYYY-MM-DD"
+    } ],
+    "material" : [ {
+      "text" : "specimen from organism",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/OBI_0001479" ]
+    } ],
+    "organism" : [ {
+      "text" : "Sus scrofa",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCBITaxon_9823" ]
+    } ],
+    "project" : [ {
+      "text" : "IMAGE"
+    } ],
+    "species" : [ {
+      "text" : "Sus scrofa",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCBITaxon_9823" ]
+    } ],
+    "submission description" : [ {
+      "text" : "Test name collisions with relationship"
+    } ],
+    "submission title" : [ {
+      "text" : "Test name collisions"
+    } ],
+    "title" : [ {
+      "text" : "7"
+    } ]
+  },
+  "relationships" : [ {
+    "source" : "SAMEA6376982",
+    "type" : "derived from",
+    "target" : "SAMEA6376980"
+  } ],
+  "releaseDate" : "2020-01-24",
+  "updateDate" : "2020-01-24",
+  "submittedVia" : "JSON_API",
+  "create" : "2019-12-04T15:15:42.189Z",
+  "_links" : {
+    "self" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376982"
+    },
+    "curationDomain" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376982{?curationdomain}",
+      "templated" : true
+    },
+    "curationLinks" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376982/curationlinks"
+    },
+    "curationLink" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376982/curationlinks/{hash}",
+      "templated" : true
+    }
+  }
+}

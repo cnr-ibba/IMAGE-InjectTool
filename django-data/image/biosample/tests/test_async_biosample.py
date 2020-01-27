@@ -7,6 +7,8 @@ Created on Tue Jan 21 10:54:09 2020
 """
 
 import os
+import json
+import types
 import asynctest
 
 from aioresponses import aioresponses
@@ -16,7 +18,7 @@ from unittest.mock import patch, Mock
 from common.constants import BIOSAMPLE_URL
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
-from ..tasks.cleanup import check_samples
+from ..tasks.cleanup import check_samples, purge_orphan_samples
 from ..models import OrphanSample, ManagedTeam
 
 from .common import generate_token
@@ -38,10 +40,10 @@ with open(os.path.join(DATA_PATH, "issue_page1.json")) as handle:
     issue_page1 = handle.read()
 
 
-# TODO: need mocking the get_manager_auth function
 class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
     fixtures = [
+        'biosample/managedteam',
         'uid/animal',
         'uid/dictbreed',
         'uid/dictcountry',
@@ -87,16 +89,9 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
         sample.biosample_id = "SAMEA6376982"
         sample.save()
 
-        # this is the team_name
-        self.team_name = 'subs.test-team-19'
-
-        # create a managed team object
-        self.managed_team = ManagedTeam.objects.create(name=self.team_name)
-
         # generate tocken
         self.mock_auth.return_value = Mock()
-        self.mock_auth.return_value.text = generate_token(
-            domains=[self.team_name])
+        self.mock_auth.return_value.text = generate_token()
         self.mock_auth.return_value.status_code = 200
 
     async def test_request(self) -> None:
@@ -143,3 +138,52 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
             # no objects where tracked since issue in response
             self.assertEqual(OrphanSample.objects.count(), 0)
+
+
+class PurgeOrphanSampleTestCase(TestCase):
+    fixtures = [
+        'biosample/managedteam',
+        'biosample/orphansample',
+        'uid/dictspecie',
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        cls.mock_get_patcher = patch('requests.Session.get')
+        cls.mock_get = cls.mock_get_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_get_patcher.stop()
+
+        # calling base method
+        super().tearDownClass()
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+    def test_purge_orphan_samples(self):
+        """Test biosample data conversion"""
+
+        with open(os.path.join(DATA_PATH, "SAMEA6376982.json")) as handle:
+            data = json.load(handle)
+
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.json.return_value = data
+        self.mock_get.return_value.status_code = 200
+
+        # call my method
+        samples = purge_orphan_samples()
+
+        # teams is now a generator
+        self.assertIsInstance(samples, types.GeneratorType)
+        samples = list(samples)
+
+        self.assertEqual(len(samples), 1)
+
+        sample = samples[0]
+        self.assertIsInstance(sample, dict)
