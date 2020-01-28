@@ -10,6 +10,7 @@ import magic
 import tempfile
 
 from django import forms
+from django.conf import settings
 
 from common.constants import CRB_ANIM_TYPE, TEMPLATE_TYPE
 from common.forms import RequestFormMixin
@@ -138,6 +139,12 @@ class SubmissionForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
                 """Who owns the data. Not listed? please """
                 """<a href="mailto:{0}?subject=please add my organization">"""
                 """contact us</a>""".format(get_admin_emails()[0])
+            ),
+            'datasource_type': (
+                """example: CryoWeb. Need an empty template file? """
+                """download it from <a href="%s%s">here</a>""" % (
+                    settings.MEDIA_URL,
+                    "Image_sample_empty_template_20191002.xlsx")
             )
         }
 
@@ -160,6 +167,12 @@ class ReloadForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
 
         help_texts = {
             'uploaded_file': 'Need to be in UTF-8 or ASCII format',
+            'datasource_type': (
+                """example: CryoWeb. Need an empty template file? """
+                """download it from <a href="%s%s">here</a>""" % (
+                    settings.MEDIA_URL,
+                    "Image_sample_empty_template_20191002.xlsx")
+            )
         }
 
 
