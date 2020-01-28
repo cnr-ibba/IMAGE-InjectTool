@@ -9,11 +9,11 @@
   <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}" />
 {% endblock custom-css %}
 
-{% block title %}Uploading data into BioSamples{% endblock title %}
+{% block title %}Submitting data into BioSamples{% endblock title %}
 
 {% block content %}
 
-  <h1>Uploading data into BioSamples</h1>
+  <h1>Submitting data into BioSamples</h1>
 
   <p>The following steps illustrate the procedure to deposit datasets into the BioSamples archive,
     thus subsequently making it available on the IMAGE data portal</p>
@@ -333,7 +333,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
         <a class="btn btn-info btn-lg btn-block" href="{% url 'about' %}" role="button">About IMAGE-InjectTool</a>
       </div>
       <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-submission' %}" role="button">About Submissions</a>
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-submission' %}" role="button">The InjectTool submission system</a>
       </div>
       <div class="col-lg-4 col-md-6 mt-2 text-center">
         <a class="btn btn-secondary btn-lg btn-block" href="{% url 'index' %}" role="button">Back to Home</a>

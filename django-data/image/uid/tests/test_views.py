@@ -126,7 +126,7 @@ class AboutUploadingViewTest(StatusMixinTestCase, Initialize):
         self.response = self.client.get(self.url)
 
     def test_url_resolves_view(self):
-        view = resolve('/about_uploading/')
+        view = resolve('/submitting-data-into-biosamples/')
         self.assertIsInstance(view.func.view_class(), AboutUploadingView)
 
 
@@ -140,7 +140,7 @@ class AboutSubmissionViewTest(StatusMixinTestCase, Initialize):
         self.response = self.client.get(self.url)
 
     def test_url_resolves_view(self):
-        view = resolve('/about_submission/')
+        view = resolve('/the-injecttool-submission-system/')
         self.assertIsInstance(view.func.view_class(), AboutSubmissionView)
 
 
