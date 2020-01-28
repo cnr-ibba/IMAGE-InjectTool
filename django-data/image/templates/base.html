@@ -148,8 +148,10 @@
     {% block footer %}
     <footer class="footer">
       <div class="container">
-        <span class="text-muted">{% git_describe %}</span>
-        <span class="float-right"><a href="{% get_git_link %}"><i class="fab fa-github fa-lg"></i></a></span>
+        <div class="d-flex flex-row justify-content-between">
+          <div class="flex-fill text-muted">{% git_describe %}</div>
+          <div class="flex-fill text-right"><a href="{% get_git_link %}"><i class="fab fa-github fa-lg"></i></a></div>
+        </div>
       </div>
     </footer>
     {% endblock footer %}
