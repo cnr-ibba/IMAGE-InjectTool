@@ -181,9 +181,8 @@ def upload_cryoweb(submission_id):
         # save a message in database
         submission.status = ERROR
         submission.message = (
-            "Error in importing data: %s\nIs '%s' a valid CryoWeb"
+            "Error in importing data: Is '%s' a valid CryoWeb"
             " dump file?" % (
-                str(exc),
                 os.path.split(submission.uploaded_file.name)[-1]))
         submission.save()
 
