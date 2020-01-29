@@ -169,9 +169,7 @@ class Name(BaseMixin, models.Model):
 
     # alternative id will store the internal id in data source
     alternative_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True)
+        max_length=255)
 
     description = models.CharField(
         max_length=255,
@@ -532,7 +530,6 @@ class Animal(BioSampleMixin, Name):
     # using a constraint for sex
     sex = models.ForeignKey(
         'DictSex',
-        null=True,
         on_delete=models.PROTECT)
 
     # check that father and mother are defined using Foreign Keys
@@ -727,7 +724,6 @@ class Sample(BioSampleMixin, Name):
     # using a constraint for organism (DictUberon)
     organism_part = models.ForeignKey(
         'DictUberon',
-        null=True,
         on_delete=models.PROTECT)
 
     # using a constraint for developmental stage (DictDevelStage)

@@ -598,12 +598,12 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         reference['releaseDate'] = str(now.date())
 
         # remove foreign keys from reference
-        for key in ["Organism part", "Developmental stage"]:
+        for key in ["Physiological stage", "Developmental stage"]:
             if key in reference["attributes"]:
                 del(reference["attributes"][key])
 
         # remove foreing keys from sample object
-        self.sample.organism_part = None
+        self.sample.physiological_stage = None
         self.sample.developmental_stage = None
         self.sample.save()
 
