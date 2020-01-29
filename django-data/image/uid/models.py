@@ -14,7 +14,8 @@ from django.urls import reverse
 from common.fields import ProtectedFileField
 from common.constants import (
     OBO_URL, STATUSES, CONFIDENCES, NAME_STATUSES, ACCURACIES, WAITING, LOADED,
-    MISSING, DATA_TYPES, TIME_UNITS, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
+    MISSING, DATA_TYPES, TIME_UNITS, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING,
+    READY)
 from common.helpers import format_attribute
 
 from .mixins import BaseMixin, BioSampleMixin
@@ -1074,10 +1075,10 @@ class Submission(BaseMixin, models.Model):
     def get_absolute_url(self):
         return reverse("submissions:detail", kwargs={"pk": self.pk})
 
-    def __can_I(self, names):
-        """Return True id self.status in statuses"""
+    def __status_not_in(self, statuses):
+        """Return True id self.status not in statuses"""
 
-        statuses = [x.value[0] for x in STATUSES if x.name in names]
+        statuses = [x.value[0] for x in STATUSES if x.name in statuses]
 
         if self.status not in statuses:
             return True
@@ -1088,23 +1089,20 @@ class Submission(BaseMixin, models.Model):
     def can_edit(self):
         """Returns True if I can edit a submission"""
 
-        names = ['waiting', 'submitted']
+        statuses = ['waiting', 'submitted']
 
-        return self.__can_I(names)
+        return self.__status_not_in(statuses)
 
     def can_validate(self):
-        names = ['error', 'waiting', 'submitted', 'completed']
+        statuses = ['error', 'waiting', 'submitted', 'completed', 'ready']
 
-        return self.__can_I(names)
+        return self.__status_not_in(statuses)
 
     def can_submit(self):
-        names = ['ready']
+        """Return yes if I can submit a submission to BioSamples"""
 
-        # this is the opposite of self.__can_I
-        statuses = [x.value[0] for x in STATUSES if x.name in names]
-
-        # self.status need to be in statuses for submitting
-        if self.status in statuses:
+        # I can submit only with READY status
+        if self.status == READY:
             return True
 
         else:

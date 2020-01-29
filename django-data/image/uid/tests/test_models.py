@@ -323,7 +323,7 @@ class SubmissionTestCase(TestCase):
 
         # test my helper methods
         self.assertTrue(self.submission.can_edit())
-        self.assertTrue(self.submission.can_validate())
+        self.assertFalse(self.submission.can_validate())
         self.assertTrue(self.submission.can_submit())
 
     def test_completed(self):

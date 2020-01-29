@@ -93,7 +93,7 @@ class CanValidateTest(CommonTestCase, TestCase):
 
     def test_is_ready(self):
         rendered = self.render_status(READY)
-        self.assertEqual(rendered, "True")
+        self.assertEqual(rendered, "False")
 
     def test_need_revision(self):
         rendered = self.render_status(NEED_REVISION)
