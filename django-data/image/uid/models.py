@@ -1089,6 +1089,12 @@ class Submission(BaseMixin, models.Model):
         if self.animal_set.count() == 0 and self.sample_set.count() == 0:
             return False
 
+        # if I have data, apply the same condition of can_delete
+        return self.can_delete()
+
+    def can_delete(self):
+        """return True if I can delete the submission"""
+
         statuses = ['waiting', 'submitted']
 
         return self.__status_not_in(statuses)

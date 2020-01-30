@@ -85,6 +85,7 @@
 {% can_edit submission as edit %}
 {% can_validate submission as validate %}
 {% can_submit submission as submit %}
+{% can_delete submission as delete %}
 {# TODO: a new templatetag for updating/deleting submission #}
 
 <div class="container mt-3">
@@ -99,7 +100,7 @@
     <div class="col-md-4 mt-2 text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a></div>
     {# TODO: disable button if necessary #}
     <div class="col-md-4 mt-2 text-center btn-group">
-      <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not edit %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="danger-zone">Danger Zone</button>
+      <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not delete %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="danger-zone">Danger Zone</button>
       <div class="dropdown-menu">
         <a class="dropdown-item" href="{% url 'submissions:reload' pk=submission.pk %}">Reload datasource</a>
         <a class="dropdown-item" href="{% url 'submissions:update' pk=submission.pk %}">Update submission</a>

@@ -28,5 +28,10 @@ def can_submit(submission):
 
 
 @register.simple_tag
+def can_delete(submission):
+    return submission.can_delete()
+
+
+@register.simple_tag
 def have_submission(user):
     return Submission.objects.filter(owner=user).exists()

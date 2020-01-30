@@ -278,6 +278,7 @@ class SubmissionTestCase(TestCase):
         self.assertFalse(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertFalse(self.submission.can_delete())
 
     def test_loaded(self):
         """Test loaded status"""
@@ -289,6 +290,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertTrue(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_submitted(self):
         """Test submitted status"""
@@ -300,6 +302,7 @@ class SubmissionTestCase(TestCase):
         self.assertFalse(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertFalse(self.submission.can_delete())
 
     def test_error(self):
         """Test error status"""
@@ -311,6 +314,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_need_revision(self):
         """Test need_revision status"""
@@ -322,6 +326,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertTrue(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_ready(self):
         """Test ready status"""
@@ -333,6 +338,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertTrue(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_completed(self):
         """Test completed status"""
@@ -344,6 +350,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_empty_submission(self):
         """A submission with no data can't be edited"""
