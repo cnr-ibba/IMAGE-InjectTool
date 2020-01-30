@@ -16,6 +16,8 @@ from django.utils import timezone
 
 from common.constants import LOADED
 from uid.models import Submission, Animal, Sample
+from submissions.helpers import send_message
+from validation.helpers import construct_validation_message
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -64,7 +66,13 @@ class Command(BaseCommand):
 
         # update submission status
         submission.status = LOADED
+        submission.message = "Submission reset to 'Loaded' state"
         submission.save()
+
+        # update submission status
+        send_message(
+            submission, construct_validation_message(submission)
+        )
 
         # call commands and fill tables.
         logger.debug("reset_submission ended")
