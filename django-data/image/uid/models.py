@@ -1085,6 +1085,10 @@ class Submission(BaseMixin, models.Model):
     def can_edit(self):
         """Returns True if I can edit a submission"""
 
+        # if there are no data I can't edit and do stuff
+        if self.animal_set.count() == 0 and self.sample_set.count() == 0:
+            return False
+
         statuses = ['waiting', 'submitted']
 
         return self.__status_not_in(statuses)

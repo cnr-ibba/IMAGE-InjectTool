@@ -17,6 +17,8 @@ Features
 ^^^^^^^^
 
 * Minor refactor
+* No edit submission with no data
+* forcing constrains for mandatory attributes
 * No more validation with ``READY`` state
 * rename empty template and download from ``CreateSubmissionView``
 * changed ``URI`` for about pages

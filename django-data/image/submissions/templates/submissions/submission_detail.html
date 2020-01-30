@@ -126,6 +126,9 @@
 {% block custom-js %}
 <script>
   $(document).ready(function() {
+    // declaring a variable to test if submission has data or not
+    var submissionHasData = false;
+
     // force page reload when using browser history
     // useful when an old detail pages changes status furing browsing
     // https://stackoverflow.com/a/43043658/4385116
@@ -168,7 +171,11 @@
 
     // completed operations. Error or submitted with success to biosample
     else if (current_status === 'Error' || current_status === 'Completed') {
-      enable_button(edit_data);
+      // enable button if submission has data. This has sense for errors
+      if (submissionHasData) {
+        enable_button(edit_data);
+      }
+
       validate_button.classList.add('disabled');
       enable_button(danger_zone);
     }
@@ -235,7 +242,8 @@
 
   // append other elements to the constructed uri
   new_uri += '//' + loc.host + '/ws/submissions/' + submissionId + '/';
-  console.log(new_uri);
+
+  // console.log(new_uri);
 
   // open the connection through WebSocket
   var chatSocket = new WebSocket(new_uri);
@@ -243,6 +251,8 @@
   chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     var message = data['message'];
+
+    // console.log(data);
 
     // this is the message associated to the submission
     var notificationMessage = data['notification_message'];
@@ -268,6 +278,13 @@
       var samplesUnknown = data['validation_message']['sample_unkn'];
       var animalsIssues = data['validation_message']['animal_issues'];
       var samplesIssues = data['validation_message']['sample_issues'];
+
+      // ok determine if submission has data and set proper value to
+      // global value:
+      if (animalsMessage > 0 || samplesMessage > 0) {
+        submissionHasData = true;
+        // console.log(submissionHasData);
+      }
 
       // update validation messages
       document.querySelector('#validation_message_animals').innerHTML = construct_validation_message('animal', animalsMessage, animalsUnknown, animalsIssues);

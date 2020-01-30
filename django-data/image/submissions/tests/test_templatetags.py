@@ -11,18 +11,24 @@ from django.template import Template, Context
 
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
-from uid.models import Submission, User
+from uid.models import Submission, User, Sample, Animal
 
 
 class CommonTestCase():
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "uid/user",
-        "uid/dictcountry",
-        "uid/dictrole",
-        "uid/organization",
-        "uid/submission"
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):
@@ -70,6 +76,23 @@ class CanEditTest(CommonTestCase, TestCase):
     def test_is_completed(self):
         rendered = self.render_status(COMPLETED)
         self.assertEqual(rendered, "True")
+
+    def test_empty_submission(self):
+        """With no animal and sample you can't edit submission"""
+
+        # drop samples
+        Sample.objects.all().delete()
+
+        # test my helper methods
+        rendered = self.render_status(READY)
+        self.assertEqual(rendered, "True")
+
+        # drop also animal.
+        Animal.objects.all().delete()
+
+        # now I can't edit a submission
+        rendered = self.render_status(READY)
+        self.assertEqual(rendered, "False")
 
 
 class CanValidateTest(CommonTestCase, TestCase):
