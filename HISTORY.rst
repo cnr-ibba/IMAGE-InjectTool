@@ -10,8 +10,8 @@ TODO
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
-0.9.3.dev0
-----------
+0.9.3 (2020-01-31)
+------------------
 
 Features
 ^^^^^^^^
@@ -19,7 +19,7 @@ Features
 * No more ``50x`` page when creating a submission with the same attributes of another one
 * Minor refactor
 * No edit submission with no data
-* forcing constrains for mandatory attributes
+* forcing constraints for mandatory attributes
 * No more validation with ``READY`` state
 * rename empty template and download from ``CreateSubmissionView``
 * changed ``URI`` for about pages
