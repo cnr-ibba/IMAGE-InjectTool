@@ -18,43 +18,47 @@
       <td>{{ submission.title }}</td>
     </tr>
     <tr class="table-secondary">
+      <th scope="row">IMAGE submission id:</th>
+      <td>{{ submission.id }}</td>
+    </tr>
+    <tr class="table-primary">
       <th scope="row">Description:</th>
       <td>{{ submission.description }}</td>
     </tr>
-    <tr class="table-primary">
+    <tr class="table-secondary">
       <th scope="row">Gene Bank Name:</th>
       <td id="claims">{{ submission.gene_bank_name }}</td>
     </tr>
-    <tr class="table-secondary">
+    <tr class="table-primary">
       <th scope="row">Gene Bank Country:</th>
       <td>{{ submission.gene_bank_country }}</td>
     </tr>
 
-    <tr class="table-primary">
+    <tr class="table-secondary">
       <th scope="row">Organization:</th>
       <td id="claims">{{ submission.organization }}</td>
     </tr>
-    <tr class="table-secondary">
+    <tr class="table-primary">
       <th scope="row">Data Source Type:</th>
       <td>{{ submission.get_datasource_type_display }}</td>
     </tr>
-    <tr class="table-primary">
+    <tr class="table-secondary">
       <th scope="row">Data Source version:</th>
       <td>{{ submission.datasource_version }}</td>
     </tr>
-    <tr class="table-secondary">
+    <tr class="table-primary">
       <th scope="row">Data File:</th>
       <td id="claims"><a href="{{ submission.uploaded_file.url }}">{{ submission.get_uploaded_file_basename }}</a></td>
     </tr>
-    <tr class="table-primary">
+    <tr class="table-secondary">
       <th scope="row">Created at:</th>
       <td>{{ submission.created_at }}</td>
     </tr>
-    <tr class="table-secondary">
+    <tr class="table-primary">
       <th scope="row">Status:</th>
       <td id="status-log">{{ submission.get_status_display }}</td>
     </tr>
-    <tr class="table-primary">
+    <tr class="table-secondary">
       <th scope="row">N. of Animals</th>
       <td id="validation_message_animals">
         {{ validation_summary.animals }}
@@ -66,7 +70,7 @@
         {% endif %}
       </td>
     </tr>
-    <tr class="table-secondary">
+    <tr class="table-primary">
       <th scope="row">N. of Samples</th>
       <td id="validation_message_samples">
         {{ validation_summary.samples }}
@@ -74,7 +78,7 @@
         ({{ validation_summary.sample_issues }} with issues in <a href="{% url 'submissions:validation_summary' pk=submission.id type='sample' %}">validation</a>)
         {% endif %}
         {% if validation_summary.sample_unkn %}
-        ({{ validation_summary.sample_unkn }} with unknown validation)
+        ({{ validation_summary.sample_unkn }} waiting to be validated)
         {% endif %}
       </td>
     </tr>
@@ -85,6 +89,7 @@
 {% can_edit submission as edit %}
 {% can_validate submission as validate %}
 {% can_submit submission as submit %}
+{% can_delete submission as delete %}
 {# TODO: a new templatetag for updating/deleting submission #}
 
 <div class="container mt-3">
@@ -99,7 +104,7 @@
     <div class="col-md-4 mt-2 text-center"><a class="btn btn-secondary btn-lg btn-block" href="{% url 'uid:dashboard' %}" role="button">Return to Dashboard</a></div>
     {# TODO: disable button if necessary #}
     <div class="col-md-4 mt-2 text-center btn-group">
-      <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not edit %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="danger-zone">Danger Zone</button>
+      <button type="button" class="btn btn-danger btn-lg btn-block dropdown-toggle {% if not delete %}disabled{% endif %}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="danger-zone">Danger Zone</button>
       <div class="dropdown-menu">
         <a class="dropdown-item" href="{% url 'submissions:reload' pk=submission.pk %}">Reload datasource</a>
         <a class="dropdown-item" href="{% url 'submissions:update' pk=submission.pk %}">Update submission</a>
@@ -126,6 +131,9 @@
 {% block custom-js %}
 <script>
   $(document).ready(function() {
+    // declaring a variable to test if submission has data or not
+    var submissionHasData = false;
+
     // force page reload when using browser history
     // useful when an old detail pages changes status furing browsing
     // https://stackoverflow.com/a/43043658/4385116
@@ -167,7 +175,16 @@
     }
 
     // completed operations. Error or submitted with success to biosample
-    else if (current_status === 'Error' || current_status === 'Completed') {
+    else if (current_status === 'Error') {
+      // enable button if submission has data. This has sense for errors
+      if (submissionHasData) {
+        enable_button(edit_data);
+      }
+      validate_button.classList.add('disabled');
+      enable_button(danger_zone);
+    }
+
+    else if (current_status === 'Completed') {
       enable_button(edit_data);
       validate_button.classList.add('disabled');
       enable_button(danger_zone);
@@ -184,7 +201,7 @@
       submit_button.classList.add('disabled');
     } else {
       enable_button(edit_data);
-      enable_button(validate_button);
+      validate_button.classList.add('disabled');
       enable_button(danger_zone);
       enable_button(submit_button);
     }
@@ -210,9 +227,9 @@
   function construct_validation_message(modelType, message, unknown, issues) {
       modelLink = `validation_summary/${modelType}/`;
       if (unknown !== 0 && issues !== 0) {
-      message += ` (${issues} with issues in <a href=${modelLink}>validation</a>; ${unknown} with unknown validation)`;
+      message += ` (${issues} with issues in <a href=${modelLink}>validation</a>; ${unknown} waiting to be validated)`;
     } else if (unknown !== 0 && issues === 0) {
-      message += ` (${unknown} with unknown validation)`;
+      message += ` (${unknown} waiting to be validated)`;
     } else if (unknown === 0 && issues !== 0) {
       message += ` (${issues} with issues in <a href=${modelLink}>validation</a>)`;
     }
@@ -235,7 +252,8 @@
 
   // append other elements to the constructed uri
   new_uri += '//' + loc.host + '/ws/submissions/' + submissionId + '/';
-  console.log(new_uri);
+
+  // console.log(new_uri);
 
   // open the connection through WebSocket
   var chatSocket = new WebSocket(new_uri);
@@ -243,6 +261,8 @@
   chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data);
     var message = data['message'];
+
+    // console.log(data);
 
     // this is the message associated to the submission
     var notificationMessage = data['notification_message'];
@@ -268,6 +288,13 @@
       var samplesUnknown = data['validation_message']['sample_unkn'];
       var animalsIssues = data['validation_message']['animal_issues'];
       var samplesIssues = data['validation_message']['sample_issues'];
+
+      // ok determine if submission has data and set proper value to
+      // global value:
+      if (animalsMessage > 0 || samplesMessage > 0) {
+        submissionHasData = true;
+        // console.log(submissionHasData);
+      }
 
       // update validation messages
       document.querySelector('#validation_message_animals').innerHTML = construct_validation_message('animal', animalsMessage, animalsUnknown, animalsIssues);

@@ -28,7 +28,7 @@
       Currently, the majority of National gene banks are using Cryoweb to manage
       their information. In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
       database collects and stores information for reproductive and genomic material
-      of domestic animals including mammals, birds, fishes and shellfishes in the country.
+      of domestic animals including mammals, birds and fishes in the country.
       Other countries have developed relational databases to manage their collections.
       Using InjectTool, data derived from different sources can be standardized and
       validated against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata standards</a>
@@ -40,6 +40,29 @@
         The IMAGE InjectTool is a tool which makes it easier to
         archive data into BioSamples from the user's point of view.
       </strong>
+    </p>
+
+    <h3>The benefit of using InjectTool</h3>
+
+    <p>
+      The benefits of depositing data in BioSamples includes clear data organization
+      with each record assigned a unique globally recognized identifer, ensuring
+      sample description consistency for data records in different sequencing archives,
+      improved reproducibility, conformation to FAIR data standards and synchronization w
+      ith sister BioSample databases in National Center for Biotechnology Information (NCBI)
+      and DNA Data Bank of Japan (DDBJ).
+    </p>
+
+    <p>
+	    BioSamples is widely used as the sample reference for other molecular archives,
+      for example ENA (European Nucleotide Archive, which covers raw sequencing data,
+      sequence assembly information and functional annotation), EVA (European Variation
+      Archive, which stores all types of genetic variation data) and ArrayExpress
+      which stores data from high-throughput functional genomics experiments.
+      These core data archives are important for the deposition of the genomic
+      data generating during the IMAGE project. More information  could be found
+      in the <a href="https://github.com/cnr-ibba/IMAGE-genotype/blob/master/How%20to%20submit%20IMAGE%20genotype%20data.pdf">How to submit IMAGE genotype data</a>
+      guide.
     </p>
 
   </section>
@@ -60,9 +83,9 @@
       file into InjectTool and the system will validate and submit data to the BioSamples archive. User interaction is
       only required when the data fails the validation against <a href="https://github.com/cnr-ibba/IMAGE-metadata">
       IMAGE metadata standards</a> to make manual curations. Error messages are
-      reported to the user within the user interface or by emails, and available
-      options are continuously provided to the user by enabling or disabling
-      buttons during the whole submission process.
+      reported to the user within the user interface or by emails, and user is
+      guided through the whole submission process by the system, which provides
+      different functionalities accordingly to the submission stage.
     </p>
     <p>
       InjectTool can provide
@@ -141,7 +164,7 @@
   <p class="container mt-3">
     <div class="row">
       <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-info btn-lg btn-block" href="{% url 'about-submission' %}" role="button">About Submissions</a>
+        <a class="btn btn-info btn-lg btn-block" href="{% url 'about-submission' %}" role="button">The InjectTool submission system</a>
       </div>
       <div class="col-lg-4 col-md-6 mt-2 text-center">
         <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-uploading' %}" role="button">Submitting data to BioSamples</a>

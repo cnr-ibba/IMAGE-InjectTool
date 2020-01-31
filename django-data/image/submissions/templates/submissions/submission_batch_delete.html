@@ -9,7 +9,7 @@
     <form method="post">
         {% csrf_token %}
         <div class="form-group">
-            <label for="to_delete">Please provide ids to delete (one id per row)</label>
+            <label for="to_delete">Please provide names to delete (one name per row)</label>
             <textarea class="form-control" name="to_delete" id="to_delete" rows="10"></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>

@@ -16,12 +16,21 @@ TODO
 Features
 ^^^^^^^^
 
+* No more ``50x`` page when creating a submission with the same attributes of another one
+* Minor refactor
+* No edit submission with no data
+* forcing constrains for mandatory attributes
+* No more validation with ``READY`` state
+* rename empty template and download from ``CreateSubmissionView``
+* changed ``URI`` for about pages
+* documentation review
+* truncate mail body sizes
 * track samples count and status in ``biosample.models.Submission``
 * truncate error messages sent by emails
 * tune celery worker (autoscaling processes)
 * refactor admin Submission classes
-* suppress warnings for 'Processing' submission status
-* upgrade pyUSIrest library to fix an issue in patching sample
+* suppress warnings for ``Processing`` submission status
+* pin pyUSIrest library to ``v0.3.1`` and fix an issue in patching sample
 * fix a bug when recovering a submission
 * Improve wording in webpages
 * add missing staticfiles

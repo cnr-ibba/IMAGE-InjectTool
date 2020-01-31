@@ -32,13 +32,6 @@
         <p class="mb-0">Your account doesn't have access to this page. To proceed,
         please login with an account that has access.</p>
       </div>
-
-      {# This appens when I need to authenticate myself to see this page #}
-      {% else %}
-        <div class="alert alert-dismissible alert-primary">
-          <button type="button" class="close" data-dismiss="alert">&times;</button>
-          Please login to see this page.
-        </div>
       {% endif %}
 
   {% endif %}
@@ -72,7 +65,7 @@
             <a href="{% url 'accounts:password_reset' %}" class="text-muted">Forgot your password?</a>
           </small>
         </div>
-        <p class="mb-3 text-muted">&copy; 2017-2019</p>
+        <p class="mb-3 text-muted text-center">&copy; IBBA-CNR 2017-2020</p>
         <input type="hidden" name="next" value="{{ next }}" />
       </form>
     </div>

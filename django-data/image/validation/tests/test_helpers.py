@@ -18,7 +18,7 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 from django.conf import settings
 
-from uid.models import Animal, Sample, Submission, Person
+from uid.models import Animal, Sample, Submission
 
 from uid.tests import PersonMixinTestCase
 

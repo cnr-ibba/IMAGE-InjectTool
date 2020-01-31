@@ -11,18 +11,24 @@ from django.template import Template, Context
 
 from common.constants import (
     WAITING, LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED)
-from uid.models import Submission, User
+from uid.models import Submission, User, Sample, Animal
 
 
 class CommonTestCase():
     """Does the common stuff when testing cases are run"""
 
     fixtures = [
-        "uid/user",
-        "uid/dictcountry",
-        "uid/dictrole",
-        "uid/organization",
-        "uid/submission"
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/ontology',
+        'uid/organization',
+        'uid/publication',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):
@@ -71,6 +77,23 @@ class CanEditTest(CommonTestCase, TestCase):
         rendered = self.render_status(COMPLETED)
         self.assertEqual(rendered, "True")
 
+    def test_empty_submission(self):
+        """With no animal and sample you can't edit submission"""
+
+        # drop samples
+        Sample.objects.all().delete()
+
+        # test my helper methods
+        rendered = self.render_status(READY)
+        self.assertEqual(rendered, "True")
+
+        # drop also animal.
+        Animal.objects.all().delete()
+
+        # now I can't edit a submission
+        rendered = self.render_status(READY)
+        self.assertEqual(rendered, "False")
+
 
 class CanValidateTest(CommonTestCase, TestCase):
     """Test if I can validate data against different submission statuses"""
@@ -93,7 +116,7 @@ class CanValidateTest(CommonTestCase, TestCase):
 
     def test_is_ready(self):
         rendered = self.render_status(READY)
-        self.assertEqual(rendered, "True")
+        self.assertEqual(rendered, "False")
 
     def test_need_revision(self):
         rendered = self.render_status(NEED_REVISION)
@@ -142,6 +165,42 @@ class CanSubmitTest(CommonTestCase, TestCase):
     def test_is_completed(self):
         rendered = self.render_status(COMPLETED)
         self.assertEqual(rendered, "False")
+
+
+class CanDeleteTest(CommonTestCase, TestCase):
+    """Test if I can delete data against different submission statuses"""
+
+    TEMPLATE = Template(
+        "{% load submissions_tags %}{% can_delete submission %}"
+    )
+
+    def test_is_waiting(self):
+        rendered = self.render_status(WAITING)
+        self.assertEqual(rendered, "False")
+
+    def test_is_loaded(self):
+        rendered = self.render_status(LOADED)
+        self.assertEqual(rendered, "True")
+
+    def test_is_error(self):
+        rendered = self.render_status(ERROR)
+        self.assertEqual(rendered, "True")
+
+    def test_is_ready(self):
+        rendered = self.render_status(READY)
+        self.assertEqual(rendered, "True")
+
+    def test_need_revision(self):
+        rendered = self.render_status(NEED_REVISION)
+        self.assertEqual(rendered, "True")
+
+    def test_is_submitted(self):
+        rendered = self.render_status(SUBMITTED)
+        self.assertEqual(rendered, "False")
+
+    def test_is_completed(self):
+        rendered = self.render_status(COMPLETED)
+        self.assertEqual(rendered, "True")
 
 
 class HaveSubmissionTest(CommonTestCase, TestCase):

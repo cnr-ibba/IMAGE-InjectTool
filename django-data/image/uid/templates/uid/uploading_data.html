@@ -9,11 +9,11 @@
   <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}" />
 {% endblock custom-css %}
 
-{% block title %}Uploading data into BioSamples{% endblock title %}
+{% block title %}Submitting data into BioSamples{% endblock title %}
 
 {% block content %}
 
-  <h1>Uploading data into BioSamples</h1>
+  <h1>Submitting data into BioSamples</h1>
 
   <p>The following steps illustrate the procedure to deposit datasets into the BioSamples archive,
     thus subsequently making it available on the IMAGE data portal</p>
@@ -172,7 +172,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       Some information will be provided by InjectTool, for instance the submitter and the institute are provided by
       the user during the registration process and will be used every time a submission is made under that account.
       To upload your data, download an empty template file from
-      <a href="{% get_media_prefix %}Image_sample_empty_template_20191220.xlsx">here</a>
+      <a href="{% get_media_prefix %}Image_sample_empty_template_20191002.xlsx">here</a>
       and start by filling <code>breed</code>, <code>animal</code> and <code>sample</code>
       sheets: not all columns are mandatory, please refer to
       <a href="https://github.com/cnr-ibba/IMAGE-metadata/blob/master/docs/image_sample_metadata.md">IMAGE metadata - sample specification</a>
@@ -333,7 +333,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
         <a class="btn btn-info btn-lg btn-block" href="{% url 'about' %}" role="button">About IMAGE-InjectTool</a>
       </div>
       <div class="col-lg-4 col-md-6 mt-2 text-center">
-        <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-submission' %}" role="button">About Submissions</a>
+        <a class="btn btn-primary btn-lg btn-block" href="{% url 'about-submission' %}" role="button">The InjectTool submission system</a>
       </div>
       <div class="col-lg-4 col-md-6 mt-2 text-center">
         <a class="btn btn-secondary btn-lg btn-block" href="{% url 'index' %}" role="button">Back to Home</a>

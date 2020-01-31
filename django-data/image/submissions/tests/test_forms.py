@@ -50,6 +50,8 @@ class UpdateSubmissionFormTest(TestCase):
             'gene_bank_name',
             'gene_bank_country',
             'organization',
+            "datasource_type",
+            "datasource_version",
         ]
         actual = list(form.fields)
         self.assertSequenceEqual(expected, actual)
