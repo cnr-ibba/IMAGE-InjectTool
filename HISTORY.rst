@@ -16,6 +16,7 @@ TODO
 Features
 ^^^^^^^^
 
+* No more ``50x`` page when creating a submission with the same attributes of another one
 * Minor refactor
 * No edit submission with no data
 * forcing constrains for mandatory attributes

@@ -222,6 +222,11 @@ class AjaxTemplateView(TemplateView):
 
 
 class FormInvalidMixin():
+    def get_form_kwargs(self):
+        kwargs = super(FormInvalidMixin, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_invalid(self, form):
         messages.error(
             self.request,
