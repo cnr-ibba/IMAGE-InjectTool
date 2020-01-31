@@ -20,7 +20,33 @@ from crbanim.helpers import CRBAnimReader
 from excel.helpers import ExcelTemplateReader
 
 
-class SubmissionFormMixin():
+class UniqueSubmissionMixin():
+    def check_submission_exists(self):
+        """Test if I already have a submission with the same data"""
+
+        # get unique attributes
+        unique_together = Submission._meta.unique_together[0]
+
+        # get submitted attributes
+        data = {key: self.cleaned_data.get(key) for key in unique_together
+                if self.cleaned_data.get(key) is not None}
+
+        # ovverride owner attribute
+        data['owner'] = self.request.user
+
+        # test for a submission object with the same attributes
+        if Submission.objects.filter(**data).exists():
+            msg = (
+                "Error: There is already a submission with the same "
+                "attributes. Please change one of the following: "
+                "Gene bank name, Gene bank country, Data source type and "
+                "Data source version")
+
+            # raising an exception:
+            raise forms.ValidationError(msg, code='invalid')
+
+
+class SubmissionFormMixin(UniqueSubmissionMixin):
     def clean(self):
         # test if I have a submission with the provided data
         self.check_submission_exists()
@@ -42,29 +68,6 @@ class SubmissionFormMixin():
             if ("datasource_type" in self.cleaned_data and
                     self.cleaned_data["datasource_type"] == TEMPLATE_TYPE):
                 self.check_template_file()
-
-    def check_submission_exists(self):
-        """Test if I already have a submission with the same data"""
-
-        # get unique attributes
-        unique_together = Submission._meta.unique_together[0]
-
-        # get submitted attributes
-        data = {key: self.cleaned_data.get(key) for key in unique_together}
-
-        # ovverride owner attribute
-        data['owner'] = self.request.user
-
-        # test for a submission object with the same attributes
-        if Submission.objects.filter(**data).exists():
-            msg = (
-                "Error: There is already a submission with the same "
-                "attributes. Please change one of the following: "
-                "Gene bank name, Gene bank country, Data source type and "
-                "Data source version")
-
-            # raising an exception:
-            raise forms.ValidationError(msg, code='invalid')
 
     def check_file_encoding(self):
         uploaded_file = self.cleaned_data['uploaded_file']
@@ -202,7 +205,8 @@ class ReloadForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
         }
 
 
-class UpdateSubmissionForm(forms.ModelForm):
+class UpdateSubmissionForm(
+        UniqueSubmissionMixin, RequestFormMixin, forms.ModelForm):
     class Meta:
         model = Submission
         fields = (
@@ -211,6 +215,8 @@ class UpdateSubmissionForm(forms.ModelForm):
             'gene_bank_name',
             'gene_bank_country',
             'organization',
+            "datasource_type",
+            "datasource_version",
         )
 
         help_texts = {
@@ -220,3 +226,7 @@ class UpdateSubmissionForm(forms.ModelForm):
                 """contact us</a>""".format(get_admin_emails()[0])
             )
         }
+
+    def clean(self):
+        # test if I have a submission with the provided data
+        self.check_submission_exists()
