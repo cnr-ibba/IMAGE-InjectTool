@@ -112,11 +112,19 @@ class EditSubmissionViewTest(
 
 class EditSubmissionViewStatusesTest(SubmissionStatusMixin, TestCase):
     fixtures = [
-        "uid/user",
-        "uid/dictcountry",
-        "uid/dictrole",
-        "uid/organization",
-        "uid/submission"
+        'uid/animal',
+        'uid/dictbreed',
+        'uid/dictcountry',
+        'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
+        'uid/organization',
+        'uid/publication',
+        'uid/sample',
+        'uid/submission',
+        'uid/user'
     ]
 
     def setUp(self):

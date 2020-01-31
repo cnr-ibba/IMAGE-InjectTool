@@ -11,7 +11,8 @@ from unittest.mock import patch
 from django.test import Client, TestCase
 from django.urls import resolve, reverse
 
-from common.constants import WAITING, ERROR, SUBMITTED, LOADED, COMPLETED
+from common.constants import (
+    WAITING, ERROR, SUBMITTED, LOADED, COMPLETED, READY)
 from uid.models import Submission
 
 from ..forms import ValidateForm
@@ -175,6 +176,12 @@ class NoValidateViewTest(TestMixin, TestCase):
 
         # valutate status and no function called
         self.__common_stuff(WAITING)
+
+    def test_submission_ready(self):
+        """check no validation with submission status READY"""
+
+        # valutate status and no function called
+        self.__common_stuff(READY)
 
     def test_submission_error(self):
         """check no validation with submission status ERROR"""

@@ -386,6 +386,21 @@ class FetchDraftTestCase(FetchStatusHelperMixin, TestCase):
         # testing a not finalized biosample condition
         self.assertFalse(self.my_submission.finalize.called)
 
+    def test_fetch_status_processing(self):
+        """This is a status I see during validation"""
+
+        # an example submission in processing stage. If everything is ok
+        # it has no errors and is complete
+        self.my_submission.status = 'Processing'
+        self.my_submission.has_errors.return_value = Counter({False: 2})
+        self.my_submission.get_status.return_value = Counter({'Complete': 2})
+
+        # assert mock methods called
+        self.common_tests()
+
+        # testing a not finalized biosample condition
+        self.assertFalse(self.my_submission.finalize.called)
+
 
 class FetchLongStatusTestCase(FetchStatusHelperMixin, TestCase):
     """A submission wich remain in the same status for a long time"""
@@ -427,6 +442,13 @@ class FetchLongStatusTestCase(FetchStatusHelperMixin, TestCase):
     def test_error_in_draft_status(self):
         # a still running submission
         self.my_submission.status = 'Draft'
+
+        # assert mock methods called
+        self.common_tests()
+
+    def test_error_in_processing_status(self):
+        # a still running submission
+        self.my_submission.status = 'Processing'
 
         # assert mock methods called
         self.common_tests()

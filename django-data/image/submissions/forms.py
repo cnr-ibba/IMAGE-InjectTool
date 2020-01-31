@@ -10,6 +10,7 @@ import magic
 import tempfile
 
 from django import forms
+from django.conf import settings
 
 from common.constants import CRB_ANIM_TYPE, TEMPLATE_TYPE
 from common.forms import RequestFormMixin
@@ -19,8 +20,37 @@ from crbanim.helpers import CRBAnimReader
 from excel.helpers import ExcelTemplateReader
 
 
-class SubmissionFormMixin():
+class UniqueSubmissionMixin():
+    def check_submission_exists(self):
+        """Test if I already have a submission with the same data"""
+
+        # get unique attributes
+        unique_together = Submission._meta.unique_together[0]
+
+        # get submitted attributes
+        data = {key: self.cleaned_data.get(key) for key in unique_together
+                if self.cleaned_data.get(key) is not None}
+
+        # ovverride owner attribute
+        data['owner'] = self.request.user
+
+        # test for a submission object with the same attributes
+        if Submission.objects.filter(**data).exists():
+            msg = (
+                "Error: There is already a submission with the same "
+                "attributes. Please change one of the following: "
+                "Gene bank name, Gene bank country, Data source type and "
+                "Data source version")
+
+            # raising an exception:
+            raise forms.ValidationError(msg, code='invalid')
+
+
+class SubmissionFormMixin(UniqueSubmissionMixin):
     def clean(self):
+        # test if I have a submission with the provided data
+        self.check_submission_exists()
+
         # I can call this method without providing a 'uploaded file'
         # (for instance, when omitting uploaded file)
         if "uploaded_file" in self.cleaned_data:
@@ -138,6 +168,12 @@ class SubmissionForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
                 """Who owns the data. Not listed? please """
                 """<a href="mailto:{0}?subject=please add my organization">"""
                 """contact us</a>""".format(get_admin_emails()[0])
+            ),
+            'datasource_type': (
+                """example: CryoWeb. Need an empty template file? """
+                """download it from <a href="%s%s">here</a>""" % (
+                    settings.MEDIA_URL,
+                    "Image_sample_empty_template_20191002.xlsx")
             )
         }
 
@@ -160,10 +196,17 @@ class ReloadForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
 
         help_texts = {
             'uploaded_file': 'Need to be in UTF-8 or ASCII format',
+            'datasource_type': (
+                """example: CryoWeb. Need an empty template file? """
+                """download it from <a href="%s%s">here</a>""" % (
+                    settings.MEDIA_URL,
+                    "Image_sample_empty_template_20191002.xlsx")
+            )
         }
 
 
-class UpdateSubmissionForm(forms.ModelForm):
+class UpdateSubmissionForm(
+        UniqueSubmissionMixin, RequestFormMixin, forms.ModelForm):
     class Meta:
         model = Submission
         fields = (
@@ -172,6 +215,8 @@ class UpdateSubmissionForm(forms.ModelForm):
             'gene_bank_name',
             'gene_bank_country',
             'organization',
+            "datasource_type",
+            "datasource_version",
         )
 
         help_texts = {
@@ -181,3 +226,7 @@ class UpdateSubmissionForm(forms.ModelForm):
                 """contact us</a>""".format(get_admin_emails()[0])
             )
         }
+
+    def clean(self):
+        # test if I have a submission with the provided data
+        self.check_submission_exists()

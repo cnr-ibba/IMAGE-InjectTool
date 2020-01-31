@@ -246,9 +246,9 @@ class BioSampleMixin(BaseMixin):
 
         return result
 
-    def __can_I(self, statuses):
+    def __status_not_in(self, statuses):
         """
-        Return True id self.status in statuses
+        Return True id self.status not in statuses
 
         Args:
             statuses (list): a list of :py:class:`common.constants.STATUSES`
@@ -275,7 +275,7 @@ class BioSampleMixin(BaseMixin):
 
         statuses = ['waiting', 'submitted']
 
-        return self.__can_I(statuses)
+        return self.__status_not_in(statuses)
 
     def can_delete(self):
         """Returns True if I can delete a sample/animal according to submission
@@ -287,4 +287,4 @@ class BioSampleMixin(BaseMixin):
 
         statuses = ['waiting', 'submitted']
 
-        return self.__can_I(statuses)
+        return self.__status_not_in(statuses)

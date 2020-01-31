@@ -467,7 +467,7 @@ class DeleteSubmissionMixin():
                 request, *args, **kwargs)
 
         # here I've done get_queryset. Check for submission status
-        if hasattr(self, "object") and not self.object.can_edit():
+        if hasattr(self, "object") and not self.object.can_delete():
             message = "Cannot delete %s: submission status is: %s" % (
                     self.object, self.object.get_status_display())
 

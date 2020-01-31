@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.fields import JSONField
 
 from common.constants import STATUSES, WAITING
 from uid.models import Submission as UIDSubmission
@@ -71,6 +72,10 @@ class Submission(models.Model):
         choices=[x.value for x in STATUSES],
         help_text='example: Waiting',
         default=WAITING)
+
+    samples_count = models.PositiveIntegerField(default=0)
+
+    samples_status = JSONField(default=dict)
 
     def __str__(self):
         return "%s <%s> (%s): %s" % (

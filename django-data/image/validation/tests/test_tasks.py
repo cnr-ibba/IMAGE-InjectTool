@@ -21,7 +21,7 @@ from django.test import TestCase
 
 from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
 from common.tests import WebSocketMixin
-from uid.models import Submission, Person, Animal, Sample
+from uid.models import Submission, Animal, Sample
 from uid.tests import PersonMixinTestCase
 
 from ..tasks import ValidateTask, ValidationError, ValidateSubmission

@@ -18,13 +18,14 @@ import pyUSIrest.exceptions
 from django.conf import settings
 from django.db.models import Count
 from django.utils import timezone
+from django.template.defaultfilters import truncatechars
 
 from image.celery import app as celery_app
 from uid.helpers import parse_image_alias, get_model_object
 from uid.models import Submission
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from common.constants import (
-    ERROR, NEED_REVISION, SUBMITTED, COMPLETED)
+    ERROR, NEED_REVISION, SUBMITTED, COMPLETED, EMAIL_MAX_BODY_SIZE)
 from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_manager_auth
@@ -101,6 +102,10 @@ class FetchStatusHelper():
             # check validation. If it is ok, finalize submission
             status = self.submission.get_status()
 
+            # write status into database
+            self.usi_submission.samples_status = dict(status)
+            self.usi_submission.save()
+
             # this mean validation statuses, I want to see completed in all
             # samples
             if len(status) == 1 and 'Complete' in status:
@@ -131,6 +136,18 @@ class FetchStatusHelper():
             logger.debug(
                 "Current status for submission '%s' is '%s'" % (
                     self.submission_name, document.data))
+
+        elif self.submission.status == 'Processing':
+            # check for a long task
+            if self.submission_has_issues():
+                # return to the caller. I've just marked the submission with
+                # errors and sent a mail to the user
+                return
+
+            logger.debug(
+                "Submission '%s' is '%s'. Still waiting from BioSamples" % (
+                    self.submission_name,
+                    self.submission.status))
 
         else:
             # HINT: thrown an exception?
@@ -429,7 +446,8 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "report this to InjectTool team\n\n"
-                 "%s" % uid_submission.message),
+                 "%s" % truncatechars(
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
             )
 
         # check if submission need revision
@@ -443,7 +461,8 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             uid_submission.owner.email_user(
                 "Error in biosample submission %s" % (
                     uid_submission.id),
-                "Some items needs revision:\n\n" + uid_submission.message,
+                "Some items needs revision:\n\n" + truncatechars(
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE),
             )
 
         elif COMPLETED in statuses and len(statuses) == 1:

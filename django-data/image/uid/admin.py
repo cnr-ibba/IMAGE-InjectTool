@@ -10,6 +10,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
+from django.template.defaultfilters import truncatechars
 
 from .models import (Animal, DictBreed, DictCountry, DictRole, DictSpecie,
                      Ontology, Organization, Person, Publication, Sample,
@@ -174,10 +175,28 @@ class AnimalAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_display = (
-        'title', 'description', 'gene_bank_name', 'gene_bank_country',
-        'datasource_type', 'datasource_version', 'organization', 'created_at',
-        'updated_at', 'status', 'owner'
+        'title', 'owner', 'short_organization', 'created_at', 'updated_at',
+        'status', 'gene_bank_name', 'short_country', 'datasource_type',
+        'datasource_version', 'short_message'
     )
+
+    def short_organization(self, obj):
+        return truncatechars(obj.organization.name, 30)
+
+    # rename column in admin
+    short_organization.short_description = "Organization"
+
+    def short_country(self, obj):
+        return obj.gene_bank_country.label
+
+    # rename column in admin
+    short_country.short_description = "Gene Bank Country"
+
+    def short_message(self, obj):
+        return truncatechars(obj.message, 40)
+
+    # rename column in admin
+    short_message.short_description = "Message"
 
     # manage a fields with many FK keys
     # https://books.agiliq.com/projects/django-admin-cookbook/en/latest/many_fks.html

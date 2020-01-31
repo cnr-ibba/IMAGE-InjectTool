@@ -243,10 +243,18 @@ class SubmissionTestCase(TestCase):
     """Testing Submission class"""
 
     fixtures = [
+        'uid/animal',
+        'uid/dictbreed',
         'uid/dictcountry',
         'uid/dictrole',
+        'uid/dictsex',
+        'uid/dictspecie',
+        'uid/dictstage',
+        'uid/dictuberon',
         'uid/ontology',
         'uid/organization',
+        'uid/publication',
+        'uid/sample',
         'uid/submission',
         'uid/user'
     ]
@@ -270,6 +278,7 @@ class SubmissionTestCase(TestCase):
         self.assertFalse(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertFalse(self.submission.can_delete())
 
     def test_loaded(self):
         """Test loaded status"""
@@ -281,6 +290,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertTrue(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_submitted(self):
         """Test submitted status"""
@@ -292,6 +302,7 @@ class SubmissionTestCase(TestCase):
         self.assertFalse(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertFalse(self.submission.can_delete())
 
     def test_error(self):
         """Test error status"""
@@ -303,6 +314,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_need_revision(self):
         """Test need_revision status"""
@@ -314,6 +326,7 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertTrue(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_ready(self):
         """Test ready status"""
@@ -323,8 +336,9 @@ class SubmissionTestCase(TestCase):
 
         # test my helper methods
         self.assertTrue(self.submission.can_edit())
-        self.assertTrue(self.submission.can_validate())
+        self.assertFalse(self.submission.can_validate())
         self.assertTrue(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
 
     def test_completed(self):
         """Test completed status"""
@@ -336,6 +350,25 @@ class SubmissionTestCase(TestCase):
         self.assertTrue(self.submission.can_edit())
         self.assertFalse(self.submission.can_validate())
         self.assertFalse(self.submission.can_submit())
+        self.assertTrue(self.submission.can_delete())
+
+    def test_empty_submission(self):
+        """A submission with no data can't be edited"""
+
+        # force submission status to something that can be edited
+        self.submission.status = LOADED
+
+        # drop samples
+        Sample.objects.all().delete()
+
+        # test my helper methods
+        self.assertTrue(self.submission.can_edit())
+
+        # drop also animal.
+        Animal.objects.all().delete()
+
+        # now I can't edit a submission
+        self.assertFalse(self.submission.can_edit())
 
 
 class AnimalTestCase(PersonMixinTestCase, TestCase):
@@ -598,12 +631,12 @@ class SampleTestCase(PersonMixinTestCase, TestCase):
         reference['releaseDate'] = str(now.date())
 
         # remove foreign keys from reference
-        for key in ["Organism part", "Developmental stage"]:
+        for key in ["Physiological stage", "Developmental stage"]:
             if key in reference["attributes"]:
                 del(reference["attributes"][key])
 
         # remove foreing keys from sample object
-        self.sample.organism_part = None
+        self.sample.physiological_stage = None
         self.sample.developmental_stage = None
         self.sample.save()
 

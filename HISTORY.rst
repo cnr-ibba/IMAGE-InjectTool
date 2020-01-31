@@ -5,16 +5,43 @@ History
 TODO
 ----
 
+* clean up orphaned BioSample IDs
 * model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
-0.9.2.dev0
+0.9.3.dev0
 ----------
 
 Features
 ^^^^^^^^
 
+* No more ``50x`` page when creating a submission with the same attributes of another one
+* Minor refactor
+* No edit submission with no data
+* forcing constrains for mandatory attributes
+* No more validation with ``READY`` state
+* rename empty template and download from ``CreateSubmissionView``
+* changed ``URI`` for about pages
+* documentation review
+* truncate mail body sizes
+* track samples count and status in ``biosample.models.Submission``
+* truncate error messages sent by emails
+* tune celery worker (autoscaling processes)
+* refactor admin Submission classes
+* suppress warnings for ``Processing`` submission status
+* pin pyUSIrest library to ``v0.3.1`` and fix an issue in patching sample
+* fix a bug when recovering a submission
+* Improve wording in webpages
+* add missing staticfiles
+
+0.9.2 (2020-01-17)
+------------------
+
+Features
+^^^^^^^^
+
+* updgrade ``Django`` to ``2.2.9``
 * pinning ``pyUSIrest`` dependency to ``v0.3.0``
 * documenting the BioSamples submission process in sphinx
 * export *BioSamples IDs* as a CSV from *Edit Submission view*
