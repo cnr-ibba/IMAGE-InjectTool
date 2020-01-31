@@ -173,7 +173,7 @@ class DeleteMaterialMixin(OwnerMixin):
                 request, *args, **kwargs)
 
         # here I've done get_queryset. Check for submission status
-        if hasattr(self, "object") and not self.object.can_edit():
+        if hasattr(self, "object") and not self.object.can_delete():
             message = "Cannot delete %s: submission status is: %s" % (
                     self.object, self.object.submission.get_status_display())
 
@@ -222,6 +222,11 @@ class AjaxTemplateView(TemplateView):
 
 
 class FormInvalidMixin():
+    def get_form_kwargs(self):
+        kwargs = super(FormInvalidMixin, self).get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_invalid(self, form):
         messages.error(
             self.request,

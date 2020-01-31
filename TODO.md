@@ -23,14 +23,6 @@ InjectTool TODO
     validation tables? should I have tables for USI errors, since if the
     data is validated using `image_validation` is not a user error?
 
-* regarding issues in cryoweb:
-  - ANIMAL:::ID:::Ramon_142436 is present two times in database how to fix it?
-    Using google refine? For the moment, no duplicate can be inserted into database,
-    the second occurrence will not be included in database.
-  - breed changes for animal <VAnimal: ANIMAL:::ID:::CS01_1999 (Cinta Senese) (sire:ANIMAL:::ID:::CT01_1999, dam:ANIMAL:::ID:::unknown_dam)>
-    and its father
-  - check for duplicate breeds - names
-
 * NGINX media folder can serve media files (jpg, etc).
   - add subdirs in media folder `data_source/` - using a subdir for each template
     could avoid name collision and visualize the original file name
@@ -81,10 +73,6 @@ InjectTool TODO
       display that field in DetailViews
     - add the uploaded time for file?
   - Change `WAITING` in `PROCESSING` (implies something happening)
-  - deal with errors when create a submission with the same parameters of another
-    submission:
-      duplicate key value violates unique constraint "image_app_submission_gene_bank_name_gene_bank_0c9b8ecc_uniq"
-        DETAIL:  Key (gene_bank_name, gene_bank_country_id, datasource_type, datasource_version, owner_id)=(Cryoweb DE, 7, 0, test, 2) already exists.
   - `Submission.message` as `ArrayField` (to store more messages?)
 
 * Relate to templatetags

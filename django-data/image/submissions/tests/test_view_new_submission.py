@@ -160,6 +160,28 @@ class SuccessfulCreateSubmissionViewTest(Initialize):
         # test called task
         self.assertTrue(my_task.called)
 
+    @patch('submissions.views.ImportCryowebTask.delay')
+    def test_same_submission(self, my_task):
+        """Create a new submission with the same data for same user"""
+
+        response = self.client.post(
+            self.url,
+            self.get_data(),
+            follow=True)
+
+        # no objects created
+        self.assertEqual(Submission.objects.count(), 1)
+
+        # assert status code (no redirect)
+        self.assertEqual(response.status_code, 200)
+
+        # check errors
+        form = response.context.get('form')
+        self.assertGreater(len(form.errors), 0)
+
+        # test called task
+        self.assertFalse(my_task.called)
+
 
 class InvalidCreateSubmissionViewTest(InvalidFormMixinTestCase, Initialize):
 

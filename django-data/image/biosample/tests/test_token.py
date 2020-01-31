@@ -103,7 +103,7 @@ class TestTokenView(SessionEnabledTestCase):
         self.set_session_cookies(session)
 
         response = self.client.get(self.url)
-        self.assertContains(response, 'Token for Foo Bar will last')
+        self.assertContains(response, 'Token for Foo Bar will expire in')
 
     def test_expired_token(self):
         session = self.get_session()

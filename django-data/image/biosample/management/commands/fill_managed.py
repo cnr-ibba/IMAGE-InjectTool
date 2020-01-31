@@ -39,7 +39,7 @@ class Command(BaseCommand):
         # create a new auth object
         auth = get_manager_auth()
 
-        for domain in auth.claims['domains']:
+        for domain in auth.get_domains():
             managed, created = ManagedTeam.objects.get_or_create(
                 name=domain)
 

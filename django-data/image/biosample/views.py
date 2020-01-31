@@ -275,7 +275,7 @@ class RegisterUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin,
         if not auth:
             return self.form_invalid(form)
 
-        if team.name not in auth.claims['domains']:
+        if team.name not in auth.get_domains():
             messages.error(
                 self.request,
                 "You don't belong to team: %s" % team,
@@ -447,7 +447,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
         # list all domain for manager
         logger.debug("Listing all domains for %s" % (config('USI_MANAGER')))
-        logger.debug(", ".join(auth.claims['domains']))
+        logger.debug(", ".join(auth.get_domains()))
 
         # get the domain for the new team, and then the domain_id
         logger.debug("Getting domain info for team %s" % (team.name))

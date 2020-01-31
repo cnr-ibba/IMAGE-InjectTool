@@ -14,7 +14,8 @@ from django.urls import reverse
 from common.fields import ProtectedFileField
 from common.constants import (
     OBO_URL, STATUSES, CONFIDENCES, NAME_STATUSES, ACCURACIES, WAITING, LOADED,
-    MISSING, DATA_TYPES, TIME_UNITS, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING)
+    MISSING, DATA_TYPES, TIME_UNITS, SAMPLE_STORAGE, SAMPLE_STORAGE_PROCESSING,
+    READY)
 from common.helpers import format_attribute
 
 from .mixins import BaseMixin, BioSampleMixin
@@ -168,9 +169,7 @@ class Name(BaseMixin, models.Model):
 
     # alternative id will store the internal id in data source
     alternative_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True)
+        max_length=255)
 
     description = models.CharField(
         max_length=255,
@@ -531,7 +530,6 @@ class Animal(BioSampleMixin, Name):
     # using a constraint for sex
     sex = models.ForeignKey(
         'DictSex',
-        null=True,
         on_delete=models.PROTECT)
 
     # check that father and mother are defined using Foreign Keys
@@ -726,7 +724,6 @@ class Sample(BioSampleMixin, Name):
     # using a constraint for organism (DictUberon)
     organism_part = models.ForeignKey(
         'DictUberon',
-        null=True,
         on_delete=models.PROTECT)
 
     # using a constraint for developmental stage (DictDevelStage)
@@ -1074,10 +1071,10 @@ class Submission(BaseMixin, models.Model):
     def get_absolute_url(self):
         return reverse("submissions:detail", kwargs={"pk": self.pk})
 
-    def __can_I(self, names):
-        """Return True id self.status in statuses"""
+    def __status_not_in(self, statuses):
+        """Return True id self.status not in statuses"""
 
-        statuses = [x.value[0] for x in STATUSES if x.name in names]
+        statuses = [x.value[0] for x in STATUSES if x.name in statuses]
 
         if self.status not in statuses:
             return True
@@ -1088,23 +1085,30 @@ class Submission(BaseMixin, models.Model):
     def can_edit(self):
         """Returns True if I can edit a submission"""
 
-        names = ['waiting', 'submitted']
+        # if there are no data I can't edit and do stuff
+        if self.animal_set.count() == 0 and self.sample_set.count() == 0:
+            return False
 
-        return self.__can_I(names)
+        # if I have data, apply the same condition of can_delete
+        return self.can_delete()
+
+    def can_delete(self):
+        """return True if I can delete the submission"""
+
+        statuses = ['waiting', 'submitted']
+
+        return self.__status_not_in(statuses)
 
     def can_validate(self):
-        names = ['error', 'waiting', 'submitted', 'completed']
+        statuses = ['error', 'waiting', 'submitted', 'completed', 'ready']
 
-        return self.__can_I(names)
+        return self.__status_not_in(statuses)
 
     def can_submit(self):
-        names = ['ready']
+        """Return yes if I can submit a submission to BioSamples"""
 
-        # this is the opposite of self.__can_I
-        statuses = [x.value[0] for x in STATUSES if x.name in names]
-
-        # self.status need to be in statuses for submitting
-        if self.status in statuses:
+        # I can submit only with READY status
+        if self.status == READY:
             return True
 
         else:

@@ -358,14 +358,14 @@ class UploadCryoweb(
                 ERROR)
 
             self.assertIn(
-                "Test upload failed",
+                "a valid CryoWeb dump file?",
                 self.submission.message)
 
             # check async message called
             message = 'Error'
             notification_message = (
-                "Error in importing data: Test upload failed\nIs "
-                "'cryoweb_test_data_only.sql' a valid cryoweb dump file?"
+                "Error in importing data: Is "
+                "'cryoweb_test_data_only.sql' a valid CryoWeb dump file?"
             )
 
             self.check_message(message, notification_message)

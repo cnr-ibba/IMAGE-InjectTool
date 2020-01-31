@@ -187,12 +187,12 @@ class exclusive_task(object):
                     self.blocking,
                     self.block_expire) as acquired:
                 if acquired:
-                    logger.debug("lock %s aquired")
+                    logger.debug("lock %s acquired" % self.lock_id)
 
                     # do stuff and return something
                     result = f(*args, **kwargs)
 
-                    logger.debug("lock %s released")
+                    logger.debug("lock %s released" % self.lock_id)
 
                 else:
                     # warn user and return a default message

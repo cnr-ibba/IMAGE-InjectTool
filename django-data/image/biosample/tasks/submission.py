@@ -19,8 +19,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, F
 from django.db.models.functions import Least
 from django.utils import timezone
+from django.template.defaultfilters import truncatechars
 
-from common.constants import ERROR, READY, SUBMITTED, COMPLETED
+from common.constants import (
+    ERROR, READY, SUBMITTED, COMPLETED, EMAIL_MAX_BODY_SIZE)
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
 from submissions.tasks import SubmissionTaskMixin
@@ -208,11 +210,11 @@ class SubmissionHelper():
 
         # read already submitted samples
         logger.debug("Getting info on samples...")
-        samples = self.usi_submission.get_samples()
-        logger.debug("Got %s samples" % (len(samples)))
 
-        for sample in samples:
+        for i, sample in enumerate(self.usi_submission.get_samples()):
             self.submitted_samples[sample.alias] = sample
+
+        logger.debug("Got %s samples" % (i+1))
 
         return self.submitted_samples
 
@@ -265,8 +267,10 @@ class SubmissionHelper():
                 self.create_or_update_sample(model)
 
             else:
-                logger.debug("Ignoring %s %s" % (
-                    model._meta.verbose_name, model))
+                logger.debug("Ignoring %s %s: current status is %s" % (
+                    model._meta.verbose_name,
+                    model,
+                    model.get_status_display()))
 
     def mark_submission(self, status, message):
         self.submission_obj.status = status
@@ -496,6 +500,10 @@ class SplitSubmissionHelper():
 
         self.counter += 1
 
+        # Raise internal counter
+        self.usi_submission.samples_count = F('samples_count') + 1
+        self.usi_submission.save()
+
 
 class SplitSubmissionTask(SubmissionTaskMixin, NotifyAdminTaskMixin, BaseTask):
     """Split submission data in chunks in order to submit data through
@@ -608,7 +616,8 @@ class SubmissionCompleteTask(
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "report this to InjectTool team\n\n"
-                 "%s" % uid_submission.message),
+                 "%s" % truncatechars(
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
             )
 
         elif READY in statuses:
@@ -623,7 +632,8 @@ class SubmissionCompleteTask(
                     uid_submission.id),
                 ("Something goes wrong with biosample submission. Please "
                  "try again\n\n"
-                 "%s" % uid_submission.message),
+                 "%s" % truncatechars(
+                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
             )
 
         else:

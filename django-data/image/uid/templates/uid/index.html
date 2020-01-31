@@ -1,18 +1,26 @@
 {% extends "base.html" %}
 
+{% load staticfiles %}
+
 {% block title %}
   Welcome to IMAGE-InjectTool!
 {% endblock title %}
 
 {% block content %}
   <div class="jumbotron">
-    <h1 class="display-5">Welcome to the IMAGE InjectTool!</h1>
-    <p class="lead">Help users to submit gene bank data into BioSamples</p>
+    <div class="d-flex flex-md-row flex-column-reverse justify-content-between align-items-center">
+      <div class="">
+        <h1 class="display-5">Welcome to the IMAGE InjectTool!</h1>
+        <p class="lead">Help users to submit gene bank data into BioSamples</p>
+      </div>
+      <div class="mb-2">
+        <img src="{% static 'images/image_logo.png' %}" alt="image log" width="150px" height='auto'>
+      </div>
+    </div>
+
     <hr class="my-4">
-    <p>InjectTool is developed to help gene bank managers to enhance, standardize, tag and submit their gene bank data to EBI BioSamples, that integrates all gene bank records from across Europe. The interface guides users throughout submission and allows standardization of data following an agreed IMAGE rule set</p>
-    <p class="lead">
-      <a class="btn btn-info btn-lg" href="{% url 'about' %}" role="button">Learn more</a>
-      <a class="btn btn-primary btn-lg" href="{% url 'uid:dashboard' %}" role="button">Dashboard</a>
-    </p>
+    <p>InjectTool is developed to help gene bank managers to enhance, standardize, tag and submit their gene bank data to <a href="https://www.ebi.ac.uk/biosamples/">EBI BioSamples archive</a>, that integrates all gene bank records from across Europe. The interface guides users throughout submission and allows standardization of data following an agreed IMAGE rule set.</p>
+    <a class="btn btn-info btn-lg" href="{% url 'about' %}" role="button">Learn more</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'uid:dashboard' %}" role="button">Dashboard</a>
   </div>
 {% endblock content %}

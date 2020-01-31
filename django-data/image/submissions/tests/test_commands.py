@@ -10,10 +10,11 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from common.constants import LOADED
+from common.tests import WebSocketMixin
 from uid.models import Submission, Animal, Sample
 
 
-class CommandsTestCase(TestCase):
+class CommandsTestCase(WebSocketMixin, TestCase):
     fixtures = [
         'uid/animal',
         'uid/dictbreed',
@@ -55,3 +56,7 @@ class CommandsTestCase(TestCase):
 
         for model in qs:
             self.assertEqual(model.status, LOADED)
+
+        self.check_message(
+            message='Loaded',
+            notification_message="Submission reset to 'Loaded' state")
