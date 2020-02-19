@@ -11,7 +11,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 
-from ..tasks import clearsessions
+from ..tasks import clearsessions, cleanupregistration
 
 
 class TestClearSession(TestCase):
@@ -19,5 +19,14 @@ class TestClearSession(TestCase):
     def test_clearsession(self, my_patch):
         result = clearsessions.run()
 
-        self.assertEqual(result, "Session cleaned with success")
+        self.assertEqual(result, "Sessions cleaned with success")
+        self.assertTrue(my_patch.called)
+
+
+class TestCleanUpRegistration(TestCase):
+    @patch('django.core.management.call_command')
+    def test_cleanupregistration(self, my_patch):
+        result = cleanupregistration.run()
+
+        self.assertEqual(result, "Registrations cleaned with success")
         self.assertTrue(my_patch.called)

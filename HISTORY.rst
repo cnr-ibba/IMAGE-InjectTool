@@ -16,6 +16,8 @@ TODO
 Features
 ^^^^^^^^
 
+* schedule cleanup registration
+* refactor account activation message
 * updgrade ``Django`` to ``2.2.10``
 
 0.9.3 (2020-01-31)
