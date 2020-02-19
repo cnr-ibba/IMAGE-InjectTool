@@ -80,15 +80,46 @@ def fill_DictSex():
 
 
 # a function to fill up DictRoles
-# TODO: need I fill tables with descendants terms?
 def fill_DictRoles():
+    """Fill roles and return submitter role"""
+
     # define a submitter role
-    role = get_or_create_obj(
+    submitter = get_or_create_obj(
         DictRole,
         label='submitter',
         term='EFO_0001741')
 
-    return role
+    get_or_create_obj(
+        DictRole,
+        label='administrator',
+        term='EFO_0009743')
+
+    get_or_create_obj(
+        DictRole,
+        label='clinician',
+        term='EFO_0009740')
+
+    get_or_create_obj(
+        DictRole,
+        label='curator',
+        term='EFO_0001733')
+
+    get_or_create_obj(
+        DictRole,
+        label='funder',
+        term='EFO_0001736')
+
+    get_or_create_obj(
+        DictRole,
+        label='investigator',
+        term='EFO_0001739')
+
+    get_or_create_obj(
+        DictRole,
+        label='technician',
+        term='EFO_0009739')
+
+    return submitter
 
 
 # a function to fill up only species
@@ -242,8 +273,8 @@ def fill_Organization():
     reader = csv.reader(handle, delimiter=";")
     Data = collections.namedtuple('Data', "id name country")
 
-    # get a role
-    role = fill_DictRoles()
+    # get a submitter role
+    submitter = fill_DictRoles()
 
     for row in map(Data._make, reader):
         # get a country object
@@ -255,7 +286,7 @@ def fill_Organization():
         get_or_create_obj(
             Organization,
             name=standardize_institute_name(row.name),
-            role=role,
+            role=submitter,
             country=country)
 
     handle.close()
