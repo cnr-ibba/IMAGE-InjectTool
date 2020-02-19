@@ -10,6 +10,14 @@ TODO
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
+0.9.4.dev0
+----------
+
+Features
+^^^^^^^^
+
+* updgrade ``Django`` to ``2.2.10``
+
 0.9.3 (2020-01-31)
 ------------------
 
