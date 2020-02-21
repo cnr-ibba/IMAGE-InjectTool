@@ -1,6 +1,8 @@
 
 {% load uid_tags widget_tweaks %}
 
+<p class="text-muted">Fields marked with an asterisk (*) are mandatory</p>
+
 {# non-field errors: It’s a collection of errors that are not related to a specific field #}
 {% if form.non_field_errors %}
   <div class="alert alert-danger" role="alert">
