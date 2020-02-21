@@ -26,9 +26,9 @@
       <a href="https://www.ncbi.nlm.nih.gov/pubmed/21364801/">Cryoweb</a>
       is a web-based software for the documentation and storage of gene bank data.
       Currently, the majority of National gene banks are using Cryoweb to manage
-      their information. In France, the <a href="https://www.crb-anim.fr/">CRB-Anim</a>
+      their information. In France, the <a href="https://www.crb-anim.fr/crb-anim_eng/">CRB-Anim</a>
       database collects and stores information for reproductive and genomic material
-      of domestic animals including mammals, birds and fishes in the country.
+      of domestic animals.
       Other countries have developed relational databases to manage their collections.
       Using InjectTool, data derived from different sources can be standardized and
       validated against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata standards</a>
@@ -48,8 +48,8 @@
       The benefits of depositing data in BioSamples includes clear data organization
       with each record assigned a unique globally recognized identifer, ensuring
       sample description consistency for data records in different sequencing archives,
-      improved reproducibility, conformation to FAIR data standards and synchronization w
-      ith sister BioSample databases in National Center for Biotechnology Information (NCBI)
+      improved reproducibility, conformation to <a href="https://en.wikipedia.org/wiki/FAIR_data">FAIR data</a>
+      standards and synchronization with sister databases in National Center for Biotechnology Information (NCBI)
       and DNA Data Bank of Japan (DDBJ).
     </p>
 
@@ -60,9 +60,9 @@
       Archive, which stores all types of genetic variation data) and ArrayExpress
       which stores data from high-throughput functional genomics experiments.
       These core data archives are important for the deposition of the genomic
-      data generating during the IMAGE project. More information  could be found
-      in the <a href="https://github.com/cnr-ibba/IMAGE-genotype/blob/master/How%20to%20submit%20IMAGE%20genotype%20data.pdf">How to submit IMAGE genotype data</a>
-      guide.
+      data generating during the IMAGE project. Example can be found in the
+      in the <a href="https://github.com/cnr-ibba/IMAGE-genotype/blob/master/How%20to%20submit%20IMAGE%20genotype%20data.pdf">Guide for submitting genotype data</a>
+      for inclusion in IMAGE
     </p>
 
   </section>
@@ -85,7 +85,7 @@
       IMAGE metadata standards</a> to make manual curations. Error messages are
       reported to the user within the user interface or by emails, and user is
       guided through the whole submission process by the system, which provides
-      different functionalities accordingly to the submission stage.
+      different functionalities according to the submission stage.
     </p>
     <p>
       InjectTool can provide
@@ -94,7 +94,8 @@
       if possible. When unannotated terms are found during the data importation,
       annotation tasks will start in the background to look up for the most suitable
       ontology using <a href="https://www.ebi.ac.uk/spot/zooma/">EBI Zooma Tools</a>.
-      InjectTool can also provide translation tables for <em>Species</em> terms, in order to refer
+      InjectTool can also provide translation tables for
+      <a href="{% url 'language:species' %}"><em>Species</em> terms</a>, in order to refer
       to the correct species ontology by providing the common name in the user's own language
       during data loading. In such way, you can use the <em>Pig</em> term while
       defining your species: the system will translate it into <em>Sus scrofa</em>.
@@ -139,7 +140,7 @@
       Detailed instructions on how to build and deploy a local InjectTool instance is
       available inside <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/README.md">the InjectTool GitHub repository</a>,
       while the InjectTool developers guide is available
-      <a href="https://image-injecttool.readthedocs.io/en/latest/?badge=latest">here</a>
+      <a href="https://image-injecttool.readthedocs.io/en/latest/?badge=latest">here</a>.
     </p>
 
   </section>
