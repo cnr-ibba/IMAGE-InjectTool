@@ -16,9 +16,11 @@ TODO
 Features
 ^^^^^^^^
 
+* mark mandatory fields in forms with CSS
+* update ``uid.models.DictRole``
 * schedule cleanup registration
 * refactor account activation message
-* updgrade ``Django`` to ``2.2.10``
+* upgrade ``Django`` to ``2.2.10``
 
 0.9.3 (2020-01-31)
 ------------------
@@ -51,7 +53,7 @@ Features
 Features
 ^^^^^^^^
 
-* updgrade ``Django`` to ``2.2.9``
+* upgrade ``Django`` to ``2.2.9``
 * pinning ``pyUSIrest`` dependency to ``v0.3.0``
 * documenting the BioSamples submission process in sphinx
 * export *BioSamples IDs* as a CSV from *Edit Submission view*

@@ -1,0 +1,18 @@
+// a comment line to compile this file with atom sass-autocompile package
+
+// loading cerulean variables
+@import "variables";
+
+body {
+  background-image: url(../images/palm-leaf.png);
+}
+
+// add star to forms
+
+label {
+  &.required::after {
+    content: " *";
+    color: $red;
+    vertical-align: text-bottom!important;
+  }
+}
