@@ -37,6 +37,7 @@ class FetchMixin():
         'biosample/submission',
         'biosample/submissiondata',
         'biosample/validationresult',
+        'biosample/validationsummary',
         'uid/animal',
         'uid/dictbreed',
         'uid/dictcountry',
@@ -353,6 +354,29 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
 
         messages = []
         self.assertListEqual(self.sample.validationresult.messages, messages)
+
+    def test_validationsummary(self):
+        # assert auth, root and get_submission by name called
+        super().common_tests()
+
+        # get the two validationsummary objects
+        summary = self.submission_obj.validationsummary_set.filter(
+            type='animal').first()
+
+        # assert values
+        summary.refresh_from_db()
+        self.assertEqual(summary.pass_count, 2)
+        self.assertEqual(summary.error_count, 1)
+        self.assertEqual(summary.issues_count, 1)
+
+        summary = self.submission_obj.validationsummary_set.filter(
+            type='sample').first()
+
+        # assert values
+        summary.refresh_from_db()
+        self.assertEqual(summary.pass_count, 1)
+        self.assertEqual(summary.error_count, 0)
+        self.assertEqual(summary.issues_count, 0)
 
 
 class FetchDraftTestCase(FetchStatusHelperMixin, TestCase):

@@ -16,7 +16,7 @@ import pyUSIrest.usi
 import pyUSIrest.exceptions
 
 from django.conf import settings
-from django.db.models import Count
+from django.db.models import Count, F
 from django.utils import timezone
 
 from image.celery import app as celery_app
@@ -190,7 +190,7 @@ class FetchStatusHelper():
         else:
             return False
 
-    def __sample_has_errors(self, sample, table, pk):
+    def sample_has_errors(self, sample, table, pk):
         """
         Helper metod to mark a (animal/sample) with its own errors. Table
         sould be Animal or Sample to update the approriate object. Sample
@@ -222,7 +222,18 @@ class FetchStatusHelper():
             "%s: %s" % (k, v) for k, v in errorMessages.items()]
         sample_obj.validationresult.save()
 
-        # TODO: need to update ValidationSummary table
+        # need to update ValidationSummary table, since here I know if this
+        # is a sample or an animal
+        summary = self.uid_submission.validationsummary_set.filter(
+            type=table.lower()).first()
+
+        # now update query using django F function. Decrease pass count
+        # an increase error count for this object
+        # HINT: should I define message here?
+        summary.pass_count = F('pass_count') - 1
+        summary.error_count = F('error_count') + 1
+        summary.issues_count = F('issues_count') + 1
+        summary.save()
 
         # return an error for each object
         return {str(sample_obj): errorMessages}
@@ -254,7 +265,7 @@ class FetchStatusHelper():
                         "%s in table %s has errors!!!" % (sample, table))
 
                     # mark this sample since has problems
-                    errorMessages = self.__sample_has_errors(
+                    errorMessages = self.sample_has_errors(
                         sample, table, pk)
 
                     # append this into error messages list
