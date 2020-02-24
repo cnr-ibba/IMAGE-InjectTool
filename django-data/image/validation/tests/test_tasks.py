@@ -19,7 +19,8 @@ from image_validation.ValidationResult import (
 from django.core import mail
 from django.test import TestCase
 
-from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
+from common.constants import (
+    LOADED, ERROR, READY, NEED_REVISION, COMPLETED, SUBMITTED)
 from common.tests import WebSocketMixin
 from uid.models import Submission, Animal, Sample
 from uid.tests import PersonMixinTestCase
@@ -973,6 +974,27 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         # other statuses are unchanged
         for animal in self.animal_qs.exclude(pk=self.animal.pk):
             self.assertEqual(animal.status, COMPLETED)
+
+    def test_update_status_pass_submitted(self):
+        """Test no change status for submitted objects"""
+
+        # change status in submitted for all the other animal
+        self.animal_qs.exclude(pk=self.animal.pk).update(status=SUBMITTED)
+
+        status = 'Pass'
+        messages = ['Passed all tests']
+        animal_status = READY
+
+        self.update_status(status, messages)
+
+        # asserting status change for animal
+        self.assertEqual(self.animal.status, animal_status)
+
+        # validationresult is tested outside this class
+
+        # other statuses are unchanged
+        for animal in self.animal_qs.exclude(pk=self.animal.pk):
+            self.assertEqual(animal.status, SUBMITTED)
 
     def test_update_status_warning(self):
         status = 'Warning'

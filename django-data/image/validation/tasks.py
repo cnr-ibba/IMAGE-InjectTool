@@ -16,7 +16,8 @@ from collections import Counter, defaultdict
 from celery.utils.log import get_task_logger
 
 from common.constants import (
-    READY, ERROR, LOADED, NEED_REVISION, COMPLETED, STATUSES, KNOWN_STATUSES)
+    READY, ERROR, LOADED, NEED_REVISION, COMPLETED, SUBMITTED, STATUSES,
+    KNOWN_STATUSES)
 from common.helpers import send_mail_to_admins
 from common.tasks import BaseTask, NotifyAdminTaskMixin
 from image.celery import app as celery_app
@@ -214,7 +215,7 @@ class ValidateSubmission(object):
 
         # ok, don't update statuses for submitted objects which
         # already are in biosamples and pass validation
-        if model.status == COMPLETED and status == READY:
+        if model.status in [COMPLETED, SUBMITTED] and status == READY:
             logger.debug(
                 "Ignoring %s: status was '%s' and validation is OK" % (
                     model, key2status[model.status]))
