@@ -18,14 +18,12 @@ import pyUSIrest.exceptions
 from django.conf import settings
 from django.db.models import Count
 from django.utils import timezone
-from django.template.defaultfilters import truncatechars
 
 from image.celery import app as celery_app
 from uid.helpers import parse_image_alias, get_model_object
 from uid.models import Submission
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
-from common.constants import (
-    ERROR, NEED_REVISION, SUBMITTED, COMPLETED, EMAIL_MAX_BODY_SIZE)
+from common.constants import ERROR, NEED_REVISION, SUBMITTED, COMPLETED
 from submissions.tasks import SubmissionTaskMixin
 
 from ..helpers import get_manager_auth
@@ -450,14 +448,14 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             self.update_message(uid_submission, submission_qs, ERROR)
 
             # send a mail to the user
-            uid_submission.owner.email_user(
-                "Error in biosample submission %s" % (
-                    uid_submission.id),
-                ("Something goes wrong with biosample submission. Please "
-                 "report this to InjectTool team\n\n"
-                 "%s" % truncatechars(
-                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
-            )
+            subject = "Error in biosample submission %s" % (
+                uid_submission.id)
+            body = (
+                "Something goes wrong with biosample submission. Please "
+                "report this to InjectTool team\n\n"
+                "%s" % uid_submission.message)
+
+            self.mail_to_owner(uid_submission, subject, body)
 
         # check if submission need revision
         elif NEED_REVISION in statuses:
@@ -467,12 +465,11 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             self.update_message(uid_submission, submission_qs, NEED_REVISION)
 
             # send a mail to the user
-            uid_submission.owner.email_user(
-                "Error in biosample submission %s" % (
-                    uid_submission.id),
-                "Some items needs revision:\n\n" + truncatechars(
-                    uid_submission.message, EMAIL_MAX_BODY_SIZE),
-            )
+            subject = "Error in biosample submission %s" % (
+                uid_submission.id)
+            body = "Some items needs revision:\n\n" + uid_submission.message
+
+            self.mail_to_owner(uid_submission, subject, body)
 
         elif COMPLETED in statuses and len(statuses) == 1:
             # if all status are complete, the submission is completed
