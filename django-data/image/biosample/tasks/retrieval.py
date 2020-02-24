@@ -214,8 +214,17 @@ class FetchStatusHelper():
         # get a USI validation result
         validation_result = sample.get_validation_result()
 
-        # TODO: should I store validation_result error in validation tables?
+        # track errors  in validation tables
         errorMessages = validation_result.errorMessages
+
+        # since I validated this object, I have already a ValidationResult
+        # object associated to my model
+        sample_obj.validationresult.status = 'Error'
+        sample_obj.validationresult.messages = [
+            "%s: %s" % (k, v) for k, v in errorMessages.items()]
+        sample_obj.validationresult.save()
+
+        # TODO: need to update ValidationSummary table
 
         # return an error for each object
         return {str(sample_obj): errorMessages}

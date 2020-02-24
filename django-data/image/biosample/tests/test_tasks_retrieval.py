@@ -36,6 +36,7 @@ class FetchMixin():
         'biosample/managedteam',
         'biosample/submission',
         'biosample/submissiondata',
+        'biosample/validationresult',
         'uid/animal',
         'uid/dictbreed',
         'uid/dictcountry',
@@ -136,8 +137,8 @@ class FetchStatusHelperMixin(FetchMixin):
         self.status_helper = FetchStatusHelper(self.usi_submission)
 
         # track names
-        self.animal_name = Animal.objects.get(pk=1)
-        self.sample_name = Sample.objects.get(pk=1)
+        self.animal = Animal.objects.get(pk=1)
+        self.sample = Sample.objects.get(pk=1)
 
     def common_tests(self):
         """Assert stuff for each test"""
@@ -230,11 +231,11 @@ class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
         self.assertEqual(n_completed, 2)
 
         # fetch two name objects
-        self.animal_name.refresh_from_db()
-        self.assertEqual(self.animal_name.biosample_id, "SAMEA0000001")
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.biosample_id, "SAMEA0000001")
 
-        self.sample_name.refresh_from_db()
-        self.assertEqual(self.sample_name.biosample_id, "SAMEA0000002")
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.biosample_id, "SAMEA0000002")
 
     def test_fetch_status_no_accession(self):
         """Test fetch status for a submission which doens't send accession
@@ -320,7 +321,7 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
         self.assertFalse(self.my_sample2.get_validation_result.called)
 
     def test_fetch_status(self):
-        # assert tmock methods called
+        # assert mock methods called
         self.common_tests()
 
         # USI submission changed
@@ -328,11 +329,30 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
         self.assertEqual(self.usi_submission.status, NEED_REVISION)
 
         # check name status changed only for animal (not sample)
-        self.animal_name.refresh_from_db()
-        self.assertEqual(self.animal_name.status, NEED_REVISION)
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.status, NEED_REVISION)
 
-        self.sample_name.refresh_from_db()
-        self.assertEqual(self.sample_name.status, SUBMITTED)
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.status, SUBMITTED)
+
+    def test_validationresult(self):
+        # assert auth, root and get_submission by name called
+        super().common_tests()
+
+        # reload object from database
+        self.animal.validationresult.refresh_from_db()
+        self.sample.validationresult.refresh_from_db()
+
+        # ok check error messages
+        self.assertEqual(self.animal.validationresult.status, "Error")
+        self.assertEqual(self.sample.validationresult.status, "Pass")
+
+        # a check on error messages
+        messages = ["Ena: ['a sample message']"]
+        self.assertListEqual(self.animal.validationresult.messages, messages)
+
+        messages = []
+        self.assertListEqual(self.sample.validationresult.messages, messages)
 
 
 class FetchDraftTestCase(FetchStatusHelperMixin, TestCase):
