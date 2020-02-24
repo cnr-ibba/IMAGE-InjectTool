@@ -55,7 +55,7 @@ class CreateUserForm(RequestFormMixin, forms.Form):
         label="Password confirmation",
         widget=forms.PasswordInput,
         strip=False,
-        help_text="Enter the same password as before",
+        help_text="Enter the same password as above",
     )
 
     def __init__(self, *args, **kwargs):

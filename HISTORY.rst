@@ -16,6 +16,8 @@ TODO
 Features
 ^^^^^^^^
 
+* changed APP registration and about pages
+* add missing names to batch update
 * mark mandatory fields in forms with CSS
 * update ``uid.models.DictRole``
 * schedule cleanup registration

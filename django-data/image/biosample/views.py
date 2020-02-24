@@ -35,7 +35,7 @@ from .tasks import SplitSubmissionTask
 logger = logging.getLogger(__name__)
 
 # while near
-TOKEN_DURATION_THRESHOLD = 3600
+TOKEN_DURATION_THRESHOLD = 3600*4
 
 # define a decouple config object
 settings_dir = os.path.join(settings.BASE_DIR, 'image')
@@ -299,7 +299,7 @@ class CreateUserView(LoginRequiredMixin, RegisterMixin, MyFormMixin, FormView):
 
     template_name = 'biosample/create_user.html'
     form_class = CreateUserForm
-    success_url_message = "Account created"
+    success_url_message = "AAP Account created"
 
     def deal_with_errors(self, error_message, exception):
         """Add messages to view for encountered errors
