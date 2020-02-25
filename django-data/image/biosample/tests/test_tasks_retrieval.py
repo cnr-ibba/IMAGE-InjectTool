@@ -22,6 +22,7 @@ from common.constants import (
     LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
 from common.tests import WebSocketMixin
 from uid.models import Submission, Animal, Sample
+from validation.models import ValidationResult, ValidationSummary
 
 from ..tasks.retrieval import (
     FetchStatusTask, FetchStatusHelper, RetrievalCompleteTask)
@@ -766,6 +767,12 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
     def test_need_revision(self):
         """test an issue in a submission"""
 
+        # before doing tests, update validationresult
+        result = ValidationResult.objects.get(pk=1)
+        result.status = "Error"
+        result.messages = ["message1", "message2"]
+        result.save()
+
         status = NEED_REVISION
         message = "error messages"
 
@@ -782,6 +789,23 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
         self.assertEqual(
             "Error in biosample submission 1",
             email.subject)
+
+        # ok get validationsummary object
+        summary = ValidationSummary.objects.get(
+            submission=self.submission_obj,
+            type="animal")
+
+        reference = [
+            {'ids': [1],
+             'count': 1,
+             'message': 'message1',
+             'offending_column': ''},
+            {'ids': [1],
+             'count': 1,
+             'message': 'message2',
+             'offending_column': ''}]
+
+        self.assertListEqual(summary.messages, reference)
 
     def test_completed(self):
         """test a submission completed"""
