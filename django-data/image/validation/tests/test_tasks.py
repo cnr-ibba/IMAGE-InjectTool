@@ -436,8 +436,10 @@ class ValidateTaskTest(
         validation_result = Mock()
         validation_result.get_overall_status.return_value = "Pass"
         validation_result.get_messages.return_value = ["A message"]
+
         result_set = Mock()
         result_set.get_comparable_str.return_value = "A message"
+        result_set.get_field_name.return_value = "Offended Column"
         validation_result.result_set = [result_set]
 
         # track 4 object to call check_model_status
@@ -594,6 +596,7 @@ class ValidateTaskTest(
 
         result_set = Mock()
         result_set.get_comparable_str.return_value = "A fake message"
+        result_set.get_field_name.return_value = "Offended Column"
         rule_result.result_set = [result_set]
 
         my_validate.return_value = rule_result
