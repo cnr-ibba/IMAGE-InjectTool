@@ -1,5 +1,7 @@
 
 import os
+import re
+import json
 import redis
 import logging
 import traceback
@@ -162,15 +164,23 @@ class MyFormMixin(object):
             # logger exception. With repr() the exception name is rendered
             logger.error(repr(e))
 
-            # maybe I typed a wrong password or there is an issue in biosample
-            # log error in message and return form_invalid
-            # HINT: deal with two conditions?
+            # try to detect the error message
+            pattern = re.compile(r"(\{.*\})")
+            match = re.search(pattern, str(e))
 
-            # parse error message
-            messages.error(
-                self.request,
-                "Unable to generate token: %s" % str(e),
-                extra_tags="alert alert-dismissible alert-danger")
+            if match is None:
+                # parse error message
+                messages.error(
+                    self.request,
+                    "Unable to generate token: %s" % str(e),
+                    extra_tags="alert alert-dismissible alert-danger")
+
+            else:
+                data = json.loads(match.groups()[0])
+                messages.error(
+                    self.request,
+                    "Unable to generate token: %s" % data['message'],
+                    extra_tags="alert alert-dismissible alert-danger")
 
             # cant't return form_invalid here, since i need to process auth
             return None

@@ -15,6 +15,7 @@ TODO
 Features
 ^^^^^^^^
 
+* simplified error message in token generation
 * model *USI* errors as ``ValidationResult`` objects
 * minor refactor
 * changed APP registration and about pages
