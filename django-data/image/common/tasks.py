@@ -88,7 +88,25 @@ def clearsessions(self):
     # debug
     logger.info("Sessions cleaned!")
 
-    return "Session cleaned with success"
+    return "Sessions cleaned with success"
+
+
+@celery_app.task(bind=True, base=BaseTask)
+def cleanupregistration(self):
+    """Cleanup expired registration keys by using Django management command."""
+
+    logger.info("Cleaning up expired registration keys with celery...")
+
+    # debugging instance
+    self.debug_task()
+
+    # calling management command
+    management.call_command("cleanupregistration", verbosity=1)
+
+    # debug
+    logger.info("Registrations cleaned!")
+
+    return "Registrations cleaned with success"
 
 
 @contextmanager

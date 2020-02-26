@@ -8,7 +8,7 @@
 {% endblock title %}
 
 {% block custom-css %}
-  <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+  <link rel="stylesheet" href="{% static 'css/forms.min.css' %}">
 {% endblock custom-css %}
 
 {% block content %}
@@ -19,13 +19,13 @@
       <div class="card-body">
         <p class="card-text">
           Please specify a password to generate your <a href="https://aai.ebi.ac.uk/home" target="_blank">AAP profile</a>.
-          This password will <strong>never</strong> registered into InjectTool. <span class="text-danger">Please keep track of This
-          password. If you lose it, you will need to <a href="mailto:aap@ebi.ac.uk">contact AAP team at EBI</a></span>
+          This password will <strong>never</strong> be stored within the InjectTool. <span class="text-danger">Please keep track of This
+          password:</span> If you lose it, you will need to <a href="mailto:aap@ebi.ac.uk">contact AAP team at EBI</a>
         </p>
         <form method="post" novalidate>
             {% csrf_token %}
             {% include 'includes/form.html' %}
-            <button type="submit" class="btn btn-success">Create User</button>
+            <button type="submit" class="btn btn-success">Create AAP profile</button>
             <a href="{% url 'uid:dashboard' %}" class="btn btn-secondary" role="button">Return to dashboard</a>
         </form>
       </div>

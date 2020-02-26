@@ -79,12 +79,13 @@ class SubmissionValidationSummaryFixErrorsViewColumnTest(
 
         # is an animal VS
         vs = ValidationSummary.objects.get(pk=2)
-        vs.messages = [
-            ("{'message': 'Error: One of minutes, ... need to be present for "
-             "the field Animal age at collection (specimen from organism "
-             "section)', 'count': 1, 'ids': [1], 'offending_column': 'Animal "
-             "age at collection'}")
-        ]
+        vs.messages = [{
+            'message': ('Error: One of minutes, ... need to be present for the'
+                        ' field Animal age at collection (specimen from '
+                        'organism section'),
+            'count': 1,
+            'ids': [1],
+            'offending_column': 'Animal age at collection'}]
         vs.save()
 
         # get animal page
@@ -96,11 +97,12 @@ class SubmissionValidationSummaryFixErrorsViewColumnTest(
 
         # is an animal VS
         vs = ValidationSummary.objects.get(pk=1)
-        vs.messages = [
-            ("{'message': 'Error: .* of field .* is not in the valid values "
-             "list .*', 'count': 1, 'ids': [1], 'offending_column': 'Birth "
-             "location accuracy'}")
-        ]
+        vs.messages = [{
+            'message': ('Error: .* of field .* is not in the valid values '
+                        'list .*'),
+            'count': 1,
+            'ids': [1],
+            'offending_column': 'Birth location accuracy'}]
         vs.save()
 
         # get animal page
@@ -112,11 +114,12 @@ class SubmissionValidationSummaryFixErrorsViewColumnTest(
 
         # is an animal VS
         vs = ValidationSummary.objects.get(pk=2)
-        vs.messages = [
-            ("{'message': 'Error: .* of field .* is not in the valid values "
-             "list .*', 'count': 1, 'ids': [1], 'offending_column': 'Sample "
-             "storage processing'}")
-        ]
+        vs.messages = [{
+            'message': ('Error: .* of field .* is not in the valid values '
+                        'list .*'),
+            'count': 1,
+            'ids': [1],
+            'offending_column': 'Sample storage processing'}]
         vs.save()
 
         # get animal page
@@ -128,11 +131,12 @@ class SubmissionValidationSummaryFixErrorsViewColumnTest(
 
         # is an animal VS
         vs = ValidationSummary.objects.get(pk=2)
-        vs.messages = [
-            ("{'message': 'Error: .* of field .* is not in the valid values "
-             "list .*', 'count': 1, 'ids': [1], 'offending_column': 'Sample "
-             "storage'}")
-        ]
+        vs.messages = [{
+            'message': ('Error: .* of field .* is not in the valid values '
+                        'list .*'),
+            'count': 1,
+            'ids': [1],
+            'offending_column': 'Sample storage'}]
         vs.save()
 
         # get animal page

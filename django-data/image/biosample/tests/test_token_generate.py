@@ -233,4 +233,18 @@ class SuccessFullCreateAuthViewTest(BaseTest):
         self.check_messages(
             response,
             "error",
-            "Unable to generate token")
+            "Unable to generate token: test")
+
+    @patch("pyUSIrest.auth.Auth",
+           side_effect=USIConnectionError(
+                 """Got status 401: \'{"timestamp":1582726881584,"""
+                 """"status":401,"error":"Unauthorized","message":"""
+                 """"Bad credentials","path":"/auth"}\'"""))
+    def test_error_bad_credentials(self, my_auth):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 200)
+
+        self.check_messages(
+            response,
+            "error",
+            "Unable to generate token: Bad credentials")

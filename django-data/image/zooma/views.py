@@ -13,6 +13,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from common.views import AjaxTemplateView
+from common.constants import BIOSAMPLE_URL
 from uid.models import (
     missing_terms, DictBreed, DictCountry, DictSpecie, DictUberon,
     DictDevelStage, DictPhysioStage)
@@ -39,6 +40,9 @@ class OntologiesReportView(LoginRequiredMixin, TemplateView):
 
         # call report from UID model
         context["missing_terms"] = missing_terms()
+
+        # add the base biosample urls to context
+        context["biosample_url"] = BIOSAMPLE_URL + "?filter=attr:project:IMAGE"
 
         return context
 
@@ -77,7 +81,7 @@ class AnnotateBreedsView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
     task_class = AnnotateBreedsTask
-    task_name = "AnnotateBreeds"
+    task_name = "Annotate Breeds"
     dict_class = DictBreed
 
 
@@ -85,7 +89,7 @@ class AnnotateCountriesView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
     task_class = AnnotateCountriesTask
-    task_name = "AnnotateCountries"
+    task_name = "Annotate Countries"
     dict_class = DictCountry
 
 
@@ -93,7 +97,7 @@ class AnnotateSpeciesView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
     task_class = AnnotateSpeciesTask
-    task_name = "AnnotateSpecies"
+    task_name = "Annotate Species"
     dict_class = DictSpecie
 
 
@@ -101,7 +105,7 @@ class AnnotateOrganismPartView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
     task_class = AnnotateOrganismPartTask
-    task_name = "AnnotateOrganismPart"
+    task_name = "Annotate Organism Parts"
     dict_class = DictUberon
 
 
@@ -109,7 +113,7 @@ class AnnotateDevelStageView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
     task_class = AnnotateDevelStageTask
-    task_name = "AnnotateDevelStage"
+    task_name = "Annotate Developmental Stages"
     dict_class = DictDevelStage
 
 
@@ -117,5 +121,5 @@ class AnnotatePhysioStageView(
         AnnotateViewMixin, LoginRequiredMixin, AjaxTemplateView):
 
     task_class = AnnotatePhysioStageTask
-    task_name = "AnnotatePhysioStage"
+    task_name = "Annotate Physiological Stages"
     dict_class = DictPhysioStage

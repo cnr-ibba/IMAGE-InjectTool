@@ -5,7 +5,7 @@
 {% block title %}Sign up to IMAGE-InjectTool{% endblock title %}
 
 {% block custom-css %}
-  <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+  <link rel="stylesheet" href="{% static 'css/forms.min.css' %}">
 {% endblock custom-css %}
 
 {% block content %}
@@ -21,7 +21,7 @@
           <form method="post" novalidate>
             {% csrf_token %}
             {% include 'includes/form.html' %}
-            <button type="submit" class="btn btn-primary btn-block">Create an account</button>
+            <button type="submit" class="btn btn-primary btn-block mt-2">Create an account</button>
           </form>
         </div>
         <div class="card-footer text-muted text-center">

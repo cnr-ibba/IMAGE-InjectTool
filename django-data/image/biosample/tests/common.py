@@ -22,19 +22,22 @@ from uid.models import Submission, Animal, Sample
 from uid.tests import PersonMixinTestCase
 
 # the token will last for 24h (in seconds)
-TOKEN_DURATION = (24*60*60)
+TOKEN_DURATION = 24*60*60
 
 
-def generate_token(now=None, domains=['subs.test-team-1']):
+def generate_token(now=None, exp=None, domains=['subs.test-team-1']):
     """A function to generate a 'fake' token"""
 
     if not now:
         now = int(timezone.now().timestamp())
 
+    if not exp:
+        exp = now + TOKEN_DURATION
+
     claims = {
         'iss': 'https://explore.aai.ebi.ac.uk/sp',
         'iat': now,
-        'exp': now + TOKEN_DURATION,
+        'exp': exp,
         'sub': 'usr-f1801430-51e1-4718-8fca-778887087bad',
         'email': 'foo.bar@email.com',
         'nickname': 'foo',

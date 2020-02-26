@@ -19,7 +19,8 @@ from image_validation.ValidationResult import (
 from django.core import mail
 from django.test import TestCase
 
-from common.constants import LOADED, ERROR, READY, NEED_REVISION, COMPLETED
+from common.constants import (
+    LOADED, ERROR, READY, NEED_REVISION, COMPLETED, SUBMITTED)
 from common.tests import WebSocketMixin
 from uid.models import Submission, Animal, Sample
 from uid.tests import PersonMixinTestCase
@@ -435,8 +436,10 @@ class ValidateTaskTest(
         validation_result = Mock()
         validation_result.get_overall_status.return_value = "Pass"
         validation_result.get_messages.return_value = ["A message"]
+
         result_set = Mock()
         result_set.get_comparable_str.return_value = "A message"
+        result_set.get_field_name.return_value = "Offended Column"
         validation_result.result_set = [result_set]
 
         # track 4 object to call check_model_status
@@ -593,6 +596,7 @@ class ValidateTaskTest(
 
         result_set = Mock()
         result_set.get_comparable_str.return_value = "A fake message"
+        result_set.get_field_name.return_value = "Offended Column"
         rule_result.result_set = [result_set]
 
         my_validate.return_value = rule_result
@@ -973,6 +977,27 @@ class ValidateUpdatedSubmissionStatusTest(ValidateSubmissionMixin, TestCase):
         # other statuses are unchanged
         for animal in self.animal_qs.exclude(pk=self.animal.pk):
             self.assertEqual(animal.status, COMPLETED)
+
+    def test_update_status_pass_submitted(self):
+        """Test no change status for submitted objects"""
+
+        # change status in submitted for all the other animal
+        self.animal_qs.exclude(pk=self.animal.pk).update(status=SUBMITTED)
+
+        status = 'Pass'
+        messages = ['Passed all tests']
+        animal_status = READY
+
+        self.update_status(status, messages)
+
+        # asserting status change for animal
+        self.assertEqual(self.animal.status, animal_status)
+
+        # validationresult is tested outside this class
+
+        # other statuses are unchanged
+        for animal in self.animal_qs.exclude(pk=self.animal.pk):
+            self.assertEqual(animal.status, SUBMITTED)
 
     def test_update_status_warning(self):
         status = 'Warning'

@@ -394,6 +394,10 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'common.tasks.clearsessions',
         'schedule': crontab(hour=12, minute=0),
     },
+    'cleanupregistration': {
+        'task': 'common.tasks.cleanupregistration',
+        'schedule': crontab(hour=12, minute=0),
+    },
     'fetch_biosample_status': {
         'task': "Fetch USI status",
         'schedule': crontab(hour="*", minute='*/15'),
