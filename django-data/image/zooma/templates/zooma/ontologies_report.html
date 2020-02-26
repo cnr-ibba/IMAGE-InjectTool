@@ -9,6 +9,8 @@
 
 {% block content %}
 
+  <div id="alerts"></div>
+
   <h1>Ontologies report</h1>
 
   <p>
@@ -163,6 +165,14 @@
     $('[data-toggle="tooltip"]').tooltip();
   });
 
+  function addAlert(message, id) {
+    $('#alerts').append(
+      '<div class="alert alert-dismissible alert-info info" id="' + id + '">' +
+        '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+          message + '</div>'
+    );
+  };
+
   function annotate_this(selector) {
     $(`#${selector}`).click(function() {
       // if disabled don't do anything
@@ -178,6 +188,9 @@
         {},
         function( data ) {
           console.log(data.status);
+
+          // add alert with a custom id
+          addAlert(data.status, `${selector}-alert`);
         }
       );
 
@@ -186,8 +199,11 @@
 
       // enable button after a certain period https://stackoverflow.com/a/3328646/4385116
       setTimeout(function () {
-          $(`#${selector}`).removeClass("disabled");
-          console.log(`Resetting ${selector}`);
+        $(`#${selector}`).removeClass("disabled");
+        console.log(`Resetting ${selector}`);
+
+        $(`#${selector}-alert`).remove();
+
       }, 60*1000);
     });
   };
