@@ -15,6 +15,8 @@ TODO
 Features
 ^^^^^^^^
 
+* returning bootstrap alert messages with zooma call
+* refactor ``uid.templates``
 * simplified error message in token generation
 * model *USI* errors as ``ValidationResult`` objects
 * minor refactor

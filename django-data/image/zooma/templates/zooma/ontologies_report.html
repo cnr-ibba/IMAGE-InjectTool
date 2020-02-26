@@ -165,6 +165,8 @@
     $('[data-toggle="tooltip"]').tooltip();
   });
 
+  // add alert tag using javascript
+  // https://stackoverflow.com/a/17637076
   function addAlert(message, id) {
     $('#alerts').append(
       '<div class="alert alert-dismissible alert-info info" id="' + id + '">' +
@@ -189,7 +191,8 @@
         function( data ) {
           console.log(data.status);
 
-          // add alert with a custom id
+          // add alert with a custom id. I can't use messages in django views
+          // since I don't reload the pages, I'm using AJAX calling
           addAlert(data.status, `${selector}-alert`);
         }
       );
