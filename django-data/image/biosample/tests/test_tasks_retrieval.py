@@ -16,6 +16,7 @@ from celery.exceptions import Retry
 
 from django.test import TestCase
 from django.core import mail
+from django.db.models import F
 from django.utils import timezone
 
 from common.constants import (
@@ -687,7 +688,7 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
         # define my task
         self.my_task = RetrievalCompleteTask()
 
-    def updated_check(self, status, message):
+    def updated_check(self, status, message, validation_message=None):
         """Common check for tests"""
 
         # set proper status to biosample.models.Submission
@@ -708,7 +709,8 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
         # calling a WebSocketMixin method
         self.check_message(
             STATUSES.get_value_display(status),
-            message)
+            message,
+            validation_message)
 
     def not_updated_check(self, status, message):
         """Test a submission not updated"""
@@ -744,28 +746,8 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
             status,
             message)
 
-    def test_error(self):
-        """test an error in a submission"""
-
-        status = ERROR
-        message = "error messages"
-
-        self.updated_check(
-            status,
-            message)
-
-        # test email sent
-        self.assertEqual(len(mail.outbox), 1)
-
-        # read email
-        email = mail.outbox[0]
-
-        self.assertEqual(
-            "Error in biosample submission 1",
-            email.subject)
-
-    def test_need_revision(self):
-        """test an issue in a submission"""
+    def issues_with_usi(self):
+        """Change database and set stuff to simulate issues with USI"""
 
         # before doing tests, update validationresult
         result = ValidationResult.objects.get(pk=1)
@@ -773,12 +755,43 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
         result.messages = ["message1", "message2"]
         result.save()
 
-        status = NEED_REVISION
+        # also summary changes with the same conditions
+        summary = ValidationSummary.objects.get(pk=1)
+        summary.pass_count = F('pass_count') - 1
+        summary.error_count = F('error_count') + 1
+        summary.issues_count = F('issues_count') + 1
+        summary.save()
+
+        validation_message = {
+            'animals': 3, 'samples': 1, 'animal_unkn': 0,
+            'sample_unkn': 0, 'animal_issues': 1, 'sample_issues': 0}
+
+        summary_message = [
+            {'ids': [1],
+             'count': 1,
+             'message': 'message1',
+             'offending_column': ''},
+            {'ids': [1],
+             'count': 1,
+             'message': 'message2',
+             'offending_column': ''}]
+
+        # returning custom values
+        return validation_message, summary_message
+
+    def test_error(self):
+        """test an error in a submission"""
+
+        # prepare database for issues with USI
+        validation_message, summary_message = self.issues_with_usi()
+
+        status = ERROR
         message = "error messages"
 
         self.updated_check(
             status,
-            message)
+            message,
+            validation_message)
 
         # test email sent
         self.assertEqual(len(mail.outbox), 1)
@@ -795,17 +808,38 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
             submission=self.submission_obj,
             type="animal")
 
-        reference = [
-            {'ids': [1],
-             'count': 1,
-             'message': 'message1',
-             'offending_column': ''},
-            {'ids': [1],
-             'count': 1,
-             'message': 'message2',
-             'offending_column': ''}]
+        self.assertListEqual(summary.messages, summary_message)
 
-        self.assertListEqual(summary.messages, reference)
+    def test_need_revision(self):
+        """test an issue in a submission"""
+
+        # prepare database for issues with USI
+        validation_message, summary_message = self.issues_with_usi()
+
+        status = NEED_REVISION
+        message = "error messages"
+
+        self.updated_check(
+            status,
+            message,
+            validation_message)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Error in biosample submission 1",
+            email.subject)
+
+        # ok get validationsummary object
+        summary = ValidationSummary.objects.get(
+            submission=self.submission_obj,
+            type="animal")
+
+        self.assertListEqual(summary.messages, summary_message)
 
     def test_completed(self):
         """test a submission completed"""
@@ -813,9 +847,14 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
         status = COMPLETED
         message = "completed messages"
 
+        validation_message = {
+            'animals': 3, 'samples': 1, 'animal_unkn': 0,
+            'sample_unkn': 0, 'animal_issues': 0, 'sample_issues': 0}
+
         self.updated_check(
             status,
-            message)
+            message,
+            validation_message)
 
     def test_partial_submitted(self):
         """Having submitted in statuses will not complete the submission"""
