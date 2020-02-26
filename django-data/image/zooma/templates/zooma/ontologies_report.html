@@ -1,6 +1,8 @@
 
 {% extends "base.html" %}
 
+{% load uid_tags %}
+
 {% block title %}
   Missing Ontologies
 {% endblock title %}
@@ -8,6 +10,26 @@
 {% block content %}
 
   <h1>Ontologies report</h1>
+
+  <p>
+    In this table the total amount of user terms is provided for these different
+    categories. Most of these terms require an ontology annotation in order to
+    be submitted to <a href="{{ biosample_url }}" target="_blank">BioSamples</a> (please refer to the
+    <a href="https://github.com/cnr-ibba/IMAGE-metadata" target="_blank">IMAGE-metadata</a> rules
+    to have a clear idea of which terms requires an ontology). This terms are
+    common to every InjectTool user: when an ontology is assigned to a new term
+    such ontology will be used in every occurrence of such term.
+  </p>
+  <p>
+    The annotation process starts every time a user uploads a new data source
+    and is performed regularly every week. You could try to improve the annotation
+    process by clicking on annotate button: This will start a search for missing
+    terms using <a href="https://www.ebi.ac.uk/spot/zooma/" target="_blank">Zooma tools</a>
+    and new ontologies will be assigned relying on <em>High</em> or <em>Good</em> scores.
+    You could also manually annotate a term by requesting the ontology privileges to the
+    <a href="mailto:{% get_admin_email %}?subject=please give me the ontology privilege">InjectTool developers</a>.
+
+  </p>
 
 <div class="table-responsive-sm">
   <table class="table table-hover">

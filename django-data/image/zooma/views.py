@@ -13,6 +13,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from common.views import AjaxTemplateView
+from common.constants import BIOSAMPLE_URL
 from uid.models import (
     missing_terms, DictBreed, DictCountry, DictSpecie, DictUberon,
     DictDevelStage, DictPhysioStage)
@@ -39,6 +40,9 @@ class OntologiesReportView(LoginRequiredMixin, TemplateView):
 
         # call report from UID model
         context["missing_terms"] = missing_terms()
+
+        # add the base biosample urls to context
+        context["biosample_url"] = BIOSAMPLE_URL + "?filter=attr:project:IMAGE"
 
         return context
 
