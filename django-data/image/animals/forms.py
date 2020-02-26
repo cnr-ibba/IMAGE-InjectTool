@@ -53,6 +53,8 @@ class UpdateAnimalForm(RequestFormMixin, forms.ModelForm):
                 country=animal.submission.gene_bank_country,
                 specie=animal.specie)
 
+        self.fields['breed'].label = "Supplied Breed"
+
     def clean(self):
         # get my data
         cleaned_data = super(UpdateAnimalForm, self).clean()

@@ -6,7 +6,6 @@ TODO
 ----
 
 * clean up orphaned BioSample IDs
-* model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
@@ -16,7 +15,7 @@ TODO
 Features
 ^^^^^^^^
 
-* model *USI* errors like *validation* errors
+* model *USI* errors as ``ValidationResult`` objects
 * minor refactor
 * changed APP registration and about pages
 * add missing names to batch update
