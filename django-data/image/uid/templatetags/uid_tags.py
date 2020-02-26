@@ -19,7 +19,8 @@ register = template.Library()
 @register.simple_tag
 def git_describe():
     # https://stackoverflow.com/a/14989911
-    version = subprocess.check_output(["git", "describe", "--tags", "--always"]).strip()
+    version = subprocess.check_output(
+        ["git", "describe", "--tags", "--always"]).strip()
 
     return version.decode('utf8')
 
