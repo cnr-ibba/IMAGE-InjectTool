@@ -16,6 +16,8 @@ TODO
 Features
 ^^^^^^^^
 
+* model *USI* errors like *validation* errors
+* minor refactor
 * changed APP registration and about pages
 * add missing names to batch update
 * mark mandatory fields in forms with CSS

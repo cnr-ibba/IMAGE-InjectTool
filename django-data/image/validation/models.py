@@ -7,7 +7,7 @@ Created on Mon Jan 28 11:09:02 2019
 """
 
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
@@ -80,7 +80,7 @@ class ValidationSummary(models.Model):
     type = models.CharField(max_length=6, blank=True, null=True)
 
     messages = ArrayField(
-        models.TextField(max_length=255, blank=True),
+        JSONField(default=dict),
         default=list
     )
 

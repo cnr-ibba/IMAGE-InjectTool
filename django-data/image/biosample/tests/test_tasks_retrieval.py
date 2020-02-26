@@ -22,6 +22,7 @@ from common.constants import (
     LOADED, ERROR, READY, NEED_REVISION, SUBMITTED, COMPLETED, STATUSES)
 from common.tests import WebSocketMixin
 from uid.models import Submission, Animal, Sample
+from validation.models import ValidationResult, ValidationSummary
 
 from ..tasks.retrieval import (
     FetchStatusTask, FetchStatusHelper, RetrievalCompleteTask)
@@ -36,6 +37,8 @@ class FetchMixin():
         'biosample/managedteam',
         'biosample/submission',
         'biosample/submissiondata',
+        'biosample/validationresult',
+        'biosample/validationsummary',
         'uid/animal',
         'uid/dictbreed',
         'uid/dictcountry',
@@ -136,8 +139,8 @@ class FetchStatusHelperMixin(FetchMixin):
         self.status_helper = FetchStatusHelper(self.usi_submission)
 
         # track names
-        self.animal_name = Animal.objects.get(pk=1)
-        self.sample_name = Sample.objects.get(pk=1)
+        self.animal = Animal.objects.get(pk=1)
+        self.sample = Sample.objects.get(pk=1)
 
     def common_tests(self):
         """Assert stuff for each test"""
@@ -230,11 +233,11 @@ class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
         self.assertEqual(n_completed, 2)
 
         # fetch two name objects
-        self.animal_name.refresh_from_db()
-        self.assertEqual(self.animal_name.biosample_id, "SAMEA0000001")
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.biosample_id, "SAMEA0000001")
 
-        self.sample_name.refresh_from_db()
-        self.assertEqual(self.sample_name.biosample_id, "SAMEA0000002")
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.biosample_id, "SAMEA0000002")
 
     def test_fetch_status_no_accession(self):
         """Test fetch status for a submission which doens't send accession
@@ -320,7 +323,7 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
         self.assertFalse(self.my_sample2.get_validation_result.called)
 
     def test_fetch_status(self):
-        # assert tmock methods called
+        # assert mock methods called
         self.common_tests()
 
         # USI submission changed
@@ -328,11 +331,53 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
         self.assertEqual(self.usi_submission.status, NEED_REVISION)
 
         # check name status changed only for animal (not sample)
-        self.animal_name.refresh_from_db()
-        self.assertEqual(self.animal_name.status, NEED_REVISION)
+        self.animal.refresh_from_db()
+        self.assertEqual(self.animal.status, NEED_REVISION)
 
-        self.sample_name.refresh_from_db()
-        self.assertEqual(self.sample_name.status, SUBMITTED)
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.status, SUBMITTED)
+
+    def test_validationresult(self):
+        # assert auth, root and get_submission by name called
+        super().common_tests()
+
+        # reload object from database
+        self.animal.validationresult.refresh_from_db()
+        self.sample.validationresult.refresh_from_db()
+
+        # ok check error messages
+        self.assertEqual(self.animal.validationresult.status, "Error")
+        self.assertEqual(self.sample.validationresult.status, "Pass")
+
+        # a check on error messages
+        messages = ["Ena: ['a sample message']"]
+        self.assertListEqual(self.animal.validationresult.messages, messages)
+
+        messages = []
+        self.assertListEqual(self.sample.validationresult.messages, messages)
+
+    def test_validationsummary(self):
+        # assert auth, root and get_submission by name called
+        super().common_tests()
+
+        # get the two validationsummary objects
+        summary = self.submission_obj.validationsummary_set.filter(
+            type='animal').first()
+
+        # assert values
+        summary.refresh_from_db()
+        self.assertEqual(summary.pass_count, 2)
+        self.assertEqual(summary.error_count, 1)
+        self.assertEqual(summary.issues_count, 1)
+
+        summary = self.submission_obj.validationsummary_set.filter(
+            type='sample').first()
+
+        # assert values
+        summary.refresh_from_db()
+        self.assertEqual(summary.pass_count, 1)
+        self.assertEqual(summary.error_count, 0)
+        self.assertEqual(summary.issues_count, 0)
 
 
 class FetchDraftTestCase(FetchStatusHelperMixin, TestCase):
@@ -722,6 +767,12 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
     def test_need_revision(self):
         """test an issue in a submission"""
 
+        # before doing tests, update validationresult
+        result = ValidationResult.objects.get(pk=1)
+        result.status = "Error"
+        result.messages = ["message1", "message2"]
+        result.save()
+
         status = NEED_REVISION
         message = "error messages"
 
@@ -738,6 +789,23 @@ class RetrievalCompleteTaskTestCase(FetchMixin, WebSocketMixin, TestCase):
         self.assertEqual(
             "Error in biosample submission 1",
             email.subject)
+
+        # ok get validationsummary object
+        summary = ValidationSummary.objects.get(
+            submission=self.submission_obj,
+            type="animal")
+
+        reference = [
+            {'ids': [1],
+             'count': 1,
+             'message': 'message1',
+             'offending_column': ''},
+            {'ids': [1],
+             'count': 1,
+             'message': 'message2',
+             'offending_column': ''}]
+
+        self.assertListEqual(summary.messages, reference)
 
     def test_completed(self):
         """test a submission completed"""

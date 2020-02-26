@@ -1,0 +1,30 @@
+[
+{
+  "model": "validation.validationresult",
+  "pk": 1,
+  "fields": {
+    "submission": 1,
+    "content_type": [
+      "uid",
+      "animal"
+    ],
+    "object_id": 1,
+    "status": "Pass",
+    "messages": "[]"
+  }
+},
+{
+  "model": "validation.validationresult",
+  "pk": 2,
+  "fields": {
+    "submission": 1,
+    "content_type": [
+      "uid",
+      "sample"
+    ],
+    "object_id": 1,
+    "status": "Pass",
+    "messages": "[]"
+  }
+}
+]
