@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load uid_tags %}
+
 {% block title %}
   Species List
 {% endblock title %}
@@ -8,14 +10,23 @@
 
 <h1>Review species translation table</h1>
 
+<p>Here is the InjecTool Specie Translation Table: here you can set specie in your
+own language and let InjecTool know what specie your data come from.
+You could translate the <em>Cow</em> or <em>Dog</em> terms in <em>Bos Taurus</em>
+or <em>Canis lupus familiaris</em>: everytime InjecTool will found <em>Cow</em> or
+<em>Dog</em> in your data will assign the correct specie to your samples. When you upload a submission
+with a new term, the submission will be marked with the <em>Need revision</em>
+status and you will need to associate you new term with the correct specie before
+uploading your data again. If you don't find the correct specie, please
+<a href="mailto:{% get_admin_email %}?subject=please add my organization">contact</a>
+InjectTool developers.</p>
+
 <table class="table table-hover table-responsive-sm">
   <thead>
     <tr>
       <th scope="col">Word</th>
-      <th scope="col">Language</th>
+      <th scope="col">Country</th>
       <th scope="col">Specie</th>
-      <th scope="col">Term</th>
-      <th scope="col">Confidence</th>
     </tr>
   </thead>
   <tbody>
@@ -24,8 +35,6 @@
         <th><a href="{% url 'language:species-update' pk=speciesynonim.pk %}{% if country %}?country={{country.label}}{% endif%}">{{ speciesynonim.word }}</a></th>
         <td>{{ speciesynonim.language.label }}</td>
         <td>{{ speciesynonim.dictspecie.label }}</td>
-        <td>{{ speciesynonim.dictspecie.term }}</td>
-        <td>{{ speciesynonim.dictspecie.get_confidence_display }}</td>
       </tr>
     {% endfor %}
   </tbody>

@@ -459,6 +459,9 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
 
+            # update validationsummary
+            self.update_validationsummary(uid_submission)
+
             self.update_message(uid_submission, submission_qs, ERROR)
 
             # send a mail to the user
@@ -471,13 +474,13 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
 
             self.mail_to_owner(uid_submission, subject, body)
 
-            # update validationsummary
-            self.update_validationsummary(uid_submission)
-
         # check if submission need revision
         elif NEED_REVISION in statuses:
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
+
+            # update validationsummary
+            self.update_validationsummary(uid_submission)
 
             self.update_message(uid_submission, submission_qs, NEED_REVISION)
 
@@ -487,9 +490,6 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             body = "Some items needs revision:\n\n" + uid_submission.message
 
             self.mail_to_owner(uid_submission, subject, body)
-
-            # update validationsummary
-            self.update_validationsummary(uid_submission)
 
         elif COMPLETED in statuses and len(statuses) == 1:
             # if all status are complete, the submission is completed
@@ -513,7 +513,10 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             message.append(submission.message)
 
         self.update_submission_status(
-            uid_submission, status, "\n".join(set(message)))
+            uid_submission,
+            status,
+            "\n".join(set(message)),
+            construct_message=True)
 
     def update_validationsummary(self, uid_submission):
         """Update validationsummary message after our USI submission is
