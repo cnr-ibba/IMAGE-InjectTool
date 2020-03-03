@@ -108,13 +108,16 @@ class TestTokenView(SessionEnabledTestCase):
     def test_expired_token(self):
         session = self.get_session()
         now = int(timezone.now().timestamp())
-        session['token'] = generate_token(
-            now - (TOKEN_DURATION+TOKEN_DURATION_THRESHOLD))
+
+        # define a time in the past
+        past = now - TOKEN_DURATION + TOKEN_DURATION_THRESHOLD
+
+        # define a token in the past
+        session['token'] = generate_token(now=past, exp=now)
         session.save()
         self.set_session_cookies(session)
 
         response = self.client.get(self.url)
-
         self.assertContains(response, 'Token for Foo Bar is expired')
 
         self.check_messages(

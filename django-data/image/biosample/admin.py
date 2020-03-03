@@ -65,7 +65,7 @@ class SubmissionDataAdmin(admin.ModelAdmin):
 
     list_filter = (
         'submission__uid_submission__owner',
-        'submission__uid_submission__status')
+        'submission__status')
 
     list_per_page = 10
 

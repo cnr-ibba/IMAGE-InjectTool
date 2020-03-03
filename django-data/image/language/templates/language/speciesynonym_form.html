@@ -4,21 +4,27 @@
 {% load static %}
 
 {% block title %}
-  Set Translation for {{ speciesynonim.word  }}
+  Set Translation for {{ speciesynonym.word }}
 {% endblock title %}
 
 {% block custom-css %}
-  <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+  <link rel="stylesheet" href="{% static 'css/forms.min.css' %}">
 {% endblock custom-css %}
 
 {% block content %}
   <h1 class="text-center my-4">
-    Set Translation for {{ speciesynonim.word  }}
+    Set Translation for {{ speciesynonym.word }}
   </h1>
   <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10 col-sm-12">
       <div class="card">
         <div class="card-body">
+          <p>
+            Here you can set the default specie associated with the <em>{{ speciesynonym.word }}</em>
+            term. Please, keep in mind that this translation is global and will
+            be applied to every occurence of <em>{{ speciesynonym.word }}</em> term
+            in every submission data.
+          </p>
           <form method="post" enctype="multipart/form-data" novalidate>
               {% csrf_token %}
               {# https://simpleisbetterthancomplex.com/series/2017/09/18/a-complete-beginners-guide-to-django-part-3.html#reusable-forms-templates #}

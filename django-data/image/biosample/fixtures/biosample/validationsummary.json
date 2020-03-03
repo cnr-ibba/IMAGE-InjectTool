@@ -1,0 +1,32 @@
+[
+{
+  "model": "validation.validationsummary",
+  "pk": 1,
+  "fields": {
+    "submission": 1,
+    "all_count": 3,
+    "validation_known_count": 3,
+    "issues_count": 0,
+    "pass_count": 3,
+    "warning_count": 0,
+    "error_count": 0,
+    "type": "animal",
+    "messages": []
+  }
+},
+  {
+  "model": "validation.validationsummary",
+  "pk": 2,
+  "fields": {
+    "submission": 1,
+    "all_count": 1,
+    "validation_known_count": 1,
+    "issues_count": 0,
+    "pass_count": 1,
+    "warning_count": 0,
+    "error_count": 0,
+    "type": "sample",
+    "messages": []
+  }
+}
+]

@@ -32,7 +32,8 @@ class MyRegistrationManager(RegistrationManager):
             profile = self.get(user__email__iexact=email)
 
         except ObjectDoesNotExist:
-            message = "%s not registered with InjectTool" % (email)
+            message = (
+                "%s has not been used to register with InjectTool" % (email))
             logger.error(message)
             return False, message
 

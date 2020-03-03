@@ -53,7 +53,7 @@
       data to BioSamples, InjectTool will check token validity and will ask
       the user to generate a new token if necessary. You can check your token
       status by clicking <a href="{% url 'biosample:token' %}">My Token</a> on
-      your username dropdown list in the right upper side of the page
+      your username dropdown list in the top right corner of the page
     </p>
 
     <div class="row align-items-center">
@@ -67,11 +67,11 @@
 
     <p>
       Before starting a new submission with InjectTool, you need to prepare data to upload. Currently,
-      InjectTool support data files from <a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
+      InjectTool support data files from <a href="#cryoweb_dump">CryoWeb</a>, <a href="#crbanim_dump">CRB-Anim</a>
       and <a href="#template_file">Template</a> data upload.
     </p>
 
-    <h3><a id="cryoweb_dump"></a>Creating a Cryoweb dump</h3>
+    <h3><a id="cryoweb_dump"></a>Creating a CryoWeb dump</h3>
 
     <p>
       CryoWeb data need to be exported as <em>data-only</em> dumps, as described from
@@ -114,7 +114,7 @@ postgres=# \l
 
     <p>
       <code>cryoweb_data_only_dump.sql</code> will be a plain text-file in <code>UTF8</code> encoding we need in order
-      to create a new submission from Cryoweb data. Those are the first few lines of the
+      to create a new submission from CryoWeb data. Those are the first few lines of the
       <em>data-only</em> dump:
     </p>
 
@@ -143,7 +143,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
     <p>
       Data from CRB-Anim can be imported using a standard CSV file. However, in
-      order to import data correctly, CSV file has to start with a header column
+      order to import data correctly, CSV file has to start with a header row
       in which those column are defined (the order of them doesn't matter):
       <code>
         'sex',
@@ -197,11 +197,13 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       The <em>Gene bank country</em> field is important since it
       will be used to translate terms from the provided language into the standard
       English if needed. Another important field is the
-      <em>Data source type</em> from which the importer will be determined. Currently InjectTool supports three data sources types: <a href="#cryoweb_dump">Cryoweb</a>, <a href="#crbanim_dump">CRB-Anim</a>
+      <em>Data source type</em> from which the importer will be determined.
+      Currently InjectTool supports three data sources types:
+      <a href="#cryoweb_dump">CryoWeb</a>, <a href="#crbanim_dump">CRB-Anim</a>
       and <a href="#template_file">Template</a>. Then you have to choose the
       file to upload using the <em>Uploaded file</em> field. File should be
       in <em>plain text</em> and <code>UTF-8</code> or <code>ASCII</code> encoding
-      for the Cryoweb and CRBanim data import,
+      for the CryoWeb and CRBanim data import,
       and in <em>.xlsx</em> for the template file. Providing a different file format
       will result in a failure in uploading process.
     </p>
@@ -214,7 +216,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     <p>
       After the submission is created, data will be imported in background by the
       system. When submission shows the <em>Loaded</em> status, data are imported
-      with success from your data source and need to be validated before submission.
+      with success from your data source file and need to be validated before submission.
       You can have more information on submission statuses <a href="{% url 'about-submission' %}#submission_statuses">here</a>.
     </p>
 
@@ -223,9 +225,14 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     </div>
 
     <p>
-      Annotation task are called automatically after data import. You can start
-      annotation tasks manually by clicking on <em>Annotate</em> button in the
-      <a href="{% url 'zooma:ontologies_report' %}">Ontology report</a> page.
+      Annotation tasks are called automatically after data import. Annotation is
+      done by searching for good matches in proper ontologies using
+      <a href="https://www.ebi.ac.uk/ols/index">Ontology Lookup Service</a>.
+      Sometimes is not possible to find automatically the best match, or some new
+      ontology terms could be added after data has been already processed by InjectTool.
+      In such cases, you can start annotation tasks manually by clicking on
+      <em>Annotate</em> button in the <a href="{% url 'zooma:ontologies_report' %}">Ontology report</a>
+      page.
     </p>
   </section>
 
@@ -234,8 +241,8 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
     <p>
       You will need to validate your data against <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
-      before uploading data into BioSamples. From the submission detail page
-      click on the <em>Validate</em> button on the bottom of the page:
+      before submitting data into BioSamples. From the submission detail page
+      click on the <em>Validate</em> button at the bottom of the page:
     </p>
 
     <div class="row align-items-center">
@@ -248,10 +255,10 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       delete or submit it. When the validation process completes, your submission
       could be in one of the two statuses: the <em>Ready</em> status means that your data
       are compliant with the <a href="https://github.com/cnr-ibba/IMAGE-metadata">IMAGE metadata</a>
-      and can be submitted to BioSamples; The <em>Need Revision</em> status
+      and can be submitted to BioSamples as IMAGE sample data; The <em>Need Revision</em> status
       indicates that your data have issues  to meet the standards.
       To curate your data, you could click on <em>validation</em> link in the
-      Sample or Animal issues field in order to <em>Bulk update</em> objects with
+      Sample or Animal issues field in order to <em>Bulk update</em> records with
       the same type of errors. Or you could click on the <em>Edit data</em> button
       to manage and fix individual records:
     </p>
@@ -284,7 +291,8 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       When the BioSamples server sends back a list of BioSamples accessions, your submission will change its status to <em>Completed</em>:
       <strong>
         <span class="text-primary">
-        this means that your data are successfully submitted to BioSamples and received BioSample accessions.</span>
+        this means that your data are successfully submitted to BioSamples and
+        have received BioSample accessions.</span>
       </strong>
       You can inspect your submitted data by clicking on <em>Edit data</em> button
       followed by clicking on the <em>BioSamples id</em> link:

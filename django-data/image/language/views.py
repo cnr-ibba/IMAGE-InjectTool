@@ -31,7 +31,7 @@ class CountryMixin(object):
     queryset = SpecieSynonym.objects.select_related("language", "dictspecie")
 
     def get_queryset(self):
-        """Read country if requested suing GET method"""
+        """Read country if requested using GET method"""
 
         # call super method
         queryset = super(CountryMixin, self).get_queryset()

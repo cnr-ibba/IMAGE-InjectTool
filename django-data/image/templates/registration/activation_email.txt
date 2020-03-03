@@ -13,7 +13,7 @@ http://{{site.domain}}{% url 'accounts:registration_activate' activation_key %}
 
 {% blocktrans with site_name=site.name %}
 Sincerely,
-{{ site_name }} Management
+The InjectTool Administrator Team
 {% endblocktrans %}
 
 

@@ -62,9 +62,9 @@ class OntologiesReportViewTest(
 
 class AnnotateViewMixinTest(OntologiesMixin, GeneralMixinTestCase):
 
-    task_name = "AnnotateBreeds"
-    zooma_url = "annotate_breeds"
-    view_class = AnnotateBreedsView
+    task_name = None
+    zooma_url = None
+    view_class = None
 
     def setUp(self):
         """Set up"""
@@ -101,7 +101,7 @@ class AnnotateViewMixinTest(OntologiesMixin, GeneralMixinTestCase):
 
 class AnnotateBreedViewTest(AnnotateViewMixinTest, TestCase):
 
-    task_name = "AnnotateBreeds"
+    task_name = "Annotate Breeds"
     zooma_url = "annotate_breeds"
     view_class = AnnotateBreedsView
 
@@ -112,7 +112,7 @@ class AnnotateBreedViewTest(AnnotateViewMixinTest, TestCase):
 
 class AnnotateCountriesViewTest(AnnotateViewMixinTest, TestCase):
 
-    task_name = "AnnotateCountries"
+    task_name = "Annotate Countries"
     zooma_url = "annotate_countries"
     view_class = AnnotateCountriesView
 
@@ -123,7 +123,7 @@ class AnnotateCountriesViewTest(AnnotateViewMixinTest, TestCase):
 
 class AnnotateSpeciesViewTest(AnnotateViewMixinTest, TestCase):
 
-    task_name = "AnnotateSpecies"
+    task_name = "Annotate Species"
     zooma_url = "annotate_species"
     view_class = AnnotateSpeciesView
 
@@ -134,7 +134,7 @@ class AnnotateSpeciesViewTest(AnnotateViewMixinTest, TestCase):
 
 class AnnotateOrganismPartViewTest(AnnotateViewMixinTest, TestCase):
 
-    task_name = "AnnotateOrganismPart"
+    task_name = "Annotate Organism Parts"
     zooma_url = "annotate_organismparts"
     view_class = AnnotateOrganismPartView
 
@@ -145,7 +145,7 @@ class AnnotateOrganismPartViewTest(AnnotateViewMixinTest, TestCase):
 
 class AnnotateDevelStageViewTest(AnnotateViewMixinTest, TestCase):
 
-    task_name = "AnnotateDevelStage"
+    task_name = "Annotate Developmental Stages"
     zooma_url = "annotate_develstages"
     view_class = AnnotateDevelStageView
 
@@ -156,7 +156,7 @@ class AnnotateDevelStageViewTest(AnnotateViewMixinTest, TestCase):
 
 class AnnotatePhysioStageViewTest(AnnotateViewMixinTest, TestCase):
 
-    task_name = "AnnotatePhysioStage"
+    task_name = "Annotate Physiological Stages"
     zooma_url = "annotate_physiostages"
     view_class = AnnotatePhysioStageView
 

@@ -1,4 +1,4 @@
-import ast
+
 from django import template
 
 from uid.models import Animal, Sample
@@ -11,7 +11,7 @@ register = template.Library()
 def get_dict_from_str(value):
     to_return = list()
     for item in value:
-        to_return.append(ast.literal_eval(item))
+        to_return.append(item)
     return to_return
 
 

@@ -8,6 +8,7 @@ Created on Tue Jul 16 11:25:03 2019
 
 import os
 import json
+from collections import Counter, defaultdict
 
 from decouple import AutoConfig
 from celery.utils.log import get_task_logger
@@ -16,17 +17,17 @@ import pyUSIrest.usi
 import pyUSIrest.exceptions
 
 from django.conf import settings
-from django.db.models import Count
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count, F
 from django.utils import timezone
-from django.template.defaultfilters import truncatechars
 
 from image.celery import app as celery_app
 from uid.helpers import parse_image_alias, get_model_object
 from uid.models import Submission
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
-from common.constants import (
-    ERROR, NEED_REVISION, SUBMITTED, COMPLETED, EMAIL_MAX_BODY_SIZE)
+from common.constants import ERROR, NEED_REVISION, SUBMITTED, COMPLETED
 from submissions.tasks import SubmissionTaskMixin
+from validation.models import ValidationResult, ValidationSummary
 
 from ..helpers import get_manager_auth
 from ..models import Submission as USISubmission
@@ -192,7 +193,7 @@ class FetchStatusHelper():
         else:
             return False
 
-    def __sample_has_errors(self, sample, table, pk):
+    def sample_has_errors(self, sample, table, pk):
         """
         Helper metod to mark a (animal/sample) with its own errors. Table
         sould be Animal or Sample to update the approriate object. Sample
@@ -214,8 +215,28 @@ class FetchStatusHelper():
         # get a USI validation result
         validation_result = sample.get_validation_result()
 
-        # TODO: should I store validation_result error in validation tables?
+        # track errors  in validation tables
         errorMessages = validation_result.errorMessages
+
+        # since I validated this object, I have already a ValidationResult
+        # object associated to my model
+        sample_obj.validationresult.status = 'Error'
+        sample_obj.validationresult.messages = [
+            "%s: %s" % (k, v) for k, v in errorMessages.items()]
+        sample_obj.validationresult.save()
+
+        # need to update ValidationSummary table, since here I know if this
+        # is a sample or an animal
+        summary = self.uid_submission.validationsummary_set.filter(
+            type=table.lower()).first()
+
+        # now update query using django F function. Decrease pass count
+        # an increase error count for this object
+        # HINT: should I define message here?
+        summary.pass_count = F('pass_count') - 1
+        summary.error_count = F('error_count') + 1
+        summary.issues_count = F('issues_count') + 1
+        summary.save()
 
         # return an error for each object
         return {str(sample_obj): errorMessages}
@@ -247,7 +268,7 @@ class FetchStatusHelper():
                         "%s in table %s has errors!!!" % (sample, table))
 
                     # mark this sample since has problems
-                    errorMessages = self.__sample_has_errors(
+                    errorMessages = self.sample_has_errors(
                         sample, table, pk)
 
                     # append this into error messages list
@@ -438,32 +459,37 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
 
+            # update validationsummary
+            self.update_validationsummary(uid_submission)
+
             self.update_message(uid_submission, submission_qs, ERROR)
 
             # send a mail to the user
-            uid_submission.owner.email_user(
-                "Error in biosample submission %s" % (
-                    uid_submission.id),
-                ("Something goes wrong with biosample submission. Please "
-                 "report this to InjectTool team\n\n"
-                 "%s" % truncatechars(
-                    uid_submission.message, EMAIL_MAX_BODY_SIZE)),
-            )
+            subject = "Error in biosample submission %s" % (
+                uid_submission.id)
+            body = (
+                "Something goes wrong with biosample submission. Please "
+                "report this to InjectTool team\n\n"
+                "%s" % uid_submission.message)
+
+            self.mail_to_owner(uid_submission, subject, body)
 
         # check if submission need revision
         elif NEED_REVISION in statuses:
             # submission failed
             logger.info("Submission %s failed" % uid_submission)
 
+            # update validationsummary
+            self.update_validationsummary(uid_submission)
+
             self.update_message(uid_submission, submission_qs, NEED_REVISION)
 
             # send a mail to the user
-            uid_submission.owner.email_user(
-                "Error in biosample submission %s" % (
-                    uid_submission.id),
-                "Some items needs revision:\n\n" + truncatechars(
-                    uid_submission.message, EMAIL_MAX_BODY_SIZE),
-            )
+            subject = "Error in biosample submission %s" % (
+                uid_submission.id)
+            body = "Some items needs revision:\n\n" + uid_submission.message
+
+            self.mail_to_owner(uid_submission, subject, body)
 
         elif COMPLETED in statuses and len(statuses) == 1:
             # if all status are complete, the submission is completed
@@ -478,7 +504,7 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
 
     def update_message(self, uid_submission, submission_qs, status):
         """Read biosample.models.Submission message and set
-        uid.models.Submission message"""
+        uid.models.Submission message relying on status"""
 
         # get error messages for submission
         message = []
@@ -487,7 +513,60 @@ class RetrievalCompleteTask(SubmissionTaskMixin, BaseTask):
             message.append(submission.message)
 
         self.update_submission_status(
-            uid_submission, status, "\n".join(set(message)))
+            uid_submission,
+            status,
+            "\n".join(set(message)),
+            construct_message=True)
+
+    def update_validationsummary(self, uid_submission):
+        """Update validationsummary message after our USI submission is
+        completed (with errors or not)"""
+
+        self.__generic_validationsummary(uid_submission, "animal")
+        self.__generic_validationsummary(uid_submission, "sample")
+
+    def __generic_validationsummary(self, uid_submission, model):
+        # when arriving here, I have processed the USI results and maybe
+        # i have update validationresult accordingly
+        logger.debug("Update validationsummary(%s) for %s" % (
+            model, uid_submission))
+
+        model_type = ContentType.objects.get(app_label='uid', model=model)
+
+        # get validation results querysets
+        model_qs = ValidationResult.objects.filter(
+            submission=uid_submission,
+            content_type=model_type,
+            status="Error")
+
+        # ok now prepare messages
+        messages_counter = Counter()
+        messages_ids = defaultdict(list)
+
+        for item in model_qs:
+            for message in item.messages:
+                messages_counter.update([message])
+                messages_ids[message].append(item.content_object.id)
+
+        # ok preparing to update summary object
+        model_summary = ValidationSummary.objects.get(
+            submission=uid_submission, type=model)
+        messages = []
+
+        # create messages. No offending column since is not always possible
+        # to determine a column from USI error. With this, I have a record
+        # in ValidationSummary page, but I don't have a link to batch update
+        # since is not possible to determine and change a column in my
+        # data
+        for message, count in messages_counter.items():
+            messages.append({
+                'message': message,
+                'count': count,
+                'ids': messages_ids[message],
+                'offending_column': ''})
+
+        model_summary.messages = messages
+        model_summary.save()
 
 
 # register explicitly tasks

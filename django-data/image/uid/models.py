@@ -238,6 +238,7 @@ class DictRole(DictBase):
         # db_table will be <app_name>_<classname>
         verbose_name = "role"
         unique_together = (("label", "term"),)
+        ordering = ['label', ]
 
 
 class DictCountry(DictBase, Confidence):
@@ -883,7 +884,10 @@ class Person(BaseMixin, models.Model):
         on_delete=models.CASCADE,
         related_name='person')
 
-    initials = models.CharField(max_length=255, blank=True, null=True)
+    initials = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True)
 
     # HINT: with a OneToOneField relation, there will be only one user for
     # each organization
@@ -895,9 +899,12 @@ class Person(BaseMixin, models.Model):
 
     # last_name, first_name and email come from User model
 
+    # role can be null in order to load fixtures and create user before adding
+    # person data. The same applies on organization
     role = models.ForeignKey(
         'DictRole',
         on_delete=models.PROTECT,
+        help_text="Your role, for example 'submitter'",
         null=True)
 
     def __str__(self):
@@ -925,7 +932,8 @@ class Organization(BaseMixin, models.Model):
 
     role = models.ForeignKey(
         'DictRole',
-        on_delete=models.PROTECT)
+        on_delete=models.PROTECT,
+        help_text="The organization role, for example 'submitter'")
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.country.label)

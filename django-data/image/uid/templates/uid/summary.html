@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 
 {% load submissions_tags %}
+{% load uid_tags %}
 
 {% block title %}
   InjectTool Data Summary
@@ -11,18 +12,33 @@
 
   <h1>Summary</h1>
 
+  <h3>Your data</h3>
+
+  <p>Here are data that you have uploaded in your private area:</p>
+
   <ul>
     <li>You have {{datasource_count}} submissions loaded
       ({{datasource_completed}} submitted to BioSamples)
     </li>
     <li>You have {{uid_report.n_of_animals}} animals loaded into InjectTool</li>
     <li>You have {{uid_report.n_of_samples}} samples loaded into InjectTool</li>
-    <li>You have {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
-    <li>You have {{uid_report.countries_without_ontology}} countries without ontologies</li>
-    <li>You have {{uid_report.species_without_ontology}} species without ontologies</li>
-    <li>You have {{uid_report.organism_parts_without_ontology}} organism parts without ontologies</li>
-    <li>You have {{uid_report.developmental_stages_without_ontology}} developmental stages without ontologies</li>
-    <li>You have {{uid_report.physiological_stages_without_ontology}} physiological stages without ontologies</li>
+  </ul>
+
+  <h3>Common data</h3>
+
+  <p>
+    These data are common to every InjectTool user. Every annotate term could be used
+    by every InjectTool user. If you would like to improve the annotation process, please
+    ask to <a href="mailto:{% get_admin_email %}?subject=please give me the ontology privilege">InjectTool developers</a>.
+  </p>
+
+  <ul>
+    <li>InjectTool has {{uid_report.breeds_without_ontology}} breeds without ontologies</li>
+    <li>InjectTool has {{uid_report.countries_without_ontology}} countries without ontologies</li>
+    <li>InjectTool has {{uid_report.species_without_ontology}} species without ontologies</li>
+    <li>InjectTool has {{uid_report.organism_parts_without_ontology}} organism parts without ontologies</li>
+    <li>InjectTool has {{uid_report.developmental_stages_without_ontology}} developmental stages without ontologies</li>
+    <li>InjectTool has {{uid_report.physiological_stages_without_ontology}} physiological stages without ontologies</li>
   </ul>
 
   {# call a custom templatetag and send result into a variable #}

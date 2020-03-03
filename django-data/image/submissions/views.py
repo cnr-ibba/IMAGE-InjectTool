@@ -8,7 +8,6 @@ Created on Tue Jul 24 15:49:23 2018
 
 import io
 import re
-import ast
 import logging
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -177,8 +176,6 @@ class SubmissionValidationSummaryView(OwnerMixin, DetailView):
             editable = list()
 
             for message in validation_summary.messages:
-                message = ast.literal_eval(message)
-
                 if 'offending_column' not in message:
                     txt = ("Old validation results, please re-run validation"
                            " step!")
@@ -248,9 +245,9 @@ class SubmissionValidationSummaryFixErrorsView(
         self.summary_type = self.kwargs['type']
         self.validation_summary = ValidationSummary.objects.get(
             submission=self.submission, type=self.summary_type)
-        self.message = ast.literal_eval(self.validation_summary.messages[
-                                            int(self.kwargs['message_counter'])
-                                        ])
+        self.message = self.validation_summary.messages[
+            int(self.kwargs['message_counter'])]
+
         self.offending_column = uid2biosample(
             self.message['offending_column'])
         self.show_units = True

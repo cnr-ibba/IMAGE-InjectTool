@@ -148,18 +148,18 @@
     });
 
     function getColor(current_status) {
-    var color_class;
-    if (current_status === 'Loaded' || current_status === 'Waiting' || current_status == 'Submitted') {
-      color_class = "text-info font-weight-bold"
-    } else if (current_status === 'Error') {
-      color_class = "text-danger font-weight-bold"
-    } else if (current_status === 'Ready' || current_status === 'Completed') {
-      color_class = "text-success font-weight-bold"
-    } else if (current_status === 'Need Revision') {
-      color_class = "text-warning font-weight-bold"
+      var color_class;
+      if (current_status === 'Loaded' || current_status === 'Waiting' || current_status == 'Submitted') {
+        color_class = "text-info font-weight-bold"
+      } else if (current_status === 'Error') {
+        color_class = "text-danger font-weight-bold"
+      } else if (current_status === 'Ready' || current_status === 'Completed') {
+        color_class = "text-success font-weight-bold"
+      } else if (current_status === 'Need Revision') {
+        color_class = "text-warning font-weight-bold"
+      }
+      return color_class
     }
-    return color_class
-  }
 
   function updateButtons(current_status) {
     var edit_data = document.querySelector('#edit-data');

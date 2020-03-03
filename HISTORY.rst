@@ -6,9 +6,27 @@ TODO
 ----
 
 * clean up orphaned BioSample IDs
-* model *USI* errors as ``ValidationResult`` objects
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
+
+0.9.4.dev0
+----------
+
+Features
+^^^^^^^^
+
+* returning bootstrap alert messages with zooma call
+* refactor ``uid.templates``
+* simplified error message in token generation
+* model *USI* errors as ``ValidationResult`` objects
+* minor refactor
+* changed APP registration and about pages
+* add missing names to batch update
+* mark mandatory fields in forms with CSS
+* update ``uid.models.DictRole``
+* schedule cleanup registration
+* refactor account activation message
+* upgrade ``Django`` to ``2.2.10``
 
 0.9.3 (2020-01-31)
 ------------------
@@ -41,7 +59,7 @@ Features
 Features
 ^^^^^^^^
 
-* updgrade ``Django`` to ``2.2.9``
+* upgrade ``Django`` to ``2.2.9``
 * pinning ``pyUSIrest`` dependency to ``v0.3.0``
 * documenting the BioSamples submission process in sphinx
 * export *BioSamples IDs* as a CSV from *Edit Submission view*
