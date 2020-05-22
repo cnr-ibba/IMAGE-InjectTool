@@ -175,9 +175,9 @@ class AnimalAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     list_per_page = 25
     list_display = (
-        'title', 'owner', 'short_organization', 'created_at', 'updated_at',
-        'status', 'gene_bank_name', 'short_country', 'datasource_type',
-        'datasource_version', 'short_message'
+        'id', 'title', 'owner', 'short_organization', 'created_at',
+        'updated_at', 'status', 'gene_bank_name', 'short_country',
+        'datasource_type', 'datasource_version', 'short_message'
     )
 
     def short_organization(self, obj):

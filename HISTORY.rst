@@ -15,6 +15,7 @@ TODO
 
 * Keep at least two worker running
 * swap latitude and longitude row order in AnimalDetailView
+* add id columns to admin views
 
 Features
 ^^^^^^^^
