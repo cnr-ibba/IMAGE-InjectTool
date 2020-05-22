@@ -13,6 +13,8 @@ TODO
 0.9.5.dev0
 ----------
 
+* Keep at least two worker running
+
 Features
 ^^^^^^^^
 
