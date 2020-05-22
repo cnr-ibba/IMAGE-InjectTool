@@ -13,9 +13,10 @@ TODO
 0.9.5.dev0
 ----------
 
-* Keep at least two worker running
+* keep at least two worker running
 * swap latitude and longitude row order in AnimalDetailView
 * add id columns to admin views
+* fix bug in reload submission (no more need to change version or type)
 
 Features
 ^^^^^^^^

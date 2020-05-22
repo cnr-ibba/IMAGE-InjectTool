@@ -7,6 +7,7 @@ Created on Tue Jul 24 15:51:05 2018
 """
 
 import magic
+import logging
 import tempfile
 
 from django import forms
@@ -19,10 +20,28 @@ from uid.models import Submission
 from crbanim.helpers import CRBAnimReader
 from excel.helpers import ExcelTemplateReader
 
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 class UniqueSubmissionMixin():
+    # a custom attribute in order to determine if I'm reloading or not
+    is_reload = False
+
     def check_submission_exists(self):
         """Test if I already have a submission with the same data"""
+
+        logger.info(self.changed_data)
+
+        if (self.is_reload and (
+                'datasource_type' not in self.changed_data and
+                'datasource_version' not in self.changed_data)):
+
+            logger.info("Replacing a datasource: %s" % self.cleaned_data)
+
+            # I'm replacing data, no need to test if a submission with the
+            # same data exists
+            return
 
         # get unique attributes
         unique_together = Submission._meta.unique_together[0]
@@ -181,6 +200,9 @@ class SubmissionForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
 # I use forms.Form since I need to pass primary key as a field,
 # and I can't use it with a modelform
 class ReloadForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
+    # a custom attribute in order to determine if I'm reloading or not
+    is_reload = True
+
     # custom attributes
     agree_reload = forms.BooleanField(
         label="That's fine. Replace my submission data with this file",

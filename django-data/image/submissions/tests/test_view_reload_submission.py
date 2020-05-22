@@ -32,7 +32,7 @@ class TestBase(SubmissionFormMixin, DataSourceMixinTestCase, TestCase):
         "uid/dictcountry",
         "uid/dictrole",
         "uid/organization",
-        "uid/submission"
+        "submissions/submission"
     ]
 
     def setUp(self):
@@ -59,7 +59,7 @@ class TestBase(SubmissionFormMixin, DataSourceMixinTestCase, TestCase):
         # call super method
         super().tearDown()
 
-    def get_data(self, ds_file=CRYOWEB_TYPE):
+    def get_data(self, ds_file=CRYOWEB_TYPE, version="reload"):
         """Get data dictionary"""
 
         ds_type, ds_path = super().get_data(ds_file)
@@ -68,7 +68,7 @@ class TestBase(SubmissionFormMixin, DataSourceMixinTestCase, TestCase):
         data = {
             'uploaded_file': open(ds_path, "rb"),
             'datasource_type': ds_type,
-            'datasource_version': "reload",
+            'datasource_version': version,
             'agree_reload': True
         }
 
@@ -148,6 +148,29 @@ class SuccessfulReloadSubmissionViewTest(
         self.submission = Submission.objects.get(pk=1)
 
 
+class SuccessfulReplaceSubmissionViewTest(
+        SuccessfulReloadMixin, OwnerMixinTestCase, TestBase):
+    """Test reloading a new file without changing version or ds type"""
+
+    # patch to simulate data load
+    @patch('submissions.views.ImportCryowebTask.delay')
+    def setUp(self, my_task):
+        # call base method
+        super().setUp()
+
+        # this post request create a new data_source file
+        self.response = self.client.post(
+            self.url,
+            self.get_data(version="test"),
+            follow=True)
+
+        # setting task
+        self.my_task = my_task
+
+        # get submission, with the new data_source file
+        self.submission = Submission.objects.get(pk=1)
+
+
 class InvalidReloadSubmissionViewTest(
         InvalidFormMixinTestCase, OwnerMixinTestCase, TestBase):
 
@@ -158,6 +181,29 @@ class InvalidReloadSubmissionViewTest(
         super().setUp()
 
         self.response = self.client.post(self.url, {})
+        self.my_task = my_task
+
+    def test_task_called(self):
+        self.assertFalse(self.my_task.called)
+
+
+class InvalidReplaceSubmissionViewTest(
+        InvalidFormMixinTestCase, OwnerMixinTestCase, TestBase):
+    """Test reloading a new file with changing version or ds type"""
+
+    # patch to simulate data load
+    @patch('submissions.views.ImportCryowebTask.delay')
+    def setUp(self, my_task):
+        # call base method
+        super().setUp()
+
+        # this post request create a new data_source file
+        self.response = self.client.post(
+            self.url,
+            self.get_data(
+                version="collision"),
+            follow=True)
+
         self.my_task = my_task
 
     def test_task_called(self):
