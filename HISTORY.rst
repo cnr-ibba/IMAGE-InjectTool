@@ -14,6 +14,7 @@ TODO
 ----------
 
 * Keep at least two worker running
+* swap latitude and longitude row order in AnimalDetailView
 
 Features
 ^^^^^^^^
