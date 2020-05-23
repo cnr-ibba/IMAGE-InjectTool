@@ -17,6 +17,7 @@ TODO
 * swap latitude and longitude row order in AnimalDetailView
 * add id columns to admin views
 * fix bug in reload submission (no more need to change version or type)
+* update template upload file
 
 Features
 ^^^^^^^^

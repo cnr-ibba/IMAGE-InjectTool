@@ -192,7 +192,7 @@ class SubmissionForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
                 """example: CryoWeb. Need an empty template file? """
                 """download it from <a href="%s%s">here</a>""" % (
                     settings.MEDIA_URL,
-                    "Image_sample_empty_template_20191002.xlsx")
+                    "Image_sample_empty_template_20191002_v2.1.xlsx")
             )
         }
 
@@ -222,7 +222,7 @@ class ReloadForm(SubmissionFormMixin, RequestFormMixin, forms.ModelForm):
                 """example: CryoWeb. Need an empty template file? """
                 """download it from <a href="%s%s">here</a>""" % (
                     settings.MEDIA_URL,
-                    "Image_sample_empty_template_20191002.xlsx")
+                    "Image_sample_empty_template_20191002_v2.1.xlsx")
             )
         }
 
