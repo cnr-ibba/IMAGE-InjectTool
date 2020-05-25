@@ -9,12 +9,26 @@ TODO
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
-0.9.4.dev0
+
+0.9.5.dev0
 ----------
+
+* keep at least two worker running
+* swap latitude and longitude row order in AnimalDetailView
+* add id columns to admin views
+* fix bug in reload submission (no more need to change version or type)
+* update template upload file
 
 Features
 ^^^^^^^^
 
+0.9.4 (2020-03-03)
+------------------
+
+Features
+^^^^^^^^
+
+* refactor ``language.templates``
 * returning bootstrap alert messages with zooma call
 * refactor ``uid.templates``
 * simplified error message in token generation

@@ -15,8 +15,9 @@ from .models import (
 
 class SubmissionAdmin(admin.ModelAdmin):
     list_display = (
-        'submission_title', 'usi_submission_name', 'created_at', 'updated_at',
-        'status', 'samples_count', 'samples_status', 'short_message',
+        'id', 'submission_id', 'submission_title', 'usi_submission_name',
+        'created_at', 'updated_at', 'status', 'samples_count',
+        'samples_status', 'short_message',
     )
 
     list_select_related = ('uid_submission',)
@@ -26,6 +27,9 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     # rename column in admin
     short_message.short_description = "Message"
+
+    def submission_id(self, obj):
+        return obj.uid_submission.id
 
     def submission_title(self, obj):
         return obj.uid_submission.title
@@ -45,8 +49,8 @@ class SubmissionAdmin(admin.ModelAdmin):
 
 class SubmissionDataAdmin(admin.ModelAdmin):
     list_display = (
-        'short_submission', 'submission_title', 'status', 'content_type',
-        'object_id'
+        'id', 'short_submission', 'submission_id', 'submission_title',
+        'status', 'content_type', 'object_id'
     )
 
     def short_submission(self, obj):
@@ -55,11 +59,11 @@ class SubmissionDataAdmin(admin.ModelAdmin):
     # rename column in admin
     short_submission.short_description = "USI Submission"
 
-    # rename column in admin
-    short_submission.short_description = "USI Submission"
-
     def status(self, obj):
         return obj.submission.get_status_display()
+
+    def submission_id(self, obj):
+        return obj.submission.uid_submission.id
 
     def submission_title(self, obj):
         return obj.submission.uid_submission.title
