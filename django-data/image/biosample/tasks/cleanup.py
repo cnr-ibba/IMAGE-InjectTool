@@ -39,7 +39,7 @@ RELEASE_TIMEDELTA = timedelta(days=365*1000)
 # Setting page size for biosample requests
 PAGE_SIZE = 20
 
-PARAMS = MultiDict([
+BIOSAMPLE_PARAMS = MultiDict([
     ('size', PAGE_SIZE),
     ('filter', 'attr:project:IMAGE'),
     ])
@@ -87,8 +87,26 @@ class CleanUpTask(NotifyAdminTaskMixin, BaseTask):
         return "success"
 
 
-async def fetch(session, url=BIOSAMPLE_URL, params=PARAMS):
-    """Get a page from biosamples"""
+async def fetch_url(session, url=BIOSAMPLE_URL, params=BIOSAMPLE_PARAMS):
+    """
+    Fetch a generic url, read data as json and return a promise
+
+    Parameters
+    ----------
+    session : aiohttp.ClientSession
+        an async session object.
+    url : str, optional
+        the desidered url. The default is BIOSAMPLE_URL.
+    params : MultiDict, optional
+        Additional params for request. The default is BIOSAMPLE_PARAMS.
+
+    Returns
+    -------
+    dict
+        json content of the page
+
+    """
+    """"""
 
     # define a URL with yarl
     url = URL(url)
@@ -98,7 +116,25 @@ async def fetch(session, url=BIOSAMPLE_URL, params=PARAMS):
         return await response.json()
 
 
-async def parse_samples_data(data, managed_domains):
+async def filter_managed_biosamples(data, managed_domains):
+    """
+    Parse data from a BioSample results page and yield samples managed
+    by InjectTool users.
+
+    Parameters
+    ----------
+    data : dict
+        biosample data read from BIOSAMPLE_URL.
+    managed_domains : list
+        A list of AAP domains, as returned from
+        :py:meth:`pyUSIrest.auth.Auth.get_domains`.
+
+    Yields
+    ------
+    sample : dict
+        a BioSample record.
+
+    """
     # get samples objects
     try:
         samples = data['_embedded']['samples']
@@ -119,16 +155,40 @@ async def parse_samples_data(data, managed_domains):
         logger.warning(data)
 
 
-async def get_samples(
+async def get_biosamples(
         url=BIOSAMPLE_URL,
-        params=PARAMS,
+        params=BIOSAMPLE_PARAMS,
         managed_domains=[]):
+    """
+    Get all records from BioSamples for the IMAGE project. Fecth Biosample
+    once, determines how many pages to request and return only sample record
+    managed by InjectTool
+
+    Parameters
+    ----------
+    url : str, optional
+        The desidered URL. The default is BIOSAMPLE_URL.
+    params : MultiDict, optional
+        Additional params for request. The default is BIOSAMPLE_PARAMS.
+    managed_domains : list
+        A list of AAP domains, as returned from
+        :py:meth:`pyUSIrest.auth.Auth.get_domains`.
+
+    Yields
+    ------
+    sample : dict
+        a BioSample record.
+
+    """
     async with aiohttp.ClientSession() as session:
-        data = await fetch(session, url, params)
+        # get data for the first time to determine how many pages I have
+        # to requests
+        data = await fetch_url(session, url, params)
 
         # process data and filter samples I own
         # https://stackoverflow.com/a/47378063
-        async for sample in parse_samples_data(data, managed_domains):
+        async for sample in filter_managed_biosamples(data, managed_domains):
+            # return a managed biosample record
             yield sample
 
         tasks = []
@@ -145,7 +205,7 @@ async def get_samples(
             my_params.update(page=page)
 
             # track the new awaitable object
-            tasks.append(fetch(session, url, my_params))
+            tasks.append(fetch_url(session, url, my_params))
 
         # Run awaitable objects in the aws set concurrently.
         # Return an iterator of Future objects.
@@ -155,21 +215,47 @@ async def get_samples(
 
             # process data and filter samples I own
             # https://stackoverflow.com/a/47378063
-            async for sample in parse_samples_data(data, managed_domains):
+            async for sample in filter_managed_biosamples(
+                    data, managed_domains):
                 yield sample
 
 
 async def check_samples():
+    """
+    Get all records from BioSamples submitted by the InjectTool manager auth
+    managed domains, and call check_orphan_sample for each of them
+
+    Returns
+    -------
+    None.
+
+    """
     # I need an pyUSIrest.auth.Auth object to filter out records that don't
     # belong to me
     auth = get_manager_auth()
     managed_domains = auth.get_domains()
 
-    async for sample in get_samples(managed_domains=managed_domains):
+    async for sample in get_biosamples(managed_domains=managed_domains):
         check_orphan_sample(sample)
 
 
 def check_orphan_sample(sample):
+    """
+    Get a BioSample record and check if such BioSampleId is registered into
+    InjectTool UID. If Such record is not present, create a new
+    :py:class:`biosample.models.OrphanSample` record object in the BioSample
+    orphan table
+
+    Parameters
+    ----------
+    sample : dict
+        a BioSample record.
+
+    Returns
+    -------
+    None.
+
+    """
     animal_qs = UIDAnimal.objects.filter(
         biosample_id=sample['accession'])
 
@@ -229,8 +315,19 @@ class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
         return "success"
 
 
-def purge_orphan_samples():
-    """A function to remove objects from OrphanSample table"""
+def get_orphan_samples():
+    """
+    Iterate for all BioSample orphaned records which are not yet removed and
+    are tracked for removal, get minimal data from BioSample and return a
+    dictionary which can be used to patch a BioSample id with a new
+    BioSample submission in order to remove a BioSamples record
+    (publish the BioSample record after 1000 years from Now).
+
+    Yields
+    ------
+    new_data : dict
+        payload to submit to BioSample in order to remove a BioSamples record.
+    """
 
     with requests.Session() as session:
         for orphan_sample in OrphanSample.objects.filter(

@@ -18,7 +18,7 @@ from unittest.mock import patch, Mock
 from common.constants import BIOSAMPLE_URL
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
-from ..tasks.cleanup import check_samples, purge_orphan_samples
+from ..tasks.cleanup import check_samples, get_orphan_samples
 from ..models import OrphanSample
 
 from .common import generate_token
@@ -177,7 +177,7 @@ class PurgeOrphanSampleTestCase(TestCase):
         self.mock_get.return_value.status_code = 200
 
         # call my method
-        samples = purge_orphan_samples()
+        samples = get_orphan_samples()
 
         # teams is now a generator
         self.assertIsInstance(samples, types.GeneratorType)
