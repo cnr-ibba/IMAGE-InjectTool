@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 
 from common.constants import COMPLETED, BIOSAMPLE_URL
-from common.helpers import format_attribute
+from common.helpers import format_attribute, send_mail_to_admins
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from image.celery import app as celery_app
 from uid.models import Animal as UIDAnimal, Sample as UIDSample, DictSpecie
@@ -308,6 +308,20 @@ class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
         finally:
             # close loop
             loop.close()
+
+        # Ok count orphan samples
+        orphan_count = sum(1 for orphan in get_orphan_samples())
+
+        if orphan_count > 0:
+            email_subject = "Some entries in BioSamples are orphan"
+            email_message = (
+                "There are %s biosample ids which are not managed by "
+                "InjectTool" % orphan_count)
+
+            logger.warning(email_message)
+
+            # Notify admins if I have orphan samples
+            send_mail_to_admins(email_subject, email_message)
 
         # debug
         logger.info("%s completed" % (self.name))

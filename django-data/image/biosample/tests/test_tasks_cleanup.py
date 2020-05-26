@@ -8,11 +8,11 @@ Created on Thu Nov 14 16:19:41 2019
 
 from unittest.mock import patch, Mock
 
+from django.core import mail
 from django.test import TestCase
 from django.utils import timezone
 
 from common.constants import COMPLETED
-from common.tests import AsyncIOMixin
 
 from ..models import Submission
 from ..tasks import CleanUpTask, SearchOrphanTask
@@ -77,6 +77,12 @@ class CleanUpTaskTestCase(TestCase):
 
 class SearchOrphanTaskTestCase(TestCase):
 
+    fixtures = [
+        'biosample/managedteam',
+        'biosample/orphansample',
+        'uid/dictspecie',
+    ]
+
     def setUp(self):
         # calling my base setup
         super().setUp()
@@ -123,6 +129,16 @@ class SearchOrphanTaskTestCase(TestCase):
         self.assertEqual(self.asyncio_mock.call_count, 1)
         self.assertEqual(self.run_until.run_until_complete.call_count, 1)
         self.assertEqual(self.check_samples.call_count, 1)
+
+        # test email sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # read email
+        email = mail.outbox[0]
+
+        self.assertEqual(
+            "Some entries in BioSamples are orphan",
+            email.subject)
 
     # Test a non blocking instance
     @patch("redis.lock.Lock.acquire", return_value=False)
