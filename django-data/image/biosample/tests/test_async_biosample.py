@@ -19,7 +19,7 @@ from common.constants import BIOSAMPLE_URL
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
 from ..tasks.cleanup import check_samples, get_orphan_samples
-from ..models import OrphanSample
+from ..models import OrphanSample, ManagedTeam
 
 from .common import generate_token
 
@@ -187,3 +187,7 @@ class PurgeOrphanSampleTestCase(TestCase):
 
         sample = samples[0]
         self.assertIsInstance(sample, dict)
+
+        # read the team from data
+        team = sample['team']
+        self.assertIsInstance(team, ManagedTeam)

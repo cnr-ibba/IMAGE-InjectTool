@@ -345,7 +345,7 @@ def get_orphan_samples():
 
     with requests.Session() as session:
         for orphan_sample in OrphanSample.objects.filter(
-                ignore=False, removed=False):
+                ignore=False, removed=False).order_by('team__name'):
 
             # define the url I need to check
             url = "/".join([BIOSAMPLE_URL, orphan_sample.biosample_id])
@@ -378,12 +378,17 @@ def get_orphan_samples():
 
             new_data['attributes'] = dict()
 
+            new_data['description'] = "Removed by InjectTool"
+
             # set project again
             new_data['attributes']["Project"] = format_attribute(
                 value="IMAGE")
 
             # return new biosample data
-            yield new_data
+            yield {
+                'data': new_data,
+                'team': orphan_sample.team
+            }
 
 
 # register explicitly tasks
