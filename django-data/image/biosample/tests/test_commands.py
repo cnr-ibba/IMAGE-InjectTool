@@ -10,6 +10,8 @@ import io
 import json
 
 from pyUSIrest.auth import Auth
+from pyUSIrest.usi import Sample
+from pyUSIrest.exceptions import USIDataError
 
 from unittest.mock import patch, PropertyMock
 
@@ -20,7 +22,7 @@ from common.constants import SUBMITTED
 
 from ..models import ManagedTeam, OrphanSubmission
 
-from .common import BaseMixin, generate_token
+from .common import BaseMixin, generate_token, BioSamplesMixin
 
 
 class CommandsMixin():
@@ -80,7 +82,7 @@ class CommandsTestCase(CommandsMixin, BaseMixin, TestCase):
             self.assertIsInstance(data, dict)
 
 
-class BioSampleRemovalTestCase(CommandsMixin, TestCase):
+class BioSampleRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
     fixtures = [
         'biosample/managedteam',
         'biosample/orphansample',
@@ -112,6 +114,11 @@ class BioSampleRemovalTestCase(CommandsMixin, TestCase):
         self.new_submission.propertymock = PropertyMock(return_value='Draft')
         type(self.new_submission).status = self.new_submission.propertymock
 
+    def tearDown(self):
+        self.mock_root_patcher.stop()
+
+        super().tearDown()
+
     @patch('biosample.helpers.get_manager_auth')
     def test_patch_orphan_biosamples(self, my_auth):
         """test patch_orphan_biosamples command"""
@@ -120,6 +127,12 @@ class BioSampleRemovalTestCase(CommandsMixin, TestCase):
         my_auth.return_value = Auth(
             token=generate_token()
         )
+
+        # mocking sample creation: two objects: one submitted, one not
+        self.new_submission.create_sample.side_effect = [
+            Sample(auth=generate_token()),
+            USIDataError("test")
+        ]
 
         # calling commands
         call_command('patch_orphan_biosamples')

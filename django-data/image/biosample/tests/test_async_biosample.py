@@ -21,7 +21,7 @@ from uid.models import Animal as UIDAnimal, Sample as UIDSample
 from ..tasks.cleanup import check_samples, get_orphan_samples
 from ..models import OrphanSample, ManagedTeam
 
-from .common import generate_token
+from .common import generate_token, BioSamplesMixin
 
 # get my path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -140,31 +140,12 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
             self.assertEqual(OrphanSample.objects.count(), 0)
 
 
-class PurgeOrphanSampleTestCase(TestCase):
+class PurgeOrphanSampleTestCase(BioSamplesMixin, TestCase):
     fixtures = [
         'biosample/managedteam',
         'biosample/orphansample',
         'uid/dictspecie',
     ]
-
-    @classmethod
-    def setUpClass(cls):
-        # calling my base class setup
-        super().setUpClass()
-
-        cls.mock_get_patcher = patch('requests.Session.get')
-        cls.mock_get = cls.mock_get_patcher.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.mock_get_patcher.stop()
-
-        # calling base method
-        super().tearDownClass()
-
-    def setUp(self):
-        # calling my base setup
-        super().setUp()
 
     def test_purge_orphan_samples(self):
         """Test biosample data conversion"""
@@ -183,9 +164,12 @@ class PurgeOrphanSampleTestCase(TestCase):
         self.assertIsInstance(samples, types.GeneratorType)
         samples = list(samples)
 
-        self.assertEqual(len(samples), 1)
+        self.assertEqual(len(samples), 2)
 
         sample = samples[0]
+        self.assertIsInstance(sample, dict)
+
+        sample = samples[1]
         self.assertIsInstance(sample, dict)
 
         # read the team from data

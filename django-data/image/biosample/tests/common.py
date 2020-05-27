@@ -6,11 +6,13 @@ Created on Mon Jan 21 15:15:09 2019
 @author: Paolo Cozzi <cozzi@ibba.cnr.it>
 """
 
+import os
+import json
 import redis
 import python_jwt
 
 from billiard.einfo import ExceptionInfo
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch, PropertyMock, Mock
 
 from django.core import mail
 from django.conf import settings
@@ -23,6 +25,12 @@ from uid.tests import PersonMixinTestCase
 
 # the token will last for 24h (in seconds)
 TOKEN_DURATION = 24*60*60
+
+# get my path
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+# define data path
+DATA_PATH = os.path.join(dir_path, "data")
 
 
 def generate_token(now=None, exp=None, domains=['subs.test-team-1']):
@@ -194,3 +202,37 @@ class RedisMixin():
             cls.redis.delete(cls.submission_key)
 
         super().tearDownClass()
+
+
+class BioSamplesMixin():
+    """Simulate fetching data from BioSamples"""
+
+    @classmethod
+    def setUpClass(cls):
+        # calling my base class setup
+        super().setUpClass()
+
+        cls.mock_get_patcher = patch('requests.Session.get')
+        cls.mock_get = cls.mock_get_patcher.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.mock_get_patcher.stop()
+
+        # calling base method
+        super().tearDownClass()
+
+    def setUp(self):
+        # calling my base setup
+        super().setUp()
+
+        # simulate getting two data from biosamples
+        with open(os.path.join(DATA_PATH, "SAMEA6376982.json")) as handle:
+            sample1 = json.load(handle)
+
+        with open(os.path.join(DATA_PATH, "SAMEA6376980.json")) as handle:
+            sample2 = json.load(handle)
+
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.json.side_effect = [sample1, sample2]
+        self.mock_get.return_value.status_code = 200
