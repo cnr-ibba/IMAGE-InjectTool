@@ -125,6 +125,8 @@ class OrphanSampleAdmin(admin.ModelAdmin):
     # I cannot edit a auto_add_now field
     readonly_fields = ('found_at', 'removed_at')
 
+    list_filter = ('ignore',)
+
     list_per_page = 15
 
 

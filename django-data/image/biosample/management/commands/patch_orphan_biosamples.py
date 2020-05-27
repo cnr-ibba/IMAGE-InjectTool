@@ -16,6 +16,7 @@ from django.core.management import BaseCommand
 from biosample.helpers import get_manager_auth
 from biosample.models import OrphanSubmission
 from biosample.tasks.cleanup import get_orphan_samples
+from common.constants import SUBMITTED
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -33,6 +34,15 @@ def create_biosample_submission(root, team):
 
     logger.debug("Created submission %s" % submission)
     return usi_submission, submission
+
+
+def update_submission_status(submission):
+    """Set SUBMITTED status to submission"""
+
+    # update submission status
+    if submission:
+        submission.status = SUBMITTED
+        submission.save()
 
 
 class Command(BaseCommand):
@@ -60,6 +70,8 @@ class Command(BaseCommand):
             data, team = orphan_sample['data'], orphan_sample['team']
 
             if count % 100 == 0 or old_team != team:
+                update_submission_status(submission)
+
                 # create a new Biosample submission
                 usi_submission, submission = create_biosample_submission(
                     root, team)
@@ -82,6 +94,9 @@ class Command(BaseCommand):
 
             # new element
             count += 1
+
+        # update the last submission status
+        update_submission_status(submission)
 
         # end the script
         logger.info("patch_orphan_samples ended")
