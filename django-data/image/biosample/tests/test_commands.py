@@ -14,12 +14,12 @@ from pyUSIrest.auth import Auth
 from pyUSIrest.usi import Sample
 from pyUSIrest.exceptions import USIDataError
 
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch, PropertyMock, Mock
 
 from django.core.management import call_command
 from django.test import TestCase
 
-from common.constants import SUBMITTED
+from common.constants import SUBMITTED, NEED_REVISION
 
 from ..models import ManagedTeam, OrphanSubmission
 
@@ -243,3 +243,57 @@ class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
 
         # testing a not finalized biosample condition
         self.assertFalse(self.submission.finalize.called)
+
+    def test_fetch_orphan_biosamples_errors(self):
+        """test fetch_orphan_biosamples command with issues in USI"""
+
+        # a draft submission with errors
+        self.submission.status = 'Draft'
+        self.submission.has_errors.return_value = Counter(
+            {True: 1, False: 1})
+        self.submission.get_status.return_value = Counter({'Complete': 2})
+
+        # Add samples. Suppose that first failed, second is ok
+        my_validation_result1 = Mock()
+        my_validation_result1.errorMessages = {
+            'Ena': [
+                'a sample message',
+            ]
+        }
+
+        my_sample1 = Mock()
+        my_sample1.name = "test-animal"
+        my_sample1.alias = "IMAGEA000000001"
+        my_sample1.has_errors.return_value = True
+        my_sample1.get_validation_result.return_value = my_validation_result1
+
+        # sample2 is ok
+        my_validation_result2 = Mock()
+        my_validation_result2.errorMessages = None
+
+        my_sample2 = Mock()
+        my_sample2.name = "test-sample"
+        my_sample2.alias = "IMAGES000000001"
+        my_sample2.has_errors.return_value = False
+        my_sample2.get_validation_result.return_value = my_validation_result2
+
+        # simulate that IMAGEA000000001 has errors
+        self.submission.get_samples.return_value = [my_sample1, my_sample2]
+
+        # track other objects
+        self.my_sample1 = my_sample1
+        self.my_sample2 = my_sample2
+
+        # asserting things
+        self.common_tests(args=['--finalize'], status=NEED_REVISION)
+
+        # testing a not finalized biosample condition
+        self.assertFalse(self.submission.finalize.called)
+
+        # assert custom mock attributes called
+        self.assertTrue(self.my_sample1.has_errors.called)
+        self.assertTrue(self.my_sample1.get_validation_result.called)
+
+        # if sample has no errors, no all methods will be called
+        self.assertTrue(self.my_sample2.has_errors.called)
+        self.assertFalse(self.my_sample2.get_validation_result.called)
