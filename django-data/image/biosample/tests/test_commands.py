@@ -8,6 +8,7 @@ Created on Mon Jan 21 14:30:04 2019
 
 import io
 import json
+from collections import Counter
 
 from pyUSIrest.auth import Auth
 from pyUSIrest.usi import Sample
@@ -82,7 +83,7 @@ class CommandsTestCase(CommandsMixin, BaseMixin, TestCase):
             self.assertIsInstance(data, dict)
 
 
-class BioSampleRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
+class SubmitRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
     fixtures = [
         'biosample/managedteam',
         'biosample/orphansample',
@@ -151,3 +152,94 @@ class BioSampleRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         self.assertEqual(submission.usi_submission_name, "new-submission")
         self.assertEqual(submission.samples_count, 1)
         self.assertEqual(submission.status, SUBMITTED)
+
+
+class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
+    fixtures = [
+        'biosample/managedteam',
+        'biosample/orphansample',
+        'biosample/orphansubmission',
+        'uid/dictspecie',
+    ]
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
+        # starting mocked objects
+        self.mock_root_patcher = patch('pyUSIrest.usi.Root')
+        self.mock_root = self.mock_root_patcher.start()
+
+        # start root object
+        self.my_root = self.mock_root.return_value
+
+        # mocking a new submission
+        self.submission = self.my_root.get_submission_by_name.return_value
+        self.submission.name = "7dbb563e-c162-4df2-a48f-bbf5de8d1e35"
+        self.submission.status = "Draft"
+
+        # track a orphan submission
+        self.orphan_submission_obj = OrphanSubmission.objects.get(pk=1)
+        self.orphan_submission_obj.status = SUBMITTED
+        self.orphan_submission_obj.save()
+
+    def tearDown(self):
+        self.mock_root_patcher.stop()
+
+        super().tearDown()
+
+    def common_tests(self, status=SUBMITTED, args=[]):
+        """Assert stuff for each test"""
+
+        # calling commands
+        call_command('fetch_orphan_biosamples', *args)
+
+        # UID submission status remain the same
+        self.orphan_submission_obj.refresh_from_db()
+        self.assertEqual(self.orphan_submission_obj.status, status)
+
+        self.assertTrue(self.mock_auth.called)
+        self.assertTrue(self.mock_root.called)
+        self.assertTrue(self.my_root.get_submission_by_name.called)
+
+    def test_fetch_orphan_biosamples_pending(self):
+        """test fetch_orphan_biosamples command"""
+
+        # update submission status
+        self.submission.status = 'Draft'
+        self.submission.has_errors.return_value = Counter({False: 2})
+        self.submission.get_status.return_value = Counter({'Pending': 2})
+
+        # asserting things
+        self.common_tests()
+
+        # testing a not finalized biosample condition
+        self.assertFalse(self.submission.finalize.called)
+
+    def test_fetch_orphan_biosamples_complete(self):
+        """test fetch_orphan_biosamples command"""
+
+        # update submission status
+        self.submission.status = 'Draft'
+        self.submission.has_errors.return_value = Counter({False: 2})
+        self.submission.get_status.return_value = Counter({'Complete': 2})
+
+        # asserting things
+        self.common_tests(args=['--finalize'])
+
+        # testing a not finalized biosample condition
+        self.assertTrue(self.submission.finalize.called)
+
+    def test_fetch_orphan_biosamples_complete_ignore(self):
+        """test fetch_orphan_biosamples command"""
+
+        # update submission status
+        self.submission.status = 'Draft'
+        self.submission.has_errors.return_value = Counter({False: 2})
+        self.submission.get_status.return_value = Counter({'Complete': 2})
+
+        # asserting things
+        self.common_tests()
+
+        # testing a not finalized biosample condition
+        self.assertFalse(self.submission.finalize.called)
