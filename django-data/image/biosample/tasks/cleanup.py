@@ -18,7 +18,7 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 
-from common.constants import COMPLETED, BIOSAMPLE_URL
+from common.constants import COMPLETED, BIOSAMPLE_URL, READY
 from common.helpers import format_attribute, send_mail_to_admins
 from common.tasks import BaseTask, NotifyAdminTaskMixin, exclusive_task
 from image.celery import app as celery_app
@@ -273,7 +273,9 @@ def check_orphan_sample(sample):
         orphan, created = OrphanSample.objects.get_or_create(
             biosample_id=sample['accession'],
             name=sample['name'],
-            team=team)
+            team=team,
+            status=READY,
+        )
 
         if created:
             logger.warning("Add %s to orphan samples" % sample['accession'])
@@ -345,7 +347,9 @@ def get_orphan_samples():
 
     with requests.Session() as session:
         for orphan_sample in OrphanSample.objects.filter(
-                ignore=False, removed=False).order_by('team__name'):
+                ignore=False,
+                removed=False,
+                status=READY).order_by('team__name', 'id'):
 
             # define the url I need to check
             url = "/".join([BIOSAMPLE_URL, orphan_sample.biosample_id])
@@ -387,7 +391,8 @@ def get_orphan_samples():
             # return new biosample data
             yield {
                 'data': new_data,
-                'team': orphan_sample.team
+                'team': orphan_sample.team,
+                'sample': orphan_sample,
             }
 
 

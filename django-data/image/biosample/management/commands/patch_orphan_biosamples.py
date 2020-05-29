@@ -16,7 +16,7 @@ from django.core.management import BaseCommand
 from biosample.helpers import get_manager_auth
 from biosample.models import OrphanSubmission
 from biosample.tasks.cleanup import get_orphan_samples
-from common.constants import SUBMITTED
+from common.constants import SUBMITTED, ERROR
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -66,8 +66,9 @@ class Command(BaseCommand):
 
         # iterate among orphan sample, create a BioSample submission
         # and then add biosample for patch
-        for orphan_sample in get_orphan_samples():
-            data, team = orphan_sample['data'], orphan_sample['team']
+        for record in get_orphan_samples():
+            (data, team, sample) = (
+                record['data'], record['team'], record['sample'])
 
             if count % 100 == 0 or old_team != team:
                 update_submission_status(submission)
@@ -82,11 +83,20 @@ class Command(BaseCommand):
 
             # add sample to submission
             try:
+                logger.info("Submitting '%s'" % data['accession'])
                 usi_submission.create_sample(data)
 
-            except USIDataError:
-                logger.error("Can't remove %s" % data)
+            except USIDataError as error:
+                logger.error(
+                    "Can't remove '%s': Error was '%s'" % (
+                        data['accession'], str(error)))
+                sample.status = ERROR
+                sample.save()
                 continue
+
+            # update sample status
+            sample.status = SUBMITTED
+            sample.save()
 
             # update submission count
             submission.samples_count = count

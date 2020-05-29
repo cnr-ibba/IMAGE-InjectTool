@@ -19,9 +19,9 @@ from unittest.mock import patch, PropertyMock, Mock
 from django.core.management import call_command
 from django.test import TestCase
 
-from common.constants import SUBMITTED, NEED_REVISION
+from common.constants import SUBMITTED, NEED_REVISION, ERROR
 
-from ..models import ManagedTeam, OrphanSubmission
+from ..models import ManagedTeam, OrphanSubmission, OrphanSample
 
 from .common import BaseMixin, generate_token, BioSamplesMixin
 
@@ -153,6 +153,14 @@ class SubmitRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         self.assertEqual(submission.samples_count, 1)
         self.assertEqual(submission.status, SUBMITTED)
 
+        # assert sample status
+        sample = OrphanSample.objects.get(pk=1)
+        self.assertEqual(sample.status, SUBMITTED)
+
+        # This was supposed to have a problem in this tests
+        sample = OrphanSample.objects.get(pk=2)
+        self.assertEqual(sample.status, ERROR)
+
 
 class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
     fixtures = [
@@ -182,6 +190,10 @@ class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         self.orphan_submission_obj = OrphanSubmission.objects.get(pk=1)
         self.orphan_submission_obj.status = SUBMITTED
         self.orphan_submission_obj.save()
+
+        # track submission in samples
+        OrphanSample.objects.update(
+            submission=self.orphan_submission_obj, status=SUBMITTED)
 
     def tearDown(self):
         self.mock_root_patcher.stop()
@@ -262,8 +274,9 @@ class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         }
 
         my_sample1 = Mock()
+        my_sample1.accession = "SAMEA6376980"
+        my_sample1.alias = "IMAGEA000005611"
         my_sample1.name = "test-animal"
-        my_sample1.alias = "IMAGEA000000001"
         my_sample1.has_errors.return_value = True
         my_sample1.get_validation_result.return_value = my_validation_result1
 
@@ -272,8 +285,9 @@ class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         my_validation_result2.errorMessages = None
 
         my_sample2 = Mock()
+        my_sample2.accession = "SAMEA6376982"
+        my_sample2.alias = "IMAGES000006757"
         my_sample2.name = "test-sample"
-        my_sample2.alias = "IMAGES000000001"
         my_sample2.has_errors.return_value = False
         my_sample2.get_validation_result.return_value = my_validation_result2
 
@@ -297,3 +311,11 @@ class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         # if sample has no errors, no all methods will be called
         self.assertTrue(self.my_sample2.has_errors.called)
         self.assertFalse(self.my_sample2.get_validation_result.called)
+
+        # assert sample status in db.
+        sample = OrphanSample.objects.get(pk=1)
+        self.assertEqual(sample.status, SUBMITTED)
+
+        # Same logic of FetchStatusHelper
+        sample = OrphanSample.objects.get(pk=2)
+        self.assertEqual(sample.status, NEED_REVISION)

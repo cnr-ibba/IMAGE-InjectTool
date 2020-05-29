@@ -15,7 +15,7 @@ from aioresponses import aioresponses
 from django.test import TestCase
 from unittest.mock import patch, Mock
 
-from common.constants import BIOSAMPLE_URL
+from common.constants import BIOSAMPLE_URL, SUBMITTED
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
 from ..tasks.cleanup import check_samples, get_orphan_samples
@@ -175,3 +175,30 @@ class PurgeOrphanSampleTestCase(BioSamplesMixin, TestCase):
         # read the team from data
         team = sample['team']
         self.assertIsInstance(team, ManagedTeam)
+
+    def test_purge_orphan_samples_not_ready(self):
+        """Test not ready orphan samples"""
+
+        # Simulate a different status
+        OrphanSample.objects.update(status=SUBMITTED)
+        orphan_count = sum(1 for orphan in get_orphan_samples())
+
+        self.assertEqual(orphan_count, 0)
+
+    def test_purge_orphan_samples_ignore(self):
+        """Test ignored orphan samples"""
+
+        # Ignoring samples gives no object
+        OrphanSample.objects.update(ignore=True)
+        orphan_count = sum(1 for orphan in get_orphan_samples())
+
+        self.assertEqual(orphan_count, 0)
+
+    def test_purge_orphan_samples_removed(self):
+        """Test removed orphan samples"""
+
+        # Ignoring samples gives no object
+        OrphanSample.objects.update(removed=True)
+        orphan_count = sum(1 for orphan in get_orphan_samples())
+
+        self.assertEqual(orphan_count, 0)

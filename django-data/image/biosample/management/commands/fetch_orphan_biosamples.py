@@ -108,6 +108,12 @@ class SubmissionHelper(FetchStatusHelper):
             sample (pyUSIrest.usi.sample): a USI sample object
         """
 
+        # track status in db like FetchStatusHelper
+        orphan_sample = self.usi_submission.submission_data.get(
+            biosample_id=sample.accession)
+        orphan_sample.status = NEED_REVISION
+        orphan_sample.save()
+
         # get a USI validation result
         validation_result = sample.get_validation_result()
 

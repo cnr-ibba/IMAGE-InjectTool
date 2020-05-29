@@ -9,6 +9,7 @@
     "ignore": false,
     "name": "IMAGES000006757",
     "team": 1,
+    "status": 5,
     "removed": false,
     "removed_at": null
   }
@@ -23,6 +24,7 @@
     "ignore": false,
     "name": "IMAGEA000005611",
     "team": 1,
+    "status": 5,
     "removed": false,
     "removed_at": null
   }
