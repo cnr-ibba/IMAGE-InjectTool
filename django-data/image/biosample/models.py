@@ -136,7 +136,7 @@ class OrphanSubmission(BaseSubmission):
 class OrphanSample(models.Model):
     submission = models.ForeignKey(
         OrphanSubmission,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         null=True,
         default=None,
         blank=True,
