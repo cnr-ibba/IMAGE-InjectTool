@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import JSONField
 
-from common.constants import STATUSES, WAITING
+from common.constants import STATUSES, WAITING, READY
 from uid.models import Submission as UIDSubmission
 
 
@@ -160,6 +160,12 @@ class OrphanSample(models.Model):
         'ManagedTeam',
         on_delete=models.CASCADE,
         help_text="Your AAP Team")
+
+    # a column to track sample status
+    status = models.SmallIntegerField(
+        choices=[x.value for x in STATUSES],
+        help_text='example: Waiting',
+        default=READY)
 
     removed = models.BooleanField(
         default=False,

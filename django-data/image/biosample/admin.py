@@ -118,9 +118,20 @@ class OrphanSubmissionAdmin(admin.ModelAdmin):
 
 class OrphanSampleAdmin(admin.ModelAdmin):
     list_display = (
-        'biosample_id', 'found_at', 'ignore', 'name', 'team', 'removed',
-        'removed_at'
+        'biosample_id', 'found_at', 'ignore', 'name', 'team', 'status',
+        'short_submission', 'removed', 'removed_at'
     )
+
+    list_select_related = ('submission', 'team')
+
+    def short_submission(self, obj):
+        if obj.submission:
+            return obj.submission.usi_submission_name
+        else:
+            return None
+
+    # rename column in admin
+    short_submission.short_description = "USI Submission"
 
     # I cannot edit a auto_add_now field
     readonly_fields = ('found_at', 'removed_at')
