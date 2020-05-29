@@ -15,11 +15,12 @@ import logging
 import pyUSIrest.usi
 
 from django.core.management import BaseCommand
+from django.utils import timezone
 
 from biosample.helpers import get_manager_auth
 from biosample.models import OrphanSubmission
 from biosample.tasks.retrieval import FetchStatusHelper
-from common.constants import SUBMITTED, NEED_REVISION
+from common.constants import SUBMITTED, NEED_REVISION, COMPLETED
 
 
 # Get an instance of a logger
@@ -96,7 +97,32 @@ class SubmissionHelper(FetchStatusHelper):
     def complete(self):
         """Complete a submission and fetch biosample names"""
 
-        logger.info("SubmissionHelper.complete() called")
+        logger.info("Completing submission '%s'" % (
+            self.submission_name))
+
+        for sample in self.submission.get_samples():
+            # if no accession, return without doing anything
+            if sample.accession is None:
+                logger.error("No accession found for sample '%s'" % (sample))
+                logger.error("Ignoring submission '%s'" % (self.submission))
+                return
+
+            orphan_sample = self.usi_submission.submission_data.get(
+                biosample_id=sample.accession)
+            orphan_sample.status = COMPLETED
+            orphan_sample.removed = True
+            orphan_sample.removed_at = timezone.now()
+            orphan_sample.save()
+
+        # update submission
+        self.usi_submission.status = COMPLETED
+        self.usi_submission.message = "Successful removal from biosample"
+        self.usi_submission.save()
+
+        logger.info(
+            "Submission %s is now completed and its samples "
+            "removed from BioSamples" % (self.submission_name)
+        )
 
     # custom implementation: here I don't have a record in UID and I
     # can't use the base method of this class

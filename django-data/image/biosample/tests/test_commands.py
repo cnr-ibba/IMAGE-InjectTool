@@ -19,7 +19,7 @@ from unittest.mock import patch, PropertyMock, Mock
 from django.core.management import call_command
 from django.test import TestCase
 
-from common.constants import SUBMITTED, NEED_REVISION, ERROR
+from common.constants import SUBMITTED, NEED_REVISION, ERROR, COMPLETED
 
 from ..models import ManagedTeam, OrphanSubmission, OrphanSample
 
@@ -319,3 +319,60 @@ class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         # Same logic of FetchStatusHelper
         sample = OrphanSample.objects.get(pk=2)
         self.assertEqual(sample.status, NEED_REVISION)
+
+    def test_fetch_orphan_complete(self):
+        """Test fetch status for a complete submission"""
+
+        # a completed submission with two samples
+        self.submission.status = 'Completed'
+
+        # Add samples
+        my_sample1 = Mock()
+        my_sample1.accession = "SAMEA6376980"
+        my_sample1.alias = "IMAGEA000005611"
+        my_sample1.name = "test-animal"
+        my_sample2 = Mock()
+        my_sample2.accession = "SAMEA6376982"
+        my_sample2.alias = "IMAGES000006757"
+        my_sample2.name = "test-sample"
+        self.submission.get_samples.return_value = [my_sample1, my_sample2]
+
+        # assert auth, root and get_submission by name called
+        self.common_tests(status=COMPLETED)
+
+        # assert sample status in db.
+        count = OrphanSample.objects.filter(status=COMPLETED).count()
+        self.assertEqual(count, 2)
+
+        # assert that flag are changed
+        count = OrphanSample.objects.filter(removed=True).count()
+        self.assertEqual(count, 2)
+
+    def test_fetch_status_no_accession(self):
+        """Test fetch status for a submission which doens't send accession
+        no updates in such case"""
+
+        # a completed submission with two samples
+        self.submission.status = 'Completed'
+
+        # Add samples
+        my_sample1 = Mock()
+        my_sample1.name = "test-animal"
+        my_sample1.alias = "IMAGEA000005611"
+        my_sample1.accession = None
+        my_sample2 = Mock()
+        my_sample2.name = "test-sample"
+        my_sample2.alias = "IMAGES000006757"
+        my_sample2.accession = None
+        self.submission.get_samples.return_value = [my_sample1, my_sample2]
+
+        # assert auth, root and get_submission by name called
+        self.common_tests()
+
+        # assert sample status in db. Same logich of FetchStatusHelper
+        count = OrphanSample.objects.filter(status=SUBMITTED).count()
+        self.assertEqual(count, 2)
+
+        # assert that flag are changed
+        count = OrphanSample.objects.filter(removed=False).count()
+        self.assertEqual(count, 2)
