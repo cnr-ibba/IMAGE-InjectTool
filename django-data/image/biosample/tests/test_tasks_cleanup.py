@@ -16,6 +16,7 @@ from common.constants import COMPLETED
 
 from ..models import Submission
 from ..tasks import CleanUpTask, SearchOrphanTask
+from .common import BioSamplesMixin
 
 
 class CleanUpTaskTestCase(TestCase):
@@ -75,7 +76,7 @@ class CleanUpTaskTestCase(TestCase):
         self.assertEqual(Submission.objects.count(), 2)
 
 
-class SearchOrphanTaskTestCase(TestCase):
+class SearchOrphanTaskTestCase(BioSamplesMixin, TestCase):
 
     fixtures = [
         'biosample/managedteam',

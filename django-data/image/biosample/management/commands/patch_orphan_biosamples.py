@@ -94,8 +94,9 @@ class Command(BaseCommand):
                 sample.save()
                 continue
 
-            # update sample status
+            # update sample status and track submission
             sample.status = SUBMITTED
+            sample.submission = submission
             sample.save()
 
             # update submission count

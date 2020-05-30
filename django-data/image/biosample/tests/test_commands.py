@@ -157,6 +157,10 @@ class SubmitRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         sample = OrphanSample.objects.get(pk=1)
         self.assertEqual(sample.status, SUBMITTED)
 
+        # assert exactly one sample associated with this submission
+        self.assertEqual(submission.submission_data.count(), 1)
+        self.assertEqual(sample, submission.submission_data.get())
+
         # This was supposed to have a problem in this tests
         sample = OrphanSample.objects.get(pk=2)
         self.assertEqual(sample.status, ERROR)
