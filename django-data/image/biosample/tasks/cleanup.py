@@ -88,6 +88,19 @@ class CleanUpTask(NotifyAdminTaskMixin, BaseTask):
         return "success"
 
 
+async def parse_json(response, url):
+    """Helper function to parse json data"""
+
+    try:
+        return await response.json()
+
+    except aiohttp.client_exceptions.ContentTypeError as exc:
+        logger.error(repr(exc))
+        logger.warning(
+            "error while getting data from %s" % url)
+        return {}
+
+
 async def fetch_url(session, url=BIOSAMPLE_URL, params=BIOSAMPLE_PARAMS):
     """
     Fetch a generic url, read data as json and return a promise
@@ -115,15 +128,16 @@ async def fetch_url(session, url=BIOSAMPLE_URL, params=BIOSAMPLE_PARAMS):
 
     logger.debug(url)
 
-    async with session.get(url, headers=HEADERS) as response:
-        try:
-            return await response.json()
+    try:
+        async with session.get(url, headers=HEADERS) as response:
+            # try to read json data
+            return await parse_json(response, url)
 
-        except aiohttp.client_exceptions.ContentTypeError as exc:
-            logger.error(repr(exc))
-            logger.warning(
-                "error while getting data from %s" % url)
-            return {}
+    except aiohttp.client_exceptions.ServerDisconnectedError as exc:
+        logger.error(repr(exc))
+        logger.warning(
+            "server disconnected during %s" % url)
+        return {}
 
 
 async def filter_managed_biosamples(data, managed_domains):

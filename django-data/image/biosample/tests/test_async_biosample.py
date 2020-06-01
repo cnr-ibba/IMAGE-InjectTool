@@ -12,6 +12,7 @@ import types
 import asynctest
 
 from aioresponses import aioresponses
+from aiohttp.client_exceptions import ServerDisconnectedError
 from django.test import TestCase
 from unittest.mock import patch, Mock
 
@@ -136,8 +137,8 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
             await check_samples()
 
-            # no objects where tracked since issue in response
-            self.assertEqual(OrphanSample.objects.count(), 0)
+        # no objects where tracked since issue in response
+        self.assertEqual(OrphanSample.objects.count(), 0)
 
     async def test_request_with_html(self) -> None:
         """Test a not JSON response (HTML)"""
@@ -157,8 +158,8 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
             await check_samples()
 
-            # no objects where tracked since issue in response
-            self.assertEqual(OrphanSample.objects.count(), 0)
+        # no objects where tracked since issue in response
+        self.assertEqual(OrphanSample.objects.count(), 0)
 
     async def test_biosamples_down(self) -> None:
         """Test a not JSON response (HTML): BioSamples down"""
@@ -176,6 +177,22 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
                 status=200,
                 headers={'Content-type': 'text/html'},
                 body="<html>Not a JSON</html>")
+
+            with self.assertRaises(ConnectionError):
+                await check_samples()
+
+        # no objects where tracked since issue in response
+        self.assertEqual(OrphanSample.objects.count(), 0)
+
+    async def test_server_lost(self) -> None:
+        """Test server disconnect error"""
+
+        with aioresponses() as mocked:
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                exception=ServerDisconnectedError()
+            )
 
             with self.assertRaises(ConnectionError):
                 await check_samples()
