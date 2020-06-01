@@ -38,7 +38,7 @@ CLEANUP_DAYS = 30
 RELEASE_TIMEDELTA = timedelta(days=365*1000)
 
 # Setting page size for biosample requests
-PAGE_SIZE = 100
+PAGE_SIZE = 500
 
 BIOSAMPLE_PARAMS = MultiDict([
     ('size', PAGE_SIZE),
@@ -190,7 +190,12 @@ async def get_biosamples(
         a BioSample record.
 
     """
-    async with aiohttp.ClientSession() as session:
+    # limiting the number of connections
+    # https://docs.aiohttp.org/en/stable/client_advanced.html
+    connector = aiohttp.TCPConnector(limit=10, ttl_dns_cache=300)
+
+    # https://stackoverflow.com/a/43857526
+    async with aiohttp.ClientSession(connector=connector) as session:
         # get data for the first time to determine how many pages I have
         # to requests
         data = await fetch_url(session, url, params)
