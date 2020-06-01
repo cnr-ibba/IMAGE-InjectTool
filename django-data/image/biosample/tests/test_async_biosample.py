@@ -177,8 +177,8 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
                 headers={'Content-type': 'text/html'},
                 body="<html>Not a JSON</html>")
 
-        with self.assertRaises(ConnectionError):
-            await check_samples()
+            with self.assertRaises(ConnectionError):
+                await check_samples()
 
         # no objects where tracked since issue in response
         self.assertEqual(OrphanSample.objects.count(), 0)
