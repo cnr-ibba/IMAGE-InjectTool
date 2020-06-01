@@ -412,7 +412,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'search_orphan_biosamples': {
         'task': "Search Orphan BioSamples IDs",
-        'schedule': crontab(minute=0, hour=1),
+        'schedule': crontab(minute=0, hour=1, day_of_week='sunday'),
     },
 }
 
