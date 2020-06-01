@@ -12,6 +12,7 @@ import requests
 
 from yarl import URL
 from multidict import MultiDict
+from itertools import islice
 
 from datetime import timedelta
 from celery.utils.log import get_task_logger
@@ -350,7 +351,7 @@ class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
         return "success"
 
 
-def get_orphan_samples():
+def get_orphan_samples(limit=None):
     """
     Iterate for all BioSample orphaned records which are not yet removed and
     are tracked for removal, get minimal data from BioSample and return a
@@ -365,11 +366,18 @@ def get_orphan_samples():
     """
 
     with requests.Session() as session:
-        for orphan_sample in OrphanSample.objects.filter(
-                ignore=False,
-                removed=False,
-                status=READY).order_by('team__name', 'id'):
+        # get all biosamples candidate for a removal. Pay attention that
+        # could be removed from different users
+        qs = OrphanSample.objects.filter(
+            ignore=False,
+            removed=False,
+            status=READY
+        ).order_by('team__name', 'id')
 
+        if limit:
+            qs = islice(qs, limit)
+
+        for orphan_sample in qs:
             # define the url I need to check
             url = "/".join([BIOSAMPLE_URL, orphan_sample.biosample_id])
 

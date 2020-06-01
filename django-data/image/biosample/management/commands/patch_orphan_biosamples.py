@@ -8,8 +8,8 @@ Created on Tue May 26 17:21:28 2020
 
 import logging
 
-from pyUSIrest.usi import Root
-from pyUSIrest.exceptions import USIDataError
+import pyUSIrest.usi
+import pyUSIrest.exceptions
 
 from django.core.management import BaseCommand
 
@@ -32,7 +32,7 @@ def create_biosample_submission(root, team):
         usi_submission_name=usi_submission.name)
     submission.save()
 
-    logger.debug("Created submission %s" % submission)
+    logger.debug("Created submission '%s' for '%s'" % (submission, team.name))
     return usi_submission, submission
 
 
@@ -48,6 +48,15 @@ def update_submission_status(submission):
 class Command(BaseCommand):
     help = 'Get a JSON for biosample submission'
 
+    def add_arguments(self, parser):
+
+        parser.add_argument(
+            '--limit',
+            required=False,
+            help="Limit to LIMIT items",
+            default=None,
+            type=int)
+
     def handle(self, *args, **options):
         # call commands and fill tables.
         logger.info("Called patch_orphan_samples")
@@ -56,7 +65,7 @@ class Command(BaseCommand):
         auth = get_manager_auth()
 
         # get a new root object
-        root = Root(auth)
+        root = pyUSIrest.usi.Root(auth)
 
         # some variables
         count = 1
@@ -66,7 +75,7 @@ class Command(BaseCommand):
 
         # iterate among orphan sample, create a BioSample submission
         # and then add biosample for patch
-        for record in get_orphan_samples():
+        for record in get_orphan_samples(limit=options['limit']):
             (data, team, sample) = (
                 record['data'], record['team'], record['sample'])
 
@@ -86,7 +95,7 @@ class Command(BaseCommand):
                 logger.info("Submitting '%s'" % data['accession'])
                 usi_submission.create_sample(data)
 
-            except USIDataError as error:
+            except pyUSIrest.exceptions.USIDataError as error:
                 logger.error(
                     "Can't remove '%s': Error was '%s'" % (
                         data['accession'], str(error)))

@@ -19,7 +19,7 @@ from unittest.mock import patch, PropertyMock, Mock
 from django.core.management import call_command
 from django.test import TestCase
 
-from common.constants import SUBMITTED, NEED_REVISION, ERROR, COMPLETED
+from common.constants import SUBMITTED, NEED_REVISION, ERROR, COMPLETED, READY
 
 from ..models import ManagedTeam, OrphanSubmission, OrphanSample
 
@@ -109,6 +109,14 @@ class SubmitRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         self.new_submission = self.my_team.create_submission.return_value
         self.new_submission.name = "new-submission"
 
+        # mocking sample creation: two objects: one submittable, one not
+        my_samples = [
+            Sample(auth=generate_token()),
+            USIDataError("test"),
+        ]
+
+        self.new_submission.create_sample.side_effect = my_samples
+
         # set status. Because of the way mock attributes are stored you can’t
         # directly attach a PropertyMock to a mock object. Instead you can
         # attach it to the mock type object:
@@ -120,28 +128,17 @@ class SubmitRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
 
         super().tearDown()
 
-    @patch('biosample.helpers.get_manager_auth')
-    def test_patch_orphan_biosamples(self, my_auth):
+    def test_patch_orphan_biosamples(self):
         """test patch_orphan_biosamples command"""
-
-        # patch get_manager_auth value
-        my_auth.return_value = Auth(
-            token=generate_token()
-        )
-
-        # mocking sample creation: two objects: one submitted, one not
-        self.new_submission.create_sample.side_effect = [
-            Sample(auth=generate_token()),
-            USIDataError("test")
-        ]
 
         # calling commands
         call_command('patch_orphan_biosamples')
 
         # assert a submission created
-        self.assertTrue(my_auth.called)
+        self.assertTrue(self.my_root.get_team_by_name.called)
         self.assertTrue(self.my_team.create_submission.called)
         self.assertTrue(self.new_submission.create_sample.called)
+        self.assertEqual(self.new_submission.create_sample.call_count, 2)
 
         # check for an object into database
         submissions = OrphanSubmission.objects.all()
@@ -164,6 +161,42 @@ class SubmitRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):
         # This was supposed to have a problem in this tests
         sample = OrphanSample.objects.get(pk=2)
         self.assertEqual(sample.status, ERROR)
+
+    def test_patch_orphan_biosamples_with_limit(self):
+        """test patch_orphan_biosamples command"""
+
+        # calling commands
+        args = ["--limit", 1]
+        call_command('patch_orphan_biosamples', *args)
+
+        # assert a submission created
+        self.assertTrue(self.my_root.get_team_by_name.called)
+        self.assertTrue(self.my_team.create_submission.called)
+        self.assertTrue(self.new_submission.create_sample.called)
+        self.assertEqual(self.new_submission.create_sample.call_count, 1)
+
+        # check for an object into database
+        submissions = OrphanSubmission.objects.all()
+        self.assertEqual(len(submissions), 1)
+
+        # test submission attributes
+        submission = submissions[0]
+        self.assertEqual(submission.usi_submission_name, "new-submission")
+        self.assertEqual(submission.samples_count, 1)
+        self.assertEqual(submission.status, SUBMITTED)
+
+        # assert sample status
+        sample = OrphanSample.objects.get(pk=1)
+        self.assertEqual(sample.status, SUBMITTED)
+
+        # assert exactly one sample associated with this submission
+        self.assertEqual(submission.submission_data.count(), 1)
+        self.assertEqual(sample, submission.submission_data.get())
+
+        # This was supposed to have a problem in this tests, However this
+        # was not called by our limits
+        sample = OrphanSample.objects.get(pk=2)
+        self.assertEqual(sample.status, READY)
 
 
 class FetchRemovalTestCase(CommandsMixin, BioSamplesMixin, TestCase):

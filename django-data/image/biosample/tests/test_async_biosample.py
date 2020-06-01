@@ -246,3 +246,9 @@ class PurgeOrphanSampleTestCase(BioSamplesMixin, TestCase):
         orphan_count = sum(1 for orphan in get_orphan_samples())
 
         self.assertEqual(orphan_count, 0)
+
+    def test_purge_orphan_samples_with_limit(self):
+        """Test get orphan samples with limits"""
+
+        orphan_count = sum(1 for orphan in get_orphan_samples(limit=1))
+        self.assertEqual(orphan_count, 1)
