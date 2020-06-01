@@ -76,7 +76,7 @@ class CleanUpTaskTestCase(TestCase):
         self.assertEqual(Submission.objects.count(), 2)
 
 
-class SearchOrphanTaskTestCase(BioSamplesMixin, TestCase):
+class SearchOrphanTaskTestCase(TestCase):
 
     fixtures = [
         'biosample/managedteam',

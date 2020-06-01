@@ -48,6 +48,13 @@ HEADERS = {
         'Accept': 'application/hal+json',
     }
 
+# define the orphan queryset once
+ORPHAN_QS = OrphanSample.objects.filter(
+    ignore=False,
+    removed=False,
+    status=READY
+)
+
 
 class CleanUpTask(NotifyAdminTaskMixin, BaseTask):
     """Perform biosample.models cleanup by selecting old completed submission
@@ -350,8 +357,8 @@ class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):
             # close loop
             loop.close()
 
-        # Ok count orphan samples
-        orphan_count = sum(1 for orphan in get_orphan_samples())
+        # Ok count orphan samples with a query
+        orphan_count = ORPHAN_QS.count()
 
         if orphan_count > 0:
             email_subject = "Some entries in BioSamples are orphan"
@@ -387,11 +394,7 @@ def get_orphan_samples(limit=None):
     with requests.Session() as session:
         # get all biosamples candidate for a removal. Pay attention that
         # could be removed from different users
-        qs = OrphanSample.objects.filter(
-            ignore=False,
-            removed=False,
-            status=READY
-        ).order_by('team__name', 'id')
+        qs = ORPHAN_QS.order_by('team__name', 'id')
 
         if limit:
             qs = islice(qs, limit)
