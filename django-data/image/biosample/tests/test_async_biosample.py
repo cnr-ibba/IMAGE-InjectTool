@@ -18,7 +18,7 @@ from unittest.mock import patch, Mock
 from common.constants import BIOSAMPLE_URL, SUBMITTED
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
-from ..tasks.cleanup import check_samples, get_orphan_samples
+from ..tasks.cleanup import check_samples, get_orphan_samples, PAGE_SIZE
 from ..models import OrphanSample, ManagedTeam
 
 from .common import generate_token, BioSamplesMixin
@@ -97,13 +97,13 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
     async def test_request(self) -> None:
         with aioresponses() as mocked:
             mocked.get(
-                '{url}?filter=attr:project:IMAGE&size=20'.format(
-                    url=BIOSAMPLE_URL),
+                '{url}?filter=attr:project:IMAGE&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
                 status=200,
                 body=page0)
             mocked.get(
-                '{url}?filter=attr:project:IMAGE&page=1&size=20'.format(
-                    url=BIOSAMPLE_URL),
+                '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
                 status=200,
                 body=page1)
 
@@ -124,13 +124,13 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
         with aioresponses() as mocked:
             mocked.get(
-                '{url}?filter=attr:project:IMAGE&size=20'.format(
-                    url=BIOSAMPLE_URL),
+                '{url}?filter=attr:project:IMAGE&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
                 status=200,
                 body=page0)
             mocked.get(
-                '{url}?filter=attr:project:IMAGE&page=1&size=20'.format(
-                    url=BIOSAMPLE_URL),
+                '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
                 status=200,
                 body=issue_page1)
 
@@ -138,6 +138,50 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
             # no objects where tracked since issue in response
             self.assertEqual(OrphanSample.objects.count(), 0)
+
+    async def test_request_with_html(self) -> None:
+        """Test a not JSON response (HTML)"""
+
+        with aioresponses() as mocked:
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                status=200,
+                body=page0)
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                status=200,
+                headers={'Content-type': 'text/html'},
+                body="<html>Not a JSON</html>")
+
+            await check_samples()
+
+            # no objects where tracked since issue in response
+            self.assertEqual(OrphanSample.objects.count(), 0)
+
+    async def test_biosamples_down(self) -> None:
+        """Test a not JSON response (HTML): BioSamples down"""
+
+        with aioresponses() as mocked:
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                status=200,
+                headers={'Content-type': 'text/html'},
+                body="<html>Not a JSON</html>")
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                status=200,
+                headers={'Content-type': 'text/html'},
+                body="<html>Not a JSON</html>")
+
+        with self.assertRaises(ConnectionError):
+            await check_samples()
+
+        # no objects where tracked since issue in response
+        self.assertEqual(OrphanSample.objects.count(), 0)
 
 
 class PurgeOrphanSampleTestCase(BioSamplesMixin, TestCase):

@@ -37,7 +37,7 @@ CLEANUP_DAYS = 30
 RELEASE_TIMEDELTA = timedelta(days=365*1000)
 
 # Setting page size for biosample requests
-PAGE_SIZE = 20
+PAGE_SIZE = 100
 
 BIOSAMPLE_PARAMS = MultiDict([
     ('size', PAGE_SIZE),
@@ -112,8 +112,17 @@ async def fetch_url(session, url=BIOSAMPLE_URL, params=BIOSAMPLE_PARAMS):
     url = URL(url)
     url = url.update_query(params)
 
+    logger.debug(url)
+
     async with session.get(url, headers=HEADERS) as response:
-        return await response.json()
+        try:
+            return await response.json()
+
+        except aiohttp.client_exceptions.ContentTypeError as exc:
+            logger.error(repr(exc))
+            logger.warning(
+                "error while getting data from %s" % url)
+            return {}
 
 
 async def filter_managed_biosamples(data, managed_domains):
@@ -185,6 +194,11 @@ async def get_biosamples(
         # to requests
         data = await fetch_url(session, url, params)
 
+        # maybe the request had issues
+        if data == {}:
+            logger.debug("Got a result with no data")
+            raise ConnectionError("Can't fetch biosamples for orphan samples")
+
         # process data and filter samples I own
         # https://stackoverflow.com/a/47378063
         async for sample in filter_managed_biosamples(data, managed_domains):
@@ -212,6 +226,11 @@ async def get_biosamples(
         for task in asyncio.as_completed(tasks):
             # read data
             data = await task
+
+            # maybe the request had issues
+            if data == {}:
+                logger.debug("Got a result with no data")
+                continue
 
             # process data and filter samples I own
             # https://stackoverflow.com/a/47378063
