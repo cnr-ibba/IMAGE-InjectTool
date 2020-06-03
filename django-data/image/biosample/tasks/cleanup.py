@@ -407,6 +407,17 @@ def get_orphan_samples(limit=None):
             response = session.get(url)
             data = response.json()
 
+            # check status
+            if response.status_code == 403:
+                logger.error("Error for %s (%s): %s" % (
+                    orphan_sample.biosample_id,
+                    data['error'],
+                    data['message'])
+                )
+
+                # this sample seems already removed
+                continue
+
             # I need a new data dictionary to submit
             new_data = dict()
 

@@ -8,6 +8,7 @@ Created on Tue Jan 21 10:54:09 2020
 
 import os
 import json
+import time
 import types
 import asynctest
 
@@ -269,3 +270,29 @@ class PurgeOrphanSampleTestCase(BioSamplesMixin, TestCase):
 
         orphan_count = sum(1 for orphan in get_orphan_samples(limit=1))
         self.assertEqual(orphan_count, 1)
+
+    def test_purge_orphan_private(self):
+        """Test no access to a BioSamples id (already removed?)"""
+
+        data = {
+            'timestamp': int(time.time() * 1000),
+            'status': 403,
+            'error': 'Forbidden',
+            'exception': (
+                'uk.ac.ebi.biosamples.service.'
+                'BioSamplesAapService$SampleNotAccessibleException'),
+            'message': (
+                'This sample is private and not available for browsing. '
+                'If you think this is an error and/or you should have access '
+                'please contact the BioSamples Helpdesk at biosamples@'
+                'ebi.ac.uk'),
+            'path': '/biosamples/samples/SAMEA6376982'
+        }
+
+        # override mock object
+        self.mock_get.return_value = Mock()
+        self.mock_get.return_value.json.return_value = data
+        self.mock_get.return_value.status_code = 403
+
+        orphan_count = sum(1 for orphan in get_orphan_samples(limit=1))
+        self.assertEqual(orphan_count, 0)
