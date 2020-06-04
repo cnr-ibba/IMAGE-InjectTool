@@ -183,9 +183,8 @@ class DataSourceMixinTestCase(object):
             self.submission.message)
 
 
-# TODO: move into submission.tests (since related to submission.helpers)
-class WebSocketMixin(object):
-    """Override setUp to mock websocket objects"""
+class AsyncIOMixin(object):
+    """A common mixing for async objects"""
 
     def setUp(self):
         # calling my base class setup
@@ -200,6 +199,22 @@ class WebSocketMixin(object):
         self.run_until = self.asyncio_mock.return_value
         self.run_until.run_until_complete = Mock()
 
+    def tearDown(self):
+        # stopping mock objects
+        self.asyncio_mock_patcher.stop()
+
+        # calling base methods
+        super().tearDown()
+
+
+# TODO: move into submission.tests (since related to submission.helpers)
+class WebSocketMixin(AsyncIOMixin):
+    """Override setUp to mock websocket objects"""
+
+    def setUp(self):
+        # calling my base class setup
+        super().setUp()
+
         # another patch
         self.send_msg_ws_patcher = patch(
             'submissions.helpers.send_message_to_websocket')
@@ -207,7 +222,6 @@ class WebSocketMixin(object):
 
     def tearDown(self):
         # stopping mock objects
-        self.asyncio_mock_patcher.stop()
         self.send_msg_ws_patcher.stop()
 
         # calling base methods

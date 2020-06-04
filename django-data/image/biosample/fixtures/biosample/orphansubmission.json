@@ -1,0 +1,15 @@
+[
+{
+  "model": "biosample.orphansubmission",
+  "pk": 1,
+  "fields": {
+    "usi_submission_name": "7dbb563e-c162-4df2-a48f-bbf5de8d1e35",
+    "created_at": "2020-01-27T15:22:15.682Z",
+    "updated_at": "2020-01-27T15:23:12.689Z",
+    "message": null,
+    "status": 2,
+    "samples_count": 1,
+    "samples_status": {}
+  }
+}
+]
