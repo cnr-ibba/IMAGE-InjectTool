@@ -19,6 +19,35 @@ from common.constants import CONFIDENCES
 logger = logging.getLogger(__name__)
 
 
+def call_zooma(label, zooma_type):
+    """
+    Wrapper around use_zooma: call zooma or catch exception
+
+    Parameters
+    ----------
+    label : str
+        Zooma query temr.
+    zooma_type : str
+        Zooma query type (species, breed, ...).
+
+    Returns
+    -------
+    result : dict
+        The results of use_zooma or None
+
+    """
+
+    result = None
+
+    try:
+        result = use_zooma(label, zooma_type)
+
+    except Exception as exc:
+        logger.error("Error in calling zooma: %s" % str(exc))
+
+    return result
+
+
 def annotate_generic(model, zooma_type):
     """Annotate missing terms from a generic DictTable
 
@@ -29,7 +58,7 @@ def annotate_generic(model, zooma_type):
 
     logger.debug("Processing %s" % (model))
 
-    result = use_zooma(model.label, zooma_type)
+    result = call_zooma(model.label, zooma_type)
 
     # update object (if possible)
     if result:
@@ -62,8 +91,7 @@ def annotate_breed(breed_obj):
 
     logger.debug("Processing %s" % (breed_obj))
 
-    result = use_zooma(
-        breed_obj.supplied_breed, "breed")
+    result = call_zooma(breed_obj.supplied_breed, "breed")
 
     # update object (if possible)
     if result:

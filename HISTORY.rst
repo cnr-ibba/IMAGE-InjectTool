@@ -26,6 +26,7 @@ Features
     in the future
   - finalize and retrieve data from patched BioSamples using management scripts
   - deal with already removed samples
+* deal with issues when calling zooma
 
 0.9.4 (2020-03-03)
 ------------------
