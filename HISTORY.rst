@@ -28,6 +28,7 @@ Features
   - deal with already removed samples
 * deal with issues when calling zooma
 * authenticate once when querying BioSamples
+* describe BioSamples submission statuses
 
 0.9.4 (2020-03-03)
 ------------------

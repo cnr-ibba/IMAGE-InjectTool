@@ -93,6 +93,34 @@ tasks. By saving the generated token we don't need to track user credentials
 in order to do the submission, and token itself has a limited duration and can't be
 accessed outside the InjectTool application
 
+The USI Submission Statuses
+---------------------------
+
+In order to submit data into BioSamples, you need to create a Submission, as
+described in `Data Submission Portal`_, or use the :py:meth:`pyUSIrest.usi.Team.create_submission`
+method. The Submission created in the *Data Submission Portal* by InjectTool will be a copy of
+the data contained in InjectTool UID, and such object is required in order to
+submit data into BioSamples. There's a ``status`` property which identifies the particular
+stage in submission process, and you can check this using :py:meth:`pyUSIrest.usi.Submission.status`
+property or by following the ``submissionStatuses`` links of your submission data.
+When you start submitting data by creating a *Submission* into BioSample, status
+will be in ``Draft`` stage: in this stage you can add and remove data from your
+Submission without problems. You can also delete the entire Submission if you
+need. Every time you add or remove a Sample from a Submission, a validation
+process is started from BioSample service, in order to check taxonomy or other ontologies.
+If no issues are found by the BioSamples validators, the Submission could be finalized
+in order to be submitted to BioSamples. Once the Submission is finalized, you can't
+modify or delete anything from your Submission. The BioSamples system will
+change Submission status in ``Processing`` and then in ``Complete`` status when data
+are placed in BioSamples public archives. InjectTool will manages each different
+stages by managing different statuses, for example will finalize a Submission only
+if no errors occours, and will track BioSamples id into UID when Submission will
+enter into ``Complete`` stage. The following figure represents the different BioSamples
+status stages:
+
+.. image:: ../_static/USI-Submission-Status.png
+.. _`Data Submission Portal`: https://submission.ebi.ac.uk/api/docs/guide_getting_started.html#_creating_a_submission
+
 The Submission Process
 ----------------------
 
