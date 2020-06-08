@@ -177,10 +177,11 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       sheets: not all columns are mandatory, please refer to
       <a href="https://github.com/cnr-ibba/IMAGE-metadata/blob/master/docs/image_sample_metadata.md">IMAGE metadata - sample specification</a>
       for a list of mandatory and recommended attributes. Not all columns are
-      required to have a successful upload, please take a look
-      <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/blob/307dd77d59836c4616ed057fb664fd2390b18f26/django-data/image/excel/helpers/exceltemplate.py#L25">here</a>
-      to have an idea on what fields are currently supported by the Template
-      loading process. Please keep in mind that <em>animal IDs</em> in <code>animal</code>
+      required to have a successful upload, please take a look to <code>breed_description</code>,
+      <code>animal_description</code> and <code>sample_description</code> sheets to
+      have an idea on what fields are currently supported by the Template
+      loading process and which values are permitted by InjectTool.
+      Please keep in mind that <em>animal IDs</em> in <code>animal</code>
       and <code>samples</code> sheets need to be consistent in order to have a
       successful upload; the same applies to the value used for <em>Species</em> and <em>Breed</em> in <code>animal</code> sheet
       that need to be consistent with the values used in the <code>breed</code> sheet.
@@ -188,7 +189,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
   </section>
 
-  <section>
+  <section id="start_submission">
     <h2 class="mt-3">Starting a new submission</h2>
     <p>
       From the <a href="{% url 'uid:dashboard' %}">Dashboard</a> page, click
@@ -236,7 +237,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
     </p>
   </section>
 
-  <section>
+  <section id="validate_submission">
     <h2 class="mt-3">Validate your submission</h2>
 
     <p>
@@ -269,7 +270,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
   </section>
 
-  <section>
+  <section id="submit_to_biosamples">
     <h2 class="mt-3">Submit your data to BioSamples</h2>
 
     <p>
@@ -302,7 +303,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
       <img href="{% static 'images/13-submission_complete.png' %}" data-fancybox data-caption="Submission Completed with BioSamples IDs" class="img-thumbnail mx-auto float-right" src="{% static 'images/13-submission_complete-thumbnail.png' %}" alt="Submission completed with BioSamples ids">
     </div>
 
-    <h3 class="mt-3">Export submitted BioSamples IDs</h2>
+    <h3 class="mt-3" id="export_biosample_ids">Export submitted BioSamples IDs</h2>
 
     <p>
       From the same <em>Edit page</em> you could export a CSV containing all your BioSamples
@@ -315,7 +316,7 @@ INSERT INTO animal (db_animal, db_sire, db_dam, db_sex, db_breed, db_species, bi
 
   </section>
 
-  <section>
+  <section id="injectool_demo_video">
     <h2 class="mt-3">InjectTool demonstration video</h2>
 
     <p>
