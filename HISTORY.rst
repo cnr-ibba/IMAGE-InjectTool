@@ -5,22 +5,27 @@ History
 TODO
 ----
 
-* clean up orphaned BioSample IDs
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
-
 0.9.5.dev0
 ----------
+
+Features
+^^^^^^^^
 
 * keep at least two worker running
 * swap latitude and longitude row order in AnimalDetailView
 * add id columns to admin views
 * fix bug in reload submission (no more need to change version or type)
-* update template upload file
-
-Features
-^^^^^^^^
+* update template upload file (removed unused columns and encoded in ``UTF-8``)
+* track and clean up orphaned BioSample IDs
+  - add task to track ``IMAGE`` BioSamples id not tracked in InjectTool
+  - Notify admins about orphan BioSamples
+  - Patch BioSample by submitting the mandatory attributes with a ``releaseDate``
+    in the future
+  - finalize and retrieve data from patched BioSamples using management scripts
+  - deal with already removed samples
 
 0.9.4 (2020-03-03)
 ------------------

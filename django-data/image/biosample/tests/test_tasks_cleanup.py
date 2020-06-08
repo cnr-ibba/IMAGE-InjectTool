@@ -16,7 +16,6 @@ from common.constants import COMPLETED
 
 from ..models import Submission
 from ..tasks import CleanUpTask, SearchOrphanTask
-from .common import BioSamplesMixin
 
 
 class CleanUpTaskTestCase(TestCase):

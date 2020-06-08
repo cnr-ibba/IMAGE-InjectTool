@@ -320,11 +320,14 @@ def check_orphan_sample(sample):
             biosample_id=sample['accession'],
             name=sample['name'],
             team=team,
-            status=READY,
         )
 
         if created:
             logger.warning("Add %s to orphan samples" % sample['accession'])
+
+            # set status for new object
+            orphan.status = READY
+            orphan.save()
 
 
 class SearchOrphanTask(NotifyAdminTaskMixin, BaseTask):

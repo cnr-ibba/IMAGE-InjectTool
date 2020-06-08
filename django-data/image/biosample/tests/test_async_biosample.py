@@ -14,10 +14,12 @@ import asynctest
 
 from aioresponses import aioresponses
 from aiohttp.client_exceptions import ServerDisconnectedError
-from django.test import TestCase
 from unittest.mock import patch, Mock
 
-from common.constants import BIOSAMPLE_URL, SUBMITTED
+from django.test import TestCase
+from django.utils import timezone
+
+from common.constants import BIOSAMPLE_URL, SUBMITTED, READY, COMPLETED
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
 from ..tasks.cleanup import check_samples, get_orphan_samples, PAGE_SIZE
@@ -118,8 +120,8 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
             # check objects into UID
             for accession in reference:
-                qs = OrphanSample.objects.filter(biosample_id=accession)
-                self.assertTrue(qs.exists())
+                orphan = OrphanSample.objects.get(biosample_id=accession)
+                orphan.status = READY
 
     async def test_request_with_issues(self) -> None:
         """Test a temporary issue with BioSamples reply"""
@@ -200,6 +202,49 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
 
         # no objects where tracked since issue in response
         self.assertEqual(OrphanSample.objects.count(), 0)
+
+    async def test_already_removed_samples(self) -> None:
+        """Test check samples with entries in database"""
+
+        # create items into database. get team first
+        team = ManagedTeam.objects.get(pk=1)
+
+        sample1 = OrphanSample.objects.create(
+            biosample_id='SAMEA6376991',
+            name="IMAGEA000005610",
+            team=team,
+            status=SUBMITTED,
+        )
+
+        sample2 = OrphanSample.objects.create(
+            biosample_id='SAMEA6376992',
+            name="IMAGEA000005607",
+            team=team,
+            status=COMPLETED,
+            removed=True,
+            removed_at=timezone.now()
+        )
+
+        with aioresponses() as mocked:
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                status=200,
+                body=page0)
+            mocked.get(
+                '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
+                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                status=200,
+                body=page1)
+
+            await check_samples()
+
+        # test: there are the same samples in database
+        self.assertEqual(OrphanSample.objects.count(), 2)
+
+        # no changes in statuses
+        self.assertEqual(sample1.status, SUBMITTED)
+        self.assertEqual(sample2.status, COMPLETED)
 
 
 class PurgeOrphanSampleTestCase(BioSamplesMixin, TestCase):
