@@ -136,8 +136,12 @@ class FetchStatusHelperMixin(FetchMixin):
         self.usi_submission.status = SUBMITTED
         self.usi_submission.save()
 
+        # get an auth obj
+        self.my_auth = self.mock_auth()
+
         # ok setup the object
-        self.status_helper = FetchStatusHelper(self.usi_submission)
+        self.status_helper = FetchStatusHelper(
+            self.usi_submission, self.my_auth)
 
         # track names
         self.animal = Animal.objects.get(pk=1)
@@ -153,7 +157,6 @@ class FetchStatusHelperMixin(FetchMixin):
         self.submission_obj.refresh_from_db()
         self.assertEqual(self.submission_obj.status, SUBMITTED)
 
-        self.assertTrue(self.mock_auth.called)
         self.assertTrue(self.mock_root.called)
         self.assertTrue(self.my_root.get_submission_by_name.called)
 
@@ -172,7 +175,7 @@ class FetchIgnoreTestCase(FetchStatusHelperMixin, TestCase):
         """Override default common tests. Status is the status the
         submission is supposed to remain"""
 
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         super().common_tests()
 
         # USI submission status did't changed
@@ -222,7 +225,7 @@ class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
         my_sample2.accession = "SAMEA0000002"
         self.my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         self.common_tests()
 
         # USI submission status changed
@@ -255,7 +258,7 @@ class FetchCompletedTestCase(FetchStatusHelperMixin, TestCase):
         my_sample2.accession = None
         self.my_submission.get_samples.return_value = [my_sample1, my_sample2]
 
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         self.common_tests()
 
         # USI submission status didn't change
@@ -312,7 +315,7 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
         self.my_sample2 = my_sample2
 
     def common_tests(self):
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         super().common_tests()
 
         # assert custom mock attributes called
@@ -339,7 +342,7 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
         self.assertEqual(self.sample.status, SUBMITTED)
 
     def test_validationresult(self):
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         super().common_tests()
 
         # reload object from database
@@ -358,7 +361,7 @@ class FetchWithErrorsTestCase(FetchStatusHelperMixin, TestCase):
         self.assertListEqual(self.sample.validationresult.messages, messages)
 
     def test_validationsummary(self):
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         super().common_tests()
 
         # get the two validationsummary objects
@@ -385,7 +388,7 @@ class FetchDraftTestCase(FetchStatusHelperMixin, TestCase):
     """a draft submission without errors"""
 
     def common_tests(self):
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         super().common_tests()
 
         # USI submission status didn't change
@@ -467,7 +470,7 @@ class FetchLongStatusTestCase(FetchStatusHelperMixin, TestCase):
             self.usi_submission.save()
 
     def common_tests(self):
-        # assert auth, root and get_submission by name called
+        # assert root and get_submission by name called
         super().common_tests()
 
         # biosample.models.Submission status changed
@@ -608,9 +611,10 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         self.assertTrue(self.mock_helper.called)
         self.assertTrue(self.mock_complete.called)
 
-        # those objects are proper of FetchStatusHelper class, no one
-        # call them in this task itself
-        self.assertFalse(self.mock_auth.called)
+        # I'm calling Auth if I query BioSamples
+        self.assertTrue(self.mock_auth.called)
+
+        # root is a property of FetchStatusHelper, so it is not called
         self.assertFalse(self.mock_root.called)
 
     def test_fetch_status_all_completed(self):
@@ -632,9 +636,10 @@ class FetchStatusTaskTestCase(FetchMixin, TestCase):
         # this is called if every submission is completed
         self.assertTrue(self.mock_complete.called)
 
-        # those objects are proper of FetchStatusHelper class, no one
-        # call them in this task itself
-        self.assertFalse(self.mock_auth.called)
+        # I'm calling Auth if I query BioSamples
+        self.assertTrue(self.mock_auth.called)
+
+        # root is a property of FetchStatusHelper, so it is not called
         self.assertFalse(self.mock_root.called)
 
     # http://docs.celeryproject.org/en/latest/userguide/testing.html#tasks-and-unit-tests

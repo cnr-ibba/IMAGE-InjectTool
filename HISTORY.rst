@@ -27,6 +27,7 @@ Features
   - finalize and retrieve data from patched BioSamples using management scripts
   - deal with already removed samples
 * deal with issues when calling zooma
+* authenticate once when querying BioSamples
 
 0.9.4 (2020-03-03)
 ------------------
