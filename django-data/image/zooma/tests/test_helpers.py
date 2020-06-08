@@ -62,6 +62,25 @@ class TestAnnotateBreed(TestCase):
         self.assertEqual(self.breed.mapped_breed_term, "LBO_0000347")
         self.assertEqual(self.breed.confidence, GOOD)
 
+    @patch("zooma.helpers.use_zooma")
+    def test_issue_in_annotate_breed(self, my_zooma):
+        """Testing annotate breed with a issue in zooma"""
+
+        my_zooma.side_effect = Exception("Issue with zooma")
+
+        # deal with exception in zooma
+        annotate_breed(self.breed)
+
+        self.assertTrue(my_zooma.called)
+
+        # non annotation
+        self.breed.refresh_from_db()
+
+        # a non annotated pig has at least the general ontology annotation
+        self.assertEqual(self.breed.mapped_breed, "pig breed")
+        self.assertEqual(self.breed.mapped_breed_term, "LBO_0000003")
+        self.assertIsNone(self.breed.confidence)
+
 
 class TestAnnotateCountry(TestCase):
     """A class to test annotate countries"""

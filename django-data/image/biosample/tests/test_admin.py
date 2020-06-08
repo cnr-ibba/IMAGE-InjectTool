@@ -24,6 +24,7 @@ class AdminTestCase(PersonMixinTestCase, TestCase):
     fixtures = [
         'biosample/account',
         'biosample/managedteam',
+        'biosample/orphansubmission',
         'biosample/submission',
         'biosample/submissiondata',
         'uid/animal',
@@ -69,4 +70,8 @@ class AdminTestCase(PersonMixinTestCase, TestCase):
 
     def test_submissiondataadmin(self):
         url = reverse('admin:biosample_submissiondata_changelist')
+        self.check_response(url)
+
+    def test_orphansubmissionadmin(self):
+        url = reverse('admin:biosample_orphansubmission_changelist')
         self.check_response(url)

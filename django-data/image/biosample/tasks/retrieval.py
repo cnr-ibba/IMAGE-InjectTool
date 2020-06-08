@@ -48,13 +48,14 @@ class FetchStatusHelper():
     """Helper class to deal with submission data"""
 
     # define my class attributes
-    def __init__(self, usi_submission):
+    def __init__(self, usi_submission, auth):
         """
         Helper function to have info for a biosample.models.Submission
 
         Args:
             usi_submission (biosample.models.Submission): a biosample
                 model Submission instance
+            auth: a pyUSIrest.auth.Auth instance
         """
 
         # ok those are my default class attributes
@@ -62,7 +63,7 @@ class FetchStatusHelper():
         self.uid_submission = usi_submission.uid_submission
 
         # here are pyUSIrest object
-        self.auth = get_manager_auth()
+        self.auth = auth
         self.root = pyUSIrest.usi.Root(self.auth)
 
         # here I will track the biosample submission
@@ -393,6 +394,10 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
         :py:class:`FetchStatusHelper`
         """
 
+        logger.debug("get an pyUSIrest.auth.Auth object")
+
+        auth = get_manager_auth()
+
         logger.info("Searching for submissions into biosample")
 
         for uid_submission in queryset:
@@ -404,7 +409,7 @@ class FetchStatusTask(NotifyAdminTaskMixin, BaseTask):
 
             # HINT: fetch statuses using tasks?
             for usi_submission in usi_submissions:
-                status_helper = FetchStatusHelper(usi_submission)
+                status_helper = FetchStatusHelper(usi_submission, auth)
                 status_helper.check_submission_status()
 
             # set the final status for a submission like SubmissionCompleteTask

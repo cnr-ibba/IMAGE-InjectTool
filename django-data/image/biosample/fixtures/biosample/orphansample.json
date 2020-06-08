@@ -1,0 +1,32 @@
+[
+{
+  "model": "biosample.orphansample",
+  "pk": 1,
+  "fields": {
+    "submission": null,
+    "biosample_id": "SAMEA6376982",
+    "found_at": "2020-01-27T09:34:21.172Z",
+    "ignore": false,
+    "name": "IMAGES000006757",
+    "team": 1,
+    "status": 5,
+    "removed": false,
+    "removed_at": null
+  }
+},
+{
+  "model": "biosample.orphansample",
+  "pk": 2,
+  "fields": {
+    "submission": null,
+    "biosample_id": "SAMEA6376980",
+    "found_at": "2020-01-27T09:34:21.172Z",
+    "ignore": false,
+    "name": "IMAGEA000005611",
+    "team": 1,
+    "status": 5,
+    "removed": false,
+    "removed_at": null
+  }
+}
+]
