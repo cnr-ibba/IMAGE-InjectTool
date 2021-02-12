@@ -7,6 +7,13 @@ TODO
 
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
+* fix readthedocs build
+
+0.9.6.dev0
+----------
+
+* pinning package dependences
+* solved issue with celery autoscaling
 
 0.9.5 (2020-06-08)
 ------------------
