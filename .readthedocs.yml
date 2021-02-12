@@ -16,8 +16,7 @@ sphinx:
 # Optionally build your docs in additional formats such as PDF and ePub
 formats: all
 
-# Optionally set the version of Python and requirements required to build your docs
-python:
-  version: 3.6
-  install:
-    - requirements: uwsgi/requirements.txt
+# compile documentation using a conda environment (try to solve mysqlclient
+# dependency issue)
+conda:
+  environment: django-data/image/docs/environment.yml
