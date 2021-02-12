@@ -7,11 +7,12 @@ TODO
 
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
+
+0.9.6 (2021-02-12)
+------------------
+
 * fix readthedocs build
-
-0.9.6.dev0
-----------
-
+* security updates
 * pinning package dependences
 * solved issue with celery autoscaling
 
