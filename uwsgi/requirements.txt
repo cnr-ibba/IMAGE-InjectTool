@@ -54,7 +54,7 @@ iniconfig==1.0.0
 ipython==7.16.1
 ipython-genutils==0.2.0
 jedi==0.17.2
-Jinja2==2.11.2
+Jinja2==2.11.3
 jwcrypto==0.7
 kombu==4.6.11
 MarkupSafe==1.1.1
