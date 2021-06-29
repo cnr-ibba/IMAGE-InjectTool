@@ -7,9 +7,21 @@ TODO
 
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
+* Update Travis CI configuration
+* Security updates
+* remove *flower* from ``docker-compose.yml``
+
+0.9.7.dev0
+----------
+
+Features
+^^^^^^^^
 
 0.9.6 (2021-02-12)
 ------------------
+
+Features
+^^^^^^^^
 
 * fix readthedocs build
 * security updates
