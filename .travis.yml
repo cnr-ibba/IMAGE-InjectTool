@@ -1,7 +1,8 @@
 
 os: linux
 arch:
-  - s390x
+  - ppc64le
+  - arm64
 dist: focal
 services:
   - docker
