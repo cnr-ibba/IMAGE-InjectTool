@@ -27,7 +27,7 @@ daphne==2.5.0
 dateutils==0.6.8
 decorator==4.4.2
 diff-match-patch==20200713
-Django==2.2.14
+Django==2.2.24
 django-appconf==1.0.4
 django-betterforms==1.2
 django-celery-beat==1.4.0
