@@ -1,9 +1,18 @@
+
+os: linux
+arch:
+  - s390x
+dist: focal
 services:
   - docker
 branches:
   only:
   - master
   - devel
+# https://docs.travis-ci.com/user/docker/#using-docker-compose
+before_install:
+  - sudo apt-get install docker-compose
+  - docker-compose --version
 install:
   - env | grep 'EMAIL\|DEBUG\|USER\|PASS\|USI\|KEY\|CRYOWEB\|TOKEN\|TRAVIS' >> .env
   - docker-compose pull
