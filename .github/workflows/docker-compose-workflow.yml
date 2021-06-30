@@ -44,6 +44,7 @@ jobs:
 
       - name: install stuff
         run: |
+          mkdir postgres-data
           docker-compose pull
           docker-compose build
           docker-compose up -d db redis
