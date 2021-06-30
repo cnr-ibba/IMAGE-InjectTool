@@ -11,8 +11,10 @@ branches:
   - devel
 # https://docs.travis-ci.com/user/docker/#using-docker-compose
 before_install:
-  - sudo apt-get install docker-compose
+  - curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+  - sudo apt-get install docker-compose git-lfs
   - docker-compose --version
+  - git lfs fetch
 install:
   - env | grep 'EMAIL\|DEBUG\|USER\|PASS\|USI\|KEY\|CRYOWEB\|TOKEN\|TRAVIS' >> .env
   - docker-compose pull
