@@ -71,8 +71,9 @@ celery operations:
   **celery-worker**. This operates without user intervention
 
 - **celery-flower**: is a monitoring instance of celery workers. It displays information
-  regarding tasks. Its contents are rendered in HTML and reached through ``5555`` port
-
+  regarding tasks. Its contents are rendered in HTML and reached through ``5555`` port.
+  This container is available only using ``docker-compose-devel.yml`` configuration
+  file.
 
 .. _`configuration file`: https://github.com/cnr-ibba/IMAGE-InjectTool/blob/master/docker-compose.yml
 .. _`nginx`: https://github.com/cnr-ibba/IMAGE-InjectTool/tree/master/nginx
