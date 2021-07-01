@@ -161,6 +161,38 @@ services:
       - db
       - redis
 
+
+  celery-flower:
+    # the same django image of uwsgi
+    build: ./uwsgi
+
+    # You can pass multiple environment variables from an external file through
+    # to a service’s containers with the ‘env_file’ option
+    env_file:
+      - .env
+
+    command: celery -A image flower --port=5555 --loglevel=info # --persistent=True
+
+    # set working dir for uwsgi
+    working_dir: /var/uwsgi/image/
+
+    # define volumes
+    volumes:
+      - type: bind
+        source: ./django-data/
+        target: /var/uwsgi/
+
+    # Expose flower port
+    # TODO: serve this using nginx under authentication
+    ports:
+      - "5555:5555"
+
+    # link container to database
+    links:
+      - db
+      - redis
+
+
   nginx:
     # a custom image for NGINX
     build: ./nginx
