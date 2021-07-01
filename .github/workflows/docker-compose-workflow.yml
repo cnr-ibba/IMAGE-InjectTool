@@ -1,0 +1,69 @@
+
+name: docker-compose-workflow
+
+on:
+  # Trigger the workflow on push or pull request,
+  # but only for the main branch
+  push:
+    branches:
+      - master
+      - devel
+  pull_request:
+    branches:
+      - master
+      - devel
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v1
+        with:
+          envkey_DEBUG: false
+          envkey_EMAIL_BACKEND: djcelery_email.backends.CeleryEmailBackend
+          envkey_CELERY_EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+          envkey_DEFAULT_FROM_EMAIL: 'mail@example.com'
+          envkey_EMAIL_HOST: 'smtp.example.com'
+          envkey_EMAIL_HOST_USER: 'mail@example.com'
+          envkey_USI_MANAGER: testmanager
+          envkey_SOME_API_KEY: "123456abcdef"
+          envkey_SECRET_KEY: secret_key
+          envkey_IMAGE_USER: image
+          envkey_IMAGE_PASSWORD: image_pwd
+          envkey_CRYOWEB_INSERT_ONLY_PW: cryoweb_io_pwd
+          envkey_PGPASSWORD: postgres_pwd
+          envkey_POSTGRES_PASSWORD: postgres_pwd
+          envkey_EMAIL_HOST_PASSWORD: test@email.com
+          envkey_USI_MANAGER_PASSWORD: test_pwd
+          envkey_COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          file_name: .env
+
+      - name: install stuff
+        run: |
+          mkdir postgres-data
+          docker-compose pull
+          docker-compose build
+          docker-compose up -d db redis
+          docker-compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/media'
+          docker-compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
+          docker-compose run --no-deps --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
+          docker-compose run --no-deps --rm uwsgi sh -c 'chgrp -R www-data .'
+          docker-compose ps
+
+      - name: Run test suite
+        run: docker-compose run --no-deps --rm uwsgi /root/wait-for-postgres.sh coverage run --source='.' -m py.test
+
+      - name: Submitting coverage and code quality
+        run: |
+          docker-compose run --rm uwsgi coveralls
+          docker-compose run --rm uwsgi ocular
+
+      - name: Stop containers
+        if: always()
+        run: docker-compose down

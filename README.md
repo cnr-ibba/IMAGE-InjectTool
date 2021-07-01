@@ -2,7 +2,7 @@
 InjectTool installation
 =======================
 
-[![Build Status](https://travis-ci.com/cnr-ibba/IMAGE-InjectTool.svg?branch=master)](https://travis-ci.com/cnr-ibba/IMAGE-InjectTool)
+[![docker-compose-workflow](https://github.com/cnr-ibba/IMAGE-InjectTool/actions/workflows/docker-compose-workflow.yml/badge.svg)](https://github.com/cnr-ibba/IMAGE-InjectTool/actions/workflows/docker-compose-workflow.yml)
 [![Coverage Status](https://coveralls.io/repos/github/cnr-ibba/IMAGE-InjectTool/badge.svg?branch=master)](https://coveralls.io/github/cnr-ibba/IMAGE-InjectTool?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/cnr-ibba/IMAGE-InjectTool/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/cnr-ibba/IMAGE-InjectTool/?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/image-injecttool/badge/?version=latest)](https://image-injecttool.readthedocs.io/en/latest/?badge=latest)
@@ -110,7 +110,7 @@ you have to move all `IMAGE-InjectTool` directory with all its content
 Build the docker-compose suite
 ------------------------------
 
-There are eight containers defined in `docker-compose.yml`
+There are seven containers defined in `docker-compose.yml`
 
  - uwsgi: the code base
  - nginx: web interface
@@ -119,7 +119,22 @@ There are eight containers defined in `docker-compose.yml`
  - asgi: the webesocket server based on uwsgi image
  - celery-worker: a celery worker image based on uwsgi image
  - celery-beat: a celery beat image based on uwsgi image
+
+There's also `docker-compose-devel.yml` which contains the previously described
+container plus the following
+
  - celery-flower: a celery monitoring imaged based on uwsgi image
+
+This file could be used in development to understand tasks execution. To enable such
+container, simply specify the `docker-compose-devel.yml` with the `-f` option, immediately
+after `docker-compose`, for example:
+
+```bash
+$ docker-compose -f docker-compose-devel.yml up -d
+```
+
+And specify the same option everytime you need to call `docker-compose`
+
 
 ```bash
 # build the images according to the docker-compose.yml specificatios. Docker will
@@ -140,10 +155,10 @@ module. You need to define new environment variables for `uwsgi` container:
 
 You need to define a new django `SECRET_KEY`. Start a python terminal with docker:
 
-
 ```
 $ docker-compose run --rm --no-deps uwsgi python
 ```
+
 then execute this python code, as described [here](https://stackoverflow.com/a/16630719):
 
 ```python
@@ -202,7 +217,7 @@ $ docker-compose run --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx pr
 $ docker-compose run --rm uwsgi sh -c 'chgrp -R www-data .'
 ```
 
-### check that everythong works as expected
+### check that everything works as expected
 
 Test  your fresh InjectTool installation with:
 
@@ -250,6 +265,10 @@ $ docker-compose up -d
 ```bash
 # start the containers according to the docker-compose.yml specifications
 $ docker-compose up -d
+
+# start the containers according to the docker-compose-devel.yml specifications
+# (with celery-flower container enabled)
+$ docker-compose -f docker-compose-devel.yml up -d
 
 # see running processes, like unix ps command
 $ docker-compose ps
