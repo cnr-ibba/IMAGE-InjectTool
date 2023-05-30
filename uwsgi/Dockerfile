@@ -9,7 +9,8 @@
 # The official django image is deprecated in favor of the standard python image
 FROM python:3.6
 
-MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
+# The mainteiner of this image
+LABEL maintainer="Paolo Cozzi <cozzi@ibba.cnr.it>"
 
 # synchronize timezone for container
 # https://forums.docker.com/t/synchronize-timezone-from-host-to-container/39116

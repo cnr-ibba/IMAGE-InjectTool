@@ -14,6 +14,8 @@ TODO
 Features
 ^^^^^^^^
 
+* Update python magic file check when uploading data
+
 0.9.7 (2021-07-01)
 ------------------
 

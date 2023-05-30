@@ -96,11 +96,19 @@ class SubmissionFormMixin(UniqueSubmissionMixin):
         magic_line = magic.from_buffer(chunk)
         file_type = magic_line.split(",")[0]
 
-        if "UTF-8" not in file_type and "ASCII" not in file_type:
+        # changed cause the different behavior of libmagic1
+        if file_type not in [
+                "CSV text",
+                "ASCII",
+                "UTF-8",
+                "UTF-8 Unicode text"
+                ]:
+
             # create message and add error
             msg = (
-                "Error: file not in UTF-8 nor ASCII format: "
-                "format was %s" % file_type)
+                "Error: file is not a CSV in UTF-8 nor ASCII format: "
+                "format was '%s'" % file_type)
+            logger.error(msg)
 
             # raising an exception:
             raise forms.ValidationError(msg, code='invalid')
