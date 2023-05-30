@@ -8,6 +8,12 @@ TODO
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 
+0.9.8.dev0
+----------
+
+Features
+^^^^^^^^
+
 0.9.7 (2021-07-01)
 ------------------
 
