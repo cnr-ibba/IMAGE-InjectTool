@@ -1,0 +1,133 @@
+{
+  "name" : "ts-0100",
+  "accession" : "SAMEA6376682",
+  "domain" : "subs.dev-team-307",
+  "release" : "2017-01-01T00:00:00Z",
+  "update" : "2019-12-11T10:06:51.190Z",
+  "taxId" : 9986,
+  "characteristics" : {
+    "Alternative id" : [ {
+      "text" : "148429"
+    } ],
+    "Birth location accuracy" : [ {
+      "text" : "missing geographic information"
+    } ],
+    "Data source ID" : [ {
+      "text" : "148429"
+    } ],
+    "Data source type" : [ {
+      "text" : "Template"
+    } ],
+    "Data source version" : [ {
+      "text" : "2019-10-04, version 1.0"
+    } ],
+    "EFABIS Breed country" : [ {
+      "text" : "Netherlands"
+    } ],
+    "Gene bank country" : [ {
+      "text" : "Netherlands",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCIT_C16903" ]
+    } ],
+    "Gene bank name" : [ {
+      "text" : "CGN"
+    } ],
+    "IMAGE submission id" : [ {
+      "text" : "2"
+    } ],
+    "Organization country" : [ {
+      "text" : "Netherlands",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCIT_C16903" ]
+    } ],
+    "Organization name" : [ {
+      "text" : "Centre for Genetic Resources, The Netherlands (CGN) of Wageningen University and Research"
+    } ],
+    "Organization role" : [ {
+      "text" : "submitter",
+      "ontologyTerms" : [ "http://www.ebi.ac.uk/efo/EFO_0001741" ]
+    } ],
+    "Person affiliation" : [ {
+      "text" : "Centre for Genetic Resources, The Netherlands (CGN) of Wageningen University and Research"
+    } ],
+    "Person email" : [ {
+      "text" : "mailto:sipkejoost.hiemstra@wur.nl"
+    } ],
+    "Person first name" : [ {
+      "text" : "Sipke Joost"
+    } ],
+    "Person initial" : [ {
+      "text" : "sjh"
+    } ],
+    "Person last name" : [ {
+      "text" : "Hiemstra"
+    } ],
+    "Person role" : [ {
+      "text" : "submitter",
+      "ontologyTerms" : [ "http://www.ebi.ac.uk/efo/EFO_0001741" ]
+    } ],
+    "Supplied breed" : [ {
+      "text" : "Thrianta"
+    } ],
+    "description" : [ {
+      "text" : "bs dup test."
+    } ],
+    "material" : [ {
+      "text" : "organism",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/OBI_0100026" ]
+    } ],
+    "organism" : [ {
+      "text" : "Oryctolagus cuniculus",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCBITaxon_9986" ]
+    } ],
+    "project" : [ {
+      "text" : "IMAGE"
+    } ],
+    "sex" : [ {
+      "text" : "male",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/PATO_0000384" ]
+    } ],
+    "species" : [ {
+      "text" : "Oryctolagus cuniculus",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCBITaxon_9986" ]
+    } ],
+    "submission description" : [ {
+      "text" : "Centre for Genetic Resources, the Netherlands, Genebank, Rabbit"
+    } ],
+    "submission title" : [ {
+      "text" : "CGN Genebank Rabbit"
+    } ],
+    "title" : [ {
+      "text" : "148429"
+    }, {
+      "text" : "test sample 0100"
+    } ]
+  },
+  "relationships" : [ {
+    "source" : "SAMEA6376680",
+    "type" : "derived from",
+    "target" : "SAMEA6376682"
+  }, {
+    "source" : "SAMEA6376681",
+    "type" : "derived from",
+    "target" : "SAMEA6376682"
+  } ],
+  "releaseDate" : "2017-01-01",
+  "updateDate" : "2019-12-11",
+  "submittedVia" : "JSON_API",
+  "create" : "2019-12-11T10:06:51.190Z",
+  "_links" : {
+    "self" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376682"
+    },
+    "curationDomain" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376682{?curationdomain}",
+      "templated" : true
+    },
+    "curationLinks" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376682/curationlinks"
+    },
+    "curationLink" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376682/curationlinks/{hash}",
+      "templated" : true
+    }
+  }
+}

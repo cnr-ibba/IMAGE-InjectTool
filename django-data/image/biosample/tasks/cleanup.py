@@ -45,6 +45,9 @@ PAGE_SIZE = 500
 # ie. https://wwwdev.ebi.ac.uk/biosamples
 BIOSAMPLE_BASE_URL = URL(BIOSAMPLE_URL).parent
 
+BIOSAMPLE_SAMPLE_ENDPOINT = BIOSAMPLE_BASE_URL / "samples"
+BIOSAMPLE_ACCESSION_ENDPOINT = BIOSAMPLE_BASE_URL / "accessions"
+
 BIOSAMPLE_PARAMS = MultiDict([
     ('size', PAGE_SIZE),
     ('filter', 'attr:project:IMAGE'),
@@ -156,7 +159,7 @@ async def fetch_url(
 async def fecth_biosample(
         session: aiohttp.ClientSession,
         accession: str,
-        base_url: URL = BIOSAMPLE_BASE_URL,
+        base_url: URL = BIOSAMPLE_SAMPLE_ENDPOINT,
         headers: dict = HEADERS) -> typing.Awaitable[dict]:
     """
     Collect a single BioSample object from EBI
@@ -179,7 +182,7 @@ async def fecth_biosample(
     """
 
     # define sample location
-    url = base_url / "samples" / accession
+    url = base_url / accession
 
     return await fetch_url(session, url, None, headers)
 
@@ -239,7 +242,7 @@ async def filter_managed_biosamples(
 
 
 async def get_biosamples(
-        base_url=BIOSAMPLE_BASE_URL,
+        url=BIOSAMPLE_ACCESSION_ENDPOINT,
         params=BIOSAMPLE_PARAMS,
         managed_domains=[]):
     """
@@ -249,8 +252,8 @@ async def get_biosamples(
 
     Parameters
     ----------
-    base_url : str, optional
-        The desidered URL. The default is BIOSAMPLE_URL.
+    url : str, optional
+        The desidered URL. The default is BIOSAMPLE_ACCESSION_ENDPOINT.
     params : MultiDict, optional
         Additional params for request. The default is BIOSAMPLE_PARAMS.
     managed_domains : list
@@ -266,9 +269,6 @@ async def get_biosamples(
     # limiting the number of connections
     # https://docs.aiohttp.org/en/stable/client_advanced.html
     connector = aiohttp.TCPConnector(limit=10, ttl_dns_cache=300)
-
-    # define accession location
-    url = base_url / "accessions"
 
     # https://stackoverflow.com/a/43857526
     async with aiohttp.ClientSession(connector=connector) as session:
