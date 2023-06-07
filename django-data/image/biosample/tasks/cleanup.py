@@ -9,6 +9,7 @@ Created on Thu Nov 14 16:06:10 2019
 import asyncio
 import aiohttp
 import requests
+import typing
 
 from yarl import URL
 from multidict import MultiDict
@@ -39,6 +40,10 @@ RELEASE_TIMEDELTA = timedelta(days=365*1000)
 
 # Setting page size for biosample requests
 PAGE_SIZE = 500
+
+# a custom BIOSAMPLE URL with yarl
+# ie. https://wwwdev.ebi.ac.uk/biosamples
+BIOSAMPLE_BASE_URL = URL(BIOSAMPLE_URL).parent
 
 BIOSAMPLE_PARAMS = MultiDict([
     ('size', PAGE_SIZE),
@@ -108,7 +113,9 @@ async def parse_json(response, url):
         return {}
 
 
-async def fetch_url(session, url=BIOSAMPLE_URL, params=BIOSAMPLE_PARAMS):
+async def fetch_url(
+        session, url, params=BIOSAMPLE_PARAMS, headers=None
+        ) -> typing.Awaitable[dict]:
     """
     Fetch a generic url, read data as json and return a promise
 
@@ -116,27 +123,26 @@ async def fetch_url(session, url=BIOSAMPLE_URL, params=BIOSAMPLE_PARAMS):
     ----------
     session : aiohttp.ClientSession
         an async session object.
-    url : str, optional
-        the desidered url. The default is BIOSAMPLE_URL.
+    url : str
+        the desidered url
     params : MultiDict, optional
         Additional params for request. The default is BIOSAMPLE_PARAMS.
+    headers : dict
+        Additional HEADER information
 
     Returns
     -------
-    dict
+    typing.Awaitable[dict]
         json content of the page
-
     """
-    """"""
 
-    # define a URL with yarl
-    url = URL(url)
+    # update URL params with yarl
     url = url.update_query(params)
 
     logger.debug(url)
 
     try:
-        async with session.get(url, headers=HEADERS) as response:
+        async with session.get(url, headers=headers) as response:
             # try to read json data
             return await parse_json(response, url)
 
@@ -147,13 +153,49 @@ async def fetch_url(session, url=BIOSAMPLE_URL, params=BIOSAMPLE_PARAMS):
         return {}
 
 
-async def filter_managed_biosamples(data, managed_domains):
+async def fecth_biosample(
+        session: aiohttp.ClientSession,
+        accession: str,
+        base_url: URL = BIOSAMPLE_BASE_URL,
+        headers: dict = HEADERS) -> typing.Awaitable[dict]:
+    """
+    Collect a single BioSample object from EBI
+
+    Parameters
+    ----------
+    session : aiohttp.ClientSession
+        an async session object.
+    accession : str
+        a BioSample accession ID.
+    base_url : URL, optional
+        DESCRIPTION. The default is BIOSAMPLE_BASE_URL.
+    headers : dict, optional
+        DESCRIPTION. The default is HEADERS.
+
+    Returns
+    -------
+    typing.Awaitable[dict]
+        A BioSample dictionary object
+    """
+
+    # define sample location
+    url = base_url / "samples" / accession
+
+    return await fetch_url(session, url, None, headers)
+
+
+async def filter_managed_biosamples(
+        session: aiohttp.ClientSession,
+        data: dict,
+        managed_domains: list):
     """
     Parse data from a BioSample results page and yield samples managed
     by InjectTool users.
 
     Parameters
     ----------
+    session : aiohttp.ClientSession
+        an async session object.
     data : dict
         biosample data read from BIOSAMPLE_URL.
     managed_domains : list
@@ -166,38 +208,48 @@ async def filter_managed_biosamples(data, managed_domains):
         a BioSample record.
 
     """
+    tasks = []
+
     # get samples objects
     try:
-        samples = data['_embedded']['samples']
+        accessions = data['_embedded']['accessions']
 
-        for sample in samples:
+    except KeyError as exc:
+        # logger exception. With repr() the exception name is rendered
+        logger.error(repr(exc))
+        logger.warning("error while parsing accessions")
+        logger.warning(data)
+
+    else:
+        for accession in accessions:
+            tasks.append(fecth_biosample(session, accession))
+
+        for task in asyncio.as_completed(tasks):
+            # read data
+            sample = await task
+
             # filter out unmanaged records
             if sample['domain'] not in managed_domains:
-                logger.warning("Ignoring %s" % (sample['name']))
+                logger.warning("Ignoring %s (%s)" % (
+                    sample['name'], sample['accession']))
                 continue
 
             # otherwise return to the caller the sample
             yield sample
 
-    except KeyError as exc:
-        # logger exception. With repr() the exception name is rendered
-        logger.error(repr(exc))
-        logger.warning("error while parsing samples")
-        logger.warning(data)
-
 
 async def get_biosamples(
-        url=BIOSAMPLE_URL,
+        base_url=BIOSAMPLE_BASE_URL,
         params=BIOSAMPLE_PARAMS,
         managed_domains=[]):
     """
-    Get all records from BioSamples for the IMAGE project. Fecth Biosample
-    once, determines how many pages to request and return only sample record
-    managed by InjectTool
+    Get all samples from BioSamples for the IMAGE project. Fecth Biosample
+    once, determines how many pages to request and return only accession
+    records managed by InjectTool
 
     Parameters
     ----------
-    url : str, optional
+    base_url : str, optional
         The desidered URL. The default is BIOSAMPLE_URL.
     params : MultiDict, optional
         Additional params for request. The default is BIOSAMPLE_PARAMS.
@@ -215,6 +267,9 @@ async def get_biosamples(
     # https://docs.aiohttp.org/en/stable/client_advanced.html
     connector = aiohttp.TCPConnector(limit=10, ttl_dns_cache=300)
 
+    # define accession location
+    url = base_url / "accessions"
+
     # https://stackoverflow.com/a/43857526
     async with aiohttp.ClientSession(connector=connector) as session:
         # get data for the first time to determine how many pages I have
@@ -228,7 +283,8 @@ async def get_biosamples(
 
         # process data and filter samples I own
         # https://stackoverflow.com/a/47378063
-        async for sample in filter_managed_biosamples(data, managed_domains):
+        async for sample in filter_managed_biosamples(
+                session, data, managed_domains):
             # return a managed biosample record
             yield sample
 
@@ -262,7 +318,7 @@ async def get_biosamples(
             # process data and filter samples I own
             # https://stackoverflow.com/a/47378063
             async for sample in filter_managed_biosamples(
-                    data, managed_domains):
+                    session, data, managed_domains):
                 yield sample
 
 
