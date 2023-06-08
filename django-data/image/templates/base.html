@@ -127,6 +127,17 @@
         </div>
       {% endif %}
 
+      <div class="alert alert-dismissible alert-danger">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <h4 class="alert-heading">Validation and Submission is no more available</h4>
+        <p class="mb-0">
+          EBI BioSample and OLS services made changes on their API and InjectTool is now unable to
+          validate and submit new dato into BioSamples. You can see more information in github issues
+          <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/119" class="alert-link">#119</a> and
+          <a href="https://github.com/cnr-ibba/IMAGE-InjectTool/issues/120" class="alert-link">#120</a>
+        </p>
+      </div>
+
       {# https://docs.djangoproject.com/en/1.11/ref/contrib/messages/#displaying-messages #}
       {% block messages %}
         {% if messages %}

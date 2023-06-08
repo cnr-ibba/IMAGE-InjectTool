@@ -7,6 +7,12 @@ TODO
 
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
+* Validate data using `OLSv4 <https://www.ebi.ac.uk/ols4>`__
+  (see `#119 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/119>`__
+  for more information)
+* Submit data into BioSamples with current BioSamples application
+  (see `#120 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/120>`__
+  for more information)
 
 0.9.8.dev0
 ----------
@@ -14,6 +20,7 @@ TODO
 Features
 ^^^^^^^^
 
+* Solve issues with ``SearchOrphanTask``
 * Update python magic file check when uploading data
 
 0.9.7 (2021-07-01)
