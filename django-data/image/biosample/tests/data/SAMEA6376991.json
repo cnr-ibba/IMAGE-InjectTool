@@ -1,0 +1,148 @@
+{
+  "name" : "IMAGEA000005610",
+  "accession" : "SAMEA6376991",
+  "domain" : "subs.test-team-1",
+  "release" : "2020-01-14T00:00:00Z",
+  "update" : "2020-01-15T15:04:44.006Z",
+  "taxId" : 9823,
+  "characteristics" : {
+    "Alternative id" : [ {
+      "text" : "6"
+    } ],
+    "Birth date" : [ {
+      "text" : "2017-11-06",
+      "unit" : "YYYY-MM-DD"
+    } ],
+    "Birth location accuracy" : [ {
+      "text" : "missing geographic information"
+    } ],
+    "Data source ID" : [ {
+      "text" : "6"
+    } ],
+    "Data source type" : [ {
+      "text" : "Template"
+    } ],
+    "Data source version" : [ {
+      "text" : "0.3"
+    } ],
+    "Description" : [ {
+      "text" : "Animal 6"
+    } ],
+    "EFABIS Breed country" : [ {
+      "text" : "Italy"
+    } ],
+    "Gene bank country" : [ {
+      "text" : "Italy",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCIT_C16761" ]
+    } ],
+    "Gene bank name" : [ {
+      "text" : "Cryoweb IT"
+    } ],
+    "IMAGE submission id" : [ {
+      "text" : "12"
+    } ],
+    "Mapped breed" : [ {
+      "text" : "pig breed",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/LBO_0000003" ]
+    } ],
+    "Organization address" : [ {
+      "text" : "Via E. Bassini, 15 / Via A. Corti 12, 20133 Milano"
+    } ],
+    "Organization country" : [ {
+      "text" : "Italy",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCIT_C16761" ]
+    } ],
+    "Organization name" : [ {
+      "text" : "IBBA-CNR"
+    } ],
+    "Organization role" : [ {
+      "text" : "submitter",
+      "ontologyTerms" : [ "http://www.ebi.ac.uk/efo/EFO_0001741" ]
+    } ],
+    "Organization uri" : [ {
+      "text" : "http://www.ibba.cnr.it/"
+    } ],
+    "Person affiliation" : [ {
+      "text" : "IBBA-CNR"
+    } ],
+    "Person email" : [ {
+      "text" : "mailto:paolo.cozzi@ibba.cnr.it"
+    } ],
+    "Person first name" : [ {
+      "text" : "Paolo"
+    } ],
+    "Person initial" : [ {
+      "text" : "PC"
+    } ],
+    "Person last name" : [ {
+      "text" : "Cozzi"
+    } ],
+    "Person role" : [ {
+      "text" : "submitter",
+      "ontologyTerms" : [ "http://www.ebi.ac.uk/efo/EFO_0001741" ]
+    } ],
+    "Supplied breed" : [ {
+      "text" : "Cinta Senese"
+    } ],
+    "description" : [ {
+      "text" : "Animal 6"
+    } ],
+    "material" : [ {
+      "text" : "organism",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/OBI_0100026" ]
+    } ],
+    "organism" : [ {
+      "text" : "Sus scrofa",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCBITaxon_9823" ]
+    } ],
+    "project" : [ {
+      "text" : "IMAGE"
+    } ],
+    "sex" : [ {
+      "text" : "female",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/PATO_0000383" ]
+    } ],
+    "species" : [ {
+      "text" : "Sus scrofa",
+      "ontologyTerms" : [ "http://purl.obolibrary.org/obo/NCBITaxon_9823" ]
+    } ],
+    "submission description" : [ {
+      "text" : "Test name collisions with relationship"
+    } ],
+    "submission title" : [ {
+      "text" : "Test name collisions"
+    } ],
+    "title" : [ {
+      "text" : "6"
+    } ]
+  },
+  "relationships" : [ {
+    "source" : "SAMEA6376980",
+    "type" : "child of",
+    "target" : "SAMEA6376991"
+  }, {
+    "source" : "SAMEA6376989",
+    "type" : "derived from",
+    "target" : "SAMEA6376991"
+  } ],
+  "releaseDate" : "2020-01-14",
+  "updateDate" : "2020-01-15",
+  "submittedVia" : "JSON_API",
+  "create" : "2019-12-04T15:15:42.433Z",
+  "_links" : {
+    "self" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376991"
+    },
+    "curationDomain" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376991{?curationdomain}",
+      "templated" : true
+    },
+    "curationLinks" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376991/curationlinks"
+    },
+    "curationLink" : {
+      "href" : "https://wwwdev.ebi.ac.uk/biosamples/samples/SAMEA6376991/curationlinks/{hash}",
+      "templated" : true
+    }
+  }
+}

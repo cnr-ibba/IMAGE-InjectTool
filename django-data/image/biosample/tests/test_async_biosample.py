@@ -19,10 +19,12 @@ from unittest.mock import patch, Mock
 from django.test import TestCase
 from django.utils import timezone
 
-from common.constants import BIOSAMPLE_URL, SUBMITTED, READY, COMPLETED
+from common.constants import SUBMITTED, READY, COMPLETED
 from uid.models import Animal as UIDAnimal, Sample as UIDSample
 
-from ..tasks.cleanup import check_samples, get_orphan_samples, PAGE_SIZE
+from ..tasks.cleanup import (
+    check_samples, get_orphan_samples, PAGE_SIZE, BIOSAMPLE_ACCESSION_ENDPOINT,
+    BIOSAMPLE_SAMPLE_ENDPOINT)
 from ..models import OrphanSample, ManagedTeam
 
 from .common import generate_token, BioSamplesMixin
@@ -42,6 +44,13 @@ with open(os.path.join(DATA_PATH, "page_1.json")) as handle:
 
 with open(os.path.join(DATA_PATH, "issue_page1.json")) as handle:
     issue_page1 = handle.read()
+
+mocked_accessions = {}
+
+for accession in ["SAMEA6376679", "SAMEA6376682", "SAMEA6376980",
+                  "SAMEA6376982", "SAMEA6376991", "SAMEA6376992"]:
+    with open(os.path.join(DATA_PATH, f"{accession}.json")) as handle:
+        mocked_accessions[accession] = handle.read()
 
 
 class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
@@ -98,30 +107,39 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
         self.mock_auth.return_value.text = generate_token()
         self.mock_auth.return_value.status_code = 200
 
-    async def test_request(self) -> None:
+    async def check_samples(self):
         with aioresponses() as mocked:
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 body=page0)
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 body=page1)
+            for accession, body in mocked_accessions.items():
+                mocked.get(
+                    '{url}/{accession}'.format(
+                        url=BIOSAMPLE_SAMPLE_ENDPOINT, accession=accession),
+                    status=200,
+                    body=body)
 
             await check_samples()
 
-            # get accessions
-            reference = ['SAMEA6376991', 'SAMEA6376992']
+    async def test_request(self) -> None:
+        await self.check_samples()
 
-            self.assertEqual(OrphanSample.objects.count(), 2)
+        # get accessions
+        reference = ['SAMEA6376991', 'SAMEA6376992']
 
-            # check objects into UID
-            for accession in reference:
-                orphan = OrphanSample.objects.get(biosample_id=accession)
-                orphan.status = READY
+        self.assertEqual(OrphanSample.objects.count(), 2)
+
+        # check objects into UID
+        for accession in reference:
+            orphan = OrphanSample.objects.get(biosample_id=accession)
+            orphan.status = READY
 
     async def test_request_with_issues(self) -> None:
         """Test a temporary issue with BioSamples reply"""
@@ -129,14 +147,20 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
         with aioresponses() as mocked:
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 body=page0)
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 body=issue_page1)
+            for accession, body in mocked_accessions.items():
+                mocked.get(
+                    '{url}/{accession}'.format(
+                        url=BIOSAMPLE_SAMPLE_ENDPOINT, accession=accession),
+                    status=200,
+                    body=body)
 
             await check_samples()
 
@@ -149,15 +173,21 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
         with aioresponses() as mocked:
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 body=page0)
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 headers={'Content-type': 'text/html'},
                 body="<html>Not a JSON</html>")
+            for accession, body in mocked_accessions.items():
+                mocked.get(
+                    '{url}/{accession}'.format(
+                        url=BIOSAMPLE_SAMPLE_ENDPOINT, accession=accession),
+                    status=200,
+                    body=body)
 
             await check_samples()
 
@@ -170,13 +200,13 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
         with aioresponses() as mocked:
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 headers={'Content-type': 'text/html'},
                 body="<html>Not a JSON</html>")
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 status=200,
                 headers={'Content-type': 'text/html'},
                 body="<html>Not a JSON</html>")
@@ -193,7 +223,7 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
         with aioresponses() as mocked:
             mocked.get(
                 '{url}?filter=attr:project:IMAGE&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
+                    url=BIOSAMPLE_ACCESSION_ENDPOINT, size=PAGE_SIZE),
                 exception=ServerDisconnectedError()
             )
 
@@ -225,19 +255,7 @@ class AsyncBioSamplesTestCase(asynctest.TestCase, TestCase):
             removed_at=timezone.now()
         )
 
-        with aioresponses() as mocked:
-            mocked.get(
-                '{url}?filter=attr:project:IMAGE&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
-                status=200,
-                body=page0)
-            mocked.get(
-                '{url}?filter=attr:project:IMAGE&page=1&size={size}'.format(
-                    url=BIOSAMPLE_URL, size=PAGE_SIZE),
-                status=200,
-                body=page1)
-
-            await check_samples()
+        await self.check_samples()
 
         # test: there are the same samples in database
         self.assertEqual(OrphanSample.objects.count(), 2)

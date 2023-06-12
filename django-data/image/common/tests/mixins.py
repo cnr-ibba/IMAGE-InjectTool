@@ -8,6 +8,7 @@ Created on Wed Mar 27 14:34:02 2019
 
 import os
 import shutil
+import pathlib
 
 from unittest.mock import patch, Mock
 
@@ -134,7 +135,7 @@ class DataSourceMixinTestCase(object):
         """Remove test data from data source if needed"""
 
         # remove file if I placed it for tests
-        if cls.uploaded_file:
+        if cls.uploaded_file and pathlib.Path(cls.dst_path).exists():
             os.remove(cls.dst_path)
 
         # calling my base class teardown class
