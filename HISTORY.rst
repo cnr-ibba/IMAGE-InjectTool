@@ -14,8 +14,8 @@ TODO
   (see `#120 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/120>`__
   for more information)
 
-0.9.8.dev0
-----------
+0.9.8 (2023-06-12)
+------------------
 
 Features
 ^^^^^^^^
