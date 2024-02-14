@@ -98,7 +98,7 @@ class SampleAdmin(admin.ModelAdmin):
         'animal_age_at_collection', 'animal_age_at_collection_units',
         'availability', 'storage', 'storage_processing',
         'preparation_interval', 'preparation_interval_units',
-        'description', 'publication', 'owner'
+        'description', 'publication', 'owner', "same_as",
         )
 
     # To tell Django we want to perform a join instead of fetching the names of
@@ -112,7 +112,7 @@ class SampleAdmin(admin.ModelAdmin):
     list_filter = ('owner', 'status')
 
     fields = (
-        ('name', 'alternative_id', 'biosample_id'),
+        ('name', 'alternative_id', 'biosample_id', "same_as"),
         ('submission', 'owner', 'status'),
         ('description', 'publication'),
         ('animal', 'protocol', 'organism_part'),
@@ -140,7 +140,7 @@ class AnimalAdmin(admin.ModelAdmin):
         'last_submitted', 'alternative_id', 'breed', 'sex', 'father', 'mother',
         'birth_date', 'birth_location', 'birth_location_latitude',
         'birth_location_longitude', 'birth_location_accuracy', 'description',
-        'publication', 'owner'
+        'publication', 'owner', "same_as",
         )
 
     list_filter = ('owner', 'status')
@@ -149,7 +149,7 @@ class AnimalAdmin(admin.ModelAdmin):
     readonly_fields = ("owner",)
 
     fields = (
-        ('name', 'alternative_id', 'biosample_id'),
+        ('name', 'alternative_id', 'biosample_id', "same_as"),
         ('submission', 'owner', 'status'),
         ('description', 'publication'),
         ('breed', 'sex'),
