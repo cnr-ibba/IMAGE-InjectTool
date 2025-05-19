@@ -5,18 +5,20 @@
 # Required
 version: 2
 
-# Build documentation in the docs/ directory with Sphinx
-sphinx:
-  configuration: django-data/image/docs/source/conf.py
+build:
+  os: "ubuntu-24.04"
 
-# Build documentation with MkDocs
-#mkdocs:
-#  configuration: mkdocs.yml
-
-# Optionally build your docs in additional formats such as PDF and ePub
-formats: all
+  tools:
+    python: "mambaforge-22.9"
 
 # compile documentation using a conda environment (try to solve mysqlclient
 # dependency issue)
 conda:
   environment: django-data/image/docs/environment.yml
+
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+  configuration: django-data/image/docs/source/conf.py
+
+# Optionally build your docs in additional formats such as PDF and ePub
+formats: all
