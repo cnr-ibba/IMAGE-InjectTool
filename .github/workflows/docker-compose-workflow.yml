@@ -47,23 +47,23 @@ jobs:
       - name: install stuff
         run: |
           mkdir postgres-data
-          docker-compose pull
-          docker-compose build
-          docker-compose up -d db redis
-          docker-compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/media'
-          docker-compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
-          docker-compose run --no-deps --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
-          docker-compose run --no-deps --rm uwsgi sh -c 'chgrp -R www-data .'
-          docker-compose ps
+          docker compose pull
+          docker compose build
+          docker compose up -d db redis
+          docker compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/media'
+          docker compose run --no-deps --rm uwsgi sh -c 'mkdir -p /var/uwsgi/image/protected/data_source/'
+          docker compose run --no-deps --rm uwsgi sh -c 'chmod -R g+rwx media && chmod -R g+rwx protected'
+          docker compose run --no-deps --rm uwsgi sh -c 'chgrp -R www-data .'
+          docker compose ps
 
       - name: Run test suite
-        run: docker-compose run --no-deps --rm uwsgi /root/wait-for-postgres.sh coverage run --source='.' -m py.test
+        run: docker compose run --no-deps --rm uwsgi /root/wait-for-postgres.sh coverage run --source='.' -m py.test
 
       - name: Submitting coverage and code quality
         run: |
-          docker-compose run --rm uwsgi coveralls
-          docker-compose run --rm uwsgi ocular
+          docker compose run --rm uwsgi coveralls
+          docker compose run --rm uwsgi ocular
 
       - name: Stop containers
         if: always()
-        run: docker-compose down
+        run: docker compose down
