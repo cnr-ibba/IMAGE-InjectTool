@@ -234,6 +234,16 @@ class BioSampleMixin(BaseMixin):
         # define attributes that will be customized in Animal and sample
         result['attributes'] = self.get_attributes()
 
+        # define an empty relationship array
+        result['sampleRelationships'] = []
+
+        # test for same as relationship
+        if self.same_as and self.same_as != '':
+            result['sampleRelationships'].append({
+                "relationshipNature": "same as",
+                "accession": self.same_as
+            })
+
         return result
 
     def __status_not_in(self, statuses):
