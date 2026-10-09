@@ -9,7 +9,7 @@
 # Get the last stable nginx image
 FROM nginx:1.15
 
-MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
+LABEL maintainer="Paolo Cozzi <cozzi@ibba.cnr.it>"
 
 # synchronize timezone for container
 # https://forums.docker.com/t/synchronize-timezone-from-host-to-container/39116

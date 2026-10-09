@@ -8,7 +8,7 @@
 # get the latest redis image
 FROM redis:alpine
 
-MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
+LABEL maintainer="Paolo Cozzi <cozzi@ibba.cnr.it>"
 
 # synchronize timezone for container
 # https://serverfault.com/a/683651
