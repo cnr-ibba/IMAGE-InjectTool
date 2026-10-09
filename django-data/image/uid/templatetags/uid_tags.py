@@ -19,8 +19,13 @@ register = template.Library()
 @register.simple_tag
 def git_describe():
     # https://stackoverflow.com/a/14989911
-    version = subprocess.check_output(
-        ["git", "describe", "--tags", "--always"]).strip()
+    try:
+        version = subprocess.check_output(
+            ["git", "describe", "--tags", "--always"]).strip()
+
+    # git is missing or there's no repository (ie .git not mounted)
+    except (subprocess.CalledProcessError, OSError):
+        return "unknown"
 
     return version.decode('utf8')
 
@@ -28,8 +33,15 @@ def git_describe():
 # browse git repository using current version
 @register.simple_tag
 def get_git_link():
-    version = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
     link = "https://github.com/cnr-ibba/IMAGE-InjectTool/tree/"
+
+    try:
+        version = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"]).strip()
+
+    # fall back to the release branch if the current version is unknown
+    except (subprocess.CalledProcessError, OSError):
+        return link + "master"
 
     # decode a binary object in order to add it to string
     return link + version.decode('utf8')
