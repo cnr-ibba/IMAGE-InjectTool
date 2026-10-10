@@ -8,7 +8,7 @@
 # get the latest postgres server
 FROM postgres:9.6
 
-MAINTAINER Paolo Cozzi <cozzi@ibba.cnr.it>
+LABEL maintainer="Paolo Cozzi <cozzi@ibba.cnr.it>"
 
 # synchronize timezone for container
 # https://forums.docker.com/t/synchronize-timezone-from-host-to-container/39116

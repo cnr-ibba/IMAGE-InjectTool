@@ -17,6 +17,12 @@ LABEL maintainer="Paolo Cozzi <cozzi@ibba.cnr.it>"
 RUN echo "Europe/Rome" > /etc/timezone
 RUN dpkg-reconfigure -f noninteractive tzdata
 
+# Debian bullseye is EOL: use the archive mirrors
+RUN sed -i -e 's|deb.debian.org/debian|archive.debian.org/debian|g' \
+    -e 's|security.debian.org/debian-security|archive.debian.org/debian-security|g' \
+    -e '/bullseye-updates/d' /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99archive
+
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \

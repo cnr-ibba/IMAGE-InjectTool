@@ -1,5 +1,4 @@
 
-version: "3.2"
 services:
   # Create a composed Django-Postgres-NGINX instance
   db:
