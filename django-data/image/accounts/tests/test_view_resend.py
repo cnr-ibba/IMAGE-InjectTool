@@ -9,8 +9,6 @@ Test resend keys stuff
 
 """
 
-from unittest.mock import patch
-
 from django.core import mail
 from django.test import TestCase
 from django.urls import resolve, reverse
@@ -18,8 +16,9 @@ from django.contrib.auth.models import User
 
 from registration.forms import ResendActivationForm
 
-from ..views import ResendActivationView, SignUpView
+from ..views import ResendActivationView
 from ..models import MyRegistrationProfile
+from .mixins import OpenRegistrationMixin
 
 
 # Create your tests here.
@@ -38,13 +37,9 @@ class ClosedResendActivationViewTest(TestCase):
         self.assertEqual(len(mail.outbox), 0)
 
 
-class ResendActivationViewTest(TestCase):
+class ResendActivationViewTest(OpenRegistrationMixin, TestCase):
     def setUp(self):
-        # registration is closed: re-open it just to test the view
-        patcher = patch.object(
-            ResendActivationView, 'registration_allowed', return_value=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        super().setUp()
 
         url = reverse('accounts:registration_resend_activation')
         self.response = self.client.get(url)
@@ -75,7 +70,7 @@ class ResendActivationViewTest(TestCase):
         self.assertContains(self.response, 'type="email"', 1)
 
 
-class BaseTest(TestCase):
+class BaseTest(OpenRegistrationMixin, TestCase):
     fixtures = [
         "uid/dictcountry.json",
         "uid/dictrole.json",
@@ -83,16 +78,7 @@ class BaseTest(TestCase):
     ]
 
     def setUp(self):
-        # registration is closed: re-open it just to create a user to test
-        patcher = patch.object(
-            SignUpView, 'registration_allowed', return_value=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
-
-        patcher = patch.object(
-            ResendActivationView, 'registration_allowed', return_value=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        super().setUp()
 
         url = reverse('accounts:registration_register')
 

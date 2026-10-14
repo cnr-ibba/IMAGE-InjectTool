@@ -10,7 +10,6 @@ Test sending mail with activation keys
 """
 
 import datetime
-from unittest.mock import patch
 
 from django.core import mail
 from django.test import TestCase
@@ -19,10 +18,10 @@ from django.contrib.auth.models import User
 
 from django.conf import settings
 
-from ..views import ResendActivationView, SignUpView
+from .mixins import OpenRegistrationMixin
 
 
-class ActivationTest(TestCase):
+class ActivationTest(OpenRegistrationMixin, TestCase):
     fixtures = [
         "uid/dictcountry.json",
         "uid/dictrole.json",
@@ -30,16 +29,7 @@ class ActivationTest(TestCase):
     ]
 
     def setUp(self):
-        # registration is closed: re-open it just to create a user to test
-        patcher = patch.object(
-            SignUpView, 'registration_allowed', return_value=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
-
-        patcher = patch.object(
-            ResendActivationView, 'registration_allowed', return_value=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        super().setUp()
 
         url = reverse('accounts:registration_register')
 

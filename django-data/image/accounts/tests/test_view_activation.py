@@ -9,17 +9,15 @@ Testing activation keys and views
 
 """
 
-from unittest.mock import patch
-
 from django.test import TestCase, Client
 from django.urls import reverse, resolve
 
-from ..views import (
-    ActivationView, ActivationComplete, ResendActivationView, SignUpView)
+from ..views import ActivationView, ActivationComplete
 from ..models import create_key
+from .mixins import OpenRegistrationMixin
 
 
-class BaseTest(TestCase):
+class BaseTest(OpenRegistrationMixin, TestCase):
     fixtures = [
         "uid/dictcountry.json",
         "uid/dictrole.json",
@@ -27,16 +25,7 @@ class BaseTest(TestCase):
     ]
 
     def setUp(self):
-        # registration is closed: re-open it just to create a user to test
-        patcher = patch.object(
-            SignUpView, 'registration_allowed', return_value=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
-
-        patcher = patch.object(
-            ResendActivationView, 'registration_allowed', return_value=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        super().setUp()
 
         url = reverse('accounts:registration_register')
 

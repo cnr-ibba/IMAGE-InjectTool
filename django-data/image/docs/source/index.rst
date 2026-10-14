@@ -16,7 +16,6 @@ contents. InjectTool is able to perform time consuming task on the background, l
 user data to `BioSamples <https://www.ebi.ac.uk/biosamples/>`_, using
 `Celery <https://docs.celeryproject.org/en/latest/>`_.
 
-
 .. warning::
 
    **User registration is currently disabled.** It is no longer possible to submit

@@ -28,6 +28,14 @@ class SignUpTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Registration is currently closed")
 
+    def test_no_signup_links(self):
+        """Anonymous users don't see any signup link in navbar or login"""
+
+        for url in [reverse('login'), reverse('index')]:
+            response = self.client.get(url)
+            self.assertNotContains(response, self.url)
+            self.assertNotContains(response, "Sign up")
+
     def test_post_doesnt_create_user(self):
         """A valid signup submission is redirected and doesn't register"""
 
