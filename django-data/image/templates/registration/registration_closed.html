@@ -1,0 +1,20 @@
+{% extends "registration/registration_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Registration closed" %}{% endblock %}
+
+{% block content %}
+  <p>
+    Registration is currently closed. It is no longer possible to submit data to EBI BioSamples through InjectTool, since both the way OLS manages data and the way BioSamples accepts submissions have changed. For this reason new accounts can't be created.
+  </p>
+  <p class="lead text-center">
+    <a class="btn btn-primary btn-lg" href="{% url 'index' %}" role="button">Home</a>
+  </p>
+{% endblock %}
+
+
+{% comment %}
+**registration/registration_closed.html**
+
+Used when registration is not allowed (see ``SignUpView.registration_allowed``).
+{% endcomment %}

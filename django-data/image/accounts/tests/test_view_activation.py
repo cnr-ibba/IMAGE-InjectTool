@@ -9,10 +9,12 @@ Testing activation keys and views
 
 """
 
+from unittest.mock import patch
+
 from django.test import TestCase, Client
 from django.urls import reverse, resolve
 
-from ..views import ActivationView, ActivationComplete
+from ..views import ActivationView, ActivationComplete, SignUpView
 from ..models import create_key
 
 
@@ -24,6 +26,12 @@ class BaseTest(TestCase):
     ]
 
     def setUp(self):
+        # registration is closed: re-open it just to create a user to test
+        patcher = patch.object(
+            SignUpView, 'registration_allowed', return_value=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
         url = reverse('accounts:registration_register')
 
         # SignUpForm is a multiform object, so input type name has the name of

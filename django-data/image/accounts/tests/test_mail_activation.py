@@ -10,6 +10,7 @@ Test sending mail with activation keys
 """
 
 import datetime
+from unittest.mock import patch
 
 from django.core import mail
 from django.test import TestCase
@@ -17,6 +18,8 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 
 from django.conf import settings
+
+from ..views import SignUpView
 
 
 class ActivationTest(TestCase):
@@ -27,6 +30,12 @@ class ActivationTest(TestCase):
     ]
 
     def setUp(self):
+        # registration is closed: re-open it just to create a user to test
+        patcher = patch.object(
+            SignUpView, 'registration_allowed', return_value=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
         url = reverse('accounts:registration_register')
 
         # SignUpForm is a multiform object, so input type name has the name of

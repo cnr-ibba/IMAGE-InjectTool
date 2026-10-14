@@ -45,6 +45,13 @@ class SignUpView(RegistrationView):
     form_class = SignUpForm
     template_name = 'accounts/signup.html'
     success_url = 'accounts:registration_complete'
+    disallowed_url = 'accounts:registration_disallowed'
+
+    def registration_allowed(self):
+        # registration is closed: submission to BioSamples is no more possible
+        # (OLS and BioSamples changed the way they handle data and
+        # submissions). Set to True to re-open registration
+        return False
 
     # add the request to the kwargs
     # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
