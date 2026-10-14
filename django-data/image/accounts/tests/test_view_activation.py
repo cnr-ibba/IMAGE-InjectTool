@@ -14,9 +14,10 @@ from django.urls import reverse, resolve
 
 from ..views import ActivationView, ActivationComplete
 from ..models import create_key
+from .mixins import OpenRegistrationMixin
 
 
-class BaseTest(TestCase):
+class BaseTest(OpenRegistrationMixin, TestCase):
     fixtures = [
         "uid/dictcountry.json",
         "uid/dictrole.json",
@@ -24,6 +25,8 @@ class BaseTest(TestCase):
     ]
 
     def setUp(self):
+        super().setUp()
+
         url = reverse('accounts:registration_register')
 
         # SignUpForm is a multiform object, so input type name has the name of

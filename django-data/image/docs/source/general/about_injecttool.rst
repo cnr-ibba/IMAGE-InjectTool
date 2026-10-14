@@ -12,6 +12,16 @@ private space, they can validate their data against `IMAGE-metadata`_ and can fi
 or update data using the application. If data are compliant with `IMAGE-metadata`_
 standards, they could upload their data into `BioSamples`_ using and use this
 application even to maintain and update data from InjectTool to `BioSamples`_.
+
+.. warning::
+
+   User registration is currently disabled (see :py:class:`accounts.views.SignUpView`),
+   since it is no longer possible to submit data to `BioSamples`_: both the way OLS
+   manages data and the way BioSamples accepts submissions have changed. The
+   registration (and the activation mail resend) pages redirect to a *registration closed* page.
+   To re-open registration, change ``registration_allowed`` in
+   :py:class:`accounts.views.SignUpView` and :py:class:`accounts.views.ResendActivationView`.
+
 InjectTool site is available `here <https://inject.image2020genebank.eu/>`_,
 while its code is available from `github <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
 

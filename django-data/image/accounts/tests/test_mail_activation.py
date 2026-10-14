@@ -18,8 +18,10 @@ from django.contrib.auth.models import User
 
 from django.conf import settings
 
+from .mixins import OpenRegistrationMixin
 
-class ActivationTest(TestCase):
+
+class ActivationTest(OpenRegistrationMixin, TestCase):
     fixtures = [
         "uid/dictcountry.json",
         "uid/dictrole.json",
@@ -27,6 +29,8 @@ class ActivationTest(TestCase):
     ]
 
     def setUp(self):
+        super().setUp()
+
         url = reverse('accounts:registration_register')
 
         # SignUpForm is a multiform object, so input type name has the name of

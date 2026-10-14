@@ -18,11 +18,29 @@ from registration.forms import ResendActivationForm
 
 from ..views import ResendActivationView
 from ..models import MyRegistrationProfile
+from .mixins import OpenRegistrationMixin
 
 
 # Create your tests here.
-class ResendActivationViewTest(TestCase):
+class ClosedResendActivationViewTest(TestCase):
+    def test_redirect_to_closed(self):
+        """Registration is closed, so resend page redirects"""
+
+        url = reverse('accounts:registration_resend_activation')
+        closed_url = reverse('accounts:registration_disallowed')
+
+        response = self.client.get(url)
+        self.assertRedirects(response, closed_url)
+
+        response = self.client.post(url, {'email': 'john@doe.com'})
+        self.assertRedirects(response, closed_url)
+        self.assertEqual(len(mail.outbox), 0)
+
+
+class ResendActivationViewTest(OpenRegistrationMixin, TestCase):
     def setUp(self):
+        super().setUp()
+
         url = reverse('accounts:registration_resend_activation')
         self.response = self.client.get(url)
 
@@ -52,7 +70,7 @@ class ResendActivationViewTest(TestCase):
         self.assertContains(self.response, 'type="email"', 1)
 
 
-class BaseTest(TestCase):
+class BaseTest(OpenRegistrationMixin, TestCase):
     fixtures = [
         "uid/dictcountry.json",
         "uid/dictrole.json",
@@ -60,6 +78,8 @@ class BaseTest(TestCase):
     ]
 
     def setUp(self):
+        super().setUp()
+
         url = reverse('accounts:registration_register')
 
         # SignUpForm is a multiform object, so input type name has the name of

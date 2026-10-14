@@ -45,6 +45,13 @@ class SignUpView(RegistrationView):
     form_class = SignUpForm
     template_name = 'accounts/signup.html'
     success_url = 'accounts:registration_complete'
+    disallowed_url = 'accounts:registration_disallowed'
+
+    def registration_allowed(self):
+        # registration is closed: submission to BioSamples is no more possible
+        # (OLS and BioSamples changed the way they handle data and
+        # submissions). Set to True to re-open registration
+        return False
 
     # add the request to the kwargs
     # https://chriskief.com/2012/12/18/django-modelform-formview-and-the-request-object/
@@ -229,6 +236,19 @@ class ActivationView(RegistrationActivationView):
 # override redux activation view
 class ResendActivationView(BaseResendActivationView):
     registration_profile = MyRegistrationProfile
+    disallowed_url = 'accounts:registration_disallowed'
+
+    def registration_allowed(self):
+        # registration is closed, so there's no reason to resend an activation
+        # mail (see SignUpView.registration_allowed). Set to True to re-open
+        return False
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.registration_allowed():
+            return redirect(self.disallowed_url)
+
+        return super(ResendActivationView, self).dispatch(
+            request, *args, **kwargs)
 
     def form_valid(self, form):
         """
