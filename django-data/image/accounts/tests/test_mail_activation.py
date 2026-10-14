@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 
 from django.conf import settings
 
-from ..views import SignUpView
+from ..views import ResendActivationView, SignUpView
 
 
 class ActivationTest(TestCase):
@@ -33,6 +33,11 @@ class ActivationTest(TestCase):
         # registration is closed: re-open it just to create a user to test
         patcher = patch.object(
             SignUpView, 'registration_allowed', return_value=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        patcher = patch.object(
+            ResendActivationView, 'registration_allowed', return_value=True)
         patcher.start()
         self.addCleanup(patcher.stop)
 

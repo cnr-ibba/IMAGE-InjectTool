@@ -23,8 +23,29 @@ from ..models import MyRegistrationProfile
 
 
 # Create your tests here.
+class ClosedResendActivationViewTest(TestCase):
+    def test_redirect_to_closed(self):
+        """Registration is closed, so resend page redirects"""
+
+        url = reverse('accounts:registration_resend_activation')
+        closed_url = reverse('accounts:registration_disallowed')
+
+        response = self.client.get(url)
+        self.assertRedirects(response, closed_url)
+
+        response = self.client.post(url, {'email': 'john@doe.com'})
+        self.assertRedirects(response, closed_url)
+        self.assertEqual(len(mail.outbox), 0)
+
+
 class ResendActivationViewTest(TestCase):
     def setUp(self):
+        # registration is closed: re-open it just to test the view
+        patcher = patch.object(
+            ResendActivationView, 'registration_allowed', return_value=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
         url = reverse('accounts:registration_resend_activation')
         self.response = self.client.get(url)
 
@@ -65,6 +86,11 @@ class BaseTest(TestCase):
         # registration is closed: re-open it just to create a user to test
         patcher = patch.object(
             SignUpView, 'registration_allowed', return_value=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        patcher = patch.object(
+            ResendActivationView, 'registration_allowed', return_value=True)
         patcher.start()
         self.addCleanup(patcher.stop)
 

@@ -14,7 +14,8 @@ from unittest.mock import patch
 from django.test import TestCase, Client
 from django.urls import reverse, resolve
 
-from ..views import ActivationView, ActivationComplete, SignUpView
+from ..views import (
+    ActivationView, ActivationComplete, ResendActivationView, SignUpView)
 from ..models import create_key
 
 
@@ -29,6 +30,11 @@ class BaseTest(TestCase):
         # registration is closed: re-open it just to create a user to test
         patcher = patch.object(
             SignUpView, 'registration_allowed', return_value=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+        patcher = patch.object(
+            ResendActivationView, 'registration_allowed', return_value=True)
         patcher.start()
         self.addCleanup(patcher.stop)
 
