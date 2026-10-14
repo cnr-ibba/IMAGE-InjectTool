@@ -18,6 +18,20 @@ TODO
   (see `#120 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/120>`__
   for more information)
 
+0.9.9 (2026-10-14)
+------------------
+
+Features
+^^^^^^^^
+
+* User registration is disabled, since it is no longer possible to submit data
+  into BioSamples
+* Handle missing git repository in version template tags
+* Migrate to ``docker compose``, replace deprecated ``MAINTAINER`` with
+  ``LABEL`` and use debian archive mirrors for EOL bullseye in uwsgi image
+* Update ReadTheDocs configuration
+* Add ``CLAUDE.md`` with repository guidance
+
 0.9.8 (2023-06-12)
 ------------------
 
