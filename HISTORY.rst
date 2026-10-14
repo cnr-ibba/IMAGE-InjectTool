@@ -5,6 +5,10 @@ History
 TODO
 ----
 
+* User registration is disabled since it is no longer possible to submit data
+  into BioSamples: re-enable it by setting ``registration_allowed`` in
+  ``accounts.views.SignUpView`` and ``accounts.views.ResendActivationView``
+
 * ``django-tables`` and ``django-filters`` integration
 * *same as* relationship support
 * Validate data using `OLSv4 <https://www.ebi.ac.uk/ols4>`__

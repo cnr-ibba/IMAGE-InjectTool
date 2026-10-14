@@ -16,6 +16,16 @@ contents. InjectTool is able to perform time consuming task on the background, l
 user data to `BioSamples <https://www.ebi.ac.uk/biosamples/>`_, using
 `Celery <https://docs.celeryproject.org/en/latest/>`_.
 
+
+.. warning::
+
+   **User registration is currently disabled.** It is no longer possible to submit
+   data to BioSamples through InjectTool, since both the way `OLS <https://www.ebi.ac.uk/ols4>`_
+   manages data and the way BioSamples accepts submissions have changed. For this reason
+   new accounts can't be created until submission is supported again (see
+   `#119 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/119>`__ and
+   `#120 <https://github.com/cnr-ibba/IMAGE-InjectTool/issues/120>`__).
+
 InjectTool is available at https://inject.image2020genebank.eu/, while the repository of
 source code is maintained at `GitHub <https://github.com/cnr-ibba/IMAGE-InjectTool>`_
 
