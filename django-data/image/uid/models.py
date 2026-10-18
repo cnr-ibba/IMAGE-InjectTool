@@ -140,6 +140,12 @@ class Name(BaseMixin, models.Model):
         null=True,
         unique=True)
 
+    # model a same as relationship
+    same_as = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True)
+
     # '+' instructs Django that we don’t need this reverse relationship
     owner = models.ForeignKey(
         User,
@@ -670,9 +676,6 @@ class Animal(BioSampleMixin, Name):
         # with USI mandatory keys and attributes
         result = super().to_biosample(release_date)
 
-        # define relationship with mother and father (if possible)
-        result['sampleRelationships'] = []
-
         father_relationship = self.get_father_relationship()
 
         if father_relationship is not None:
@@ -870,7 +873,7 @@ class Sample(BioSampleMixin, Name):
         result = super().to_biosample(release_date)
 
         # define relationship to the animal where this sample come from
-        result['sampleRelationships'] = [self.animal.get_relationship()]
+        result['sampleRelationships'].append(self.animal.get_relationship())
 
         return result
 

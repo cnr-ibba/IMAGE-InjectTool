@@ -192,5 +192,10 @@
       }
     ]
   },
-  "sampleRelationships": []
+  "sampleRelationships": [
+    {
+      "relationshipNature": "same as",
+      "accession": "SAMEA4450079"
+    }
+  ]
 }
